@@ -43,6 +43,26 @@ As of September 2013, Android devices known to have BLE include: Samsung Galaxy 
 1. Do a git clone of this project
 2. Import it as an existing project into your Eclipse workspace
 3. In a new/existing Android Application project, go to Project -> Properties -> Java Build Path -> Libraries -> Add Library, then select the imported project from step 2.
+4. Add the follwing service declarations to your AnroidManifest.xml, replacing {my app's package name} with the fully qualified package name of your Android application.
+
+```
+		<service android:enabled="true"
+         	android:exported="true"
+         	android:isolatedProcess="false"
+         	android:label="iBeacon"
+         	android:name="com.radiusnetworks.ibeacon.service.IBeaconService">
+		</service>    
+		<service android:enabled="true" 
+         	android:name="com.radiusnetworks.ibeacon.IBeaconIntentProcessor">
+			<meta-data android:name="rangeNotifier" android:value="com.messageradius.scavengerhunt.RangeHandler" />
+			<intent-filter 
+               android:priority="1" >
+				<action android:name="{my app's package name}.DID_RANGING" />
+				<action android:name="{my app's package name}.DID_MONITORING" />
+			</intent-filter>
+		</service>  
+```
+
 
 ## Monitoring Example Code
 
@@ -100,3 +120,16 @@ public class MyActivity extends Activity implements IBeaconConsumer  {
 }
 
 ```
+
+## SDK
+
+The SDK is a port of the iOS SDK as much as possible.  The table below shows the Android Class and the equivalent iOS class, with a link to the iOS docuentation.
+Android | iOS 
+------- | --- 
+Region  | [CLBeaconRegion](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLBeaconRegion_class/Reference/Reference.html)
+IBeacon | [CLBeacon](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLBeacon_class/Reference/Reference.html)
+IBeaconManager | [CLLocationManager](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/CLLocationManager/CLLocationManager.html)
+IBeaconConsumer | N/A 
+MonitorNotifier | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
+RangeNotifier | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
+

@@ -25,8 +25,6 @@ package com.radiusnetworks.ibeacon.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-
 import com.radiusnetworks.ibeacon.IBeacon;
 import com.radiusnetworks.ibeacon.Region;
 

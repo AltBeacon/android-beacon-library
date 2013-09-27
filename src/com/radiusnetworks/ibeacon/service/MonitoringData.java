@@ -29,6 +29,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class MonitoringData implements Parcelable {
+	@SuppressWarnings("unused")
 	private static final String TAG = "MonitoringData";
 	private boolean inside;
 	private RegionData regionData;

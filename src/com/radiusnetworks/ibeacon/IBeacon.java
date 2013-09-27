@@ -23,55 +23,139 @@
  */
 package com.radiusnetworks.ibeacon;
 
+/**
+* The <code>IBeacon</code> class represents a single hardware iBeacon detected by 
+* an Android device.
+* 
+* <pre>An iBeacon is identified by a three part identifier based on the fields
+* proximityUUID - a string UUID typically identifying the owner of a
+*                 number of ibeacons
+* major - a 16 bit integer indicating a group of iBeacons
+* minor - a 16 bit integer identifying a single iBeacon</pre>
+*
+* An iBeacon sends a Bluetooth Low Energy (BLE) advertisement that contains these
+* three identifiers, along with the calibrated tx power (in RSSI) of the 
+* iBeacon's Bluetooth transmitter.  
+* 
+* This class may only be instantiated from a BLE packet, and an RSSI measurement for
+* the packet.  The class parses out the three part identifier, along with the calibrated
+* tx power.  It then uses the measured RSSI and calibrated tx power to do a rough
+* distance measurement (the accuracy field) and group it into a more reliable buckets of 
+* distance (the proximity field.)
+* 
+* @author  David G. Young
+* @see     com.radiusnetworks.ibeacon.Region#matchesIBeacon()
+*/
 public class IBeacon { 
+	/**
+	 * Less than half a meter away
+	 */
 	public static final int PROXIMITY_IMMEDIATE = 1;
+	/**
+	 * More than half a meter away, but less than four meters away
+	 */
 	public static final int PROXIMITY_NEAR = 2;
+	/**
+	 * More than four meters away
+	 */
 	public static final int PROXIMITY_FAR = 3;
+	/**
+	 * No distance estimate was possible due to a bad RSSI value or measured TX power
+	 */
 	public static final int PROXIMITY_UNKNOWN = 0;
+
+    final private static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 	
-	protected double accuracy;
-	protected int major;
-	protected int minor;
-	protected int proximity;
-	protected int rssi;
+    /**
+     * A 16 byte UUID that typically represents the company owning a number of iBeacons
+     * Example: E2C56DB5-DFFB-48D2-B060-D0F5A71096E0 
+     */
 	protected String proximityUuid;
+	/**
+	 * A 16 bit integer typically used to represent a group of iBeacons
+	 */
+	protected int major;
+	/**
+	 * A 16 bit integer that identifies a specific iBeacon within a group 
+	 */
+	protected int minor;
+	/**
+	 * An integer with four possible values representing a general idea of how far the iBeacon is away
+	 * @See PROXIMITY_IMMEDIATE
+	 * @See PROXIMITY_NEAR
+	 * @See PROXIMITY_FAR
+	 * @See PROXIMITY_UNKNOWN
+	 */
+	protected int proximity;
+	/**
+	 * A double that is an estimate of how far the iBeacon is away in meters.  This name is confusing, but is copied from
+	 * the iOS7 SDK terminology.   Note that this number fluctuates quite a bit with RSSI, so despite the name, it is not
+	 * super accurate.   It is recommended to instead use the proximity field, or your own bucketization of this value. 
+	 */
+	protected double accuracy;
+	/**
+	 * The measured signal strength of the Bluetooth packet that led do this iBeacon detection.
+	 */
+	protected int rssi;
+	/**
+	 * The calibrated measured Tx power of the iBeacon in RSSI
+	 * This value is baked into an iBeacon when it is manufactured, and
+	 * it is transmitted with each packet to aid in the distance estimate
+	 */
 	protected int txPower;
 	
-	protected IBeacon(IBeacon otherIBeacon) {
-		this.major = otherIBeacon.major;
-		this.minor = otherIBeacon.minor;
-		this.accuracy = otherIBeacon.accuracy;
-		this.proximity = otherIBeacon.proximity;
-		this.rssi = otherIBeacon.rssi;
-		this.proximityUuid = otherIBeacon.proximityUuid;
-		this.txPower = otherIBeacon.txPower;
-	}
-	protected IBeacon() {
-		
-	}
+	/**
+	 * @see accuracy
+	 * @return
+	 */
 	public double getAccuracy() {
 		return accuracy;
 	}
+	/**
+	 * @see major
+	 * @return
+	 */
 	public int getMajor() {
 		return major;
 	}
+	/**
+	 * @see minor
+	 * @return
+	 */
 	public int getMinor() {
 		return minor;
 	}
+	/**
+	 * @see proximity
+	 * @return
+	 */
 	public int getProximity() {
 		return proximity;		
 	}
+	/**
+	 * @see rssi
+	 * @return
+	 */
 	public int getRssi() {
 		return rssi;
 	}
+	/**
+	 * @see proximityUuid
+	 * @return
+	 */
 	public String getProximityUuid() {
 		return proximityUuid;
 	}
+	
 	
 	@Override
 	public int hashCode() {
 		return minor;
 	}
+	
+	/**
+	 * Two detected iBeacons are considered equal if they share the same three identifiers, regardless of their distance or RSSI.
+	 */
 	@Override
 	public boolean equals(Object that) {
 		if (!(that instanceof IBeacon)) {
@@ -80,7 +164,13 @@ public class IBeacon {
 		IBeacon thatIBeacon = (IBeacon) that;		
 		return (thatIBeacon.getMinor() == this.getMinor() && thatIBeacon.getProximityUuid() == thatIBeacon.getProximityUuid());
 	}
-	
+	/**
+	 * Construct an iBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs
+	 * 
+	 * @param scanData The actual packet bytes
+	 * @param rssi The measured signal strength of the packet
+	 * @return An instance of an <code>IBeacon</code>
+	 */
 	public static IBeacon fromScanData(byte[] scanData, int rssi) {
 		if (((int)scanData[0] & 0xff) == 0x02 &&
 			((int)scanData[1] & 0xff) == 0x01 &&
@@ -97,14 +187,7 @@ public class IBeacon {
 			// This is not an iBeacon
 			return null;
 		}
-				
-				
- 	   //I see a device: 00:02:72:C5:EC:33 with scan data: 02 01 1A 1A FF 4C 00 02 15 84 2A F9 C4 08 F5 11 E3 92 82 F2 3C 91 AE C0 5E D0 00 00 69 C5 0000000000000000000000000000000000000000000000000000000000000000
- 	   //
- 	   // 9: proximityUuid (16 bytes) 84 2A F9 C4 08 F5 11 E3 92 82 F2 3C 91 AE C0 5E
- 	   // 25: major (2 bytes unsigned int)
- 	   // 27: minor (2 bytes unsigned int)
- 	   // 29: tx power (1 byte signed int)
+								
 		IBeacon iBeacon = new IBeacon();
 		
 		iBeacon.major = ((int)scanData[25] & 0xff) * 0x100 +scanData[26];
@@ -130,6 +213,21 @@ public class IBeacon {
 		iBeacon.proximityUuid = sb.toString();
 		return iBeacon;
 	}
+
+	protected IBeacon(IBeacon otherIBeacon) {
+		this.major = otherIBeacon.major;
+		this.minor = otherIBeacon.minor;
+		this.accuracy = otherIBeacon.accuracy;
+		this.proximity = otherIBeacon.proximity;
+		this.rssi = otherIBeacon.rssi;
+		this.proximityUuid = otherIBeacon.proximityUuid;
+		this.txPower = otherIBeacon.txPower;
+	}
+	
+	protected IBeacon() {
+		
+	}
+	
 	
 	private static double calculateAccuracy(int txPower, int rssi) {
 		if (rssi == 0) {
@@ -170,8 +268,8 @@ public class IBeacon {
 		return IBeacon.PROXIMITY_FAR;
 
 	}
-    final private static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-    private static String bytesToHex(byte[] bytes) {
+
+	private static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         int v;
         for ( int j = 0; j < bytes.length; j++ ) {

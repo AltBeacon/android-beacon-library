@@ -42,10 +42,10 @@ public class RegionData extends Region implements Parcelable {
     }
 
     public void writeToParcel(Parcel out, int flags) {
-        out.writeInt(_major == null ? -1 : _major);
-        out.writeInt(_minor == null ? -1 : _minor);
-        out.writeString(_proximityUuid);
-        out.writeString(_uniqueId);
+        out.writeInt(major == null ? -1 : major);
+        out.writeInt(minor == null ? -1 : minor);
+        out.writeString(proximityUuid);
+        out.writeString(uniqueId);
     }
 
     public static final Parcelable.Creator<RegionData> CREATOR
@@ -60,16 +60,16 @@ public class RegionData extends Region implements Parcelable {
     };
     
     private RegionData(Parcel in) { 
-	   	 _major = in.readInt();
-	   	 if (_major == -1) {
-	   		 _major = null;
+	   	 major = in.readInt();
+	   	 if (major == -1) {
+	   		 major = null;
 	   	 }
-	   	 _minor = in.readInt();
-	   	 if (_minor == -1) {
-	   		 _minor = null;
+	   	 minor = in.readInt();
+	   	 if (minor == -1) {
+	   		 minor = null;
 	   	 }
-	   	 _proximityUuid = in.readString();
-	   	 _uniqueId = in.readString();
+	   	 proximityUuid = in.readString();
+	   	 uniqueId = in.readString();
     }
 
 }

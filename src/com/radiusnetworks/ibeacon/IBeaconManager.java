@@ -23,10 +23,9 @@
  */
 package com.radiusnetworks.ibeacon;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import com.radiusnetworks.ibeacon.service.IBeaconData;
 import com.radiusnetworks.ibeacon.service.IBeaconService;
@@ -47,19 +46,68 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+/**
+ * An class used to set up interaction with iBeacons from an <code>Activity</code> or <code>Service</code>.
+ * This class is used in conjunction with <code>IBeaconConsumer</code> interface, which provides a callback 
+ * when the <code>IBeaconService</code> is ready to use.  Until this callback is made, ranging and monitoring 
+ * of iBeacons is not possible.
+ * 
+ * In the example below, an Activity implements the <code>IBeaconConsumer</code> interface, binds
+ * to the service, then when it gets the callback saying the service is ready, it starts ranging.
+ * 
+ *  <pre>
+ *  public class RangingActivity extends Activity implements IBeaconConsumer {
+ *  	protected static final String TAG = "RangingActivity";
+ *  	private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
+ *  	@Override
+ *  	protected void onCreate(Bundle savedInstanceState) {
+ *  		super.onCreate(savedInstanceState);
+ *  		setContentView(R.layout.activity_ranging);
+ *  		iBeaconManager.bind(this);
+ *  	}
+ *  	@Override 
+ *  	protected void onDestroy() {
+ *  		super.onDestroy();
+ *  		iBeaconManager.unBind(this);
+ *  	}
+ *  	@Override
+ *  	public void onIBeaconServiceConnect() {
+ *  		iBeaconManager.setRangeNotifier(new RangeNotifier() {
+ *        	@Override 
+ *        	public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
+ *        		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
+ *        	}
+ *  		});
+ *  		
+ *  		try {
+ *  			iBeaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+ *  		} catch (RemoteException e) {	}
+ *  	}
+ *  }
+ *  </pre>
+ * 
+ * @see IBeaconManager
+ * 
+ * @author David G. Young
+ *
+ */
 public class IBeaconManager {
 	private static final String TAG = "IBeaconManager";
 	private Context context;
 	private static IBeaconManager client = null;
 	private ArrayList<IBeaconConsumer> consumers = new ArrayList<IBeaconConsumer>();
 	private Messenger serviceMessenger = null; 
-	private List<RangeNotifier> _rangeNotifiers = new ArrayList<RangeNotifier>();
-	private List<MonitorNotifier> _monitorNotifiers = new ArrayList <MonitorNotifier>();
+	protected RangeNotifier rangeNotifier = null;
+    protected MonitorNotifier monitorNotifier = null;
 	
 	public static boolean isInstantiated() {
 		return (client != null);
 	}
 		
+	/*
+	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
+	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Applicaton class.
+	 */
 	public static IBeaconManager getInstanceForApplication(Context context) {
 		if (!isInstantiated()) {
 			client = new IBeaconManager(context);
@@ -70,6 +118,11 @@ public class IBeaconManager {
 	private IBeaconManager(Context context) {
 		this.context = context;
 	}
+	/**
+	 * Check if Bluetooth LE is supported by this Android device, and if so, make sure it is enabled.
+	 * Throws a RuntimeException if Bluetooth LE is not supported.  (Note: The Android emulator will do this)
+	 * @return false if it is supported and not enabled
+	 */
 	public boolean checkAvailability() {
 		if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
 			throw new RuntimeException("Bluetooth LE not supported by this device"); // TODO: make a specific exception
@@ -81,6 +134,13 @@ public class IBeaconManager {
 		}	
 		return false;
 	}
+	/**
+	 * Binds an Android <code>Activity</code> or <code>Service</code> to the <code>IBeaconService</code>.  The 
+	 * <code>Activity</code> or <code>Service</code> must implement the <code>IBeaconConsuemr</code> interface so
+	 * that it can get a callback when the service is ready to use.
+	 * 
+	 * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
+	 */
 	public void bind(IBeaconConsumer consumer) {
 		if (consumers.contains(consumer)) {
 			Log.i(TAG, "This consumer is already bound");					
@@ -92,6 +152,13 @@ public class IBeaconManager {
 			consumer.bindService(intent, iBeaconServiceConnection, Context.BIND_AUTO_CREATE);
 		}
 	}
+	
+	/**
+	 * Unbinds an Android <code>Activity</code> or <code>Service</code> to the <code>IBeaconService</code>.  This should
+	 * typically be called in the onDestroy() method.
+	 * 
+	 * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
+	 */
 	public void unBind(IBeaconConsumer consumer) {
 		if (consumers.contains(consumer)) {
 			Log.i(TAG, "Unbinding");			
@@ -106,40 +173,75 @@ public class IBeaconManager {
 			}
 		}
 	}
-	
-	public void addRangeNotifier(RangeNotifier notifier) {
-		if (_rangeNotifiers.indexOf(notifier) == -1) {
-			_rangeNotifiers.add(notifier);
-		}
+
+	/**
+	 * Specifies a class that should be called each time the <code>IBeaconService</code> gets ranging
+	 * data, which is nominally once per second when iBeacons are detected.
+	 *  
+	 * @see RangeNotifier 
+	 * @param notifier
+	 */
+	public void setRangeNotifier(RangeNotifier notifier) {
+		rangeNotifier = notifier;
 	}
-	public void removeRangeNotifier(RangeNotifier notifier) {
-		if (_rangeNotifiers.indexOf(notifier) != -1) {
-			_rangeNotifiers.remove(notifier);
-		}
+
+	/**
+	 * Specifies a class that should be called each time the <code>IBeaconService</code> gets sees
+	 * or stops seeing a Region of iBeacons.
+	 *  
+	 * @see MonitorNotifier 
+	 * @see IBeaconManager.startMonitoringBeaconsInRegion(Region region)
+	 * @see Region 
+	 * @param notifier
+	 */
+	public void setMonitorNotifier(MonitorNotifier notifier) {
+		monitorNotifier = notifier;
 	}
-	public void addMonitorNotifier(MonitorNotifier notifier) {
-		if (_monitorNotifiers.indexOf(notifier) == -1) {
-			Log.d(TAG, "Adding monitor notifier: "+notifier);
-			_monitorNotifiers.add(notifier);
-		}
-	}
-	public void removeMonitorNotifier(MonitorNotifier notifier) {
-		if (_monitorNotifiers.indexOf(notifier) != -1) {
-			_monitorNotifiers.remove(notifier);
-		}
-	}
-	
+
+	/**
+	 * Tells the <code>IBeaconService</code> to start looking for iBeacons that match the passed
+	 * <code>Region</code> object, and providing updates on the estimated distance very seconds while
+	 * iBeacons in the Region are visible.  Note that the Region's unique identifier must be retained to
+	 * later call the stopRangingBeaconsInRegion method.
+	 *  
+	 * @see IBeaconManager#addRangeNotifier(RangeNotifier)
+	 * @see IBeaconManager#stopRangingBeaconsInRegion(Region region)
+	 * @see RangeNotifier 
+	 * @see Region 
+	 * @param notifier
+	 */
 	public void startRangingBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_RANGING, 0, 0);
 		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction() );
 		msg.obj = obj;
-		msg.replyTo = rangingCallback;	// TODO: remove this when we are converted to Intents					 
+		msg.replyTo = rangingCallback;						 
 		serviceMessenger.send(msg);
 	}
+	/**
+	 * Tells the <code>IBeaconService</code> to stop looking for iBeacons that match the passed
+	 * <code>Region</code> object and providing distance information for them.
+	 *  
+	 * @see IBeaconManager#addMonitorNotifier(MonitorNotifier)
+	 * @see IBeaconManager#startMonitoringBeaconsInRegion(Region region)
+	 * @see MonitorNotifier 
+	 * @see Region 
+	 * @param notifier
+	 */
 	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_RANGING, 0, 0);
 		serviceMessenger.send(msg);
 	}
+	/**
+	 * Tells the <code>IBeaconService</code> to start looking for iBeacons that match the passed
+	 * <code>Region</code> object.  Note that the Region's unique identifier must be retained to
+	 * later call the stopMonitoringBeaconsInRegion method.
+	 *  
+	 * @see IBeaconManager#addMonitorNotifier(MonitorNotifier)
+	 * @see IBeaconManager#stopMonitoringBeaconsInRegion(Region region)
+	 * @see MonitorNotifier 
+	 * @see Region 
+	 * @param notifier
+	 */
 	public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_MONITORING, 0, 0);
 		StartRMData obj = new StartRMData(new RegionData(region), monitoringCallbackAction() );
@@ -147,6 +249,17 @@ public class IBeaconManager {
 		msg.replyTo = null; // TODO: remove this when we are converted to Intents					 
 		serviceMessenger.send(msg);
 	}
+	/**
+	 * Tells the <code>IBeaconService</code> to stop looking for iBeacons that match the passed
+	 * <code>Region</code> object.  Note that the Region's unique identifier is used to match it to
+	 * and existing monitored Region.
+	 *  
+	 * @see IBeaconManager#addMonitorNotifier(MonitorNotifier)
+	 * @see IBeaconManager#startMonitoringBeaconsInRegion(Region region)
+	 * @see MonitorNotifier 
+	 * @see Region 
+	 * @param notifier
+	 */
 	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_MONITORING, 0, 0);
 		serviceMessenger.send(msg);
@@ -181,9 +294,13 @@ public class IBeaconManager {
 	    }
 	};	
 	
-	
-    final Messenger rangingCallback = new Messenger(new Handler() {        
-        @Override
+	static class IncomingHandler extends Handler {
+        private final WeakReference<IBeaconManager> iBeaconManager; 
+
+        IncomingHandler(IBeaconManager manager) {
+            iBeaconManager = new WeakReference<IBeaconManager>(manager);
+        }
+		@Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 default:
@@ -206,22 +323,24 @@ public class IBeaconManager {
                     	if (validatedIBeacons.size() > 0) {
                             Log.d(TAG, "with beacon: "+validatedIBeacons.get(0).getMinor());                    		
                     	}
-                        Iterator<RangeNotifier> notifierIterator = IBeaconManager.this._rangeNotifiers.iterator();
-                        while (notifierIterator.hasNext()) {                    	
-                        	RangeNotifier rangeNotifier = notifierIterator.next();
-                        	Log.d(TAG, "Calling ranging notifier on :"+rangeNotifier);
-                        	rangeNotifier.didRangeBeaconsInRegion(validatedIBeacons, data.getRegion());
+                        
+                    	IBeaconManager manager = iBeaconManager.get();
+                        if (manager.rangeNotifier != null) {                    	
+                        	Log.d(TAG, "Calling ranging notifier on :"+manager.rangeNotifier);
+                        	manager.rangeNotifier.didRangeBeaconsInRegion(validatedIBeacons, data.getRegion());
                         }                    	
                     }
             }
-        }
-    });
+        }		
+	};
+	
+    final Messenger rangingCallback = new Messenger(new IncomingHandler(this)); 
 
-	public Collection<MonitorNotifier> getMonitoringNotifiers() {
-		return this._monitorNotifiers;		
+	public MonitorNotifier getMonitoringNotifier() {
+		return this.monitorNotifier;		
 	}	
-	public Collection<RangeNotifier> getRangingNotifiers() {
-		return this._rangeNotifiers;		
+	public RangeNotifier getRangingNotifier() {
+		return this.rangeNotifier;		
 	}	
 	
 }

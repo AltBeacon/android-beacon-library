@@ -46,8 +46,19 @@ This software is available under the Apache License 2.0, allowing you to use the
 
 1. Do a git clone of this project
 2. Import it as an existing project into your Eclipse workspace
-3. In a new/existing Android Application project, go to Project -> Properties -> Java Build Path -> Libraries -> Add Library, then select the imported project from step 2.
-4. Add the follwing service declarations to your AnroidManifest.xml, replacing {my app's package name} with the fully qualified package name of your Android application.
+3. In a new/existing Android Application project, go to Project -> Properties -> Android -> Library -> Add, then select the imported project from step 2.
+4. Add the follwoing sdk and permission declarations to your AndroidManifest.xml
+
+```
+    <uses-sdk
+        android:minSdkVersion="18"
+        android:targetSdkVersion="18" />
+	<uses-permission android:name="android.permission.BLUETOOTH"/>
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+```
+
+5. Add the following service declarations to your AnroidManifest.xml, replacing {my app's package name} with the fully qualified package name of your Android application.
+
 
 ```
 		<service android:enabled="true"
@@ -71,12 +82,24 @@ This software is available under the Apache License 2.0, allowing you to use the
 ## Monitoring Example Code
 
 ```
-public class MyActivity extends Activity implements IBeaconConsumer  {
-  private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
-  ...
+public class MonitoringActivity extends Activity implements IBeaconConsumer {
+	protected static final String TAG = "RangingActivity";
+	private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_ranging);
+		iBeaconManager.bind(this);
+	}
+	@Override 
+	protected void onDestroy() {
+		super.onDestroy();
+		iBeaconManager.unBind(this);
+	}
 	@Override
 	public void onIBeaconServiceConnect() {
-		iBeaconService.addMonitorNotifier(new MonitorNotifier() {
+		iBeaconManager.setMonitorNotifier(new MonitorNotifier() {
       	@Override
       	public void didEnterRegion(Region region) {
   	  	  Log.i(TAG, "I just saw an iBeacon for the firt time!");		
@@ -94,9 +117,10 @@ public class MyActivity extends Activity implements IBeaconConsumer  {
 		});
 		
 		try {
-			iBeaconService.startMonitoringBeaconsInRegion(new Region("myMonitoringUniqueId", null, null, null));
+			iBeaconManager.startMonitoringBeaconsInRegion(new Region("myMonitoringUniqueId", null, null, null));
 		} catch (RemoteException e) {	}
 	}
+
 }
 
 ```
@@ -105,12 +129,24 @@ public class MyActivity extends Activity implements IBeaconConsumer  {
 ## Ranging Example Code
 
 ```
-public class MyActivity extends Activity implements IBeaconConsumer  {
-  private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
-  ...
+public class RangingActivity extends Activity implements IBeaconConsumer {
+	protected static final String TAG = "RangingActivity";
+	private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_ranging);
+		iBeaconManager.bind(this);
+	}
+	@Override 
+	protected void onDestroy() {
+		super.onDestroy();
+		iBeaconManager.unBind(this);
+	}
 	@Override
 	public void onIBeaconServiceConnect() {
-		iBeaconService.addRangeNotifier(new RangeNotifier() {
+		iBeaconManager.setRangeNotifier(new RangeNotifier() {
       	@Override 
       	public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
       		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
@@ -118,7 +154,7 @@ public class MyActivity extends Activity implements IBeaconConsumer  {
 		});
 		
 		try {
-			iBeaconService.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+			iBeaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
 		} catch (RemoteException e) {	}
 	}
 }

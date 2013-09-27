@@ -1,0 +1,2 @@
+#!/bin/sh
+javadoc -d ../doc -sourcepath ../src -subpackages com 

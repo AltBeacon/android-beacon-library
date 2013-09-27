@@ -25,10 +25,6 @@ package com.radiusnetworks.ibeacon.service;
 
 import java.util.Date;
 
-import android.os.Messenger;
-
-import com.radiusnetworks.ibeacon.Region;
-
 public class MonitorState {
 	public static long INSIDE_EXPIRATION_MILLIS = 10000l;
 	private boolean inside = false;

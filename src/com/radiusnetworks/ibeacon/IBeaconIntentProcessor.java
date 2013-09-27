@@ -23,8 +23,6 @@
  */
 package com.radiusnetworks.ibeacon;
 
-import java.util.Iterator;
-
 import com.radiusnetworks.ibeacon.service.IBeaconData;
 import com.radiusnetworks.ibeacon.service.MonitoringData;
 import com.radiusnetworks.ibeacon.service.RangingData;
@@ -58,9 +56,9 @@ public class IBeaconIntentProcessor extends IntentService {
 				if (!IBeaconManager.isInstantiated()) {
 					if (rangeNotifierClassName != null) {
 						try {
-							 Class rangeNotifierClass = Class.forName(rangeNotifierClassName);
+							 Class<?> rangeNotifierClass = Class.forName(rangeNotifierClassName);
 						     RangeNotifier rangeNotifier = (RangeNotifier)rangeNotifierClass.newInstance();
-						     IBeaconManager.getInstanceForApplication(this).addRangeNotifier(rangeNotifier);
+						     IBeaconManager.getInstanceForApplication(this).setRangeNotifier(rangeNotifier);
 						     Log.d(TAG, "Automatically set range notifier: "+rangeNotifier);
 						}
 						catch (Exception e) {
@@ -69,9 +67,9 @@ public class IBeaconIntentProcessor extends IntentService {
 					}
 					if (monitorNotifierClassName != null) {
 						try {
-							 Class monitorNotifierClass = Class.forName(monitorNotifierClassName);
+							 Class<?> monitorNotifierClass = Class.forName(monitorNotifierClassName);
 						     MonitorNotifier monitorNotifier = (MonitorNotifier)monitorNotifierClass.newInstance();
-						     IBeaconManager.getInstanceForApplication(this).addMonitorNotifier(monitorNotifier);						
+						     IBeaconManager.getInstanceForApplication(this).setMonitorNotifier(monitorNotifier);						
 						     Log.d(TAG, "Automatically set monitor notifier: "+monitorNotifier);
 
 						}
@@ -101,17 +99,15 @@ public class IBeaconIntentProcessor extends IntentService {
 		RangingData rangingData = (RangingData) intent.getExtras().get("rangingData");
 		if (rangingData != null) {
 			Log.d(TAG, "got ranging data");
-			Iterator<RangeNotifier> iterator = IBeaconManager.getInstanceForApplication(this).getRangingNotifiers().iterator();
-			while (iterator.hasNext()) {
-				RangeNotifier notifier = iterator.next();				
+			RangeNotifier notifier = IBeaconManager.getInstanceForApplication(this).getRangingNotifier();
+			if (notifier != null) {
 				notifier.didRangeBeaconsInRegion(IBeaconData.fromIBeaconDatas(rangingData.getIBeacons()), rangingData.getRegion());
 			}
 		}
 		if (monitoringData != null) {
 			Log.d(TAG, "got monitoring data");
-			Iterator<MonitorNotifier> iterator = IBeaconManager.getInstanceForApplication(this).getMonitoringNotifiers().iterator();
-			while (iterator.hasNext()) {
-				MonitorNotifier notifier = iterator.next();
+			MonitorNotifier notifier = IBeaconManager.getInstanceForApplication(this).getMonitoringNotifier();
+			if (notifier != null) {
 				Log.i(TAG, "Calling monitoring notifier:"+notifier);
 				notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
 				if (monitoringData.isInside()) {

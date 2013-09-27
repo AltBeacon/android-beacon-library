@@ -23,7 +23,7 @@ at a frequency of 1Hz.
 ## Supported Platforms
 
 This library requires Android 4.3 (SDK version 18), because that is earliest SDK that supports low energy bluetooth.
-The mobile device must also have a low energy bluetooth chipset, sometimes called BLE or Bluetooth 2.0.
+The mobile device must also have a low energy Bluetooth chipset, sometimes called BLE or Bluetooth 4.0.
 As of September 2013, Android devices known to have BLE include: Samsung Galaxy S3/S4, Samsung Galaxy Note II, HTC One, Nexus 7 2013 edition, Nexus 4, HTC Butterfly, Droid DNA
 
 ## Limitations
@@ -31,12 +31,16 @@ As of September 2013, Android devices known to have BLE include: Samsung Galaxy 
 * The app must be given two privilidges: android.permission.BLUETOOTH_ADMIN, android.permission.BLUETOOTH
 * When the service is running and scanning for Bluetooth devices, Wifi scans are blocked until the bluetooth scan stops.  Similarly, if a Wifi scan is started, bluetooth scans are blocked (along with discovery of iBeacons) until the Wifi scan completes.
 
-## Differences from iOS Api
+## Differences from iOS API
 
 * The Android library supports wildcards for *ALL* iBeacon identifiers, allowing you to look see any iBeacon.
 * The Ranging updates come every 1.1 seconds instead of 1.0 seconds due to time synchronization issues with Android Bluetooth scanning.
 * The distance estimating algorithm approximates the iOS implementation, but it is not identical
 * Ranging updates may be passed to background applications as well as foreground applications.
+
+## License
+
+This software is available under the Apache License 2.0, allowing you to use the library in your applications.
 
 ## Project Setup
 

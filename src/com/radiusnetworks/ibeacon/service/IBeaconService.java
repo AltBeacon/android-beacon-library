@@ -1,3 +1,26 @@
+/**
+ * Radius Networks, Inc.
+ * http://www.radiusnetworks.com
+ * 
+ * @author David G. Young
+ * 
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.radiusnetworks.ibeacon.service;
 
 import java.lang.ref.WeakReference;
@@ -29,21 +52,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
-
-/*
- * Idea:  Use an IBeaconIntentProcessor extends IntentService to handle communication from IBeaconService
- * 
- *  Then the IBeaconService simply sends intents to the IBeaconIntentProcessor, which is declared in the application.xml so it can launch itself
- *  this IBeaconIntentProcessor has access to the IBeaconManager, so it can simply call its rangeNotifier or monitorNotifier
- *  in order for this to work, though, this must function even if the IBeaconManager has never been instantiated yet.  the rangeNotifier and monitorNotifier classes
- *  must be able to be created declaratively through xml.   so if the ranging/monitoring intent comes for the app even before it was ever launched, the IBeaconIntentProcessor
- *  will fire, bootstrap the IBeaconManager, along with its notifiers, and then fire them.  
- *  
- *  Now, as for launching an activity if necessary, this logic can be put in the notifiers.  if it detects an activity isn't running, it can launch one.
- * 
- */
-
-
 
 /**
  * Issues:

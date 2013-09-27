@@ -125,9 +125,9 @@ public class MyActivity extends Activity implements IBeaconConsumer  {
 
 ```
 
-## SDK
+## API
 
-The SDK is a port of the iOS SDK as much as possible.  The table below shows the Android Class and the equivalent iOS class, with a link to the iOS docuentation.
+The API is a modeled of the iBeacon parts of the iOS Location SDK as much as possible.  The table below shows the Android Class and the equivalent iOS class, with a link to the iOS documentation.
 
 Android | iOS 
 ------- | --- 

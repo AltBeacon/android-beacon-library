@@ -113,7 +113,7 @@ public class MyActivity extends Activity implements IBeaconConsumer  {
 		iBeaconService.addRangeNotifier(new RangeNotifier() {
       	@Override 
       	public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
-      		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" feet away.");		
+      		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
       	}
 		});
 		

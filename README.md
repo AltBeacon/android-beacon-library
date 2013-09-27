@@ -165,7 +165,7 @@ public class RangingActivity extends Activity implements IBeaconConsumer {
 ## API
 
 The API is a modeled of the iBeacon parts of the iOS Location SDK as much as possible.  The table below shows the Android Class and the equivalent iOS class, with a link to the iOS documentation.
-There are also JavaDocs of the APIs available in the project's /doc directory.
+There are also JavaDocs of the APIs available <a href='http://developer.radiusnetworks.com/android-ibeacon-service/doc/index.html'>here</a>
 
 Android | iOS 
 ------- | --- 

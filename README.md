@@ -12,7 +12,8 @@ up to a hundred feet or so.
 Apple came up with the technology as part of iOS7, which natively contains APIs to interact with them. 
 For testing purposes, an iBeacon can be made out of an any iOS7 device that supports Low Energy Bluetooth using
 Apple's AirLocate sample code available [here](https://developer.apple.com/downloads/index.action?name=WWDC%202013#)
-An iBeacon can also be made out of a cheap Bluetooth LE dongle and a Linux vitual machine.
+An iBeacon can also be made out of a cheap Bluetooth LE dongle and a Linux vitual machine.  Here is a VirtualBox image that 
+works as an iBecaon if you have a BLE dongle.  http://bit.ly/1fNXoxa (just login with username/password then run the ./start script).
 
 ## What does this library do?
 
@@ -164,6 +165,7 @@ public class RangingActivity extends Activity implements IBeaconConsumer {
 ## API
 
 The API is a modeled of the iBeacon parts of the iOS Location SDK as much as possible.  The table below shows the Android Class and the equivalent iOS class, with a link to the iOS documentation.
+There are also JavaDocs of the APIs available in the project's /doc directory.
 
 Android | iOS 
 ------- | --- 

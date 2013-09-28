@@ -23,7 +23,7 @@ at a frequency of 1Hz.
 
 ## Supported Platforms
 
-This library requires Android 4.3 (SDK version 18), because that is earliest SDK that supports low energy bluetooth.
+This library requires Android 4.3 (SDK version 18), because that is earliest SDK that supports low energy Bluetooth.
 The mobile device must also have a low energy Bluetooth chipset, sometimes called BLE or Bluetooth 4.0.
 As of September 2013, Android devices known to have BLE include: Samsung Galaxy S3/S4, Samsung Galaxy Note II, HTC One, Nexus 7 2013 edition, Nexus 4, HTC Butterfly, Droid DNA
 
@@ -176,3 +176,6 @@ Android | iOS
 [MonitorNotifier](http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/MonitorNotifier.html)  | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
 [RangeNotifier](http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/RangeNotifier.html)  | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
 
+## Questions?  Want to Help?
+
+Send a note to david _at_ radiusnetworks _dot_ com

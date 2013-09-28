@@ -44,7 +44,7 @@ package com.radiusnetworks.ibeacon;
 * distance (the proximity field.)
 * 
 * @author  David G. Young
-* @see     com.radiusnetworks.ibeacon.Region#matchesIBeacon()
+* @see     Region#matchesIBeacon(IBeacon iBeacon)
 */
 public class IBeacon { 
 	/**
@@ -81,10 +81,10 @@ public class IBeacon {
 	protected int minor;
 	/**
 	 * An integer with four possible values representing a general idea of how far the iBeacon is away
-	 * @See PROXIMITY_IMMEDIATE
-	 * @See PROXIMITY_NEAR
-	 * @See PROXIMITY_FAR
-	 * @See PROXIMITY_UNKNOWN
+	 * @see #PROXIMITY_IMMEDIATE
+	 * @see #PROXIMITY_NEAR
+	 * @see #PROXIMITY_FAR
+	 * @see #PROXIMITY_UNKNOWN
 	 */
 	protected int proximity;
 	/**
@@ -105,43 +105,43 @@ public class IBeacon {
 	protected int txPower;
 	
 	/**
-	 * @see accuracy
-	 * @return
+	 * @see #accuracy
+	 * @return accuracy
 	 */
 	public double getAccuracy() {
 		return accuracy;
 	}
 	/**
-	 * @see major
-	 * @return
+	 * @see #major
+	 * @return major
 	 */
 	public int getMajor() {
 		return major;
 	}
 	/**
-	 * @see minor
-	 * @return
+	 * @see #minor
+	 * @return minor
 	 */
 	public int getMinor() {
 		return minor;
 	}
 	/**
-	 * @see proximity
-	 * @return
+	 * @see #proximity
+	 * @return proximity
 	 */
 	public int getProximity() {
 		return proximity;		
 	}
 	/**
-	 * @see rssi
-	 * @return
+	 * @see #rssi
+	 * @return rssi
 	 */
 	public int getRssi() {
 		return rssi;
 	}
 	/**
-	 * @see proximityUuid
-	 * @return
+	 * @see #proximityUuid
+	 * @return proximityUuid
 	 */
 	public String getProximityUuid() {
 		return proximityUuid;

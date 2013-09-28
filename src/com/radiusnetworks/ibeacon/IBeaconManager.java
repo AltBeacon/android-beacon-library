@@ -55,25 +55,25 @@ import android.util.Log;
  * In the example below, an Activity implements the <code>IBeaconConsumer</code> interface, binds
  * to the service, then when it gets the callback saying the service is ready, it starts ranging.
  * 
- *  <pre>
+ *  <pre><code>
  *  public class RangingActivity extends Activity implements IBeaconConsumer {
  *  	protected static final String TAG = "RangingActivity";
  *  	private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
- *  	@Override
+ *  	 {@literal @}Override
  *  	protected void onCreate(Bundle savedInstanceState) {
  *  		super.onCreate(savedInstanceState);
  *  		setContentView(R.layout.activity_ranging);
  *  		iBeaconManager.bind(this);
  *  	}
- *  	@Override 
+ *  	 {@literal @}Override 
  *  	protected void onDestroy() {
  *  		super.onDestroy();
  *  		iBeaconManager.unBind(this);
  *  	}
- *  	@Override
+ *  	 {@literal @}Override
  *  	public void onIBeaconServiceConnect() {
  *  		iBeaconManager.setRangeNotifier(new RangeNotifier() {
- *        	@Override 
+ *        	 {@literal @}Override 
  *        	public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
  *        		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
  *        	}
@@ -84,9 +84,7 @@ import android.util.Log;
  *  		} catch (RemoteException e) {	}
  *  	}
  *  }
- *  </pre>
- * 
- * @see IBeaconManager
+ *  </code></pre>
  * 
  * @author David G. Young
  *
@@ -100,11 +98,7 @@ public class IBeaconManager {
 	protected RangeNotifier rangeNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
 	
-	public static boolean isInstantiated() {
-		return (client != null);
-	}
-		
-	/*
+	/**
 	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
 	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Applicaton class.
 	 */
@@ -190,7 +184,7 @@ public class IBeaconManager {
 	 * or stops seeing a Region of iBeacons.
 	 *  
 	 * @see MonitorNotifier 
-	 * @see IBeaconManager.startMonitoringBeaconsInRegion(Region region)
+	 * @see #startMonitoringBeaconsInRegion(Region region)
 	 * @see Region 
 	 * @param notifier
 	 */
@@ -204,11 +198,11 @@ public class IBeaconManager {
 	 * iBeacons in the Region are visible.  Note that the Region's unique identifier must be retained to
 	 * later call the stopRangingBeaconsInRegion method.
 	 *  
-	 * @see IBeaconManager#addRangeNotifier(RangeNotifier)
+	 * @see IBeaconManager#setRangeNotifier(RangeNotifier)
 	 * @see IBeaconManager#stopRangingBeaconsInRegion(Region region)
 	 * @see RangeNotifier 
 	 * @see Region 
-	 * @param notifier
+	 * @param region
 	 */
 	public void startRangingBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_RANGING, 0, 0);
@@ -221,11 +215,11 @@ public class IBeaconManager {
 	 * Tells the <code>IBeaconService</code> to stop looking for iBeacons that match the passed
 	 * <code>Region</code> object and providing distance information for them.
 	 *  
-	 * @see IBeaconManager#addMonitorNotifier(MonitorNotifier)
-	 * @see IBeaconManager#startMonitoringBeaconsInRegion(Region region)
+	 * @see #setMonitorNotifier(MonitorNotifier notifier)
+	 * @see #startMonitoringBeaconsInRegion(Region region)
 	 * @see MonitorNotifier 
 	 * @see Region 
-	 * @param notifier
+	 * @param region
 	 */
 	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_RANGING, 0, 0);
@@ -236,11 +230,11 @@ public class IBeaconManager {
 	 * <code>Region</code> object.  Note that the Region's unique identifier must be retained to
 	 * later call the stopMonitoringBeaconsInRegion method.
 	 *  
-	 * @see IBeaconManager#addMonitorNotifier(MonitorNotifier)
+	 * @see IBeaconManager#setMonitorNotifier(MonitorNotifier)
 	 * @see IBeaconManager#stopMonitoringBeaconsInRegion(Region region)
 	 * @see MonitorNotifier 
 	 * @see Region 
-	 * @param notifier
+	 * @param region
 	 */
 	public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_MONITORING, 0, 0);
@@ -254,11 +248,11 @@ public class IBeaconManager {
 	 * <code>Region</code> object.  Note that the Region's unique identifier is used to match it to
 	 * and existing monitored Region.
 	 *  
-	 * @see IBeaconManager#addMonitorNotifier(MonitorNotifier)
+	 * @see IBeaconManager#setMonitorNotifier(MonitorNotifier)
 	 * @see IBeaconManager#startMonitoringBeaconsInRegion(Region region)
 	 * @see MonitorNotifier 
 	 * @see Region 
-	 * @param notifier
+	 * @param region
 	 */
 	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_MONITORING, 0, 0);
@@ -336,11 +330,26 @@ public class IBeaconManager {
 	
     final Messenger rangingCallback = new Messenger(new IncomingHandler(this)); 
 
+    /**
+     * @see #monitorNotifier
+     * @return monitorNotifier
+     */
 	public MonitorNotifier getMonitoringNotifier() {
 		return this.monitorNotifier;		
 	}	
+	/**
+	 * @see #rangeNotifier
+	 * @return rangeNotifier
+	 */
 	public RangeNotifier getRangingNotifier() {
 		return this.rangeNotifier;		
 	}	
-	
+    /**
+     * Determines if the singleton has been constructed already.  Useful for not overriding settings set declaratively in XML
+     * @return true, if the class has been constructed
+     */
+	public static boolean isInstantiated() {
+		return (client != null);
+	}
+			
 }

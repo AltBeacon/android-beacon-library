@@ -37,31 +37,37 @@ import android.content.ServiceConnection;
  * In the example below, an Activity implements the <code>IBeaconConsumer</code> interface, binds
  * to the service, then when it gets the callback saying the service is ready, it starts ranging.
  * 
- *  <pre>
- *  public class MyActivity extends Activity implements IBeaconConsumer  {
- *    private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
- *    ...
- *  	@Override
+ *  <pre><code>
+ *  public class RangingActivity extends Activity implements IBeaconConsumer {
+ *  	protected static final String TAG = "RangingActivity";
+ *  	private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
+ *  	 {@literal @}Override
  *  	protected void onCreate(Bundle savedInstanceState) {
  *  		super.onCreate(savedInstanceState);
- *  		iBeaconService.bind(this);
+ *  		setContentView(R.layout.activity_ranging);
+ *  		iBeaconManager.bind(this);
  *  	}
- *  
- *      @Override
- *      public void onIBeaconServiceConnect() {
- *          iBeaconService.addRangeNotifier(new RangeNotifier() {
- *          @Override 
- *          public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
- *              Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");       
- *          }
- *          });
- *  
- *          try {
- *              iBeaconService.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
- *          } catch (RemoteException e) {   }
- *      }
+ *  	 {@literal @}Override 
+ *  	protected void onDestroy() {
+ *  		super.onDestroy();
+ *  		iBeaconManager.unBind(this);
+ *  	}
+ *  	 {@literal @}Override
+ *  	public void onIBeaconServiceConnect() {
+ *  		iBeaconManager.setRangeNotifier(new RangeNotifier() {
+ *        	 {@literal @}Override 
+ *        	public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
+ *        		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
+ *        	}
+ *  		});
+ *  		
+ *  		try {
+ *  			iBeaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+ *  		} catch (RemoteException e) {	}
+ *  	}
  *  }
- *  </pre>
+ *  </code></pre>
+
  * 
  * @see IBeaconManager
  * 

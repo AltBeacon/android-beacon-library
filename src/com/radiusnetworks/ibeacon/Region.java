@@ -72,30 +72,30 @@ public class Region  {
 		this.uniqueId = uniqueId;
 	}
 	/**
-	 * @see major
-	 * @return
+	 * @see #major
+	 * @return major
 	 */
 	public Integer getMajor() {
 		return major;
 	}
 	/**
-	 * @see minor
-	 * @return
+	 * @see #minor
+	 * @return minor
 	 */
 	public Integer getMinor() {
 		return minor;
 	}
 	/**
-	 * @see proximityUuid
-	 * @return
+	 * @see #proximityUuid
+	 * @return proximityUuid
 	 */
 
 	public String getProximityUuid() {
 		return proximityUuid;
 	}
 	/**
-	 * @see uniqueId
-	 * @return
+	 * @see #uniqueId
+	 * @return uniqueId
 	 */
 	public String getUniqueId() {
 		return uniqueId;

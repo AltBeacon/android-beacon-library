@@ -1,4 +1,4 @@
-android-ibeacon-service
+Android iBeacon Service
 =======================
 
 An Android library providing APIs to interact with iBeacons
@@ -13,7 +13,7 @@ Apple came up with the technology as part of iOS7, which natively contains APIs 
 For testing purposes, an iBeacon can be made out of an any iOS7 device that supports Low Energy Bluetooth using
 Apple's AirLocate sample code available [here](https://developer.apple.com/downloads/index.action?name=WWDC%202013#)
 An iBeacon can also be made out of a cheap Bluetooth LE dongle and a Linux vitual machine.  Here is a VirtualBox image that 
-works as an iBecaon if you have a BLE dongle.  http://bit.ly/1fNXoxa (just login with username/password then run the ./start script).
+works as an iBecaon if you have a BLE dongle.  https://s3.amazonaws.com/s3.messageradius.com/Public/VirtualiBeacon.ova (just login with username/password then run the ./start script).
 
 ## What does this library do?
 
@@ -165,14 +165,14 @@ public class RangingActivity extends Activity implements IBeaconConsumer {
 ## API
 
 The API is a modeled of the iBeacon parts of the iOS Location SDK as much as possible.  The table below shows the Android Class and the equivalent iOS class, with a link to the iOS documentation.
-There are also JavaDocs of the APIs available <a href='http://developer.radiusnetworks.com/android-ibeacon-service/doc/index.html'>here</a>
+There are also JavaDocs of the APIs available <a href='http://developer.radiusnetworks.com/android-ibeacon-service/doc/'>here</a>
 
 Android | iOS 
 ------- | --- 
-Region  | [CLBeaconRegion](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLBeaconRegion_class/Reference/Reference.html)
-IBeacon | [CLBeacon](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLBeacon_class/Reference/Reference.html)
-IBeaconManager | [CLLocationManager](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/CLLocationManager/CLLocationManager.html)
-IBeaconConsumer | N/A 
-MonitorNotifier | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
-RangeNotifier | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
+[Region](http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/Region.html)  | [CLBeaconRegion](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLBeaconRegion_class/Reference/Reference.html)
+[IBeacon(http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/IBeacon.html)  | [CLBeacon](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLBeacon_class/Reference/Reference.html)
+[IBeaconManager](http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/IBeaconManager.html)  | [CLLocationManager](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/CLLocationManager/CLLocationManager.html)
+[IBeaconConsumer](http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/IBeaconConsumer.html)  | N/A 
+[MonitorNotifier](http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/MonitorNotifier.html)  | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
+[RangeNotifier](http://developer.radiusnetworks.com/android-ibeacon-service/doc/com/radiusnetworks/ibeacon/RangeNotifier.html)  | [CLLocationManagerDelegate](https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManagerDelegate_Protocol/CLLocationManagerDelegate/CLLocationManagerDelegate.html)
 

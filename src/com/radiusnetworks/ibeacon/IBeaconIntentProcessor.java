@@ -23,12 +23,15 @@
  */
 package com.radiusnetworks.ibeacon;
 
+import java.lang.reflect.Constructor;
+
 import com.radiusnetworks.ibeacon.service.IBeaconData;
 import com.radiusnetworks.ibeacon.service.MonitoringData;
 import com.radiusnetworks.ibeacon.service.RangingData;
 
 import android.app.IntentService;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -54,11 +57,23 @@ public class IBeaconIntentProcessor extends IntentService {
 				String rangeNotifierClassName = (String) data.get("rangeNotifier");
 				String monitorNotifierClassName = (String) data.get("monitorNotifier");
 				if (!IBeaconManager.isInstantiated()) {
+					RangeNotifier rangeNotifier = null;
+					MonitorNotifier monitorNotifier = null;
+
 					if (rangeNotifierClassName != null) {
 						try {
 							 Class<?> rangeNotifierClass = Class.forName(rangeNotifierClassName);
-						     RangeNotifier rangeNotifier = (RangeNotifier)rangeNotifierClass.newInstance();
-						     IBeaconManager.getInstanceForApplication(this).setRangeNotifier(rangeNotifier);
+							 try {
+								 Constructor<?> contextContstructor = rangeNotifierClass.getDeclaredConstructor(Context.class);
+								 rangeNotifier = (RangeNotifier) contextContstructor.newInstance(this.getApplicationContext());
+							 }
+							 catch (Exception e) {
+								 Log.w(TAG, "Cannot invoke "+rangeNotifierClassName+"(Context c) constructor due to ",e);
+							 }
+							 if (rangeNotifier == null) {
+							     rangeNotifier = (RangeNotifier)rangeNotifierClass.newInstance();								 
+							 }
+							 IBeaconManager.getInstanceForApplication(this).setRangeNotifier(rangeNotifier);
 						     Log.d(TAG, "Automatically set range notifier: "+rangeNotifier);
 						}
 						catch (Exception e) {
@@ -68,7 +83,17 @@ public class IBeaconIntentProcessor extends IntentService {
 					if (monitorNotifierClassName != null) {
 						try {
 							 Class<?> monitorNotifierClass = Class.forName(monitorNotifierClassName);
-						     MonitorNotifier monitorNotifier = (MonitorNotifier)monitorNotifierClass.newInstance();
+							 try {
+								 Constructor<?> contextContstructor = monitorNotifierClass.getDeclaredConstructor(Context.class);
+								 monitorNotifier = (MonitorNotifier) contextContstructor.newInstance(this.getApplicationContext());
+							 }
+							 catch (Exception e) {
+								 Log.w(TAG, "Cannot invoke "+monitorNotifierClassName+"(Context c) constructor due to ",e);
+							 }
+
+							 if (monitorNotifier == null) {								 
+							     monitorNotifier = (MonitorNotifier)monitorNotifierClass.newInstance();
+							 }
 						     IBeaconManager.getInstanceForApplication(this).setMonitorNotifier(monitorNotifier);						
 						     Log.d(TAG, "Automatically set monitor notifier: "+monitorNotifier);
 

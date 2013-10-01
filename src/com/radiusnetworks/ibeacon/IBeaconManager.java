@@ -223,6 +223,8 @@ public class IBeaconManager {
 	 */
 	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_RANGING, 0, 0);
+		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction() );
+		msg.obj = obj;
 		serviceMessenger.send(msg);
 	}
 	/**
@@ -256,6 +258,8 @@ public class IBeaconManager {
 	 */
 	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_MONITORING, 0, 0);
+		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction() );
+		msg.obj = obj;
 		serviceMessenger.send(msg);
 	}
 	
@@ -301,7 +305,7 @@ public class IBeaconManager {
                     super.handleMessage(msg);
                     RangingData data = (RangingData) msg.obj;
                     Log.d(TAG, "Got a ranging callback with data: "+data);
-                    Log.d(TAG, "Got a ranging callback with ibeacons: "+data.getIBeacons()); 
+                    Log.d(TAG, "Got a ranging callback with "+data.getIBeacons().size()+" iBeacons"); 
                     if (data.getIBeacons() != null) {
                     	ArrayList<IBeacon> validatedIBeacons = new ArrayList<IBeacon>();
                     	Iterator<IBeaconData> iterator = data.getIBeacons().iterator();

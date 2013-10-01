@@ -23,6 +23,8 @@
  */
 package com.radiusnetworks.ibeacon;
 
+import android.util.Log;
+
 /**
  * This class represents a criteria of fields used to match iBeacons.  The strange name
  * comes from the iOS implementation, where the idea of a "Region" is also used for a geofence.
@@ -42,6 +44,7 @@ package com.radiusnetworks.ibeacon;
  *
  */
 public class Region  {
+	private static final String TAG = "Region";
 	/**
 	 * Part 2 of 3 of an iBeacon identifier.  A 16 bit integer typically used to identify a common grouping of iBeacons.
 	 */
@@ -107,13 +110,16 @@ public class Region  {
 	 * @return true if is covered
 	 */
 	public boolean matchesIBeacon(IBeacon iBeacon) {
-		if (proximityUuid != null && iBeacon.getProximityUuid() != proximityUuid) {
+		if (proximityUuid != null && !iBeacon.getProximityUuid().equals(proximityUuid)) {
+			Log.d(TAG, "unmatching proxmityUuids: "+iBeacon.getProximityUuid()+" != "+proximityUuid);
 			return false;
 		}
 		if (major != null && iBeacon.getMajor() != major) {
+			Log.d(TAG, "unmatching major: "+iBeacon.getMajor()+" != "+major);
 			return false;
 		}
-		if (minor != null && iBeacon.getMajor() != minor) {
+		if (minor != null && iBeacon.getMinor() != minor) {
+			Log.d(TAG, "unmatching minor: "+iBeacon.getMajor()+" != "+minor);
 			return false;
 		}
 		return true;
@@ -134,6 +140,10 @@ public class Region  {
 			return ((Region)other).uniqueId == this.uniqueId;			 
 		 }
 		 return false;
+	}
+	
+	public String toString() {
+		return "proximityUuid: "+proximityUuid+" major: "+major+" minor:"+minor;
 	}
 
 

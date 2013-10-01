@@ -10,16 +10,20 @@ iBeacons are small hardware devices that send out Low Energy Bluetooth signals w
 These are useful for building mobile apps that can "see" the iBeacons, and approximate how far they are away, 
 up to a hundred feet or so.
 Apple came up with the technology as part of iOS7, which natively contains APIs to interact with them. 
-For testing purposes, an iBeacon can be made out of an any iOS7 device that supports Low Energy Bluetooth using
-Apple's AirLocate sample code available [here](https://developer.apple.com/downloads/index.action?name=WWDC%202013#)
-An iBeacon can also be made out of a cheap Bluetooth LE dongle and a Linux vitual machine.  Here is a VirtualBox image that 
-works as an iBecaon if you have a BLE dongle.  https://s3.amazonaws.com/s3.messageradius.com/Public/VirtualiBeacon.ova (just login with username/password then run the ./start script).
 
 ## What does this library do?
 
 It allows Android devices to use iBeacons much like iOS devices do.  An app can request to get notifications when one
 or more iBeacons appear or disappear.  An app can also request to get a ranging update from one or more iBeacons
 at a frequency of 1Hz.
+
+## How do I get an iBeacon?
+
+Radius Networks sells [active iBeacons](http://www.radiusnetworks.com/ibeacon.html) suitable for deployment.   For testing purposes, an iBeacon can be made out of an any iOS7 device that supports Low Energy Bluetooth using
+Apple's AirLocate sample code available [here](https://developer.apple.com/downloads/index.action?name=WWDC%202013#)  Unfortunately, it is not possible to make an iBeacon
+out of an Android device, because the Android Bluetooth LE APIs do not support the peripheral mode needed  to send advertisement packets like in iBeacon.  Fortunately, Radius
+Networks provides a free Linux virtual machine that when paired with a cheap Bluetooth LE dongle, acts as an iBeacon.   
+The VirtualBox image is available [here](https://s3.amazonaws.com/s3.messageradius.com/Public/VirtualiBeacon.ova). (just login with username/password then run the ./start script).
 
 ## Supported Platforms
 
@@ -29,7 +33,7 @@ As of September 2013, Android devices known to have BLE include: Samsung Galaxy 
 
 ## Limitations
 
-* The app must be given two privilidges: android.permission.BLUETOOTH_ADMIN, android.permission.BLUETOOTH
+* The app must be given two privileges: android.permission.BLUETOOTH_ADMIN, android.permission.BLUETOOTH
 * When the service is running and scanning for Bluetooth devices, Wifi scans are blocked until the bluetooth scan stops.  Similarly, if a Wifi scan is started, bluetooth scans are blocked (along with discovery of iBeacons) until the Wifi scan completes.
 
 ## Differences from iOS API

@@ -25,7 +25,9 @@ package com.radiusnetworks.ibeacon;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.radiusnetworks.ibeacon.service.IBeaconData;
 import com.radiusnetworks.ibeacon.service.IBeaconService;
@@ -75,7 +77,9 @@ import android.util.Log;
  *  		iBeaconManager.setRangeNotifier(new RangeNotifier() {
  *        	 {@literal @}Override 
  *        	public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
- *        		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
+ *     			if (iBeacons.size() > 0) {
+ *	      			Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
+ *     			}
  *        	}
  *  		});
  *  		
@@ -93,17 +97,18 @@ public class IBeaconManager {
 	private static final String TAG = "IBeaconManager";
 	private Context context;
 	private static IBeaconManager client = null;
-	private ArrayList<IBeaconConsumer> consumers = new ArrayList<IBeaconConsumer>();
+	private Map<IBeaconConsumer,Boolean> consumers = new HashMap<IBeaconConsumer,Boolean>();
 	private Messenger serviceMessenger = null; 
 	protected RangeNotifier rangeNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
 	
 	/**
 	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
-	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Applicaton class.
+	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
 	 */
 	public static IBeaconManager getInstanceForApplication(Context context) {
 		if (!isInstantiated()) {
+			Log.d(TAG, "IBeaconManager instance craetion");
 			client = new IBeaconManager(context);
 		}
 		return client;
@@ -136,14 +141,15 @@ public class IBeaconManager {
 	 * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
 	 */
 	public void bind(IBeaconConsumer consumer) {
-		if (consumers.contains(consumer)) {
+		if (consumers.keySet().contains(consumer)) {
 			Log.i(TAG, "This consumer is already bound");					
 		}
 		else {
 			Log.i(TAG, "This consumer is not bound.  binding: "+consumer);	
-			consumers.add(consumer);
+			consumers.put(consumer, false);
 			Intent intent = new Intent(consumer.getApplicationContext(), IBeaconService.class);
 			consumer.bindService(intent, iBeaconServiceConnection, Context.BIND_AUTO_CREATE);
+			Log.i(TAG, "consumer count is now:"+consumers.size());
 		}
 	}
 	
@@ -154,7 +160,7 @@ public class IBeaconManager {
 	 * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
 	 */
 	public void unBind(IBeaconConsumer consumer) {
-		if (consumers.contains(consumer)) {
+		if (consumers.keySet().contains(consumer)) {
 			Log.i(TAG, "Unbinding");			
 			consumer.unbindService(iBeaconServiceConnection);
 			consumers.remove(consumer);
@@ -278,11 +284,15 @@ public class IBeaconManager {
 		// Called when the connection with the service is established
 	    public void onServiceConnected(ComponentName className, IBinder service) {
 	    	Log.d(TAG,  "we have a connection to the service now");
-	       // IBeaconBinder binder = (IBeaconBinder) service;
 	        serviceMessenger = new Messenger(service);
-	        Iterator<IBeaconConsumer> consumerIterator = consumers.iterator();
+	        Iterator<IBeaconConsumer> consumerIterator = consumers.keySet().iterator();
 	        while (consumerIterator.hasNext()) {
-	        	consumerIterator.next().onIBeaconServiceConnect();
+	        	IBeaconConsumer consumer = consumerIterator.next();
+	        	Boolean alreadyConnected = consumers.get(consumer);
+	        	if (!alreadyConnected) {		        	
+		        	consumer.onIBeaconServiceConnect();
+		        	consumers.put(consumer, true);
+	        	}
 	        }
 	    }
 

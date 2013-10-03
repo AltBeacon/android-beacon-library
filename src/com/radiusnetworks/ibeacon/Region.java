@@ -71,7 +71,7 @@ public class Region  {
 	public Region(String uniqueId, String proximityUuid, Integer major, Integer minor) {
 		this.major = major;
 		this.minor = minor;
-		this.proximityUuid = proximityUuid;
+		this.proximityUuid = normalizeProximityUuid(proximityUuid);
 		this.uniqueId = uniqueId;
 	}
 	/**
@@ -134,7 +134,12 @@ public class Region  {
 	protected Region() {
 		
 	}
-		
+
+	@Override
+	public int hashCode() {
+		return this.uniqueId.hashCode();
+	}
+	
 	public boolean equals(Object other) {
 		 if (other instanceof Region) {
 			return ((Region)other).uniqueId == this.uniqueId;			 
@@ -144,6 +149,35 @@ public class Region  {
 	
 	public String toString() {
 		return "proximityUuid: "+proximityUuid+" major: "+major+" minor:"+minor;
+	}
+	
+	/**
+	 * Puts string to a normalized UUID format, or throws a runtime exception if it contains non-hex digits
+	 * other than dashes or spaces, or if it doesn't contain exactly 32 hex digits
+	 * @param proximityUuid uuid with any combination of upper/lower case hex characters, dashes and spaces
+	 * @return a normalized string, all lower case hex characters with dashes in the form e2c56db5-dffb-48d2-b060-d0f5a71096e0
+	 */
+	public static String normalizeProximityUuid(String proximityUuid) {
+		String dashlessUuid = proximityUuid.toLowerCase().replaceAll("[\\-\\s]", "");
+		if (dashlessUuid.length() != 32) {
+			// TODO: make this a specific exception
+			throw new RuntimeException("UUID: "+proximityUuid+" is too short.  Must contain exactly 32 hex digits, and there are only "+dashlessUuid.length()+".");
+		}
+		if (!dashlessUuid.matches("^[a-zA-Z0-9]*$")) {
+			// TODO: make this a specific exception
+			throw new RuntimeException("UUID: "+proximityUuid+" contains invalid characters.  Must be dashes, a-z and 0-9 characters only.");			
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(dashlessUuid.substring(0,8));
+		sb.append('-');
+		sb.append(dashlessUuid.substring(8,12));
+		sb.append('-');
+		sb.append(dashlessUuid.substring(12,16));
+		sb.append('-');
+		sb.append(dashlessUuid.substring(16,20));
+		sb.append('-');
+		sb.append(dashlessUuid.substring(20,32));
+		return sb.toString();
 	}
 
 

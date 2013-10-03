@@ -57,7 +57,9 @@ import android.content.ServiceConnection;
  *  		iBeaconManager.setRangeNotifier(new RangeNotifier() {
  *        	 {@literal @}Override 
  *        	public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
- *        		Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
+ *     			if (iBeacons.size() > 0) {
+ *	      			Log.i(TAG, "The first iBeacon I see is about "+iBeacons.iterator().next().getAccuracy()+" meters away.");		
+ *     			}
  *        	}
  *  		});
  *  		

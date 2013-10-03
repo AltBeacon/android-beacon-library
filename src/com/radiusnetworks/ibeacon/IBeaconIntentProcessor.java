@@ -120,8 +120,15 @@ public class IBeaconIntentProcessor extends IntentService {
 	protected void onHandleIntent(Intent intent) {
 		initialize();
 		Log.d(TAG, "got an intent to process");
-		MonitoringData monitoringData = (MonitoringData) intent.getExtras().get("monitoringData");
-		RangingData rangingData = (RangingData) intent.getExtras().get("rangingData");
+		
+		MonitoringData monitoringData = null;
+		RangingData rangingData = null;
+		
+		if (intent != null && intent.getExtras() != null) {
+			monitoringData = (MonitoringData) intent.getExtras().get("monitoringData");
+			rangingData = (RangingData) intent.getExtras().get("rangingData");			
+		}
+		
 		if (rangingData != null) {
 			Log.d(TAG, "got ranging data");
 			RangeNotifier notifier = IBeaconManager.getInstanceForApplication(this).getRangingNotifier();

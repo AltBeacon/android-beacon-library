@@ -23,6 +23,8 @@
  */
 package com.radiusnetworks.ibeacon;
 
+import android.util.Log;
+
 /**
 * The <code>IBeacon</code> class represents a single hardware iBeacon detected by 
 * an Android device.
@@ -65,6 +67,7 @@ public class IBeacon {
 	public static final int PROXIMITY_UNKNOWN = 0;
 
     final private static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+	private static final String TAG = "IBeacon";
 	
     /**
      * A 16 byte UUID that typically represents the company owning a number of iBeacons
@@ -172,6 +175,8 @@ public class IBeacon {
 	 * @return An instance of an <code>IBeacon</code>
 	 */
 	public static IBeacon fromScanData(byte[] scanData, int rssi) {
+
+		
 		if (((int)scanData[0] & 0xff) == 0x02 &&
 			((int)scanData[1] & 0xff) == 0x01 &&
 			((int)scanData[2] & 0xff) == 0x1a &&
@@ -185,6 +190,7 @@ public class IBeacon {
 		}
 		else {
 			// This is not an iBeacon
+			Log.d(TAG, "This is not an iBeacon advertisment.  The bytes I see are: "+bytesToHex(scanData));
 			return null;
 		}
 								
@@ -196,6 +202,16 @@ public class IBeacon {
 		
 		iBeacon.accuracy = calculateAccuracy(iBeacon.txPower, rssi);
 		iBeacon.proximity = calculateProximity(iBeacon.accuracy);
+		
+		// AirLocate:
+		// 02 01 1a 1a ff 4c 00 02 15  # Apple's fixed iBeacon advertising prefix
+		// e2 c5 6d b5 df fb 48 d2 b0 60 d0 f5 a7 10 96 e0 # iBeacon profile uuid
+		// 00 00 # major 
+		// 00 00 # minor 
+		// c5 # The 2's complement of the calibrated Tx Power
+		// Estimote:		
+		// 02 01 1a 11 07 2d 24 bf 16 
+		// 394b31ba3f486415ab376e5c0f09457374696d6f7465426561636f6e00000000000000000000000000000000000000000000000000
 		
 		byte[] proximityUuidBytes = new byte[16];
 		System.arraycopy(scanData, 9, proximityUuidBytes, 0, 16); 

@@ -25,7 +25,10 @@ package com.radiusnetworks.ibeacon.service;
 
 import java.util.Date;
 
+import android.util.Log;
+
 public class MonitorState {
+	private static final String TAG = "MonitorState";
 	public static long INSIDE_EXPIRATION_MILLIS = 10000l;
 	private boolean inside = false;
 	private long lastSeenTime = 0l;
@@ -50,8 +53,9 @@ public class MonitorState {
 	}
 	public boolean isNewlyOutside() {
 		if (inside) {
-			if ((new Date()).getTime() - lastSeenTime > INSIDE_EXPIRATION_MILLIS) {
+			if (lastSeenTime > 0 && (new Date()).getTime() - lastSeenTime > INSIDE_EXPIRATION_MILLIS) {
 				inside = false;
+				Log.d(TAG, "We are newly outside because the lastSeenTime of "+lastSeenTime+" was "+((new Date()).getTime() - lastSeenTime)+" seconds ago, and that is over the expiration duration of  "+INSIDE_EXPIRATION_MILLIS);
 				lastSeenTime = 0l;
 				return true;
 			}			

@@ -226,6 +226,10 @@ public class IBeaconService extends Service {
 				
 	// TODO: make it so that regions between apps do not collide
 	public void startRangingBeaconsInRegion(Region region, Callback callback) {
+		if (rangedRegionState.containsKey(region)) {
+			Log.d(TAG, "Already ranging that region -- will replace existing region.");
+			rangedRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
+		}
 		rangedRegionState.put(region, new RangeState(callback));
 		if (!scanning) {
 		    scanLeDevice(true); 					
@@ -240,12 +244,11 @@ public class IBeaconService extends Service {
 	public void startMonitoringBeaconsInRegion(Region region, Callback callback) {
 		Log.d(TAG, "startMonitoring called");
 		if (monitoredRegionState.containsKey(region)) {
-			Log.d(TAG, "Already monitoring that region.");
+			Log.d(TAG, "Already monitoring that region -- will replace existing region monitor.");
+			monitoredRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
 		}
-		else {
-			monitoredRegionState.put(region,  new MonitorState(callback));
-			Log.d(TAG, "Currently monitoring "+monitoredRegionState.size()+" regions.");			
-		}
+		monitoredRegionState.put(region,  new MonitorState(callback));
+		Log.d(TAG, "Currently monitoring "+monitoredRegionState.size()+" regions.");			
 		if (!scanning) {
 		    scanLeDevice(true); 					
 		}
@@ -278,31 +281,22 @@ public class IBeaconService extends Service {
                 public void run() {
                     Log.d(TAG, "Done with scan cycle");
                 	if (scanning == true ) {
-                    	// Don't restart scanning if you haven't seen any beacons yet -- there is no point, because the only purpose of restarting
-                    	// scanning is to clear out Android's refusal to forward updates of Advertisements it has already seen.  And we might miss a packet during restarting.
-                		// But if it has been 10 secs since we last saw anything, restart anyway to make sure we are in sync.  
-                		if (trackedBeacons.size() == 0 && (new Date().getTime() - lastIBeaconDetectionTime.getTime() < 10000)) {
-                			Log.d(TAG, "Not stopping scan because we didn't see any beacons.");
+                        processRangeData();
+                		Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: "+trackedBeacons.size());
+                        bluetoothAdapter.stopLeScan(leScanCallback);
+                        scanningPaused = true;
+                        if (isInBackground()) {
+                        	handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                	scanLeDevice(true);                        	
+                                }
+                        	}, BACKGROUND_BETWEEN_SCAN_PERIOD);
+                        }
+                        else {
                         	scanLeDevice(true);                		                        		
-                		}
-                		else {
-                            processRangeData();
-                    		Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: "+trackedBeacons.size());
-                            bluetoothAdapter.stopLeScan(leScanCallback);
-                            scanningPaused = true;
-                            if (isInBackground()) {
-                            	handler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                    	scanLeDevice(true);                        	
-                                    }
-                            	}, BACKGROUND_BETWEEN_SCAN_PERIOD);
-                            }
-                            else {
-                            	scanLeDevice(true);                		                        		
-                            }
+                        }
                 			
-                		}
                 	}
                 }
             }, scanPeriod);
@@ -332,6 +326,7 @@ public class IBeaconService extends Service {
     	@Override
         public void onLeScan(final BluetoothDevice device, final int rssi,
                 final byte[] scanRecord) {
+    		Log.d(TAG, "got record");
     		new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
 
        }
@@ -354,10 +349,8 @@ public class IBeaconService extends Service {
     	while (regionIterator.hasNext()) {
     		Region region = regionIterator.next();
     		RangeState rangeState = rangedRegionState.get(region);
-    		//if (rangeState.getIBeacons().size() > 0) {
-    			Log.d(TAG, "Calling ranging callback with "+rangeState.getIBeacons().size()+" iBeacons");
-    			rangeState.getCallback().call(IBeaconService.this, "monitoringData", new RangingData(rangeState.getIBeacons(), region));    			
-    		//}    		
+			Log.d(TAG, "Calling ranging callback with "+rangeState.getIBeacons().size()+" iBeacons");
+			rangeState.getCallback().call(IBeaconService.this, "monitoringData", new RangingData(rangeState.getIBeacons(), region));    			
     		rangeState.clearIBeacons();
     	}
 
@@ -397,11 +390,12 @@ public class IBeaconService extends Service {
      			   }
      		   }
          		       		  
+     		   Log.d(TAG, "looking for ranging region matches for this ibeacon");
      		   matchedRegions = matchingRegions(iBeacon, rangedRegionState.keySet());
-     		   Log.d(TAG, "matched regions: "+matchedRegions.size());
      		   matchedRegionIterator = matchedRegions.iterator();
      		   while (matchedRegionIterator.hasNext()) {
      			   Region region = matchedRegionIterator.next();
+         		   Log.d(TAG, "matches ranging region: "+region);
      			   RangeState rangeState = rangedRegionState.get(region);
      			   rangeState.addIBeacon(iBeacon);     			   
      		   }

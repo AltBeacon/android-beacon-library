@@ -19,7 +19,8 @@ at a frequency of 1Hz.
 
 ## How do I get an iBeacon?
 
-Radius Networks sells [active iBeacons](http://www.radiusnetworks.com/ibeacon.html) suitable for deployment.   For testing purposes, an iBeacon can be made out of an any iOS7 device that supports Low Energy Bluetooth using
+You can buy our [iBeacon Development Kit](http://developer.radiusnetworks.com/ibeacon/ibeacon-development-kit.html) that includes everything you need to get started.
+Radius Networks also sells [active iBeacons](http://www.radiusnetworks.com/ibeacon.html) suitable for deployment.   For testing purposes, an iBeacon can be made out of an any iOS7 device that supports Low Energy Bluetooth using
 Apple's AirLocate sample code available [here](https://developer.apple.com/downloads/index.action?name=WWDC%202013#)  Unfortunately, it is not possible to make an iBeacon
 out of an Android device, because the Android Bluetooth LE APIs do not support the peripheral mode needed  to send advertisement packets like in iBeacon.  Fortunately, Radius
 Networks provides a free [Linux virtual machine](http://developer.radiusnetworks.com/ibeacon/virtual.html) that when paired with a cheap Bluetooth LE dongle, acts as an iBeacon.   

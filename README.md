@@ -74,6 +74,7 @@ This software is available under the Apache License 2.0, allowing you to use the
 		</service>    
 		<service android:enabled="true" 
          	android:name="com.radiusnetworks.ibeacon.IBeaconIntentProcessor">
+         		<meta-data android:name="background" android:value="true" />
 			<intent-filter 
                android:priority="1" >
 				<action android:name="{my app's package name}.DID_RANGING" />

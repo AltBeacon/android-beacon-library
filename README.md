@@ -15,7 +15,7 @@ Apple came up with the technology as part of iOS7, which natively contains APIs 
 
 It allows Android devices to use iBeacons much like iOS devices do.  An app can request to get notifications when one
 or more iBeacons appear or disappear.  An app can also request to get a ranging update from one or more iBeacons
-at a frequency of 1Hz.
+at a frequency of 1Hz.  The [iBeacon Locate App](https://play.google.com/store/apps/details?id=com.radiusnetworks.ibeaconlocate&hl=en) in the Google Play store demonstrates these capabilities.
 
 ## How do I get an iBeacon?
 
@@ -34,7 +34,12 @@ As of September 2013, Android devices known to have BLE include: Samsung Galaxy 
 ## Limitations
 
 * The app must be given two privileges: android.permission.BLUETOOTH_ADMIN, android.permission.BLUETOOTH
-* When the service is running and scanning for Bluetooth devices, Wifi scans are blocked until the bluetooth scan stops.  Similarly, if a Wifi scan is started, bluetooth scans are blocked (along with discovery of iBeacons) until the Wifi scan completes.
+
+## Known issues:
+
+* [On the Nexus 4, Bluetooth and WiFi do not work properly at the same time.](https://code.google.com/p/android/issues/detail?id=41631)  If this library is used on the Nexus 4 when WiFi is active, it may cause a dropped WiFi connection, inability to do Wifi scans, delays in seeing iBeacons, or a total inability to see iBeacons.  Turning off WiFi on the Nexus 4 solves these problems.
+
+When the service is running and scanning for Bluetooth devices, Wifi scans are blocked until the bluetooth scan stops.  Similarly, if a Wifi scan is started, bluetooth scans are blocked (along with discovery of iBeacons) until the Wifi scan completes.
 
 ## Differences from iOS API
 
@@ -82,6 +87,10 @@ This software is available under the Apache License 2.0, allowing you to use the
 			</intent-filter>
 		</service>  
 ```
+
+## Reference Application
+
+A minimalist [reference application][https://github.com/RadiusNetworks/android-ibeacon-reference] is available on GitHub that demonstrates basic ranging and monitoring.  It is based on the examples below.
 
 
 ## Monitoring Example Code

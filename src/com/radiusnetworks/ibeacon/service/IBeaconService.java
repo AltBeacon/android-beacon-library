@@ -80,6 +80,7 @@ public class IBeaconService extends Service {
     private Date lastIBeaconDetectionTime = new Date();
     private HashSet<IBeacon> trackedBeacons;
     private Handler handler = new Handler();
+    private int bindCount = 0;
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
      * Each time we restart we only see the unique advertisements once (e.g. unique iBeacons)
@@ -174,12 +175,13 @@ public class IBeaconService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "binding");
+        bindCount++;
         return mMessenger.getBinder();
     }   
     @Override
     public boolean onUnbind (Intent intent) {
     	Log.i(TAG, "unbind called");
-    	
+    	bindCount--;
 		return false;    	
     }
     
@@ -196,7 +198,9 @@ public class IBeaconService extends Service {
     public void onDestroy() {
     	Log.i(TAG, "onDestory called.  stopping scanning");
     	scanLeDevice(false);
-    	bluetoothAdapter.stopLeScan(leScanCallback);
+    	if (bluetoothAdapter != null) {
+        	bluetoothAdapter.stopLeScan(leScanCallback);    		
+    	}
     }
     
     private int ongoing_notification_id = 1;
@@ -216,10 +220,11 @@ public class IBeaconService extends Service {
     
     
     /* 
-     * Returns true if the service is running, but no bound clients are in the foreground
+     * Returns true if the service is running, but no bound clients exist
      */
     private boolean isInBackground() {
-    	return false;
+    	Log.d(TAG, "bound client count:"+bindCount);
+    	return bindCount == 0;
     }
 
     /** methods for clients */
@@ -286,6 +291,7 @@ public class IBeaconService extends Service {
                         bluetoothAdapter.stopLeScan(leScanCallback);
                         scanningPaused = true;
                         if (isInBackground()) {
+                        	Log.d(TAG, "We are in the background.  Waiting a little bit before scanning again.");
                         	handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -305,7 +311,12 @@ public class IBeaconService extends Service {
             if (scanning == false || scanningPaused == true) {
             	scanning = true;
             	scanningPaused = false;
-                bluetoothAdapter.startLeScan(leScanCallback);            	
+            	try {
+            		bluetoothAdapter.startLeScan(leScanCallback);            
+            	}
+            	catch (Exception e) {
+            		Log.e("TAG", "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
+            	}
             }
             else {
             	Log.d(TAG, "We are already scanning");

@@ -23,6 +23,10 @@
  */
 package com.radiusnetworks.ibeacon;
 
+import java.util.Collections;
+
+import com.radiusnetworks.ibeacon.client.RangedIBeacon;
+
 import android.util.Log;
 
 /**
@@ -67,7 +71,7 @@ public class IBeacon {
 	public static final int PROXIMITY_UNKNOWN = 0;
 
     final private static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-	private static final String TAG = "IBeacon";
+	private static final String TAG = "IBeacon";	
 	
     /**
      * A 16 byte UUID that typically represents the company owning a number of iBeacons
@@ -89,13 +93,13 @@ public class IBeacon {
 	 * @see #PROXIMITY_FAR
 	 * @see #PROXIMITY_UNKNOWN
 	 */
-	protected int proximity;
+	protected Integer proximity;
 	/**
 	 * A double that is an estimate of how far the iBeacon is away in meters.  This name is confusing, but is copied from
 	 * the iOS7 SDK terminology.   Note that this number fluctuates quite a bit with RSSI, so despite the name, it is not
 	 * super accurate.   It is recommended to instead use the proximity field, or your own bucketization of this value. 
 	 */
-	protected double accuracy;
+	protected Double accuracy;
 	/**
 	 * The measured signal strength of the Bluetooth packet that led do this iBeacon detection.
 	 */
@@ -108,10 +112,18 @@ public class IBeacon {
 	protected int txPower;
 	
 	/**
+	 * If multiple RSSI samples were available, this is the running average
+	 */
+	protected Double runningAverageRssi = null;
+	
+	/**
 	 * @see #accuracy
 	 * @return accuracy
 	 */
 	public double getAccuracy() {
+		if (accuracy == null) {
+			accuracy = calculateAccuracy(txPower, runningAverageRssi != null ? runningAverageRssi : rssi );		
+		}
 		return accuracy;
 	}
 	/**
@@ -133,6 +145,9 @@ public class IBeacon {
 	 * @return proximity
 	 */
 	public int getProximity() {
+		if (proximity == null) {
+			proximity = calculateProximity(getAccuracy());		
+		}
 		return proximity;		
 	}
 	/**
@@ -142,6 +157,14 @@ public class IBeacon {
 	public int getRssi() {
 		return rssi;
 	}
+	/**
+	 * @see #txPower
+	 * @return txPowwer
+	 */
+	public int getTxPower() {
+		return txPower;
+	}
+
 	/**
 	 * @see #proximityUuid
 	 * @return proximityUuid
@@ -220,10 +243,7 @@ public class IBeacon {
 		iBeacon.minor = ((int)scanData[27] & 0xff) * 0x100 +scanData[28];
 		iBeacon.txPower = (int)scanData[29]; // this one is signed
 		iBeacon.rssi = rssi;
-		
-		iBeacon.accuracy = calculateAccuracy(iBeacon.txPower, rssi);
-		iBeacon.proximity = calculateProximity(iBeacon.accuracy);
-		
+				
 		// AirLocate:
 		// 02 01 1a 1a ff 4c 00 02 15  # Apple's fixed iBeacon advertising prefix
 		// e2 c5 6d b5 df fb 48 d2 b0 60 d0 f5 a7 10 96 e0 # iBeacon profile uuid
@@ -248,6 +268,7 @@ public class IBeacon {
 		sb.append("-");
 		sb.append(hexString.substring(20,32));
 		iBeacon.proximityUuid = sb.toString();
+
 		return iBeacon;
 	}
 
@@ -265,30 +286,26 @@ public class IBeacon {
 		
 	}
 	
-	
-	private static double calculateAccuracy(int txPower, int rssi) {
+	protected static double calculateAccuracy(int txPower, double rssi) {
 		if (rssi == 0) {
 			return -1.0; // if we cannot determine accuracy, return -1.
 		}
-		// txPower is supposed to be the rssi at one meter away.  So a ratio of 1.0 should result in a distance of 1.0 meter. 
-		// if the device is further away, the rssi will have a greater magnitude (more negative) resulting in a number > 1.
-		double ratio = (rssi *1.0) / txPower;
-		double exponentMultiplier = 1.5;
-		double multiplier = 12.0;
-		double distanceInMeters = Math.pow(multiplier, ratio*exponentMultiplier)/Math.pow(multiplier, exponentMultiplier); 
-		return distanceInMeters;
 		
-		// acutal measured values -- note that this is not exactly linear, implying their must be some history involved
-		//
-		//"rssi"=>-51, "accuracy"=>0.633887 
-		//"rssi"=>-56, "accuracy"=>0.985192
-		//"rssi"=>-66, "accuracy"=>2.036509
-		//"rssi"=>-80, "accuracy"=>7.661092
-		//"rssi"=>-83, "accuracy"=>4.771886
-								
-	}
+		Log.d(TAG, "calculating accuracy based on rssi of "+rssi);
+
+
+		double ratio = rssi*1.0/txPower;
+		if (ratio < 1.0) {
+			return Math.pow(ratio,10);
+		}
+		else {
+			double accuracy =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;	
+			Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
+			return accuracy;
+		}
+	}	
 	
-	private static int calculateProximity(double accuracy) {
+	protected static int calculateProximity(double accuracy) {
 		if (accuracy < 0) {
 			return PROXIMITY_UNKNOWN;	 
 			// is this correct?  does proximity only show unknown when accuracy is negative?  I have seen cases where it returns unknown when

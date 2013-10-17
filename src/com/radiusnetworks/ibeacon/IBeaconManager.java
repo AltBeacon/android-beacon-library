@@ -24,11 +24,11 @@
 package com.radiusnetworks.ibeacon;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.radiusnetworks.ibeacon.client.RangingTracker;
 import com.radiusnetworks.ibeacon.service.IBeaconData;
 import com.radiusnetworks.ibeacon.service.IBeaconService;
 import com.radiusnetworks.ibeacon.service.RangingData;
@@ -101,6 +101,7 @@ public class IBeaconManager {
 	private Messenger serviceMessenger = null; 
 	protected RangeNotifier rangeNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
+    protected RangingTracker rangingTracker = new RangingTracker();
 	
 	/**
 	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
@@ -124,7 +125,7 @@ public class IBeaconManager {
 	 */
 	public boolean checkAvailability() {
 		if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-			throw new RuntimeException("Bluetooth LE not supported by this device"); // TODO: make a specific exception
+			throw new BleNotAvailableException("Bluetooth LE not supported by this device"); 
 		}		
 		else {
 			if (((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled()){
@@ -317,7 +318,6 @@ public class IBeaconManager {
                     Log.d(TAG, "Got a ranging callback with data: "+data);
                     Log.d(TAG, "Got a ranging callback with "+data.getIBeacons().size()+" iBeacons"); 
                     if (data.getIBeacons() != null) {
-                    	ArrayList<IBeacon> validatedIBeacons = new ArrayList<IBeacon>();
                     	Iterator<IBeaconData> iterator = data.getIBeacons().iterator();
                     	while (iterator.hasNext()) {
                     		IBeaconData iBeaconData = iterator.next();
@@ -325,17 +325,14 @@ public class IBeaconManager {
                     			Log.d(TAG, "null ibeacon found");
                     		}
                     		else {
-                    			validatedIBeacons.add(iBeaconData );
+                    			iBeaconManager.get().rangingTracker.addIBeacon(iBeaconData);
                     		}
-                    	}
-                    	if (validatedIBeacons.size() > 0) {
-                            Log.d(TAG, "with beacon: "+validatedIBeacons.get(0).getMinor());                    		
                     	}
                         
                     	IBeaconManager manager = iBeaconManager.get();
                         if (manager.rangeNotifier != null) {                    	
                         	Log.d(TAG, "Calling ranging notifier on :"+manager.rangeNotifier);
-                        	manager.rangeNotifier.didRangeBeaconsInRegion(validatedIBeacons, data.getRegion());
+                        	manager.rangeNotifier.didRangeBeaconsInRegion(iBeaconManager.get().rangingTracker.getIBeacons(), data.getRegion());
                         }                    	
                     }
             }

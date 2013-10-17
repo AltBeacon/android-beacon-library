@@ -54,8 +54,14 @@ public class IBeaconIntentProcessor extends IntentService {
 				PackageManager packageManager = getPackageManager();
 				ServiceInfo serviceInfo = packageManager.getServiceInfo(componentName, PackageManager.GET_META_DATA);
 				Bundle data = serviceInfo.metaData;
-				String rangeNotifierClassName = (String) data.get("rangeNotifier");
-				String monitorNotifierClassName = (String) data.get("monitorNotifier");
+				String rangeNotifierClassName = null;
+				String monitorNotifierClassName = null;
+
+				if(data != null) {
+					rangeNotifierClassName = (String) data.get("rangeNotifier");
+					monitorNotifierClassName = (String) data.get("monitorNotifier");
+					
+				}
 				if (!IBeaconManager.isInstantiated()) {
 					RangeNotifier rangeNotifier = null;
 					MonitorNotifier monitorNotifier = null;

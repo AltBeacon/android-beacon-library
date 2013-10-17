@@ -164,11 +164,11 @@ public class Region  {
 		String dashlessUuid = proximityUuid.toLowerCase().replaceAll("[\\-\\s]", "");
 		if (dashlessUuid.length() != 32) {
 			// TODO: make this a specific exception
-			throw new RuntimeException("UUID: "+proximityUuid+" is too short.  Must contain exactly 32 hex digits, and there are only "+dashlessUuid.length()+".");
+			throw new RuntimeException("UUID: "+proximityUuid+" is too short.  Must contain exactly 32 hex digits, and there are this value has "+dashlessUuid.length()+" digits.");
 		}
-		if (!dashlessUuid.matches("^[a-zA-Z0-9]*$")) {
+		if (!dashlessUuid.matches("^[a-fA-F0-9]*$")) {
 			// TODO: make this a specific exception
-			throw new RuntimeException("UUID: "+proximityUuid+" contains invalid characters.  Must be dashes, a-z and 0-9 characters only.");			
+			throw new RuntimeException("UUID: "+proximityUuid+" contains invalid characters.  Must be dashes, a-f and 0-9 characters only.");			
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(dashlessUuid.substring(0,8));

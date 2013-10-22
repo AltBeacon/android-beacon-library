@@ -239,8 +239,8 @@ public class IBeacon {
 								
 		IBeacon iBeacon = new IBeacon();
 		
-		iBeacon.major = ((int)scanData[25] & 0xff) * 0x100 +scanData[26];
-		iBeacon.minor = ((int)scanData[27] & 0xff) * 0x100 +scanData[28];
+		iBeacon.major = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
+		iBeacon.minor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
 		iBeacon.txPower = (int)scanData[29]; // this one is signed
 		iBeacon.rssi = rssi;
 				

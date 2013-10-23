@@ -200,12 +200,7 @@ public class IBeacon {
 	public static IBeacon fromScanData(byte[] scanData, int rssi) {
 
 		
-		if (((int)scanData[0] & 0xff) == 0x02 &&
-			((int)scanData[1] & 0xff) == 0x01 &&
-			((int)scanData[2] & 0xff) == 0x1a &&
-			((int)scanData[3] & 0xff) == 0x1a &&
-			((int)scanData[4] & 0xff) == 0xff &&
-			((int)scanData[5] & 0xff) == 0x4c &&
+		if (((int)scanData[5] & 0xff) == 0x4c &&
 			((int)scanData[6] & 0xff) == 0x00 &&
 			((int)scanData[7] & 0xff) == 0x02 &&
 			((int)scanData[8] & 0xff) == 0x15) {			
@@ -214,12 +209,7 @@ public class IBeacon {
 
 		
 		
-		else if (((int)scanData[0] & 0xff) == 0x02 &&
-				((int)scanData[1] & 0xff) == 0x01 &&
-				((int)scanData[2] & 0xff) == 0x1a &&
-				((int)scanData[3] & 0xff) == 0x11 &&
-				((int)scanData[4] & 0xff) == 0x07 &&
-				((int)scanData[5] & 0xff) == 0x2d &&
+		else if (((int)scanData[5] & 0xff) == 0x2d &&
 				((int)scanData[6] & 0xff) == 0x24 &&
 				((int)scanData[7] & 0xff) == 0xbf &&
 				((int)scanData[8] & 0xff) == 0x16) {	

@@ -173,7 +173,6 @@ public class IBeacon {
 		return proximityUuid;
 	}
 	
-	
 	@Override
 	public int hashCode() {
 		return minor;
@@ -188,7 +187,7 @@ public class IBeacon {
 			return false;
 		}
 		IBeacon thatIBeacon = (IBeacon) that;		
-		return (thatIBeacon.getMajor() == this.getMajor() && thatIBeacon.getMinor() == this.getMinor() && thatIBeacon.getProximityUuid() == thatIBeacon.getProximityUuid());
+		return (thatIBeacon.getMajor() == this.getMajor() && thatIBeacon.getMinor() == this.getMinor() && thatIBeacon.getProximityUuid().equals(this.getProximityUuid()));
 	}
 	/**
 	 * Construct an iBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs

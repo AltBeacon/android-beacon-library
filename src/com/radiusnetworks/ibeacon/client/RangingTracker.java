@@ -6,16 +6,21 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import android.util.Log;
 
 import com.radiusnetworks.ibeacon.IBeacon;
 
 public class RangingTracker {
+	private static String TAG = "RangingTracker";	
 	private Map<IBeacon,RangedIBeacon> rangedIBeacons = new HashMap<IBeacon,RangedIBeacon>();
 	public void addIBeacon(IBeacon iBeacon) {
 		if (rangedIBeacons.containsKey(iBeacon)) {
-			rangedIBeacons.get(iBeacon).addRangeMeasurement(iBeacon.getRssi());
+			RangedIBeacon rangedIBeacon = rangedIBeacons.get(iBeacon);
+			Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to existing range for: "+rangedIBeacon.getProximityUuid() );			
+			rangedIBeacon.addRangeMeasurement(iBeacon.getRssi());
 		}
 		else {
+			Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to new rangedIBeacon");			
 			rangedIBeacons.put(iBeacon, new RangedIBeacon(iBeacon));
 		}
 	}

@@ -1,3 +1,4 @@
-bin/*
-gen/*
 doc/*
+build/*
+.gradle
+local.properties

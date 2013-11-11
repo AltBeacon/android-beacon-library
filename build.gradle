@@ -1,0 +1,25 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.6.+'
+        ;classpath 'com.android.tools.build:gradle:0.3'
+    }
+}
+
+apply plugin: "android-library"
+android {
+    compileSdkVersion 18
+    buildToolsVersion '18.0.1'
+    defaultConfig {
+        versionCode = 1
+        versionName = "0.0.0"
+    }
+}
+
+task wrapper(type: org.gradle.api.tasks.wrapper.Wrapper) {
+    gradleVersion = '1.4'
+}
+
+apply plugin: 'eclipse'

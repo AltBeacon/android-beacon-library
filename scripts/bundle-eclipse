@@ -1,0 +1,9 @@
+#!/bin/sh
+rm -rf build/libs/AndroidIBeaconLibrary
+cp -r scripts/eclipse-support build/libs/AndroidIBeaconLibrary
+tar -xvf build/libs/AndroidIBeaconLibrary.aar -C build/libs/AndroidIBeaconLibrary
+mkdir build/libs/AndroidIBeaconLibrary/src
+mkdir build/libs/AndroidIBeaconLibrary/libs
+mkdir build/libs/AndroidIBeaconLibrary/gen
+mv build/libs/AndroidIBeaconLibrary/*.jar build/libs/AndroidIBeaconLibrary/libs
+tar -czvf build/libs/AndroidIBeaconLibrary.tar.gz -C build/libs AndroidIBeaconLibrary

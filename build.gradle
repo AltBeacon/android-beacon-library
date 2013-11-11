@@ -1,13 +1,13 @@
+defaultTasks 'clean', 'build', 'bundleEclipse'
+
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.6.+'
-        ;classpath 'com.android.tools.build:gradle:0.3'
     }
 }
-
 apply plugin: "android-library"
 android {
     compileSdkVersion 18
@@ -15,6 +15,20 @@ android {
     defaultConfig {
         versionCode = 1
         versionName = "0.0.0"
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+            java.srcDirs = ['src/main/java']
+        }
+        instrumentTest.setRoot('src/main/instrumentTest')
+    }
+}
+
+task bundleEclipse << {
+    exec {
+        executable 'scripts/bundle-eclipse'
     }
 }
 
@@ -22,4 +36,4 @@ task wrapper(type: org.gradle.api.tasks.wrapper.Wrapper) {
     gradleVersion = '1.4'
 }
 
-apply plugin: 'eclipse'
+

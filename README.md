@@ -52,12 +52,39 @@ When the service is running and scanning for Bluetooth devices, Wifi scans are b
 
 This software is available under the Apache License 2.0, allowing you to use the library in your applications.
 
-## Project Setup
+## Project Setup (Binary Install)
 
-1. Do a git clone of this project
-2. Import it as an existing project into your Eclipse workspace
-3. In a new/existing Android Application project, go to Project -> Properties -> Android -> Library -> Add, then select the imported project from step 2.
-4. Add the follwoing sdk and permission declarations to your AndroidManifest.xml
+
+### Android Studio / Gradle 
+
+1. Download AndroidIBeaconLibrary.aar
+2. Create a /libs directory inside your project and copy the above file there.
+3. Edit your build.gradle file, and add a "flatDir" entry to your repositories like so:
+
+```
+repositories {
+  mavenCentral()
+  flatDir {
+    dirs 'libs'
+  }
+}
+```
+
+4. Edit your build.gradle file to add this aar as a dependency like so:
+
+```
+dependencies {
+  compile 'com.radiusnetworks:AndroidIBeaconLibrary:1.0@aar'
+}
+```
+
+### Eclipse 
+
+1. Download AndroidIBeaconLibrary.tar.gz
+2. Extract the above file
+3. Import the AndroidIBeaconLibrary as an existing project in the workspace
+4. In a new/existing Android Application project, go to Project -> Properties -> Android -> Library -> Add, then select the imported project from step 2.
+5. Add the follwoing sdk and permission declarations to your AndroidManifest.xml
 
 ```
     <uses-sdk
@@ -67,7 +94,7 @@ This software is available under the Apache License 2.0, allowing you to use the
 	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 ```
 
-5. Add the following service declarations to your AnroidManifest.xml, replacing {my app's package name} with the fully qualified package name of your Android application.
+6. Add the following service declarations to your AnroidManifest.xml, replacing {my app's package name} with the fully qualified package name of your Android application.
 
 
 ```
@@ -87,6 +114,25 @@ This software is available under the Apache License 2.0, allowing you to use the
 			</intent-filter>
 		</service>  
 ```
+## Build from source
+
+The project requires the Gradle build system.  Simply type:
+
+```
+$ gradle
+```
+
+Which will produce:
+
+```
+build/libs/AndroidIBeaconLibrary/AndroidIBeaconLibrary.aar
+build/libs/AndroidIBeaconLibrary/AndroidIBeaconLibrary.tar.gz
+```
+
+The first file is an Android library archive suitable for use in Android Studio or Gradle.
+The second file is a zipped Android library project suitable for use with Eclipse.
+See the binary project setup instructions above for how to configure these with your project.
+
 
 ## Reference Application
 

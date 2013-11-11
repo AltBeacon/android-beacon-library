@@ -2,3 +2,10 @@ doc/*
 build/*
 .gradle
 local.properties
+.project
+project.properties
+.classpath
+.settings
+.metadata
+.DS_Store
+

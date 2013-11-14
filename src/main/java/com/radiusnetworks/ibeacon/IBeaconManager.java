@@ -198,7 +198,7 @@ public class IBeaconManager {
 	public void setMonitorNotifier(MonitorNotifier notifier) {
 		monitorNotifier = notifier;
 	}
-
+	
 	/**
 	 * Tells the <code>IBeaconService</code> to start looking for iBeacons that match the passed
 	 * <code>Region</code> object, and providing updates on the estimated distance very seconds while
@@ -315,8 +315,8 @@ public class IBeaconManager {
                 default:
                     super.handleMessage(msg);
                     RangingData data = (RangingData) msg.obj;
-                    Log.d(TAG, "Got a ranging callback with data: "+data);
-                    Log.d(TAG, "Got a ranging callback with "+data.getIBeacons().size()+" iBeacons"); 
+                    Log.d(TAG, "Got a ranging callback");
+                    Log.d(TAG, "Got a ranging callback with "+data.getIBeacons().size()+" iBeacons");
                     if (data.getIBeacons() != null) {
                     	Iterator<IBeaconData> iterator = data.getIBeacons().iterator();
                     	while (iterator.hasNext()) {

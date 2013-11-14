@@ -1,5 +1,6 @@
 doc/*
 build/*
+src/main/gen
 .gradle
 local.properties
 .project

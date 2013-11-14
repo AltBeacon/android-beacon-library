@@ -46,6 +46,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
@@ -66,7 +67,7 @@ import android.util.Log;
  * 2. Ranging updates don't come as reliably every second.
  * 3. The distance measurement algorithm is not exactly the same
  * 4. You can do ranging when the app is not in the foreground
- * 5. It requires Bluetooth Admin privilidges
+ * 5. It requires Bluetooth Admin privileges
  */
 
 public class IBeaconService extends Service {
@@ -98,13 +99,15 @@ public class IBeaconService extends Service {
      *    5s               14                0
      *    
      * Also, because iBeacons transmit once per second, the scan period should not be an even multiple
-     * of seconds, because then it may always miss a beacon that is syncronized with when it is stopping
+     * of seconds, because then it may always miss a beacon that is synchronized with when it is stopping
      * scanning.
      * 
      */
     private static final long SCAN_PERIOD = 1100;
     private static final long BACKGROUND_SCAN_PERIOD = 30000;
     private static final long BACKGROUND_BETWEEN_SCAN_PERIOD = 5*60*1000;
+
+    private List<IBeacon> simulatedScanData = null;
     
     /**
      * Class used for the client Binder.  Because we know this service always
@@ -193,6 +196,17 @@ public class IBeaconService extends Service {
 		final BluetoothManager bluetoothManager =
 		        (BluetoothManager) this.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
 		bluetoothAdapter = bluetoothManager.getAdapter();    	
+		
+		// Look for simulated scan data
+		try {
+			Class klass = Class.forName("com.radiusnetworks.ibeacon.SimulatedScanData");
+			java.lang.reflect.Field f = klass.getField("iBeacons");
+			this.simulatedScanData = (List<IBeacon>) f.get(null);			
+		} catch (ClassNotFoundException e) {
+			Log.d(TAG, "No com.radiusnetworks.ibeacon.SimulatedScanData class exists.");
+		} catch (Exception e) {
+			Log.e(TAG, "Cannot get simulated Scan data.  Make sure your com.radiusnetworks.ibeacon.SimulatedScanData class defines a field with the signature 'public static List<IBeacon> iBeacons'", e);
+		}
     }
     @Override
     public void onDestroy() {
@@ -271,7 +285,13 @@ public class IBeaconService extends Service {
     private void scanLeDevice(final Boolean enable) {
     	if (bluetoothAdapter == null) {
     		Log.e(TAG, "no bluetooth adapter.  I cannot scan.");
-    		return;
+    		if (simulatedScanData == null) {
+    			Log.w(TAG, "exiting");
+    			return;
+    		}
+    		else {
+    			Log.w(TAG, "proceeding with simulated scan data");
+    		}
     	}
         if (enable) {
             // Stops scanning after a pre-defined scan period.
@@ -288,8 +308,24 @@ public class IBeaconService extends Service {
                 	if (scanning == true ) {
                         processRangeData();
                 		Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: "+trackedBeacons.size());
-                        bluetoothAdapter.stopLeScan(leScanCallback);
-                        scanningPaused = true;
+                    	if (bluetoothAdapter != null) {
+                    		bluetoothAdapter.stopLeScan(leScanCallback);                    		
+                    	}
+
+                        scanningPaused = true;                        
+                        // If we want to use simulated scanning data, do it here.  This is used for testing in an emulator
+                        if (simulatedScanData != null) {
+                        	// if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
+                        	// it will not be used if we are not in debug mode
+                        	if ( 0 != ( getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE ) ) {
+                            	for (IBeacon iBeacon : simulatedScanData) {
+                            		processIBeaconFromScan(iBeacon);
+                            	}                        		
+                        	}
+                        	else {
+                        		Log.w(TAG, "Simulated scan data provided, but ignored because we are not running in debug mode.  Please remove simulated scan data for production.");
+                        	}
+                        }
                         if (isInBackground()) {
                         	Log.d(TAG, "We are in the background.  Waiting a little bit before scanning again.");
                         	handler.postDelayed(new Runnable() {
@@ -301,7 +337,7 @@ public class IBeaconService extends Service {
                         }
                         else {
                         	scanLeDevice(true);                		                        		
-                        }
+                        }                    		
                 			
                 	}
                 }
@@ -312,7 +348,9 @@ public class IBeaconService extends Service {
             	scanning = true;
             	scanningPaused = false;
             	try {
-            		bluetoothAdapter.startLeScan(leScanCallback);            
+            		if (bluetoothAdapter != null) {
+                   		bluetoothAdapter.startLeScan(leScanCallback);                               	            			
+            		}
             	}
             	catch (Exception e) {
             		Log.e("TAG", "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
@@ -325,7 +363,9 @@ public class IBeaconService extends Service {
         } else {
     		Log.d(TAG, "disabling scan");
         	scanning = false;
-            bluetoothAdapter.stopLeScan(leScanCallback);
+        	if (bluetoothAdapter != null) {
+                bluetoothAdapter.stopLeScan(leScanCallback);        		
+        	}
         }        
         processExpiredMonitors();
     }
@@ -379,60 +419,65 @@ public class IBeaconService extends Service {
 		  }
     }
     
-    private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
+	private void processIBeaconFromScan(IBeacon iBeacon) {
+		lastIBeaconDetectionTime = new Date();
+		trackedBeacons.add(iBeacon);
+		Log.d(TAG,
+				"iBeacon detected :" + iBeacon.getProximityUuid() + " "
+						+ iBeacon.getMajor() + " " + iBeacon.getMinor()
+						+ " accuracy: " + iBeacon.getAccuracy()
+						+ " proximity: " + iBeacon.getProximity());
 
-        @Override
-        protected Void doInBackground(ScanData... params) {
-        	ScanData scanData = params[0];
+		List<Region> matchedRegions = matchingRegions(iBeacon,
+				monitoredRegionState.keySet());
+		Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
+		while (matchedRegionIterator.hasNext()) {
+			Region region = matchedRegionIterator.next();
+			MonitorState state = monitoredRegionState.get(region);
+			if (state.markInside()) {
+				state.getCallback().call(IBeaconService.this, "monitoringData",
+						new MonitoringData(state.isInside(), region));
+			}
+		}
 
-     	   IBeacon iBeacon = IBeacon.fromScanData(scanData.scanRecord, scanData.rssi);
-     	   if (iBeacon != null) {
-     		   lastIBeaconDetectionTime = new Date();
-     		   trackedBeacons.add(iBeacon);
-         	   Log.d(TAG, "iBeacon detected :"+iBeacon.getProximityUuid()+" "+iBeacon.getMajor()+" "+iBeacon.getMinor()+" accuracy: "+iBeacon.getAccuracy()+" proximity: "+iBeacon.getProximity());            		   
- 
-         	   List<Region> matchedRegions = matchingRegions(iBeacon, monitoredRegionState.keySet());
-     		   Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
-     		   while (matchedRegionIterator.hasNext()) {
-     			   Region region = matchedRegionIterator.next();
-     			   MonitorState state = monitoredRegionState.get(region);
-     			   if (state.markInside()) { 
-      				  state.getCallback().call(IBeaconService.this, "monitoringData", new MonitoringData(state.isInside(), region));
-     			   }
-     		   }
-         		       		  
-     		   Log.d(TAG, "looking for ranging region matches for this ibeacon");
-     		   matchedRegions = matchingRegions(iBeacon, rangedRegionState.keySet());
-     		   matchedRegionIterator = matchedRegions.iterator();
-     		   while (matchedRegionIterator.hasNext()) {
-     			   Region region = matchedRegionIterator.next();
-         		   Log.d(TAG, "matches ranging region: "+region);
-     			   RangeState rangeState = rangedRegionState.get(region);
-     			   rangeState.addIBeacon(iBeacon);     			   
-     		   }
+		Log.d(TAG, "looking for ranging region matches for this ibeacon");
+		matchedRegions = matchingRegions(iBeacon, rangedRegionState.keySet());
+		matchedRegionIterator = matchedRegions.iterator();
+		while (matchedRegionIterator.hasNext()) {
+			Region region = matchedRegionIterator.next();
+			Log.d(TAG, "matches ranging region: " + region);
+			RangeState rangeState = rangedRegionState.get(region);
+			rangeState.addIBeacon(iBeacon);
+		}		
+	}
+    
+	private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
 
-     	   }
-     	   //I see a device: 00:02:72:C5:EC:33 with scan data: 02 01 1A 1A FF 4C 00 02 15 84 2A F9 C4 08 F5 11 E3 92 82 F2 3C 91 AE C0 5E D0 00 00 69 C5 0000000000000000000000000000000000000000000000000000000000000000
-     	   //
-     	   // 9: proximityUuid (16 bytes) 84 2A F9 C4 08 F5 11 E3 92 82 F2 3C 91 AE C0 5E
-     	   // 25: major (2 bytes unsigned int)
-     	   // 27: minor (2 bytes unsigned int)
-     	   // 29: tx power (1 byte signed int)        	
-        	return null;
-        }      
+		@Override
+		protected Void doInBackground(ScanData... params) {
+			ScanData scanData = params[0];
 
-        @Override
-        protected void onPostExecute(Void result) {
-        }
+			IBeacon iBeacon = IBeacon.fromScanData(scanData.scanRecord,
+					scanData.rssi);
+			if (iBeacon != null) {
+				processIBeaconFromScan(iBeacon);
+			}
+			return null;
+		}
 
-        @Override
-        protected void onPreExecute() {
-        }
+		@Override
+		protected void onPostExecute(Void result) {
+		}
 
-        @Override
-        protected void onProgressUpdate(Void... values) {
-        }
-    }   
+		@Override
+		protected void onPreExecute() {
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {
+		}
+	}
+
     private List<Region> matchingRegions(IBeacon iBeacon, Collection<Region> regions) {
     	List<Region> matched = new ArrayList<Region>();
     	Iterator<Region> regionIterator = regions.iterator();

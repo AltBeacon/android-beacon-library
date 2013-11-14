@@ -202,7 +202,7 @@ public class IBeacon {
 	 * @return An instance of an <code>IBeacon</code>
 	 */
 	public static IBeacon fromScanData(byte[] scanData, int rssi) {
-		int startByte = 2;
+		int startByte = 0;
 		boolean patternFound = false;
 		while (startByte <= 5) {
 			if (((int)scanData[startByte] & 0xff) == 0x4c &&

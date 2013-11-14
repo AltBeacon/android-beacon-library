@@ -23,9 +23,9 @@
  */
 package com.radiusnetworks.ibeacon;
 
-import java.util.Collections;
-
-import com.radiusnetworks.ibeacon.client.RangedIBeacon;
+import com.radiusnetworks.ibeacon.client.DataProviderException;
+import com.radiusnetworks.ibeacon.client.IBeaconDataFactory;
+import com.radiusnetworks.ibeacon.client.NullIBeaconDataFactory;
 
 import android.util.Log;
 
@@ -72,7 +72,7 @@ public class IBeacon {
 
     final private static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 	private static final String TAG = "IBeacon";	
-	
+		
     /**
      * A 16 byte UUID that typically represents the company owning a number of iBeacons
      * Example: E2C56DB5-DFFB-48D2-B060-D0F5A71096E0 
@@ -115,6 +115,11 @@ public class IBeacon {
 	 * If multiple RSSI samples were available, this is the running average
 	 */
 	protected Double runningAverageRssi = null;
+	
+	/**
+	 * Used to attach data to individual iBeacons, either locally or in the cloud
+	 */
+	protected static IBeaconDataFactory iBeaconDataFactory = new NullIBeaconDataFactory();
 	
 	/**
 	 * @see #accuracy
@@ -197,40 +202,44 @@ public class IBeacon {
 	 * @return An instance of an <code>IBeacon</code>
 	 */
 	public static IBeacon fromScanData(byte[] scanData, int rssi) {
-
-		
-		if (((int)scanData[5] & 0xff) == 0x4c &&
-			((int)scanData[6] & 0xff) == 0x00 &&
-			((int)scanData[7] & 0xff) == 0x02 &&
-			((int)scanData[8] & 0xff) == 0x15) {			
-			// yes!  This is an iBeacon		
+		int startByte = 2;
+		boolean patternFound = false;
+		while (startByte <= 5) {
+			if (((int)scanData[startByte] & 0xff) == 0x4c &&
+				((int)scanData[startByte+1] & 0xff) == 0x00 &&
+				((int)scanData[startByte+2] & 0xff) == 0x02 &&
+				((int)scanData[startByte+3] & 0xff) == 0x15) {			
+				// yes!  This is an iBeacon	
+				patternFound = true;
+				break;
+			}
+			else if (((int)scanData[startByte] & 0xff) == 0x2d &&
+					((int)scanData[startByte+1] & 0xff) == 0x24 &&
+					((int)scanData[startByte+2] & 0xff) == 0xbf &&
+					((int)scanData[startByte+3] & 0xff) == 0x16) {	
+				// this is an Estimote beacon
+				IBeacon iBeacon = new IBeacon();
+				iBeacon.major = 0;
+				iBeacon.minor = 0;
+				iBeacon.proximityUuid = "00000000-0000-0000-0000-000000000000";
+				iBeacon.txPower = -55;
+				return iBeacon;
+			}					
+			startByte++;
 		}
+		
 
-		
-		
-		else if (((int)scanData[5] & 0xff) == 0x2d &&
-				((int)scanData[6] & 0xff) == 0x24 &&
-				((int)scanData[7] & 0xff) == 0xbf &&
-				((int)scanData[8] & 0xff) == 0x16) {	
-			// this is an Estimote beacon
-			IBeacon iBeacon = new IBeacon();
-			iBeacon.major = 0;
-			iBeacon.minor = 0;
-			iBeacon.proximityUuid = "00000000-0000-0000-0000-000000000000";
-			iBeacon.txPower = -55;
-			return iBeacon;
-		}		
-		else {
+		if (patternFound == false) {
 			// This is not an iBeacon
-			Log.d(TAG, "This is not an iBeacon advertisment.  The bytes I see are: "+bytesToHex(scanData));
+			Log.d(TAG, "This is not an iBeacon advertisment (no 4c000215 seen in bytes 2-5).  The bytes I see are: "+bytesToHex(scanData));
 			return null;
 		}
 								
 		IBeacon iBeacon = new IBeacon();
 		
-		iBeacon.major = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
-		iBeacon.minor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
-		iBeacon.txPower = (int)scanData[29]; // this one is signed
+		iBeacon.major = (scanData[startByte+20] & 0xff) * 0x100 + (scanData[startByte+21] & 0xff);
+		iBeacon.minor = (scanData[startByte+22] & 0xff) * 0x100 + (scanData[startByte+23] & 0xff);
+		iBeacon.txPower = (int)scanData[startByte+24]; // this one is signed
 		iBeacon.rssi = rssi;
 				
 		// AirLocate:
@@ -244,7 +253,7 @@ public class IBeacon {
 		// 394b31ba3f486415ab376e5c0f09457374696d6f7465426561636f6e00000000000000000000000000000000000000000000000000
 		
 		byte[] proximityUuidBytes = new byte[16];
-		System.arraycopy(scanData, 9, proximityUuidBytes, 0, 16); 
+		System.arraycopy(scanData, startByte+4, proximityUuidBytes, 0, 16); 
 		String hexString = bytesToHex(proximityUuidBytes);
 		StringBuilder sb = new StringBuilder();
 		sb.append(hexString.substring(0,8));
@@ -260,6 +269,10 @@ public class IBeacon {
 
 		return iBeacon;
 	}
+	
+	public void requestData(IBeaconDataNotifier notifier) {
+		iBeaconDataFactory.requestIBeaconData(this, notifier);
+	}
 
 	protected IBeacon(IBeacon otherIBeacon) {
 		this.major = otherIBeacon.major;
@@ -274,6 +287,15 @@ public class IBeacon {
 	protected IBeacon() {
 		
 	}
+
+	protected IBeacon(String proximityUuid, int major, int minor, int txPower, int rssi) {
+		this.proximityUuid = proximityUuid;
+		this.major = major;
+		this.minor = minor;
+		this.rssi = rssi;
+		this.txPower = txPower;
+	}
+	
 	
 	protected static double calculateAccuracy(int txPower, double rssi) {
 		if (rssi == 0) {

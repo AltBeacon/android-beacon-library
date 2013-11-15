@@ -23,10 +23,6 @@
  */
 package com.radiusnetworks.ibeacon;
 
-import com.radiusnetworks.ibeacon.client.DataProviderException;
-import com.radiusnetworks.ibeacon.client.IBeaconDataFactory;
-import com.radiusnetworks.ibeacon.client.NullIBeaconDataFactory;
-
 import android.util.Log;
 
 /**
@@ -115,11 +111,6 @@ public class IBeacon {
 	 * If multiple RSSI samples were available, this is the running average
 	 */
 	protected Double runningAverageRssi = null;
-	
-	/**
-	 * Used to attach data to individual iBeacons, either locally or in the cloud
-	 */
-	protected static IBeaconDataFactory iBeaconDataFactory = new NullIBeaconDataFactory();
 	
 	/**
 	 * @see #accuracy
@@ -270,10 +261,6 @@ public class IBeacon {
 		return iBeacon;
 	}
 	
-	public void requestData(IBeaconDataNotifier notifier) {
-		iBeaconDataFactory.requestIBeaconData(this, notifier);
-	}
-
 	protected IBeacon(IBeacon otherIBeacon) {
 		this.major = otherIBeacon.major;
 		this.minor = otherIBeacon.minor;

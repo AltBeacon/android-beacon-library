@@ -296,6 +296,14 @@ public class IBeacon {
 		this.txPower = txPower;
 	}
 	
+	public IBeacon(String proximityUuid, int major, int minor) {
+		this.proximityUuid = proximityUuid;
+		this.major = major;
+		this.minor = minor;
+		this.rssi = rssi;
+		this.txPower = -59;
+		this.rssi = 0;
+	}
 	
 	protected static double calculateAccuracy(int txPower, double rssi) {
 		if (rssi == 0) {

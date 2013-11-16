@@ -1,4 +1,4 @@
-defaultTasks 'clean', 'build', 'bundleEclipse'
+defaultTasks 'distribution'
 
 buildscript {
     repositories {
@@ -14,7 +14,7 @@ android {
     buildToolsVersion '18.0.1'
     defaultConfig {
         versionCode = 1
-        versionName = "0.0.0"
+        versionName = version
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
     sourceSets {
@@ -35,5 +35,42 @@ task bundleEclipse << {
 task wrapper(type: org.gradle.api.tasks.wrapper.Wrapper) {
     gradleVersion = '1.4'
 }
+
+task distribution(dependsOn: ["bundleEclipse", "build", "clean"]) << {
+    println "Building with version=$version"
+}
+
+task release(dependsOn: 'distribution') << {
+	println('Doing release build')
+}
+
+gradle.taskGraph.whenReady {taskGraph ->
+    if (!taskGraph.hasTask(release)) {
+        version = version+'-SNAPSHOT'
+    }
+}
+
+/*
+ * Gets the version name from the latest Git tag
+ */
+def getVersionName = { ->
+    def stdout = new ByteArrayOutputStream()
+    try {
+      exec {
+          commandLine 'git', 'describe', '--tags'
+          standardOutput = stdout
+      }
+      return stdout.toString().trim()
+    }
+    catch (e) {
+      println("Can't get version from git: "+e);
+      return "adhoc"
+    }
+}
+
+version = getVersionName()
+
+build.mustRunAfter clean
+bundleEclipse.mustRunAfter build
 
 

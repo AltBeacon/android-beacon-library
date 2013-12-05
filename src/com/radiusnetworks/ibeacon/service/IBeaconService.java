@@ -312,7 +312,14 @@ public class IBeaconService extends Service {
             	scanning = true;
             	scanningPaused = false;
             	try {
-            		bluetoothAdapter.startLeScan(leScanCallback);            
+                        if (bluetoothAdapter != null) {
+                                if (bluetoothAdapter.isEnabled()) {
+                                        bluetoothAdapter.startLeScan(leScanCallback);                                                   
+                                }
+                                else {
+                                        Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
+                                }
+                        }
             	}
             	catch (Exception e) {
             		Log.e("TAG", "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
@@ -325,7 +332,14 @@ public class IBeaconService extends Service {
         } else {
     		Log.d(TAG, "disabling scan");
         	scanning = false;
-            bluetoothAdapter.stopLeScan(leScanCallback);
+                        if (bluetoothAdapter != null) {
+                                if (bluetoothAdapter.isEnabled()) {
+                                        bluetoothAdapter.stopLeScan(leScanCallback);                                                   
+                                }
+                                else {
+                                        Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
+                                }
+                        }
         }        
         processExpiredMonitors();
     }

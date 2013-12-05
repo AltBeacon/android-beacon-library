@@ -309,7 +309,12 @@ public class IBeaconService extends Service {
                         processRangeData();
                 		Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: "+trackedBeacons.size());
                     	if (bluetoothAdapter != null) {
-                    		bluetoothAdapter.stopLeScan(leScanCallback);                    		
+                    		if (bluetoothAdapter.isEnabled()) {
+                        		bluetoothAdapter.stopLeScan(leScanCallback);                    		                    			
+                    		}
+                    		else {
+                    			Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
+                    		}
                     	}
 
                         scanningPaused = true;                        
@@ -349,7 +354,12 @@ public class IBeaconService extends Service {
             	scanningPaused = false;
             	try {
             		if (bluetoothAdapter != null) {
-                   		bluetoothAdapter.startLeScan(leScanCallback);                               	            			
+                		if (bluetoothAdapter.isEnabled()) {
+                    		bluetoothAdapter.startLeScan(leScanCallback);                    		                    			
+                		}
+                		else {
+                			Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
+                		}
             		}
             	}
             	catch (Exception e) {

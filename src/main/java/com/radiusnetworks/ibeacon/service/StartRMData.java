@@ -28,12 +28,29 @@ import android.os.Parcelable;
 
 public class StartRMData implements Parcelable {
 	private RegionData regionData;
+    private long scanPeriod;
+    private long betweenScanPeriod;
 	private String intentActionForCallback;
 	
     public StartRMData(RegionData regionData, String intentActionForCallback) {
     	this.regionData = regionData;
     	this.intentActionForCallback = intentActionForCallback;    	
 	}
+    public StartRMData(long scanPeriod, long betweenScanPeriod) {
+        this.scanPeriod = scanPeriod;
+        this.betweenScanPeriod = betweenScanPeriod;
+    }
+
+    public StartRMData(RegionData regionData, String intentActionForCallback, long scanPeriod, long betweenScanPeriod) {
+        this.scanPeriod = scanPeriod;
+        this.betweenScanPeriod = betweenScanPeriod;
+        this.regionData = regionData;
+        this.intentActionForCallback = intentActionForCallback;
+    }
+
+
+    public long getScanPeriod() { return scanPeriod; }
+    public long getBetweenScanPeriod() { return betweenScanPeriod; }
     public RegionData getRegionData() {
     	return regionData;
     }
@@ -47,6 +64,8 @@ public class StartRMData implements Parcelable {
     public void writeToParcel(Parcel out, int flags) {
         out.writeParcelable(regionData, flags);
         out.writeString(intentActionForCallback);
+        out.writeLong(scanPeriod);
+        out.writeLong(betweenScanPeriod);
     }
 
     public static final Parcelable.Creator<StartRMData> CREATOR
@@ -63,6 +82,8 @@ public class StartRMData implements Parcelable {
     private StartRMData(Parcel in) { 
     	regionData = in.readParcelable(this.getClass().getClassLoader());
     	intentActionForCallback = in.readString();
+        scanPeriod = in.readLong();
+        betweenScanPeriod = in.readLong();
     }
 
 }

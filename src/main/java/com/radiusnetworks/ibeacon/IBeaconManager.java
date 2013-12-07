@@ -97,12 +97,63 @@ public class IBeaconManager {
 	private static final String TAG = "IBeaconManager";
 	private Context context;
 	private static IBeaconManager client = null;
-	private Map<IBeaconConsumer,Boolean> consumers = new HashMap<IBeaconConsumer,Boolean>();
-	private Messenger serviceMessenger = null; 
+	private Map<IBeaconConsumer,ConsumerInfo> consumers = new HashMap<IBeaconConsumer,ConsumerInfo>();
+	private Messenger serviceMessenger = null;
 	protected RangeNotifier rangeNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
     protected RangingTracker rangingTracker = new RangingTracker();
-	
+
+    /**
+     * The default duration in milliseconds of the bluetooth scan cycle
+     */
+    public static final long DEFAULT_FOREGROUND_SCAN_PERIOD = 1100;
+    /**
+     * The default duration in milliseconds spent not scanning between each bluetooth scan cycle
+     */
+    public static final long DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
+    /**
+     * The default duration in milliseconds of the bluetooth scan cycle when no ranging/monitoring clients are in the foreground
+     */
+    public static final long DEFAULT_BACKGROUND_SCAN_PERIOD = 30000;
+    /**
+     * The default duration in milliseconds spent not scanning between each bluetooth scan cycle when no ranging/monitoring clients are in the foreground
+     */
+    public static final long DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD = 5*60*1000;
+
+    private long foregroundScanPeriod = DEFAULT_FOREGROUND_SCAN_PERIOD;
+    private long foregroundBetweenScanPeriod = DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
+    private long backgroundScanPeriod = DEFAULT_BACKGROUND_SCAN_PERIOD;
+    private long backgroundBetweenScanPeriod = DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
+
+    /**
+     * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for iBeacons
+     * @param p
+     */
+    public void setForegroundScanPeriod(long p) {
+        foregroundBetweenScanPeriod = p;
+    }
+    /**
+     * Sets the duration in milliseconds to wait between each bluetooth scan cycle used to look for iBeacons
+     * @param p
+     */
+    public void setForegroundBetweenScanPeriod(long p) {
+        foregroundBetweenScanPeriod = p;
+    }
+    /**
+     * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for iBeacons when no ranging/monitoring clients are in the foreground
+     * @param p
+     */
+    public void setBackgroundScanPeriod(long p) {
+        backgroundScanPeriod = p;
+    }
+    /**
+     * Sets the duration in milliseconds spent not scanning between each Bluetooth LE scan cycle when no ranging/monitoring clients are in the foreground
+     * @param p
+     */
+    public void setBackgroundBetweenScanPeriod(long p) {
+        backgroundBetweenScanPeriod = p;
+    }
+
 	/**
 	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
 	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
@@ -120,7 +171,7 @@ public class IBeaconManager {
 	}
 	/**
 	 * Check if Bluetooth LE is supported by this Android device, and if so, make sure it is enabled.
-	 * Throws a RuntimeException if Bluetooth LE is not supported.  (Note: The Android emulator will do this)
+	 * Throws a BleNotAvailableException if Bluetooth LE is not supported.  (Note: The Android emulator will do this)
 	 * @return false if it is supported and not enabled
 	 */
 	public boolean checkAvailability() {
@@ -147,10 +198,11 @@ public class IBeaconManager {
 		}
 		else {
 			Log.i(TAG, "This consumer is not bound.  binding: "+consumer);	
-			consumers.put(consumer, false);
+			consumers.put(consumer, new ConsumerInfo());
 			Intent intent = new Intent(consumer.getApplicationContext(), IBeaconService.class);
 			consumer.bindService(intent, iBeaconServiceConnection, Context.BIND_AUTO_CREATE);
 			Log.i(TAG, "consumer count is now:"+consumers.size());
+            setBackgroundMode(consumer, false); // if we just bound, we assume we are not in the background.
 		}
 	}
 	
@@ -174,6 +226,51 @@ public class IBeaconManager {
 			}
 		}
 	}
+
+    /**
+     * Tells you if the passed iBeacon consumer is bound to the service
+     * @param consumer
+     * @return
+     */
+    public boolean isBound(IBeaconConsumer consumer) {
+        return consumers.keySet().contains(consumer);
+    }
+
+    /**
+     * This method notifies the iBeacon service that the IBeaconConsumer is either moving to background mode or foreground mode
+     * When in background mode, BluetoothLE scans to look for iBeacons are executed less frequently in order to save battery life
+     * The specific scan rates for background and foreground operation are set by the defaults below, but may be customized.
+     * Note that when multiple IBeaconConsumers exist, all must be in background mode for the the background scan periods to be used
+     * When ranging in the background, the time between updates will be much less fequent than in the foreground.  Updates will come
+     * every time interval equal to the sum total of the BackgroundScanPeriod and the BackgroundBetweenScanPeriod
+     * All IBeaconConsumers are by default treated as being in foreground mode unless this method is explicitly called indicating
+     * otherwise.
+     *
+     * @see #DEFAULT_FOREGROUND_SCAN_PERIOD
+     * @see #DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
+     * @see #DEFAULT_BACKGROUND_SCAN_PERIOD;
+     * @see #DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
+     * @see #setForegroundScanPeriod(long p)
+     * @see #setForegroundBetweenScanPeriod(long p)
+     * @see #setBackgroundScanPeriod(long p)
+     * @see #setBackgroundBetweenScanPeriod(long p)
+     * @param consumer
+     * @param backgroundMode true indicates the iBeaconConsumer is in the background
+     * returns true if background mode is successfully set
+     */
+    public boolean setBackgroundMode(IBeaconConsumer consumer, boolean backgroundMode) {
+        try {
+            ConsumerInfo consumerInfo = consumers.get(consumer);
+            consumerInfo.isInBackground = backgroundMode;
+            consumers.put(consumer,consumerInfo);
+            setScanPeriods();
+            return true;
+        }
+        catch (RemoteException e) {
+            Log.e(TAG, "Failed to set background mode", e);
+            return false;
+        }
+    }
 
 	/**
 	 * Specifies a class that should be called each time the <code>IBeaconService</code> gets ranging
@@ -212,8 +309,11 @@ public class IBeaconManager {
 	 * @param region
 	 */
 	public void startRangingBeaconsInRegion(Region region) throws RemoteException {
+        if (serviceMessenger == null) {
+            throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
+        }
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction() );
+		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction(), this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		msg.replyTo = rangingCallback;						 
 		serviceMessenger.send(msg);
@@ -229,8 +329,11 @@ public class IBeaconManager {
 	 * @param region
 	 */
 	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
+        if (serviceMessenger == null) {
+            throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
+        }
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction() );
+		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction(),this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
 	}
@@ -246,8 +349,11 @@ public class IBeaconManager {
 	 * @param region
 	 */
 	public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
+        if (serviceMessenger == null) {
+            throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
+        }
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), monitoringCallbackAction() );
+		StartRMData obj = new StartRMData(new RegionData(region), monitoringCallbackAction(),this.getScanPeriod(), this.getBetweenScanPeriod()  );
 		msg.obj = obj;
 		msg.replyTo = null; // TODO: remove this when we are converted to Intents					 
 		serviceMessenger.send(msg);
@@ -264,11 +370,24 @@ public class IBeaconManager {
 	 * @param region
 	 */
 	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
+        if (serviceMessenger == null) {
+            throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
+        }
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction() );
+		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction(),this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
 	}
+
+    public void setScanPeriods() throws RemoteException {
+        if (serviceMessenger == null) {
+            throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
+        }
+        Message msg = Message.obtain(null, IBeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
+        StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod());
+        msg.obj = obj;
+        serviceMessenger.send(msg);
+    }
 	
 	private String rangingCallbackAction() {
 		String action = context.getPackageName()+".DID_RANGING";
@@ -289,10 +408,12 @@ public class IBeaconManager {
 	        Iterator<IBeaconConsumer> consumerIterator = consumers.keySet().iterator();
 	        while (consumerIterator.hasNext()) {
 	        	IBeaconConsumer consumer = consumerIterator.next();
-	        	Boolean alreadyConnected = consumers.get(consumer);
+	        	Boolean alreadyConnected = consumers.get(consumer).isConnected;
 	        	if (!alreadyConnected) {		        	
 		        	consumer.onIBeaconServiceConnect();
-		        	consumers.put(consumer, true);
+                    ConsumerInfo consumerInfo = consumers.get(consumer);
+                    consumerInfo.isConnected = true;
+		        	consumers.put(consumer,consumerInfo);
 	        	}
 	        }
 	    }
@@ -362,5 +483,37 @@ public class IBeaconManager {
 	public static boolean isInstantiated() {
 		return (client != null);
 	}
-			
+
+    private class ConsumerInfo {
+        public boolean isConnected = false;
+        public boolean isInBackground = false;
+    }
+
+    private boolean isInBackground() {
+        boolean background = true;
+        for (IBeaconConsumer consumer : consumers.keySet()) {
+            if (!consumers.get(consumer).isInBackground) {
+                background = false;
+            }
+        }
+        return background;
+    }
+
+    private long getScanPeriod() {
+        if (isInBackground()) {
+            return backgroundScanPeriod;
+        }
+        else {
+            return foregroundScanPeriod;
+        }
+    }
+    private long getBetweenScanPeriod() {
+        if (isInBackground()) {
+            return backgroundBetweenScanPeriod;
+        }
+        else {
+            return foregroundBetweenScanPeriod;
+        }
+    }
+
 }

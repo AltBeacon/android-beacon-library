@@ -79,7 +79,7 @@ public class RangingData implements Parcelable {
     private RangingData(Parcel in) {
     	Log.d(TAG, "parsing RangingData");
     	Parcelable[] parcelables  = in.readParcelableArray(this.getClass().getClassLoader());
-    	ArrayList<IBeaconData> iBeaconDatas = new ArrayList<IBeaconData>(parcelables.length);
+    	iBeaconDatas = new ArrayList<IBeaconData>(parcelables.length);
     	for (int i = 0; i < parcelables.length; i++) {
     		iBeaconDatas.add((IBeaconData)parcelables[i]);
     	}

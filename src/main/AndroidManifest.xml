@@ -18,6 +18,10 @@
         android:name="com.radiusnetworks.ibeacon.service.IBeaconService">
     </service>
 
+    <service android:enabled="true"
+        android:name="com.radiusnetworks.ibeacon.IBeaconIntentProcessor">
+    </service>
+
     </application>
 
 </manifest>

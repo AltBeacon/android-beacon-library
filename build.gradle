@@ -80,12 +80,6 @@ task release(dependsOn: 'distribution') << {
 	println('Doing release build')
 }
 
-gradle.taskGraph.whenReady {taskGraph ->
-    if (!taskGraph.hasTask(release)) {
-        version = version+'-SNAPSHOT'
-    }
-}
-
 /*
  * Gets the version name from the latest Git tag
  */

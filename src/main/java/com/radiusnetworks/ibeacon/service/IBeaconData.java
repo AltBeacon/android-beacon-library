@@ -46,10 +46,12 @@ public class IBeaconData extends IBeacon implements Parcelable {
     }
     public static Collection<IBeacon> fromIBeaconDatas(Collection<IBeaconData> iBeaconDatas) {
     	ArrayList<IBeacon> iBeacons = new ArrayList<IBeacon>();
-    	Iterator<IBeaconData> iBeaconIterator = iBeaconDatas.iterator();
-    	while (iBeaconIterator.hasNext()) {
-    		iBeacons.add(iBeaconIterator.next());
-    	}    	
+        if (iBeaconDatas != null) {
+            Iterator<IBeaconData> iBeaconIterator = iBeaconDatas.iterator();
+            while (iBeaconIterator.hasNext()) {
+                iBeacons.add(iBeaconIterator.next());
+            }
+        }
     	return iBeacons;
     }
 

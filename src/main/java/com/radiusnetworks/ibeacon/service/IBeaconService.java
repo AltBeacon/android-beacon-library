@@ -148,7 +148,7 @@ public class IBeaconService extends Service {
                 switch (msg.what) {
                     case MSG_START_RANGING:
                         Log.d(TAG, "start ranging received");
-                        service.startRangingBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(msg.replyTo, startRMData.getIntentActionForCallback()));
+                        service.startRangingBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
                         break;
                     case MSG_STOP_RANGING:
@@ -158,7 +158,7 @@ public class IBeaconService extends Service {
                         break;
                     case MSG_START_MONITORING:
                         Log.d(TAG, "start monitoring received");
-                        service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(msg.replyTo, startRMData.getIntentActionForCallback()));
+                        service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
                         break;
                     case MSG_STOP_MONITORING:
@@ -478,7 +478,7 @@ public class IBeaconService extends Service {
             Region region = regionIterator.next();
             RangeState rangeState = rangedRegionState.get(region);
             Log.d(TAG, "Calling ranging callback with " + rangeState.getIBeacons().size() + " iBeacons");
-            rangeState.getCallback().call(IBeaconService.this, "monitoringData", new RangingData(rangeState.getIBeacons(), region));
+            rangeState.getCallback().call(IBeaconService.this, "rangingData", new RangingData(rangeState.getIBeacons(), region));
             rangeState.clearIBeacons();
         }
 

@@ -30,22 +30,22 @@ public class StartRMData implements Parcelable {
 	private RegionData regionData;
     private long scanPeriod;
     private long betweenScanPeriod;
-	private String intentActionForCallback;
+	private String callbackPackageName;
 	
-    public StartRMData(RegionData regionData, String intentActionForCallback) {
+    public StartRMData(RegionData regionData, String callbackPackageName) {
     	this.regionData = regionData;
-    	this.intentActionForCallback = intentActionForCallback;    	
+    	this.callbackPackageName = callbackPackageName;
 	}
     public StartRMData(long scanPeriod, long betweenScanPeriod) {
         this.scanPeriod = scanPeriod;
         this.betweenScanPeriod = betweenScanPeriod;
     }
 
-    public StartRMData(RegionData regionData, String intentActionForCallback, long scanPeriod, long betweenScanPeriod) {
+    public StartRMData(RegionData regionData, String callbackPackageName, long scanPeriod, long betweenScanPeriod) {
         this.scanPeriod = scanPeriod;
         this.betweenScanPeriod = betweenScanPeriod;
         this.regionData = regionData;
-        this.intentActionForCallback = intentActionForCallback;
+        this.callbackPackageName = callbackPackageName;
     }
 
 
@@ -54,8 +54,8 @@ public class StartRMData implements Parcelable {
     public RegionData getRegionData() {
     	return regionData;
     }
-    public String getIntentActionForCallback() {
-    	return intentActionForCallback;
+    public String getCallbackPackageName() {
+    	return callbackPackageName;
     }
 	public int describeContents() {
         return 0;
@@ -63,7 +63,7 @@ public class StartRMData implements Parcelable {
 
     public void writeToParcel(Parcel out, int flags) {
         out.writeParcelable(regionData, flags);
-        out.writeString(intentActionForCallback);
+        out.writeString(callbackPackageName);
         out.writeLong(scanPeriod);
         out.writeLong(betweenScanPeriod);
     }
@@ -81,7 +81,7 @@ public class StartRMData implements Parcelable {
     
     private StartRMData(Parcel in) { 
     	regionData = in.readParcelable(this.getClass().getClassLoader());
-    	intentActionForCallback = in.readString();
+        callbackPackageName = in.readString();
         scanPeriod = in.readLong();
         betweenScanPeriod = in.readLong();
     }

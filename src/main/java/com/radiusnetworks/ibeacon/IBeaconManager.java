@@ -313,9 +313,8 @@ public class IBeaconManager {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction(), this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
-		msg.replyTo = rangingCallback;						 
 		serviceMessenger.send(msg);
 	}
 	/**
@@ -333,7 +332,7 @@ public class IBeaconManager {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction(),this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
 	}
@@ -353,9 +352,8 @@ public class IBeaconManager {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, IBeaconService.MSG_START_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), monitoringCallbackAction(),this.getScanPeriod(), this.getBetweenScanPeriod()  );
+		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod()  );
 		msg.obj = obj;
-		msg.replyTo = null; // TODO: remove this when we are converted to Intents					 
 		serviceMessenger.send(msg);
 	}
 	/**
@@ -374,7 +372,7 @@ public class IBeaconManager {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, IBeaconService.MSG_STOP_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), rangingCallbackAction(),this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
 	}
@@ -389,17 +387,12 @@ public class IBeaconManager {
         serviceMessenger.send(msg);
     }
 	
-	private String rangingCallbackAction() {
-		String action = context.getPackageName()+".DID_RANGING";
-		Log.d(TAG, "ranging callback action: "+action);
-		return action;
+	private String callbackPackageName() {
+		String packageName = context.getPackageName();
+		Log.d(TAG, "callback packageName: "+packageName);
+		return packageName;
 	}
-	private String monitoringCallbackAction() {
-		String action = context.getPackageName()+".DID_MONITORING";
-		Log.d(TAG, "monitoring callback action: "+action);
-		return action;
-	}
-	
+
 	private ServiceConnection iBeaconServiceConnection = new ServiceConnection() {
 		// Called when the connection with the service is established
 	    public void onServiceConnected(ComponentName className, IBinder service) {
@@ -423,44 +416,6 @@ public class IBeaconManager {
 	        Log.e(TAG, "onServiceDisconnected");
 	    }
 	};	
-	
-	static class IncomingHandler extends Handler {
-        private final WeakReference<IBeaconManager> iBeaconManager; 
-
-        IncomingHandler(IBeaconManager manager) {
-            iBeaconManager = new WeakReference<IBeaconManager>(manager);
-        }
-		@Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                default:
-                    super.handleMessage(msg);
-                    RangingData data = (RangingData) msg.obj;
-                    Log.d(TAG, "Got a ranging callback");
-                    Log.d(TAG, "Got a ranging callback with "+data.getIBeacons().size()+" iBeacons");
-                    if (data.getIBeacons() != null) {
-                    	Iterator<IBeaconData> iterator = data.getIBeacons().iterator();
-                    	while (iterator.hasNext()) {
-                    		IBeaconData iBeaconData = iterator.next();
-                    		if (iBeaconData == null) {
-                    			Log.d(TAG, "null ibeacon found");
-                    		}
-                    		else {
-                    			iBeaconManager.get().rangingTracker.addIBeacon(iBeaconData);
-                    		}
-                    	}
-                        
-                    	IBeaconManager manager = iBeaconManager.get();
-                        if (manager.rangeNotifier != null) {                    	
-                        	Log.d(TAG, "Calling ranging notifier on :"+manager.rangeNotifier);
-                        	manager.rangeNotifier.didRangeBeaconsInRegion(iBeaconManager.get().rangingTracker.getIBeacons(), data.getRegion());
-                        }                    	
-                    }
-            }
-        }		
-	};
-	
-    final Messenger rangingCallback = new Messenger(new IncomingHandler(this)); 
 
     /**
      * @see #monitorNotifier

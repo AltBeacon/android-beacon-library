@@ -132,6 +132,9 @@ public class IBeaconIntentProcessor extends IntentService {
 		
 		if (rangingData != null) {
 			Log.d(TAG, "got ranging data");
+            if (rangingData.getIBeacons() == null) {
+                Log.w(TAG, "but the ranging data has a null iBeacons collection");
+            }
 			RangeNotifier notifier = IBeaconManager.getInstanceForApplication(this).getRangingNotifier();
 			if (notifier != null) {
 				notifier.didRangeBeaconsInRegion(IBeaconData.fromIBeaconDatas(rangingData.getIBeacons()), rangingData.getRegion());

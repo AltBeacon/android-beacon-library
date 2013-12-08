@@ -11,4 +11,12 @@ project.properties
 .settings
 .metadata
 .DS_Store
+.idea/workspace.xml
+.idea/tasks.xml
+*.apk
+*.ap_
+*.dex
+*.class
+proguard/*
+*.iws
 

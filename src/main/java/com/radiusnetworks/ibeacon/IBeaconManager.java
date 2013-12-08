@@ -114,7 +114,7 @@ public class IBeaconManager {
     /**
      * The default duration in milliseconds of the bluetooth scan cycle when no ranging/monitoring clients are in the foreground
      */
-    public static final long DEFAULT_BACKGROUND_SCAN_PERIOD = 30000;
+    public static final long DEFAULT_BACKGROUND_SCAN_PERIOD = 10000;
     /**
      * The default duration in milliseconds spent not scanning between each bluetooth scan cycle when no ranging/monitoring clients are in the foreground
      */

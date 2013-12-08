@@ -15,9 +15,8 @@ at a frequency of 1Hz.
 The [project website](http://developer.radiusnetworks.com/ibeacon/android/) is the best place to go if you want
 to learn how to use this library.  It includes binary downloads, a quick start guide, sample code, full API docs and even a reference application.
 
-The referencing of a clone of this repository in Eclipse as an Android Library is deprecated, as the project is in the process of migrating from an Eclipse-based build system to a Gradle-based build system.  
-This will stop working in the near future.  The preferred way of referencing this library is though the binary downloads.  See the quick start on the project website for more information.
-
+IMPORTANT:  This project now uses an AndroidStudio/gradle build system and the source code may no longer be imported into Eclipse as a library project.
+Eclipse users may download the latest release binary as a tar.gz file, which may then be imported as an Eclipse Library Project.  See the quick start on the project website for more information.
 
 ## License
 

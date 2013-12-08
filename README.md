@@ -23,7 +23,5 @@ This will stop working in the near future.  The preferred way of referencing thi
 
 This software is available under the Apache License 2.0, allowing you to use the library in your applications.
 
-## Volunteers
-
 If you want to help with the open source project, contact david@radiusnetworks.com
 

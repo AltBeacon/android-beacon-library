@@ -1,0 +1,12 @@
+#!/bin/sh
+rm -rf build/libs/AndroidIBeaconLibrary
+AAR_FILE=`ls build/libs/AndroidIBeaconLibrary*.aar | grep -v debug | head -1`
+TARGZ_FILE=`echo "$AAR_FILE" | sed -e 's/aar/tar.gz/g'`
+echo "Generating eclipse bundle from $AAR_FILE to make $TARGZ_FILE"
+cp -r scripts/eclipse-support build/libs/AndroidIBeaconLibrary
+tar -xvf $AAR_FILE -C build/libs/AndroidIBeaconLibrary
+mkdir build/libs/AndroidIBeaconLibrary/src
+mkdir build/libs/AndroidIBeaconLibrary/libs
+mkdir build/libs/AndroidIBeaconLibrary/gen
+mv build/libs/AndroidIBeaconLibrary/*.jar build/libs/AndroidIBeaconLibrary/libs
+tar -czvf $TARGZ_FILE -C build/libs AndroidIBeaconLibrary

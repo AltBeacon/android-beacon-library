@@ -1,0 +1,23 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.radiusnetworks.ibeacon"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="18"
+        android:targetSdkVersion="18" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+
+    <application
+        android:allowBackup="true">
+    <service android:enabled="true"
+        android:exported="true"
+        android:isolatedProcess="false"
+        android:label="iBeacon"
+        android:name="com.radiusnetworks.ibeacon.service.IBeaconService">
+    </service>
+
+    </application>
+
+</manifest>

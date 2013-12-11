@@ -204,10 +204,7 @@ public class IBeaconService extends Service {
     @Override
     public void onCreate() {
         Log.i(TAG, "onCreate of IBeaconService called");
-        // Initializes Bluetooth adapter.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) this.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
-        bluetoothAdapter = bluetoothManager.getAdapter();
+        getBluetoothAdapter();
 
         // Look for simulated scan data
         try {
@@ -232,19 +229,6 @@ public class IBeaconService extends Service {
     }
 
     private int ongoing_notification_id = 1;
-
-    public void runInForeground(Class<? extends Activity> klass) {
-
-        Intent notificationIntent = new Intent(this, klass);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-        Notification notification = new Notification.Builder(this.getApplicationContext())
-                .setContentTitle("Scanning for iBeacons")
-                .setSmallIcon(android.R.drawable.star_on)
-                .addAction(android.R.drawable.star_off, "this is the other title", pendingIntent)
-                .build();
-        startForeground(ongoing_notification_id++, notification);
-    }
-
 
     /* 
      * Returns true if the service is running, but all bound clients have indicated they are in the background
@@ -331,7 +315,7 @@ public class IBeaconService extends Service {
     private long scanStopTime = 0l;
 
     private void scanLeDevice(final Boolean enable) {
-        if (bluetoothAdapter == null) {
+        if (getBluetoothAdapter() == null) {
             Log.e(TAG, "no bluetooth adapter.  I cannot scan.");
             if (simulatedScanData == null) {
                 Log.w(TAG, "exiting");
@@ -361,9 +345,9 @@ public class IBeaconService extends Service {
                 scanning = true;
                 scanningPaused = false;
                 try {
-                    if (bluetoothAdapter != null) {
-                        if (bluetoothAdapter.isEnabled()) {
-                            bluetoothAdapter.startLeScan(leScanCallback);
+                    if (getBluetoothAdapter() != null) {
+                        if (getBluetoothAdapter().isEnabled()) {
+                            getBluetoothAdapter().startLeScan(leScanCallback);
                             lastScanStartTime = new Date().getTime();
                         } else {
                             Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
@@ -382,8 +366,8 @@ public class IBeaconService extends Service {
         } else {
             Log.d(TAG, "disabling scan");
             scanning = false;
-            if (bluetoothAdapter != null) {
-                bluetoothAdapter.stopLeScan(leScanCallback);
+            if (getBluetoothAdapter() != null) {
+                getBluetoothAdapter().stopLeScan(leScanCallback);
                 lastScanEndTime = new Date().getTime();
             }
         }
@@ -418,9 +402,9 @@ public class IBeaconService extends Service {
             else {
                 processRangeData();
                 Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size());
-                if (bluetoothAdapter != null) {
-                    if (bluetoothAdapter.isEnabled()) {
-                        bluetoothAdapter.stopLeScan(leScanCallback);
+                if (getBluetoothAdapter() != null) {
+                    if (getBluetoothAdapter().isEnabled()) {
+                        getBluetoothAdapter().stopLeScan(leScanCallback);
                         lastScanEndTime = new Date().getTime();
                     } else {
                         Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
@@ -575,6 +559,16 @@ public class IBeaconService extends Service {
      */
     private boolean anyRangingOrMonitoringRegionsActive() {
         return (rangedRegionState.size() + monitoredRegionState.size()) > 0;
+    }
+
+    private BluetoothAdapter getBluetoothAdapter() {
+        if (bluetoothAdapter == null) {
+            // Initializes Bluetooth adapter.
+            final BluetoothManager bluetoothManager =
+                    (BluetoothManager) this.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            bluetoothAdapter = bluetoothManager.getAdapter();
+        }
+        return bluetoothAdapter;
     }
 
 }

@@ -47,79 +47,9 @@ public class IBeaconIntentProcessor extends IntentService {
 	public IBeaconIntentProcessor() {
 		super("IBeaconIntentProcessor");
 	}
-	private void initialize() {
-        // access metadata
-        if (!initialized) try {
-            ComponentName componentName = new ComponentName(this.getApplicationContext(), this.getClass());
-            PackageManager packageManager = getPackageManager();
-            ServiceInfo serviceInfo = packageManager.getServiceInfo(componentName, PackageManager.GET_META_DATA);
-            Bundle data = serviceInfo.metaData;
-            String rangeNotifierClassName = null;
-            String monitorNotifierClassName = null;
-
-            if (data != null) {
-                rangeNotifierClassName = (String) data.get("rangeNotifier");
-                monitorNotifierClassName = (String) data.get("monitorNotifier");
-
-            }
-
-            if (!IBeaconManager.isInstantiated()) {
-                RangeNotifier rangeNotifier = null;
-                MonitorNotifier monitorNotifier = null;
-
-                if (rangeNotifierClassName != null) {
-                    try {
-                        Class<?> rangeNotifierClass = Class.forName(rangeNotifierClassName);
-                        try {
-                            Constructor<?> contextContstructor = rangeNotifierClass.getDeclaredConstructor(Context.class);
-                            rangeNotifier = (RangeNotifier) contextContstructor.newInstance(this.getApplicationContext());
-                        } catch (Exception e) {
-                            Log.w(TAG, "Cannot invoke " + rangeNotifierClassName + "(Context c) constructor due to ", e);
-                        }
-                        if (rangeNotifier == null) {
-                            rangeNotifier = (RangeNotifier) rangeNotifierClass.newInstance();
-                        }
-                        IBeaconManager.getInstanceForApplication(this).setRangeNotifier(rangeNotifier);
-                        Log.d(TAG, "Automatically set range notifier: " + rangeNotifier);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Can't instantiate range notifier: " + rangeNotifierClassName, e);
-                    }
-                }
-                if (monitorNotifierClassName != null) {
-                    try {
-                        Class<?> monitorNotifierClass = Class.forName(monitorNotifierClassName);
-                        try {
-                            Constructor<?> contextContstructor = monitorNotifierClass.getDeclaredConstructor(Context.class);
-                            monitorNotifier = (MonitorNotifier) contextContstructor.newInstance(this.getApplicationContext());
-                        } catch (Exception e) {
-                            Log.w(TAG, "Cannot invoke " + monitorNotifierClassName + "(Context c) constructor due to ", e);
-                        }
-
-                        if (monitorNotifier == null) {
-                            monitorNotifier = (MonitorNotifier) monitorNotifierClass.newInstance();
-                        }
-                        IBeaconManager.getInstanceForApplication(this).setMonitorNotifier(monitorNotifier);
-                        Log.d(TAG, "Automatically set monitor notifier: " + monitorNotifier);
-
-                    } catch (Exception e) {
-                        Log.e(TAG, "Can't instantiate monitor notifier: " + rangeNotifierClassName, e);
-                    }
-                }
-
-            } else {
-                Log.d(TAG, "IBeacon manager is already instantiated.  Not constructing default notifiers.");
-            }
-
-        } catch (NameNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-		initialized = true;
-	}
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		initialize();
 		Log.d(TAG, "got an intent to process");
 		
 		MonitoringData monitoringData = null;
@@ -139,6 +69,9 @@ public class IBeaconIntentProcessor extends IntentService {
 			if (notifier != null) {
 				notifier.didRangeBeaconsInRegion(IBeaconData.fromIBeaconDatas(rangingData.getIBeacons()), rangingData.getRegion());
 			}
+            else {
+                Log.d(TAG, "but ranging notifier is null, so we're dropping it.");
+            }
 		}
 		if (monitoringData != null) {
 			Log.d(TAG, "got monitoring data");

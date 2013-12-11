@@ -96,7 +96,7 @@ import android.util.Log;
 public class IBeaconManager {
 	private static final String TAG = "IBeaconManager";
 	private Context context;
-	private static IBeaconManager client = null;
+	protected static IBeaconManager client = null;
 	private Map<IBeaconConsumer,ConsumerInfo> consumers = new HashMap<IBeaconConsumer,ConsumerInfo>();
 	private Messenger serviceMessenger = null;
 	protected RangeNotifier rangeNotifier = null;
@@ -159,14 +159,14 @@ public class IBeaconManager {
 	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
 	 */
 	public static IBeaconManager getInstanceForApplication(Context context) {
-		if (!isInstantiated()) {
+		if (client == null) {
 			Log.d(TAG, "IBeaconManager instance craetion");
 			client = new IBeaconManager(context);
 		}
 		return client;
 	}
 	
-	private IBeaconManager(Context context) {
+	protected IBeaconManager(Context context) {
 		this.context = context;
 	}
 	/**
@@ -430,13 +430,6 @@ public class IBeaconManager {
 	 */
 	public RangeNotifier getRangingNotifier() {
 		return this.rangeNotifier;		
-	}	
-    /**
-     * Determines if the singleton has been constructed already.  Useful for not overriding settings set declaratively in XML
-     * @return true, if the class has been constructed
-     */
-	public static boolean isInstantiated() {
-		return (client != null);
 	}
 
     private class ConsumerInfo {

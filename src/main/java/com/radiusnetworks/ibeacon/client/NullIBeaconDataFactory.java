@@ -13,7 +13,7 @@ public class NullIBeaconDataFactory implements IBeaconDataFactory {
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
-				notifier.iBeaconDataUpdate(null, new DataProviderException("Please upgrade to the Pro version of the Android iBeacon Library."));								
+				notifier.iBeaconDataUpdate(null, null, new DataProviderException("Please upgrade to the Pro version of the Android iBeacon Library."));
 			}
 		});		
 	}

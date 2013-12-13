@@ -5,10 +5,6 @@ build/
 src/main/gen
 .gradle
 local.properties
-.project
-project.properties
-.classpath
-.settings
 .metadata
 .DS_Store
 .idea/workspace.xml

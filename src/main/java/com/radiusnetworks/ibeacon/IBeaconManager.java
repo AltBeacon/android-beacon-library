@@ -202,8 +202,10 @@ public class IBeaconManager {
 			Intent intent = new Intent(consumer.getApplicationContext(), IBeaconService.class);
 			consumer.bindService(intent, iBeaconServiceConnection, Context.BIND_AUTO_CREATE);
 			Log.i(TAG, "consumer count is now:"+consumers.size());
-            setBackgroundMode(consumer, false); // if we just bound, we assume we are not in the background.
-		}
+            if (serviceMessenger != null) { // If the serviceMessenger is not null, that means we are able to make calls to the service
+                setBackgroundMode(consumer, false); // if we just bound, we assume we are not in the background.
+            }
+ 		}
 	}
 	
 	/**

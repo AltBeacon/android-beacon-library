@@ -145,7 +145,7 @@ public class Region  {
 	
 	public boolean equals(Object other) {
 		 if (other instanceof Region) {
-			return ((Region)other).uniqueId == this.uniqueId;			 
+			return ((Region)other).uniqueId.equals(this.uniqueId);
 		 }
 		 return false;
 	}

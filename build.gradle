@@ -1,5 +1,7 @@
 defaultTasks 'distribution'
 
+// TODO: figure out how to include source code in the generated jar file per http://stackoverflow.com/questions/11474729/how-to-build-sources-jar-with-gradle
+
 buildscript {
     repositories {
         mavenCentral()

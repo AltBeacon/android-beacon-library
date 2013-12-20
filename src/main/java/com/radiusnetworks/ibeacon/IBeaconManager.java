@@ -235,7 +235,7 @@ public class IBeaconManager {
      * @return
      */
     public boolean isBound(IBeaconConsumer consumer) {
-        return consumers.keySet().contains(consumer);
+        return consumers.keySet().contains(consumer) && (serviceMessenger != null);
     }
 
     /**
@@ -277,6 +277,10 @@ public class IBeaconManager {
 	/**
 	 * Specifies a class that should be called each time the <code>IBeaconService</code> gets ranging
 	 * data, which is nominally once per second when iBeacons are detected.
+     *
+     * IMPORTANT:  Only one RangeNotifier may be active for a given application.  If two different
+     * activities or services set different RangeNotifier instances, the last one set will receive
+     * all the notifications.
 	 *  
 	 * @see RangeNotifier 
 	 * @param notifier
@@ -288,7 +292,11 @@ public class IBeaconManager {
 	/**
 	 * Specifies a class that should be called each time the <code>IBeaconService</code> gets sees
 	 * or stops seeing a Region of iBeacons.
-	 *  
+     *
+     * IMPORTANT:  Only one MonitorNotifier may be active for a given application.  If two different
+     * activities or services set different RangeNotifier instances, the last one set will receive
+     * all the notifications.
+	 *
 	 * @see MonitorNotifier 
 	 * @see #startMonitoringBeaconsInRegion(Region region)
 	 * @see Region 

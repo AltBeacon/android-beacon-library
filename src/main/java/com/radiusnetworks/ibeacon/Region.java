@@ -58,12 +58,12 @@ public class Region  {
 	 */
 	protected String proximityUuid;
 	/**
-	 * A unique identifier set by the class that constructs the Region so it can cancel Ranging and Monitoring actions
+	 * A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
 	 */
 	protected String uniqueId;
 	/**
 	 * Constructs a new Region object to be used for Ranging or Monitoring
-	 * @param uniqueId
+	 * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
 	 * @param proximityUuid
 	 * @param major
 	 * @param minor
@@ -73,6 +73,9 @@ public class Region  {
 		this.minor = minor;
 		this.proximityUuid = normalizeProximityUuid(proximityUuid);
 		this.uniqueId = uniqueId;
+        if (uniqueId == null) {
+            throw new NullPointerException("uniqueId may not be null");
+        }
 	}
 	/**
 	 * @see #major

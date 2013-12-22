@@ -9,6 +9,7 @@ import java.util.Map;
 import android.util.Log;
 
 import com.radiusnetworks.ibeacon.IBeacon;
+import com.radiusnetworks.ibeacon.IBeaconManager;
 
 public class RangingTracker {
 	private static String TAG = "RangingTracker";	
@@ -16,11 +17,11 @@ public class RangingTracker {
 	public void addIBeacon(IBeacon iBeacon) {
 		if (rangedIBeacons.containsKey(iBeacon)) {
 			RangedIBeacon rangedIBeacon = rangedIBeacons.get(iBeacon);
-			Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to existing range for: "+rangedIBeacon.getProximityUuid() );			
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to existing range for: "+rangedIBeacon.getProximityUuid() );
 			rangedIBeacon.addRangeMeasurement(iBeacon.getRssi());
 		}
 		else {
-			Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to new rangedIBeacon");			
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to new rangedIBeacon");
 			rangedIBeacons.put(iBeacon, new RangedIBeacon(iBeacon));
 		}
 	}

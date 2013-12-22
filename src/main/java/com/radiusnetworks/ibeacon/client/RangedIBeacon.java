@@ -9,6 +9,7 @@ import java.util.Iterator;
 import android.util.Log;
 
 import com.radiusnetworks.ibeacon.IBeacon;
+import com.radiusnetworks.ibeacon.IBeaconManager;
 
 public class RangedIBeacon extends IBeacon{
 	private static String TAG = "RangedIBeacon";
@@ -74,7 +75,7 @@ public class RangedIBeacon extends IBeacon{
 		}
 		double runningAverage = sum/(endIndex-startIndex+1);
 
-		Log.d(TAG, "Running average rssi based on "+size+" measurements: "+runningAverage);
+		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Running average rssi based on "+size+" measurements: "+runningAverage);
 		return runningAverage;
 
 	}
@@ -82,7 +83,7 @@ public class RangedIBeacon extends IBeacon{
 	protected void addRangeMeasurement(Integer rssi) {
 		this.rssi = rssi;
 		addMeasurement(rssi);
-		Log.d(TAG, "calculating new range measurement with new rssi measurement:"+rssi);
+		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "calculating new range measurement with new rssi measurement:"+rssi);
 		runningAverageRssi = calculateRunningAverage();
 		accuracy = null; // force calculation of accuracy and proximity next time they are requested
 		proximity = null;

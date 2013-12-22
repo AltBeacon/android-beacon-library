@@ -37,9 +37,6 @@ import com.radiusnetworks.ibeacon.IBeacon;
 import com.radiusnetworks.ibeacon.IBeaconManager;
 import com.radiusnetworks.ibeacon.Region;
 
-import android.app.Activity;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -147,27 +144,27 @@ public class IBeaconService extends Service {
             if (service != null) {
                 switch (msg.what) {
                     case MSG_START_RANGING:
-                        Log.d(TAG, "start ranging received");
+                        Log.i(TAG, "start ranging received");
                         service.startRangingBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
                         break;
                     case MSG_STOP_RANGING:
-                        Log.d(TAG, "stop ranging received");
+                        Log.i(TAG, "stop ranging received");
                         service.stopRangingBeaconsInRegion(startRMData.getRegionData());
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
                         break;
                     case MSG_START_MONITORING:
-                        Log.d(TAG, "start monitoring received");
+                        Log.i(TAG, "start monitoring received");
                         service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
                         break;
                     case MSG_STOP_MONITORING:
-                        Log.d(TAG, "stop monitoring received");
+                        Log.i(TAG, "stop monitoring received");
                         service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
                         break;
                     case MSG_SET_SCAN_PERIODS:
-                        Log.d(TAG, "set scan intervals received");
+                        Log.i(TAG, "set scan intervals received");
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
                         break;
                     default:
@@ -195,7 +192,7 @@ public class IBeaconService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.i(TAG, "unbind called");
+        Log.i(TAG, "unbinding");
         bindCount--;
         return false;
     }
@@ -203,7 +200,7 @@ public class IBeaconService extends Service {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "onCreate of IBeaconService called");
+        Log.i(TAG, "iBeaconService is starting up");
         getBluetoothAdapter();
 
         // Look for simulated scan data
@@ -212,7 +209,7 @@ public class IBeaconService extends Service {
             java.lang.reflect.Field f = klass.getField("iBeacons");
             this.simulatedScanData = (List<IBeacon>) f.get(null);
         } catch (ClassNotFoundException e) {
-            Log.d(TAG, "No com.radiusnetworks.ibeacon.SimulatedScanData class exists.");
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "No com.radiusnetworks.ibeacon.SimulatedScanData class exists.");
         } catch (Exception e) {
             Log.e(TAG, "Cannot get simulated Scan data.  Make sure your com.radiusnetworks.ibeacon.SimulatedScanData class defines a field with the signature 'public static List<IBeacon> iBeacons'", e);
         }
@@ -234,7 +231,7 @@ public class IBeaconService extends Service {
      * Returns true if the service is running, but all bound clients have indicated they are in the background
      */
     private boolean isInBackground() {
-        Log.d(TAG, "bound client count:" + bindCount);
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "bound client count:" + bindCount);
         return bindCount == 0;
     }
 
@@ -244,7 +241,7 @@ public class IBeaconService extends Service {
 
     public void startRangingBeaconsInRegion(Region region, Callback callback) {
         if (rangedRegionState.containsKey(region)) {
-            Log.d(TAG, "Already ranging that region -- will replace existing region.");
+            Log.i(TAG, "Already ranging that region -- will replace existing region.");
             rangedRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
         }
         rangedRegionState.put(region, new RangeState(callback));
@@ -261,13 +258,13 @@ public class IBeaconService extends Service {
     }
 
     public void startMonitoringBeaconsInRegion(Region region, Callback callback) {
-        Log.d(TAG, "startMonitoring called");
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "startMonitoring called");
         if (monitoredRegionState.containsKey(region)) {
-            Log.d(TAG, "Already monitoring that region -- will replace existing region monitor.");
+            Log.i(TAG, "Already monitoring that region -- will replace existing region monitor.");
             monitoredRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
         }
         monitoredRegionState.put(region, new MonitorState(callback));
-        Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
         if (!scanning) {
             scanLeDevice(true);
         }
@@ -275,9 +272,9 @@ public class IBeaconService extends Service {
     }
 
     public void stopMonitoringBeaconsInRegion(Region region) {
-        Log.d(TAG, "stopMonitoring called");
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "stopMonitoring called");
         monitoredRegionState.remove(region);
-        Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
         if (scanning && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
             scanLeDevice(false);
         }
@@ -294,7 +291,7 @@ public class IBeaconService extends Service {
             long proposedNextScanStartTime = (lastScanEndTime + betweenScanPeriod);
             if (proposedNextScanStartTime < nextScanStartTime) {
                 nextScanStartTime = proposedNextScanStartTime;
-                Log.d(TAG, "Adjusted nextScanStartTime to be "+new Date(nextScanStartTime));
+                Log.i(TAG, "Adjusted nextScanStartTime to be "+new Date(nextScanStartTime));
             }
         }
         if (scanStopTime > now) {
@@ -304,7 +301,7 @@ public class IBeaconService extends Service {
             long proposedScanStopTime = (lastScanStartTime + scanPeriod);
             if (proposedScanStopTime < scanStopTime) {
                 scanStopTime = proposedScanStopTime;
-                Log.d(TAG, "Adjusted scanStopTime to be "+new Date(scanStopTime));
+                Log.i(TAG, "Adjusted scanStopTime to be "+new Date(scanStopTime));
             }
         }
     }
@@ -316,7 +313,7 @@ public class IBeaconService extends Service {
 
     private void scanLeDevice(final Boolean enable) {
         if (getBluetoothAdapter() == null) {
-            Log.e(TAG, "no bluetooth adapter.  I cannot scan.");
+            Log.e(TAG, "No bluetooth adapter.  iBeaconService cannot scan.");
             if (simulatedScanData == null) {
                 Log.w(TAG, "exiting");
                 return;
@@ -327,7 +324,7 @@ public class IBeaconService extends Service {
         if (enable) {
             long millisecondsUntilStart = nextScanStartTime - (new Date().getTime());
             if (millisecondsUntilStart > 0) {
-                Log.d(TAG, "Waiting to start next bluetooth scan for another "+millisecondsUntilStart+" milliseconds");
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Waiting to start next bluetooth scan for another "+millisecondsUntilStart+" milliseconds");
                 // Don't actually wait until the next scan time -- only wait up to 1 second.  this
                 // allows us to start scanning sooner if a consumer enters the foreground and expects
                 // results more quickly
@@ -357,14 +354,14 @@ public class IBeaconService extends Service {
                     Log.e("TAG", "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
                 }
             } else {
-                Log.d(TAG, "We are already scanning");
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "We are already scanning");
             }
             scanStopTime = (new Date().getTime() + scanPeriod);
             scheduleScanStop();
 
-            Log.d(TAG, "Scan started");
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Scan started");
         } else {
-            Log.d(TAG, "disabling scan");
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "disabling scan");
             scanning = false;
             if (getBluetoothAdapter() != null) {
                 getBluetoothAdapter().stopLeScan(leScanCallback);
@@ -377,7 +374,7 @@ public class IBeaconService extends Service {
         // Stops scanning after a pre-defined scan period.
         long millisecondsUntilStop = scanStopTime - (new Date().getTime());
         if (millisecondsUntilStop > 0) {
-            Log.d(TAG, "Waiting to stop scan for another "+millisecondsUntilStop+" milliseconds");
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Waiting to stop scan for another "+millisecondsUntilStop+" milliseconds");
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -393,15 +390,15 @@ public class IBeaconService extends Service {
     }
 
     private void finishScanCycle() {
-        Log.d(TAG, "Done with scan cycle");
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Done with scan cycle");
         processExpiredMonitors();
         if (scanning == true) {
             if (!anyRangingOrMonitoringRegionsActive()) {
-                Log.d(TAG, "Not starting scan because no monitoring or ranging regions are defined.");
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Not starting scan because no monitoring or ranging regions are defined.");
             }
             else {
                 processRangeData();
-                Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size());
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size());
                 if (getBluetoothAdapter() != null) {
                     if (getBluetoothAdapter().isEnabled()) {
                         getBluetoothAdapter().stopLeScan(leScanCallback);
@@ -437,7 +434,7 @@ public class IBeaconService extends Service {
                 @Override
                 public void onLeScan(final BluetoothDevice device, final int rssi,
                                      final byte[] scanRecord) {
-                    Log.d(TAG, "got record");
+                    if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got record");
                     new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
 
                 }
@@ -461,7 +458,7 @@ public class IBeaconService extends Service {
         while (regionIterator.hasNext()) {
             Region region = regionIterator.next();
             RangeState rangeState = rangedRegionState.get(region);
-            Log.d(TAG, "Calling ranging callback with " + rangeState.getIBeacons().size() + " iBeacons");
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Calling ranging callback with " + rangeState.getIBeacons().size() + " iBeacons");
             rangeState.getCallback().call(IBeaconService.this, "rangingData", new RangingData(rangeState.getIBeacons(), region));
             rangeState.clearIBeacons();
         }
@@ -474,7 +471,7 @@ public class IBeaconService extends Service {
             Region region = monitoredRegionIterator.next();
             MonitorState state = monitoredRegionState.get(region);
             if (state.isNewlyOutside()) {
-                Log.d(TAG, "found a monitor that expired: " + region);
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "found a monitor that expired: " + region);
                 state.getCallback().call(IBeaconService.this, "monitoringData", new MonitoringData(state.isInside(), region));
             }
         }
@@ -483,7 +480,7 @@ public class IBeaconService extends Service {
     private void processIBeaconFromScan(IBeacon iBeacon) {
         lastIBeaconDetectionTime = new Date();
         trackedBeacons.add(iBeacon);
-        Log.d(TAG,
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG,
                 "iBeacon detected :" + iBeacon.getProximityUuid() + " "
                         + iBeacon.getMajor() + " " + iBeacon.getMinor()
                         + " accuracy: " + iBeacon.getAccuracy()
@@ -501,12 +498,12 @@ public class IBeaconService extends Service {
             }
         }
 
-        Log.d(TAG, "looking for ranging region matches for this ibeacon");
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "looking for ranging region matches for this ibeacon");
         matchedRegions = matchingRegions(iBeacon, rangedRegionState.keySet());
         matchedRegionIterator = matchedRegions.iterator();
         while (matchedRegionIterator.hasNext()) {
             Region region = matchedRegionIterator.next();
-            Log.d(TAG, "matches ranging region: " + region);
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "matches ranging region: " + region);
             RangeState rangeState = rangedRegionState.get(region);
             rangeState.addIBeacon(iBeacon);
         }
@@ -547,7 +544,7 @@ public class IBeaconService extends Service {
             if (region.matchesIBeacon(iBeacon)) {
                 matched.add(region);
             } else {
-                Log.d(TAG, "This region does not match: " + region);
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This region does not match: " + region);
             }
 
         }

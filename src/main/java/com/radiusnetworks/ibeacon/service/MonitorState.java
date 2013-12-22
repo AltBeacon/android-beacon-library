@@ -55,7 +55,7 @@ public class MonitorState {
 		if (inside) {
 			if (lastSeenTime > 0 && (new Date()).getTime() - lastSeenTime > INSIDE_EXPIRATION_MILLIS) {
 				inside = false;
-				Log.d(TAG, "We are newly outside because the lastSeenTime of "+lastSeenTime+" was "+((new Date()).getTime() - lastSeenTime)+" seconds ago, and that is over the expiration duration of  "+INSIDE_EXPIRATION_MILLIS);
+				Log.d(TAG, "We are newly outside the region because the lastSeenTime of "+lastSeenTime+" was "+((new Date()).getTime() - lastSeenTime)+" seconds ago, and that is over the expiration duration of  "+INSIDE_EXPIRATION_MILLIS);
 				lastSeenTime = 0l;
 				return true;
 			}			

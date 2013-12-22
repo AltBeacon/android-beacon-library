@@ -102,6 +102,11 @@ public class IBeaconManager {
 	protected RangeNotifier rangeNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
     protected RangingTracker rangingTracker = new RangingTracker();
+    /**
+     * set to true if you want to see debug messages associated with this library
+     */
+    public static boolean LOG_DEBUG = false;
+
 
     /**
      * The default duration in milliseconds of the bluetooth scan cycle
@@ -160,7 +165,7 @@ public class IBeaconManager {
 	 */
 	public static IBeaconManager getInstanceForApplication(Context context) {
 		if (client == null) {
-			Log.d(TAG, "IBeaconManager instance craetion");
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "IBeaconManager instance creation");
 			client = new IBeaconManager(context);
 		}
 		return client;
@@ -194,14 +199,14 @@ public class IBeaconManager {
 	 */
 	public void bind(IBeaconConsumer consumer) {
 		if (consumers.keySet().contains(consumer)) {
-			Log.i(TAG, "This consumer is already bound");					
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is already bound");
 		}
 		else {
-			Log.i(TAG, "This consumer is not bound.  binding: "+consumer);	
+			Log.d(TAG, "This consumer is not bound.  binding: "+consumer);
 			consumers.put(consumer, new ConsumerInfo());
 			Intent intent = new Intent(consumer.getApplicationContext(), IBeaconService.class);
 			consumer.bindService(intent, iBeaconServiceConnection, Context.BIND_AUTO_CREATE);
-			Log.i(TAG, "consumer count is now:"+consumers.size());
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "consumer count is now:"+consumers.size());
             if (serviceMessenger != null) { // If the serviceMessenger is not null, that means we are able to make calls to the service
                 setBackgroundMode(consumer, false); // if we just bound, we assume we are not in the background.
             }
@@ -216,13 +221,13 @@ public class IBeaconManager {
 	 */
 	public void unBind(IBeaconConsumer consumer) {
 		if (consumers.keySet().contains(consumer)) {
-			Log.i(TAG, "Unbinding");			
+			Log.d(TAG, "Unbinding");
 			consumer.unbindService(iBeaconServiceConnection);
 			consumers.remove(consumer);
 		}
 		else {
-			Log.i(TAG, "This consumer is not bound to: "+consumer);
-			Log.i(TAG, "Bound consumers: ");
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is not bound to: "+consumer);
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Bound consumers: ");
 			for (int i = 0; i < consumers.size(); i++) {
 				Log.i(TAG, " "+consumers.get(i));
 			}
@@ -399,7 +404,7 @@ public class IBeaconManager {
 	
 	private String callbackPackageName() {
 		String packageName = context.getPackageName();
-		Log.d(TAG, "callback packageName: "+packageName);
+		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "callback packageName: "+packageName);
 		return packageName;
 	}
 

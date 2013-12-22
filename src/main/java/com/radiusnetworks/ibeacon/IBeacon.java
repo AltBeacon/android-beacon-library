@@ -231,7 +231,7 @@ public class IBeacon {
 
 		if (patternFound == false) {
 			// This is not an iBeacon
-			Log.d(TAG, "This is not an iBeacon advertisment (no 4c000215 seen in bytes 2-5).  The bytes I see are: "+bytesToHex(scanData));
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This is not an iBeacon advertisment (no 4c000215 seen in bytes 2-5).  The bytes I see are: "+bytesToHex(scanData));
 			return null;
 		}
 								
@@ -310,7 +310,7 @@ public class IBeacon {
 			return -1.0; // if we cannot determine accuracy, return -1.
 		}
 		
-		Log.d(TAG, "calculating accuracy based on rssi of "+rssi);
+		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "calculating accuracy based on rssi of "+rssi);
 
 
 		double ratio = rssi*1.0/txPower;
@@ -319,7 +319,7 @@ public class IBeacon {
 		}
 		else {
 			double accuracy =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;	
-			Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
 			return accuracy;
 		}
 	}	

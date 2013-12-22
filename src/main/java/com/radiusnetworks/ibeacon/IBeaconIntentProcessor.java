@@ -50,7 +50,7 @@ public class IBeaconIntentProcessor extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Log.d(TAG, "got an intent to process");
+		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got an intent to process");
 		
 		MonitoringData monitoringData = null;
 		RangingData rangingData = null;
@@ -61,23 +61,23 @@ public class IBeaconIntentProcessor extends IntentService {
 		}
 		
 		if (rangingData != null) {
-			Log.d(TAG, "got ranging data");
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got ranging data");
             if (rangingData.getIBeacons() == null) {
-                Log.w(TAG, "but the ranging data has a null iBeacons collection");
+                Log.w(TAG, "Ranging data has a null iBeacons collection");
             }
 			RangeNotifier notifier = IBeaconManager.getInstanceForApplication(this).getRangingNotifier();
 			if (notifier != null) {
 				notifier.didRangeBeaconsInRegion(IBeaconData.fromIBeaconDatas(rangingData.getIBeacons()), rangingData.getRegion());
 			}
             else {
-                Log.d(TAG, "but ranging notifier is null, so we're dropping it.");
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "but ranging notifier is null, so we're dropping it.");
             }
 		}
 		if (monitoringData != null) {
-			Log.d(TAG, "got monitoring data");
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got monitoring data");
 			MonitorNotifier notifier = IBeaconManager.getInstanceForApplication(this).getMonitoringNotifier();
 			if (notifier != null) {
-				Log.i(TAG, "Calling monitoring notifier:"+notifier);
+				if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Calling monitoring notifier:"+notifier);
 				notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
 				if (monitoringData.isInside()) {
 					notifier.didEnterRegion(monitoringData.getRegion());

@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import com.radiusnetworks.ibeacon.IBeacon;
 import com.radiusnetworks.ibeacon.Region;
+import com.radiusnetworks.ibeacon.IBeaconManager;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -58,10 +59,10 @@ public class RangingData implements Parcelable {
 		return 0;
 	}
     public void writeToParcel(Parcel out, int flags) {    
-    	Log.d(TAG, "writing RangingData");    	
+    	if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "writing RangingData");
     	out.writeParcelableArray(iBeaconDatas.toArray(new Parcelable[0]), flags);
     	out.writeParcelable(regionData, flags);
-    	Log.d(TAG, "done writing RangingData");    	
+    	if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "done writing RangingData");
 
     }
 
@@ -77,7 +78,7 @@ public class RangingData implements Parcelable {
     };
     
     private RangingData(Parcel in) {
-    	Log.d(TAG, "parsing RangingData");
+    	if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "parsing RangingData");
     	Parcelable[] parcelables  = in.readParcelableArray(this.getClass().getClassLoader());
     	iBeaconDatas = new ArrayList<IBeaconData>(parcelables.length);
     	for (int i = 0; i < parcelables.length; i++) {

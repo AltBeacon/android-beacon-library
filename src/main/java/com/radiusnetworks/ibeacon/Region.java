@@ -114,15 +114,15 @@ public class Region  {
 	 */
 	public boolean matchesIBeacon(IBeacon iBeacon) {
 		if (proximityUuid != null && !iBeacon.getProximityUuid().equals(proximityUuid)) {
-			Log.d(TAG, "unmatching proxmityUuids: "+iBeacon.getProximityUuid()+" != "+proximityUuid);
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "unmatching proxmityUuids: "+iBeacon.getProximityUuid()+" != "+proximityUuid);
 			return false;
 		}
 		if (major != null && iBeacon.getMajor() != major) {
-			Log.d(TAG, "unmatching major: "+iBeacon.getMajor()+" != "+major);
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "unmatching major: "+iBeacon.getMajor()+" != "+major);
 			return false;
 		}
 		if (minor != null && iBeacon.getMinor() != minor) {
-			Log.d(TAG, "unmatching minor: "+iBeacon.getMajor()+" != "+minor);
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "unmatching minor: "+iBeacon.getMajor()+" != "+minor);
 			return false;
 		}
 		return true;

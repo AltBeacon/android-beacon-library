@@ -63,8 +63,8 @@ public class IBeaconData extends IBeacon implements Parcelable {
         out.writeInt(major);
         out.writeInt(minor);
         out.writeString(proximityUuid);
-        out.writeInt(proximity);
-        out.writeDouble(accuracy);
+        out.writeInt(getProximity());
+        out.writeDouble(getAccuracy());
         out.writeInt(rssi);
         out.writeInt(txPower);
     }

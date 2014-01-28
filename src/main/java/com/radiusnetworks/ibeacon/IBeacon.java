@@ -225,6 +225,18 @@ public class IBeacon {
 				iBeacon.txPower = -55;
 				return iBeacon;
 			}					
+                        else if (((int)scanData[startByte] & 0xff) == 0xad &&
+                                 ((int)scanData[startByte+1] & 0xff) == 0x77 &&
+                                 ((int)scanData[startByte+2] & 0xff) == 0x00 &&
+                                 ((int)scanData[startByte+3] & 0xff) == 0xc6) {
+                                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This is a proprietary Gimbal beacon advertisement that does not meet the iBeacon standard.  Identifiers cannot be read.");
+                                IBeacon iBeacon = new IBeacon();
+                                iBeacon.major = 0;
+                                iBeacon.minor = 0;
+                                iBeacon.proximityUuid = "00000000-0000-0000-0000-000000000000";
+                                iBeacon.txPower = -55;
+                                return iBeacon;
+                        }
 			startByte++;
 		}
 		

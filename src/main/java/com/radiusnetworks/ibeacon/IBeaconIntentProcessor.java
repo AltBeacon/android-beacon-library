@@ -66,12 +66,18 @@ public class IBeaconIntentProcessor extends IntentService {
                 Log.w(TAG, "Ranging data has a null iBeacons collection");
             }
 			RangeNotifier notifier = IBeaconManager.getInstanceForApplication(this).getRangingNotifier();
+            java.util.Collection<IBeacon> iBeacons = IBeaconData.fromIBeaconDatas(rangingData.getIBeacons());
 			if (notifier != null) {
-				notifier.didRangeBeaconsInRegion(IBeaconData.fromIBeaconDatas(rangingData.getIBeacons()), rangingData.getRegion());
+				notifier.didRangeBeaconsInRegion(iBeacons, rangingData.getRegion());
 			}
             else {
                 if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "but ranging notifier is null, so we're dropping it.");
             }
+            RangeNotifier dataNotifier = IBeaconManager.getInstanceForApplication(this).getDataRequestNotifier();
+            if (dataNotifier != null) {
+                dataNotifier.didRangeBeaconsInRegion(iBeacons, rangingData.getRegion());
+            }
+
 		}
 		if (monitoringData != null) {
 			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got monitoring data");

@@ -100,8 +100,8 @@ public class IBeaconManager {
 	private Map<IBeaconConsumer,ConsumerInfo> consumers = new HashMap<IBeaconConsumer,ConsumerInfo>();
 	private Messenger serviceMessenger = null;
 	protected RangeNotifier rangeNotifier = null;
+    protected RangeNotifier dataRequestNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
-    protected RangingTracker rangingTracker = new RangingTracker();
     /**
      * set to true if you want to see debug messages associated with this library
      */
@@ -202,7 +202,7 @@ public class IBeaconManager {
 			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is already bound");
 		}
 		else {
-			Log.d(TAG, "This consumer is not bound.  binding: "+consumer);
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is not bound.  binding: "+consumer);
 			consumers.put(consumer, new ConsumerInfo());
 			Intent intent = new Intent(consumer.getApplicationContext(), IBeaconService.class);
 			consumer.bindService(intent, iBeaconServiceConnection, Context.BIND_AUTO_CREATE);
@@ -411,7 +411,7 @@ public class IBeaconManager {
 	private ServiceConnection iBeaconServiceConnection = new ServiceConnection() {
 		// Called when the connection with the service is established
 	    public void onServiceConnected(ComponentName className, IBinder service) {
-	    	Log.d(TAG,  "we have a connection to the service now");
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG,  "we have a connection to the service now");
 	        serviceMessenger = new Messenger(service);
 	        Iterator<IBeaconConsumer> consumerIterator = consumers.keySet().iterator();
 	        while (consumerIterator.hasNext()) {
@@ -446,6 +446,10 @@ public class IBeaconManager {
 	public RangeNotifier getRangingNotifier() {
 		return this.rangeNotifier;		
 	}
+
+
+    protected void setDataRequestNotifier(RangeNotifier notifier) { this.dataRequestNotifier = notifier; }
+    protected RangeNotifier getDataRequestNotifier() { return this.dataRequestNotifier; }
 
     private class ConsumerInfo {
         public boolean isConnected = false;

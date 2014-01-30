@@ -46,6 +46,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.DeadObjectException;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -143,87 +144,87 @@ public class IBeaconService extends Service {
 
             if (service != null) {
                 switch (msg.what) {
-                    case MSG_START_RANGING:
-                        Log.i(TAG, "start ranging received");
-                        service.startRangingBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
-                        break;
-                    case MSG_STOP_RANGING:
-                        Log.i(TAG, "stop ranging received");
-                        service.stopRangingBeaconsInRegion(startRMData.getRegionData());
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
-                        break;
-                    case MSG_START_MONITORING:
-                        Log.i(TAG, "start monitoring received");
-                        service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
-                        break;
-                    case MSG_STOP_MONITORING:
-                        Log.i(TAG, "stop monitoring received");
-                        service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
-                        break;
-                    case MSG_SET_SCAN_PERIODS:
-                        Log.i(TAG, "set scan intervals received");
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
-                        break;
-                    default:
-                        super.handleMessage(msg);
-                }
-            }
+    case MSG_START_RANGING:
+            Log.i(TAG, "start ranging received");
+    service.startRangingBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
+    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+    break;
+    case MSG_STOP_RANGING:
+            Log.i(TAG, "stop ranging received");
+    service.stopRangingBeaconsInRegion(startRMData.getRegionData());
+    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+    break;
+    case MSG_START_MONITORING:
+            Log.i(TAG, "start monitoring received");
+    service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new com.radiusnetworks.ibeacon.service.Callback(startRMData.getCallbackPackageName()));
+    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+    break;
+    case MSG_STOP_MONITORING:
+            Log.i(TAG, "stop monitoring received");
+    service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
+    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+    break;
+    case MSG_SET_SCAN_PERIODS:
+            Log.i(TAG, "set scan intervals received");
+    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+    break;
+    default:
+            super.handleMessage(msg);
+}
+}
         }
-    }
+        }
 
-    /**
-     * Target we publish for clients to send messages to IncomingHandler.
-     */
-    final Messenger mMessenger = new Messenger(new IncomingHandler(this));
+/**
+ * Target we publish for clients to send messages to IncomingHandler.
+ */
+final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
-    /**
-     * When binding to the service, we return an interface to our messenger
-     * for sending messages to the service.
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
+/**
+ * When binding to the service, we return an interface to our messenger
+ * for sending messages to the service.
+ */
+@Override
+public IBinder onBind(Intent intent) {
         Log.i(TAG, "binding");
         bindCount++;
         return mMessenger.getBinder();
-    }
+        }
 
-    @Override
-    public boolean onUnbind(Intent intent) {
+@Override
+public boolean onUnbind(Intent intent) {
         Log.i(TAG, "unbinding");
         bindCount--;
         return false;
-    }
+        }
 
 
-    @Override
-    public void onCreate() {
+@Override
+public void onCreate() {
         Log.i(TAG, "iBeaconService is starting up");
         getBluetoothAdapter();
 
         // Look for simulated scan data
         try {
-            Class klass = Class.forName("com.radiusnetworks.ibeacon.SimulatedScanData");
-            java.lang.reflect.Field f = klass.getField("iBeacons");
-            this.simulatedScanData = (List<IBeacon>) f.get(null);
+        Class klass = Class.forName("com.radiusnetworks.ibeacon.SimulatedScanData");
+        java.lang.reflect.Field f = klass.getField("iBeacons");
+        this.simulatedScanData = (List<IBeacon>) f.get(null);
         } catch (ClassNotFoundException e) {
-            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "No com.radiusnetworks.ibeacon.SimulatedScanData class exists.");
+        if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "No com.radiusnetworks.ibeacon.SimulatedScanData class exists.");
         } catch (Exception e) {
-            Log.e(TAG, "Cannot get simulated Scan data.  Make sure your com.radiusnetworks.ibeacon.SimulatedScanData class defines a field with the signature 'public static List<IBeacon> iBeacons'", e);
+        Log.e(TAG, "Cannot get simulated Scan data.  Make sure your com.radiusnetworks.ibeacon.SimulatedScanData class defines a field with the signature 'public static List<IBeacon> iBeacons'", e);
         }
-    }
+        }
 
-    @Override
-    public void onDestroy() {
+@Override
+public void onDestroy() {
         Log.i(TAG, "onDestory called.  stopping scanning");
         scanLeDevice(false);
         if (bluetoothAdapter != null) {
-            bluetoothAdapter.stopLeScan(leScanCallback);
-            lastScanEndTime = new Date().getTime();
+        bluetoothAdapter.stopLeScan(leScanCallback);
+        lastScanEndTime = new Date().getTime();
         }
-    }
+        }
 
     private int ongoing_notification_id = 1;
 

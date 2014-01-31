@@ -131,19 +131,30 @@ public class IBeaconManager {
     private long backgroundBetweenScanPeriod = DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
 
     /**
-     * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for iBeacons
+     * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for iBeacons.
+     * This function is used to setup the period before calling {@link #bind}  or when switching
+     * between background/foreground. To have it effect on an already running scan (when the next
+     * cycle starts), call {@link #updateScanPeriods}
      * @param p
      */
     public void setForegroundScanPeriod(long p) { foregroundScanPeriod = p; }
+
     /**
-     * Sets the duration in milliseconds to wait between each bluetooth scan cycle used to look for iBeacons
+     * Sets the duration in milliseconds between each Bluetooth LE scan cycle to look for iBeacons.
+     * This function is used to setup the period before calling {@link #bind}  or when switching
+     * between background/foreground. To have it effect on an already running scan (when the next
+     * cycle starts), call {@link #updateScanPeriods}
      * @param p
      */
     public void setForegroundBetweenScanPeriod(long p) {
         foregroundBetweenScanPeriod = p;
     }
+
     /**
-     * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for iBeacons when no ranging/monitoring clients are in the foreground
+     * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for iBeacons.
+     * This function is used to setup the period before calling {@link #bind}  or when switching
+     * between background/foreground. To have it effect on an already running scan (when the next
+     * cycle starts), call {@link #updateScanPeriods}
      * @param p
      */
     public void setBackgroundScanPeriod(long p) {
@@ -268,7 +279,7 @@ public class IBeaconManager {
             ConsumerInfo consumerInfo = consumers.get(consumer);
             consumerInfo.isInBackground = backgroundMode;
             consumers.put(consumer,consumerInfo);
-            setScanPeriods();
+            updateScanPeriods();
             return true;
         }
         catch (RemoteException e) {
@@ -390,14 +401,28 @@ public class IBeaconManager {
 		serviceMessenger.send(msg);
 	}
 
-    public void setScanPeriods() throws RemoteException {
+
+    /**
+     Updates an already running scan with scanPeriod/betweenScanPeriod according to Background/Foreground state.
+     Change will take effect on the start of the next scan cycle.
+     @throws RemoteException - If the IBeaconManager is not bound to the service.
+     */ 
+    public void updateScanPeriods() throws RemoteException {
         if (serviceMessenger == null) {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, IBeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
         StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod());
         msg.obj = obj;
-        serviceMessenger.send(msg);
+        serviceMessenger.send(msg);        
+    }
+
+    /**
+     * @deprecated Use updateScanPeriods()
+     * @throws RemoteException
+     */
+    public void setScanPeriods() throws RemoteException {
+        updateScanPeriods();
     }
 	
 	private String callbackPackageName() {

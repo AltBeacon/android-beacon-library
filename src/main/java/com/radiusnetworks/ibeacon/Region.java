@@ -186,6 +186,9 @@ public class Region  {
 		return sb.toString();
 	}
 
-
+    @Override
+    public Object clone() {
+        return new Region(this);
+    }
 
 }

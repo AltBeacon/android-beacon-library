@@ -231,18 +231,22 @@ public class IBeaconService extends Service {
      */
 
     public void startRangingBeaconsInRegion(Region region, Callback callback) {
-        if (rangedRegionState.containsKey(region)) {
-            Log.i(TAG, "Already ranging that region -- will replace existing region.");
-            rangedRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
+        synchronized (rangedRegionState) {
+            if (rangedRegionState.containsKey(region)) {
+                Log.i(TAG, "Already ranging that region -- will replace existing region.");
+                rangedRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
+            }
+            rangedRegionState.put(region, new RangeState(callback));
         }
-        rangedRegionState.put(region, new RangeState(callback));
         if (!scanning) {
             scanLeDevice(true);
         }
     }
 
     public void stopRangingBeaconsInRegion(Region region) {
-        rangedRegionState.remove(region);
+        synchronized (rangedRegionState) {
+            rangedRegionState.remove(region);
+        }
         if (scanning && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
             scanLeDevice(false);
         }
@@ -250,11 +254,13 @@ public class IBeaconService extends Service {
 
     public void startMonitoringBeaconsInRegion(Region region, Callback callback) {
         if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "startMonitoring called");
-        if (monitoredRegionState.containsKey(region)) {
-            Log.i(TAG, "Already monitoring that region -- will replace existing region monitor.");
-            monitoredRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
+        synchronized (monitoredRegionState) {
+            if (monitoredRegionState.containsKey(region)) {
+                Log.i(TAG, "Already monitoring that region -- will replace existing region monitor.");
+                monitoredRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
+            }
+            monitoredRegionState.put(region, new MonitorState(callback));
         }
-        monitoredRegionState.put(region, new MonitorState(callback));
         if (IBeaconManager.LOG_DEBUG)
             Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
         if (!scanning) {
@@ -265,7 +271,9 @@ public class IBeaconService extends Service {
 
     public void stopMonitoringBeaconsInRegion(Region region) {
         if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "stopMonitoring called");
-        monitoredRegionState.remove(region);
+        synchronized (monitoredRegionState) {
+            monitoredRegionState.remove(region);
+        }
         if (IBeaconManager.LOG_DEBUG)
             Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
         if (scanning && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
@@ -482,8 +490,11 @@ public class IBeaconService extends Service {
                         + " accuracy: " + iBeacon.getAccuracy()
                         + " proximity: " + iBeacon.getProximity());
 
-        List<Region> matchedRegions = matchingRegions(iBeacon,
-                monitoredRegionState.keySet());
+        List<Region> matchedRegions = null;
+        synchronized(monitoredRegionState) {
+            matchedRegions = matchingRegions(iBeacon,
+                    monitoredRegionState.keySet());
+        }
         Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
         while (matchedRegionIterator.hasNext()) {
             Region region = matchedRegionIterator.next();
@@ -496,7 +507,9 @@ public class IBeaconService extends Service {
 
         if (IBeaconManager.LOG_DEBUG)
             Log.d(TAG, "looking for ranging region matches for this ibeacon");
-        matchedRegions = matchingRegions(iBeacon, rangedRegionState.keySet());
+        synchronized (rangedRegionState) {
+            matchedRegions = matchingRegions(iBeacon, rangedRegionState.keySet());
+        }
         matchedRegionIterator = matchedRegions.iterator();
         while (matchedRegionIterator.hasNext()) {
             Region region = matchedRegionIterator.next();
@@ -535,16 +548,16 @@ public class IBeaconService extends Service {
 
     private List<Region> matchingRegions(IBeacon iBeacon, Collection<Region> regions) {
         List<Region> matched = new ArrayList<Region>();
-        Iterator<Region> regionIterator = regions.iterator();
-        while (regionIterator.hasNext()) {
-            Region region = regionIterator.next();
-            if (region.matchesIBeacon(iBeacon)) {
-                matched.add(region);
-            } else {
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This region does not match: " + region);
-            }
+            Iterator<Region> regionIterator = regions.iterator();
+            while (regionIterator.hasNext()) {
+                Region region = regionIterator.next();
+                if (region.matchesIBeacon(iBeacon)) {
+                    matched.add(region);
+                } else {
+                    if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This region does not match: " + region);
+                }
 
-        }
+            }
         return matched;
     }
 

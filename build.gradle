@@ -27,6 +27,11 @@ android {
     }
 }
 
+apply plugin: "maven"
+apply plugin: "signing"
+
+version = "0.7.3"
+group = "com.radiusnetworks"
 
 repositories {
     mavenCentral()
@@ -48,6 +53,55 @@ dependencies {
 configurations {
         unitTestCompile.extendsFrom runtime
         unitTestRuntime.extendsFrom unitTestCompile
+        archives {
+            extendsFrom configurations.default
+        }
+}
+
+signing {
+    required { has("release") && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    configuration = configurations.archives
+    repositories.mavenDeployer {
+        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+        repository(url: sonatypeRepo) {
+            authentication(userName: sonatypeUsername,
+                    password: sonatypePassword)
+        }
+
+        pom.project {
+            name 'AndroidIBeaconLibrary'
+            packaging 'aar'
+            description 'IBeacon library for Android applications'
+            url 'https://github.com/RadiusNetworks/android-ibeacon-service'
+
+            scm {
+                url 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
+                connection 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
+                developerConnection 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
+            }
+
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+
+            developers {
+                developer {
+                    id 'davidgyoung'
+                    name 'David Young'
+                    email 'david@radiusnetworks.com'
+                }
+            }
+        }
+    }
 }
 
 task unitTest(type:Test, dependsOn: assemble) {

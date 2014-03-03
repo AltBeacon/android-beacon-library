@@ -287,15 +287,22 @@ public class IBeaconManager {
      */
     public boolean setBackgroundMode(IBeaconConsumer consumer, boolean backgroundMode) {
         synchronized(consumers) {
-            try {
-                ConsumerInfo consumerInfo = consumers.get(consumer);
-                consumerInfo.isInBackground = backgroundMode;
-                consumers.put(consumer,consumerInfo);
-                updateScanPeriods();
-                return true;
+            Log.i(TAG, "setBackgroundMode for consumer"+consumer);
+            if (consumers.keySet().contains(consumer)) {
+                try {
+                    ConsumerInfo consumerInfo = consumers.get(consumer);
+                    consumerInfo.isInBackground = backgroundMode;
+                    consumers.put(consumer,consumerInfo);
+                    updateScanPeriods();
+                    return true;
+                }
+                catch (RemoteException e) {
+                    Log.e(TAG, "Failed to set background mode", e);
+                    return false;
+                }
             }
-            catch (RemoteException e) {
-                Log.e(TAG, "Failed to set background mode", e);
+            else {
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is not bound to: "+consumer);
                 return false;
             }
         }

@@ -190,7 +190,7 @@ public class IBeaconService extends Service {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "iBeaconService version 0.7 is starting up");
+        Log.i(TAG, "iBeaconService version 0.7.5 is starting up");
         getBluetoothAdapter();
 
         // Look for simulated scan data
@@ -209,6 +209,7 @@ public class IBeaconService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "onDestory called.  stopping scanning");
+        handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
         if (bluetoothAdapter != null) {
             bluetoothAdapter.stopLeScan(leScanCallback);
@@ -266,7 +267,6 @@ public class IBeaconService extends Service {
         if (!scanning) {
             scanLeDevice(true);
         }
-
     }
 
     public void stopMonitoringBeaconsInRegion(Region region) {

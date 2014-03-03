@@ -205,9 +205,7 @@ public class IBeacon {
 		int startByte = 2;
 		boolean patternFound = false;
 		while (startByte <= 5) {
-			if (((int)scanData[startByte] & 0xff) == 0x4c &&
-				((int)scanData[startByte+1] & 0xff) == 0x00 &&
-				((int)scanData[startByte+2] & 0xff) == 0x02 &&
+			if (((int)scanData[startByte+2] & 0xff) == 0x02 &&
 				((int)scanData[startByte+3] & 0xff) == 0x15) {			
 				// yes!  This is an iBeacon	
 				patternFound = true;

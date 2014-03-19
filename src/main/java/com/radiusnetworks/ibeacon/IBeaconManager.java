@@ -37,6 +37,7 @@ import com.radiusnetworks.ibeacon.service.RangingData;
 import com.radiusnetworks.ibeacon.service.RegionData;
 import com.radiusnetworks.ibeacon.service.StartRMData;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -193,7 +194,11 @@ public class IBeaconManager {
 	 * Throws a BleNotAvailableException if Bluetooth LE is not supported.  (Note: The Android emulator will do this)
 	 * @return false if it is supported and not enabled
 	 */
+    @TargetApi(18)
 	public boolean checkAvailability() {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            return false;
+        }
 		if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
 			throw new BleNotAvailableException("Bluetooth LE not supported by this device"); 
 		}		
@@ -212,6 +217,10 @@ public class IBeaconManager {
 	 * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
 	 */
 	public void bind(IBeaconConsumer consumer) {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            return;
+        }
         synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
                 if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is already bound");
@@ -236,6 +245,10 @@ public class IBeaconManager {
 	 * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
 	 */
 	public void unBind(IBeaconConsumer consumer) {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            return;
+        }
         synchronized(consumers) {
             if (consumers.keySet().contains(consumer)) {
                 Log.d(TAG, "Unbinding");
@@ -286,6 +299,10 @@ public class IBeaconManager {
      * returns true if background mode is successfully set
      */
     public boolean setBackgroundMode(IBeaconConsumer consumer, boolean backgroundMode) {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            return false;
+        }
         synchronized(consumers) {
             Log.i(TAG, "setBackgroundMode for consumer"+consumer);
             if (consumers.keySet().contains(consumer)) {
@@ -352,7 +369,12 @@ public class IBeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
+    @TargetApi(18)
 	public void startRangingBeaconsInRegion(Region region) throws RemoteException {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
@@ -374,7 +396,12 @@ public class IBeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
+    @TargetApi(18)
 	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
@@ -403,7 +430,12 @@ public class IBeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
+    @TargetApi(18)
 	public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
@@ -426,7 +458,12 @@ public class IBeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
+    @TargetApi(18)
 	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
@@ -451,7 +488,12 @@ public class IBeaconManager {
      Change will take effect on the start of the next scan cycle.
      @throws RemoteException - If the IBeaconManager is not bound to the service.
      */ 
+    @TargetApi(18)
     public void updateScanPeriods() throws RemoteException {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }

@@ -27,6 +27,8 @@ import com.radiusnetworks.ibeacon.client.DataProviderException;
 import com.radiusnetworks.ibeacon.client.IBeaconDataFactory;
 import com.radiusnetworks.ibeacon.client.NullIBeaconDataFactory;
 
+import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
 /**
@@ -110,6 +112,11 @@ public class IBeacon {
 	 * it is transmitted with each packet to aid in the distance estimate
 	 */
 	protected int txPower;
+
+    /**
+     * The bluetooth mac address
+     */
+    protected String bluetoothAddress;
 	
 	/**
 	 * If multiple RSSI samples were available, this is the running average
@@ -177,7 +184,16 @@ public class IBeacon {
 	public String getProximityUuid() {
 		return proximityUuid;
 	}
-	
+
+    /**
+     * @see #bluetoothAddress
+     * @return bluetoothAddress
+     */
+    public String getBluetoothAddress() {
+        return bluetoothAddress;
+    }
+
+
 	@Override
 	public int hashCode() {
 		return minor;
@@ -194,14 +210,28 @@ public class IBeacon {
 		IBeacon thatIBeacon = (IBeacon) that;		
 		return (thatIBeacon.getMajor() == this.getMajor() && thatIBeacon.getMinor() == this.getMinor() && thatIBeacon.getProximityUuid().equals(this.getProximityUuid()));
 	}
+
+    /**
+     * Construct an iBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs
+     *
+     * @param scanData The actual packet bytes
+     * @param rssi The measured signal strength of the packet
+     * @return An instance of an <code>IBeacon</code>
+     */
+    public static IBeacon fromScanData(byte[] scanData, int rssi) {
+        return fromScanData(scanData, rssi, null);
+    }
+
 	/**
-	 * Construct an iBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs
+	 * Construct an iBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
+     * including the raw bluetooth device info
 	 * 
 	 * @param scanData The actual packet bytes
 	 * @param rssi The measured signal strength of the packet
+     * @param device The bluetooth device that was detected
 	 * @return An instance of an <code>IBeacon</code>
 	 */
-	public static IBeacon fromScanData(byte[] scanData, int rssi) {
+	public static IBeacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
 		int startByte = 2;
 		boolean patternFound = false;
 		while (startByte <= 5) {
@@ -277,6 +307,10 @@ public class IBeacon {
 		sb.append(hexString.substring(20,32));
 		iBeacon.proximityUuid = sb.toString();
 
+        if (device != null) {
+            iBeacon.bluetoothAddress = device.getAddress();
+        }
+
 		return iBeacon;
 	}
 	
@@ -292,6 +326,7 @@ public class IBeacon {
 		this.rssi = otherIBeacon.rssi;
 		this.proximityUuid = otherIBeacon.proximityUuid;
 		this.txPower = otherIBeacon.txPower;
+        this.bluetoothAddress = otherIBeacon.bluetoothAddress;
 	}
 	
 	protected IBeacon() {

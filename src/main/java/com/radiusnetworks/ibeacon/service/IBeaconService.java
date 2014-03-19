@@ -32,11 +32,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.radiusnetworks.ibeacon.IBeacon;
 import com.radiusnetworks.ibeacon.IBeaconManager;
 import com.radiusnetworks.ibeacon.Region;
 
+import android.annotation.TargetApi;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -69,6 +71,8 @@ public class IBeaconService extends Service {
     private HashSet<IBeacon> trackedBeacons;
     private Handler handler = new Handler();
     private int bindCount = 0;
+    private Set<String> distinctBluetoothAddresses = new HashSet<String>();
+    boolean TRACK_DISTINCT_ADDRESSES = true;
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
      * Each time we restart we only see the unique advertisements once (e.g. unique iBeacons)
@@ -207,12 +211,17 @@ public class IBeaconService extends Service {
     }
 
     @Override
+    @TargetApi(18)
     public void onDestroy() {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to API 18.");
+            return;
+        }
         Log.i(TAG, "onDestory called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
         if (bluetoothAdapter != null) {
-            bluetoothAdapter.stopLeScan(leScanCallback);
+            bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
             lastScanEndTime = new Date().getTime();
         }
     }
@@ -312,7 +321,12 @@ public class IBeaconService extends Service {
     private long nextScanStartTime = 0l;
     private long scanStopTime = 0l;
 
+    @TargetApi(18)
     private void scanLeDevice(final Boolean enable) {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to API 18.");
+            return;
+        }
         if (getBluetoothAdapter() == null) {
             Log.e(TAG, "No bluetooth adapter.  iBeaconService cannot scan.");
             if (simulatedScanData == null) {
@@ -346,7 +360,7 @@ public class IBeaconService extends Service {
                 try {
                     if (getBluetoothAdapter() != null) {
                         if (getBluetoothAdapter().isEnabled()) {
-                            getBluetoothAdapter().startLeScan(leScanCallback);
+                            getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
                             lastScanStartTime = new Date().getTime();
                         } else {
                             Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
@@ -366,7 +380,7 @@ public class IBeaconService extends Service {
             if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "disabling scan");
             scanning = false;
             if (getBluetoothAdapter() != null) {
-                getBluetoothAdapter().stopLeScan(leScanCallback);
+                getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
                 lastScanEndTime = new Date().getTime();
             }
         }
@@ -391,7 +405,12 @@ public class IBeaconService extends Service {
 
     }
 
+    @TargetApi(18)
     private void finishScanCycle() {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to API 18.");
+            return;
+        }
         if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Done with scan cycle");
         processExpiredMonitors();
         if (scanning == true) {
@@ -404,7 +423,7 @@ public class IBeaconService extends Service {
                     Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size());
                 if (getBluetoothAdapter() != null) {
                     if (getBluetoothAdapter().isEnabled()) {
-                        getBluetoothAdapter().stopLeScan(leScanCallback);
+                        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
                         lastScanEndTime = new Date().getTime();
                     } else {
                         Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
@@ -430,18 +449,24 @@ public class IBeaconService extends Service {
         }
     }
 
-    // Device scan callback.
-    private BluetoothAdapter.LeScanCallback leScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
+    private Object leScanCallback;
+    @TargetApi(18)
+    private Object getLeScanCallback() {
+        if (leScanCallback == null) {
+            leScanCallback =
+                    new BluetoothAdapter.LeScanCallback() {
 
-                @Override
-                public void onLeScan(final BluetoothDevice device, final int rssi,
-                                     final byte[] scanRecord) {
-                    if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got record");
-                    new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
+                        @Override
+                        public void onLeScan(final BluetoothDevice device, final int rssi,
+                                             final byte[] scanRecord) {
+                            if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got record");
+                            new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
 
-                }
-            };
+                        }
+                    };
+        }
+        return leScanCallback;
+    }
 
     private class ScanData {
         public ScanData(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -483,6 +508,13 @@ public class IBeaconService extends Service {
 
     private void processIBeaconFromScan(IBeacon iBeacon) {
         lastIBeaconDetectionTime = new Date();
+        if (trackedBeacons.contains(iBeacon)) {
+            Log.i(TAG,
+                    "iBeacon detected multiple times in scan cycle :" + iBeacon.getProximityUuid() + " "
+                            + iBeacon.getMajor() + " " + iBeacon.getMinor()
+                            + " accuracy: " + iBeacon.getAccuracy()
+                            + " proximity: " + iBeacon.getProximity());
+        }
         trackedBeacons.add(iBeacon);
         if (IBeaconManager.LOG_DEBUG) Log.d(TAG,
                 "iBeacon detected :" + iBeacon.getProximityUuid() + " "
@@ -525,8 +557,17 @@ public class IBeaconService extends Service {
         protected Void doInBackground(ScanData... params) {
             ScanData scanData = params[0];
 
+
             IBeacon iBeacon = IBeacon.fromScanData(scanData.scanRecord,
-                    scanData.rssi);
+                    scanData.rssi, scanData.device);
+            if (TRACK_DISTINCT_ADDRESSES) {
+                distinctBluetoothAddresses.add(scanData.device.getAddress());
+                Log.d(TAG, "Distinct bluetooth device count: "+distinctBluetoothAddresses.size());
+                if (iBeacon != null) {
+                    Log.d(TAG, "uuid: "+iBeacon.getProximityUuid()+"major: "+iBeacon.getMajor()+" minor: "+iBeacon.getMinor()+" mac: "+iBeacon.getBluetoothAddress());
+                }
+            }
+
             if (iBeacon != null) {
                 processIBeaconFromScan(iBeacon);
             }
@@ -568,7 +609,12 @@ public class IBeaconService extends Service {
         return (rangedRegionState.size() + monitoredRegionState.size()) > 0;
     }
 
+    @TargetApi(18)
     private BluetoothAdapter getBluetoothAdapter() {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            Log.w(TAG, "Not supported prior to API 18.");
+            return null;
+        }
         if (bluetoothAdapter == null) {
             // Initializes Bluetooth adapter.
             final BluetoothManager bluetoothManager =

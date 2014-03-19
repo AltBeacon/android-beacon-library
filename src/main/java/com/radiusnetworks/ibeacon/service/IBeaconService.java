@@ -59,6 +59,7 @@ import android.util.Log;
  * @author dyoung
  */
 
+@TargetApi(5)
 public class IBeaconService extends Service {
     public static final String TAG = "IBeaconService";
 
@@ -194,7 +195,7 @@ public class IBeaconService extends Service {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "iBeaconService version 0.7.5 is starting up");
+        Log.i(TAG, "iBeaconService version 0.7.6 is starting up");
         getBluetoothAdapter();
 
         // Look for simulated scan data

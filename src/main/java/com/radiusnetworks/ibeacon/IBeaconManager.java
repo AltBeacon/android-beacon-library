@@ -96,6 +96,7 @@ import android.util.Log;
  * @author David G. Young
  *
  */
+@TargetApi(4)
 public class IBeaconManager {
 	private static final String TAG = "IBeaconManager";
 	private Context context;

@@ -27,6 +27,7 @@ import com.radiusnetworks.ibeacon.client.DataProviderException;
 import com.radiusnetworks.ibeacon.client.IBeaconDataFactory;
 import com.radiusnetworks.ibeacon.client.NullIBeaconDataFactory;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
@@ -231,6 +232,7 @@ public class IBeacon {
      * @param device The bluetooth device that was detected
 	 * @return An instance of an <code>IBeacon</code>
 	 */
+    @TargetApi(5)
 	public static IBeacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
 		int startByte = 2;
 		boolean patternFound = false;

@@ -29,6 +29,7 @@ import com.radiusnetworks.ibeacon.service.IBeaconData;
 import com.radiusnetworks.ibeacon.service.MonitoringData;
 import com.radiusnetworks.ibeacon.service.RangingData;
 
+import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.ComponentName;
 import android.content.Context;
@@ -40,6 +41,7 @@ import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import android.util.Log;
 
+@TargetApi(3)
 public class IBeaconIntentProcessor extends IntentService {
 	private static final String TAG = "IBeaconIntentProcessor";
 	private boolean initialized = false;

@@ -198,7 +198,7 @@ public class IBeaconManager {
     @TargetApi(18)
 	public boolean checkAvailability() {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            return false;
+            throw new BleNotAvailableException("Bluetooth LE not supported by this device");
         }
 		if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
 			throw new BleNotAvailableException("Bluetooth LE not supported by this device"); 

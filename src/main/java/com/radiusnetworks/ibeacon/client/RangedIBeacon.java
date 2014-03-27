@@ -13,7 +13,7 @@ import com.radiusnetworks.ibeacon.IBeaconManager;
 
 public class RangedIBeacon extends IBeacon{
 	private static String TAG = "RangedIBeacon";
-	public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 5000;
+	public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 30000; /* 30 seconds */
 	private long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
 	public RangedIBeacon(IBeacon ibeacon) {
 		super(ibeacon);

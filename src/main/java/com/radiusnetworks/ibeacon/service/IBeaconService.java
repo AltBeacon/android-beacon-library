@@ -222,8 +222,7 @@ public class IBeaconService extends Service {
             return;
         }
         bluetoothCrashResolver.stop();
-
-        Log.i(TAG, "onDestory called.  stopping scanning");
+        Log.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
         if (bluetoothAdapter != null) {

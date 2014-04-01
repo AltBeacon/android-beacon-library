@@ -305,12 +305,11 @@ public class IBeaconManager {
             return false;
         }
         synchronized(consumers) {
-            Log.i(TAG, "setBackgroundMode for consumer"+consumer);
+            Log.i(TAG, "setBackgroundMode for consumer"+consumer+" to "+backgroundMode);
             if (consumers.keySet().contains(consumer)) {
                 try {
                     ConsumerInfo consumerInfo = consumers.get(consumer);
                     consumerInfo.isInBackground = backgroundMode;
-                    consumers.put(consumer,consumerInfo);
                     updateScanPeriods();
                     return true;
                 }
@@ -499,6 +498,7 @@ public class IBeaconManager {
             throw new RemoteException("The IBeaconManager is not bound to the service.  Call iBeaconManager.bind(IBeaconConsumer consumer) and wait for a callback to onIBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, IBeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
+        Log.d(TAG, "updating scan period to "+this.getScanPeriod()+", "+this.getBetweenScanPeriod() );
         StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod());
         msg.obj = obj;
         serviceMessenger.send(msg);        
@@ -601,8 +601,10 @@ public class IBeaconManager {
                 if (!consumers.get(consumer).isInBackground) {
                     background = false;
                 }
+                if (LOG_DEBUG) Log.d(TAG, "Consumer "+consumer+" isInBackground="+consumers.get(consumer).isInBackground);
             }
         }
+        if (LOG_DEBUG) Log.d(TAG, "Overall background mode is therefore "+background);
         return background;
     }
 

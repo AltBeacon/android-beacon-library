@@ -32,8 +32,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import com.radiusnetworks.bluetooth.BluetoothCrashResolver;
 import com.radiusnetworks.ibeacon.IBeacon;
 import com.radiusnetworks.ibeacon.IBeaconManager;
 import com.radiusnetworks.ibeacon.Region;
@@ -48,7 +48,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
-import android.os.DeadObjectException;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -70,10 +69,11 @@ public class IBeaconService extends Service {
     private boolean scanningPaused;
     private Date lastIBeaconDetectionTime = new Date();
     private HashSet<IBeacon> trackedBeacons;
+    int trackedBeaconsPacketCount;
     private Handler handler = new Handler();
     private int bindCount = 0;
-    private Set<String> distinctBluetoothAddresses = new HashSet<String>();
-    boolean TRACK_DISTINCT_ADDRESSES = true;
+    private BluetoothCrashResolver bluetoothCrashResolver;
+
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
      * Each time we restart we only see the unique advertisements once (e.g. unique iBeacons)
@@ -195,8 +195,11 @@ public class IBeaconService extends Service {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "iBeaconService version 0.7.6 is starting up");
+        Log.i(TAG, "iBeaconService version is starting up");
         getBluetoothAdapter();
+        bluetoothCrashResolver = new BluetoothCrashResolver(this);
+        bluetoothCrashResolver.start();
+
 
         // Look for simulated scan data
         try {
@@ -218,6 +221,8 @@ public class IBeaconService extends Service {
             Log.w(TAG, "Not supported prior to API 18.");
             return;
         }
+        bluetoothCrashResolver.stop();
+
         Log.i(TAG, "onDestory called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
@@ -355,13 +360,19 @@ public class IBeaconService extends Service {
             }
 
             trackedBeacons = new HashSet<IBeacon>();
+            trackedBeaconsPacketCount = 0;
             if (scanning == false || scanningPaused == true) {
                 scanning = true;
                 scanningPaused = false;
                 try {
                     if (getBluetoothAdapter() != null) {
                         if (getBluetoothAdapter().isEnabled()) {
-                            getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                            if (bluetoothCrashResolver.isRecoveryInProgress()) {
+                                Log.w(TAG, "Skipping scan because crash recovery is in progress.");
+                            }
+                            else {
+                                getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                            }
                             lastScanStartTime = new Date().getTime();
                         } else {
                             Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
@@ -421,7 +432,7 @@ public class IBeaconService extends Service {
             } else {
                 processRangeData();
                 if (IBeaconManager.LOG_DEBUG)
-                    Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size());
+                    Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size()+" Total iBeacon advertisment packets seen: "+trackedBeaconsPacketCount);
                 if (getBluetoothAdapter() != null) {
                     if (getBluetoothAdapter().isEnabled()) {
                         getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
@@ -509,6 +520,7 @@ public class IBeaconService extends Service {
 
     private void processIBeaconFromScan(IBeacon iBeacon) {
         lastIBeaconDetectionTime = new Date();
+        trackedBeaconsPacketCount++;
         if (trackedBeacons.contains(iBeacon)) {
             Log.i(TAG,
                     "iBeacon detected multiple times in scan cycle :" + iBeacon.getProximityUuid() + " "
@@ -558,20 +570,13 @@ public class IBeaconService extends Service {
         protected Void doInBackground(ScanData... params) {
             ScanData scanData = params[0];
 
-
             IBeacon iBeacon = IBeacon.fromScanData(scanData.scanRecord,
                     scanData.rssi, scanData.device);
-            if (TRACK_DISTINCT_ADDRESSES) {
-                distinctBluetoothAddresses.add(scanData.device.getAddress());
-                Log.d(TAG, "Distinct bluetooth device count: "+distinctBluetoothAddresses.size());
-                if (iBeacon != null) {
-                    Log.d(TAG, "uuid: "+iBeacon.getProximityUuid()+"major: "+iBeacon.getMajor()+" minor: "+iBeacon.getMinor()+" mac: "+iBeacon.getBluetoothAddress());
-                }
-            }
 
             if (iBeacon != null) {
                 processIBeaconFromScan(iBeacon);
             }
+            bluetoothCrashResolver.notifyScannedDevice(scanData.device, (BluetoothAdapter.LeScanCallback)getLeScanCallback());
             return null;
         }
 

@@ -23,12 +23,10 @@
  */
 package com.radiusnetworks.ibeacon;
 
-import com.radiusnetworks.ibeacon.client.DataProviderException;
 import com.radiusnetworks.ibeacon.client.IBeaconDataFactory;
 import com.radiusnetworks.ibeacon.client.NullIBeaconDataFactory;
 
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
@@ -273,7 +271,7 @@ public class IBeacon {
 
 		if (patternFound == false) {
 			// This is not an iBeacon
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This is not an iBeacon advertisment (no 4c000215 seen in bytes 2-5).  The bytes I see are: "+bytesToHex(scanData));
+			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This is not an iBeacon advertisment (no 0215 seen in bytes 4-7).  The bytes I see are: "+bytesToHex(scanData));
 			return null;
 		}
 								
@@ -290,10 +288,11 @@ public class IBeacon {
 		// 00 00 # major 
 		// 00 00 # minor 
 		// c5 # The 2's complement of the calibrated Tx Power
+
 		// Estimote:		
 		// 02 01 1a 11 07 2d 24 bf 16 
 		// 394b31ba3f486415ab376e5c0f09457374696d6f7465426561636f6e00000000000000000000000000000000000000000000000000
-		
+
 		byte[] proximityUuidBytes = new byte[16];
 		System.arraycopy(scanData, startByte+4, proximityUuidBytes, 0, 16); 
 		String hexString = bytesToHex(proximityUuidBytes);

@@ -218,7 +218,7 @@ public class IBeaconService extends Service {
             Log.w(TAG, "Not supported prior to API 18.");
             return;
         }
-        Log.i(TAG, "onDestory called.  stopping scanning");
+        Log.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
         if (bluetoothAdapter != null) {

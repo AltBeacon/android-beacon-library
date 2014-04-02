@@ -130,7 +130,7 @@ public class BluetoothCrashResolver {
     public void stop() {
         context.unregisterReceiver(receiver);
         if (isDebugEnabled()) Log.d(TAG, "stopped listening for BluetoothAdapter events");
-        processStateChange();
+        saveState();
     }
 
     /**

@@ -335,7 +335,7 @@ public class IBeacon {
 	}
 
 	protected IBeacon(String proximityUuid, int major, int minor, int txPower, int rssi) {
-		this.proximityUuid = proximityUuid;
+		this.proximityUuid = proximityUuid.toLowerCase();
 		this.major = major;
 		this.minor = minor;
 		this.rssi = rssi;
@@ -343,7 +343,7 @@ public class IBeacon {
 	}
 	
 	public IBeacon(String proximityUuid, int major, int minor) {
-		this.proximityUuid = proximityUuid;
+		this.proximityUuid = proximityUuid.toLowerCase();
 		this.major = major;
 		this.minor = minor;
 		this.rssi = rssi;

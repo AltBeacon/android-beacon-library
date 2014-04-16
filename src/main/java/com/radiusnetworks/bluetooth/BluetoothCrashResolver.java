@@ -170,7 +170,9 @@ public class BluetoothCrashResolver {
 
         if (isDebugEnabled()) oldSize = distinctBluetoothAddresses.size();
 
-        distinctBluetoothAddresses.add(device.getAddress());
+        synchronized(distinctBluetoothAddresses) {
+            distinctBluetoothAddresses.add(device.getAddress());
+        }
         if (isDebugEnabled()) {
             newSize = distinctBluetoothAddresses.size();
             if (oldSize != newSize && newSize % 100 == 0) {
@@ -297,7 +299,9 @@ public class BluetoothCrashResolver {
     }
     private void finishRecovery() {
         Log.w(TAG, "Recovery attempt finished");
-        distinctBluetoothAddresses.clear();
+        synchronized(distinctBluetoothAddresses) {
+            distinctBluetoothAddresses.clear();
+        }
         recoveryInProgress = false;
     }
 

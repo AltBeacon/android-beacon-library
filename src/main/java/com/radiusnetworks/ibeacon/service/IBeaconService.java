@@ -73,6 +73,8 @@ public class IBeaconService extends Service {
     private Handler handler = new Handler();
     private int bindCount = 0;
     private BluetoothCrashResolver bluetoothCrashResolver;
+    private boolean scanCyclerStarted = false;
+    private boolean scanningEnabled = false;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -253,8 +255,10 @@ public class IBeaconService extends Service {
             }
             rangedRegionState.put(region, new RangeState(callback));
         }
-        if (!scanning) {
-            scanLeDevice(true);
+        if (IBeaconManager.LOG_DEBUG)
+            Log.d(TAG, "Currently ranging " + rangedRegionState.size() + " regions.");
+        if (!scanningEnabled) {
+            enableScanning();
         }
     }
 
@@ -262,8 +266,11 @@ public class IBeaconService extends Service {
         synchronized (rangedRegionState) {
             rangedRegionState.remove(region);
         }
-        if (scanning && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
-            scanLeDevice(false);
+        if (IBeaconManager.LOG_DEBUG)
+            Log.d(TAG, "Currently ranging " + rangedRegionState.size() + " regions.");
+
+        if (scanningEnabled && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
+            disableScanning();
         }
     }
 
@@ -278,8 +285,8 @@ public class IBeaconService extends Service {
         }
         if (IBeaconManager.LOG_DEBUG)
             Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
-        if (!scanning) {
-            scanLeDevice(true);
+        if (!scanningEnabled) {
+            enableScanning();
         }
     }
 
@@ -290,8 +297,8 @@ public class IBeaconService extends Service {
         }
         if (IBeaconManager.LOG_DEBUG)
             Log.d(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
-        if (scanning && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
-            scanLeDevice(false);
+        if (scanningEnabled && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
+            disableScanning();
         }
     }
 
@@ -326,8 +333,19 @@ public class IBeaconService extends Service {
     private long nextScanStartTime = 0l;
     private long scanStopTime = 0l;
 
+    public void enableScanning() {
+        scanningEnabled = true;
+        if (!scanCyclerStarted) {
+            scanLeDevice(true);
+        }
+    }
+    public void disableScanning() {
+        scanningEnabled = false;
+    }
+
     @TargetApi(18)
     private void scanLeDevice(final Boolean enable) {
+        scanCyclerStarted = true;
         if (android.os.Build.VERSION.SDK_INT < 18) {
             Log.w(TAG, "Not supported prior to API 18.");
             return;
@@ -370,7 +388,12 @@ public class IBeaconService extends Service {
                                 Log.w(TAG, "Skipping scan because crash recovery is in progress.");
                             }
                             else {
-                                getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                                if (scanningEnabled) {
+                                    getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                                }
+                                else {
+                                    if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Scanning unnecessary - no monitoring or ranging active.");
+                                }
                             }
                             lastScanStartTime = new Date().getTime();
                         } else {
@@ -425,37 +448,45 @@ public class IBeaconService extends Service {
         if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Done with scan cycle");
         processExpiredMonitors();
         if (scanning == true) {
+            processRangeData();
+            // If we want to use simulated scanning data, do it here.  This is used for testing in an emulator
+            if (simulatedScanData != null) {
+                // if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
+                // it will not be used if we are not in debug mode
+                if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
+                    for (IBeacon iBeacon : simulatedScanData) {
+                        processIBeaconFromScan(iBeacon);
+                    }
+                } else {
+                    Log.w(TAG, "Simulated scan data provided, but ignored because we are not running in debug mode.  Please remove simulated scan data for production.");
+                }
+            }
+            if (getBluetoothAdapter() != null) {
+                if (getBluetoothAdapter().isEnabled()) {
+                    getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                    lastScanEndTime = new Date().getTime();
+                } else {
+                    Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
+                }
+            }
+
             if (!anyRangingOrMonitoringRegionsActive()) {
                 if (IBeaconManager.LOG_DEBUG)
                     Log.d(TAG, "Not starting scan because no monitoring or ranging regions are defined.");
+                scanCyclerStarted = false;
             } else {
-                processRangeData();
                 if (IBeaconManager.LOG_DEBUG)
-                    Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size()+" Total iBeacon advertisment packets seen: "+trackedBeaconsPacketCount);
-                if (getBluetoothAdapter() != null) {
-                    if (getBluetoothAdapter().isEnabled()) {
-                        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
-                        lastScanEndTime = new Date().getTime();
-                    } else {
-                        Log.w(TAG, "Bluetooth is disabled.  Cannot scan for iBeacons.");
-                    }
-                }
+                    Log.d(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size()+" Total iBeacon advertisement packets seen: "+trackedBeaconsPacketCount);
 
                 scanningPaused = true;
-                // If we want to use simulated scanning data, do it here.  This is used for testing in an emulator
-                if (simulatedScanData != null) {
-                    // if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
-                    // it will not be used if we are not in debug mode
-                    if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
-                        for (IBeacon iBeacon : simulatedScanData) {
-                            processIBeaconFromScan(iBeacon);
-                        }
-                    } else {
-                        Log.w(TAG, "Simulated scan data provided, but ignored because we are not running in debug mode.  Please remove simulated scan data for production.");
-                    }
-                }
                 nextScanStartTime = (new Date().getTime() + betweenScanPeriod);
-                scanLeDevice(true);
+                if (scanningEnabled) {
+                    scanLeDevice(true);
+                }
+                else {
+                    if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
+                    scanCyclerStarted = false;
+                }
             }
         }
     }

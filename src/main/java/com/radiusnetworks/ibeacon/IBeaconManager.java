@@ -412,7 +412,7 @@ public class IBeaconManager {
         synchronized (rangedRegions) {
             Region regionToRemove = null;
             for (Region rangedRegion : rangedRegions) {
-                if (region.getUniqueId().equals(rangedRegion.getProximityUuid())) {
+                if (region.getUniqueId().equals(rangedRegion.getUniqueId())) {
                     regionToRemove = rangedRegion;
                 }
             }
@@ -474,7 +474,7 @@ public class IBeaconManager {
         synchronized (monitoredRegions) {
             Region regionToRemove = null;
             for (Region monitoredRegion : monitoredRegions) {
-                if (region.getUniqueId().equals(monitoredRegion.getProximityUuid())) {
+                if (region.getUniqueId().equals(monitoredRegion.getUniqueId())) {
                     regionToRemove = monitoredRegion;
                 }
             }

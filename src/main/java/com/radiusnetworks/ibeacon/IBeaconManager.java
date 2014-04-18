@@ -23,17 +23,14 @@
  */
 package com.radiusnetworks.ibeacon;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.radiusnetworks.ibeacon.client.RangingTracker;
-import com.radiusnetworks.ibeacon.service.IBeaconData;
+import com.radiusnetworks.ibeacon.simulator.BeaconSimulator;
 import com.radiusnetworks.ibeacon.service.IBeaconService;
-import com.radiusnetworks.ibeacon.service.RangingData;
 import com.radiusnetworks.ibeacon.service.RegionData;
 import com.radiusnetworks.ibeacon.service.StartRMData;
 
@@ -44,7 +41,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -583,6 +579,15 @@ public class IBeaconManager {
             }
         }
         return clonedRangedRegions;
+    }
+
+    protected static BeaconSimulator beaconSimulator;
+
+    public static void setBeaconSimulator(BeaconSimulator beaconSimulator) {
+        IBeaconManager.beaconSimulator = beaconSimulator;
+    }
+    public static BeaconSimulator getBeaconSimulator() {
+        return IBeaconManager.beaconSimulator;
     }
 
 

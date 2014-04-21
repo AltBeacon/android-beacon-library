@@ -124,7 +124,7 @@ task bundleEclipse << {
 
 
 task wrapper(type: org.gradle.api.tasks.wrapper.Wrapper) {
-    gradleVersion = '1.4'
+    gradleVersion = '1.9'
 }
 
 task distribution(dependsOn: ["bundleEclipse", "build", "clean"]) << {

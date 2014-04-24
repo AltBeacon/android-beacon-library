@@ -352,7 +352,7 @@ public class IBeaconService extends Service {
         }
         if (getBluetoothAdapter() == null) {
             Log.e(TAG, "No bluetooth adapter.  iBeaconService cannot scan.");
-            if (simulatedScanData == null) {
+            if ((simulatedScanData == null) && (IBeaconManager.getBeaconSimulator() == null)) {
                 Log.w(TAG, "exiting");
                 return;
             } else {

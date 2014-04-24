@@ -5,7 +5,12 @@
       <GradleProjectSettings>
         <option name="distributionType" value="LOCAL" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="/usr/local/gradle-1.8" />
+        <option name="gradleHome" value="/usr/local/gradle-1.9" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+          </set>
+        </option>
       </GradleProjectSettings>
     </option>
   </component>

@@ -23,21 +23,6 @@
  */
 package com.radiusnetworks.ibeacon.service;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.radiusnetworks.bluetooth.BluetoothCrashResolver;
-import com.radiusnetworks.ibeacon.IBeacon;
-import com.radiusnetworks.ibeacon.IBeaconManager;
-import com.radiusnetworks.ibeacon.Region;
-
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -53,6 +38,21 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
+
+import com.radiusnetworks.bluetooth.BluetoothCrashResolver;
+import com.radiusnetworks.ibeacon.IBeacon;
+import com.radiusnetworks.ibeacon.IBeaconManager;
+import com.radiusnetworks.ibeacon.Region;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author dyoung
@@ -461,6 +461,21 @@ public class IBeaconService extends Service {
                     Log.w(TAG, "Simulated scan data provided, but ignored because we are not running in debug mode.  Please remove simulated scan data for production.");
                 }
             }
+            if (IBeaconManager.getBeaconSimulator() != null) {
+                // if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
+                // it will not be used if we are not in debug mode
+                if (IBeaconManager.getBeaconSimulator().getBeacons() != null){
+                    if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
+                        for (IBeacon iBeacon : IBeaconManager.getBeaconSimulator().getBeacons()) {
+                            processIBeaconFromScan(iBeacon);
+                        }
+                    } else {
+                        Log.w(TAG, "Simulated scan data provided, but ignored because we are not running in debug mode.  Please remove simulated scan data for production.");
+                    }
+                } else {
+                    Log.w(TAG, "getBeacons is returning null. No simulated beacons to report.");
+                }
+            }
             if (getBluetoothAdapter() != null) {
                 if (getBluetoothAdapter().isEnabled()) {
                     getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
@@ -625,16 +640,16 @@ public class IBeaconService extends Service {
 
     private List<Region> matchingRegions(IBeacon iBeacon, Collection<Region> regions) {
         List<Region> matched = new ArrayList<Region>();
-            Iterator<Region> regionIterator = regions.iterator();
-            while (regionIterator.hasNext()) {
-                Region region = regionIterator.next();
-                if (region.matchesIBeacon(iBeacon)) {
-                    matched.add(region);
-                } else {
-                    if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This region does not match: " + region);
-                }
-
+        Iterator<Region> regionIterator = regions.iterator();
+        while (regionIterator.hasNext()) {
+            Region region = regionIterator.next();
+            if (region.matchesIBeacon(iBeacon)) {
+                matched.add(region);
+            } else {
+                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This region does not match: " + region);
             }
+
+        }
         return matched;
     }
 

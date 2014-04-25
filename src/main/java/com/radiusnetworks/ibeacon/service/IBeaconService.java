@@ -453,6 +453,8 @@ public class IBeaconService extends Service {
             if (simulatedScanData != null) {
                 // if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
                 // it will not be used if we are not in debug mode
+                Log.w(TAG, "Simulated scan data is deprecated and will be removed in a future release. Please use the new BeaconSimulator interface instead.");
+
                 if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                     for (IBeacon iBeacon : simulatedScanData) {
                         processIBeaconFromScan(iBeacon);
@@ -470,7 +472,7 @@ public class IBeaconService extends Service {
                             processIBeaconFromScan(iBeacon);
                         }
                     } else {
-                        Log.w(TAG, "Simulated scan data provided, but ignored because we are not running in debug mode.  Please remove simulated scan data for production.");
+                        Log.w(TAG, "Beacon simulations provided, but ignored because we are not running in debug mode.  Please remove beacon simulations for production.");
                     }
                 } else {
                     Log.w(TAG, "getBeacons is returning null. No simulated beacons to report.");

@@ -9,11 +9,11 @@ import java.util.List;
  */
 public class StaticBeaconSimulator implements BeaconSimulator {
 
-    public List<IBeacon> beacons;
+    public List<IBeacon> beacons = null;
 
     @Override
     public List<IBeacon> getBeacons() {
-        return null;
+        return beacons;
     }
     public void setBeacons(List<IBeacon> beacons) {
         this.beacons = beacons;

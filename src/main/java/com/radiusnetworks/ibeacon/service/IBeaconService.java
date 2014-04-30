@@ -552,7 +552,7 @@ public class IBeaconService extends Service {
         lastIBeaconDetectionTime = new Date();
         trackedBeaconsPacketCount++;
         if (trackedBeacons.contains(iBeacon)) {
-            Log.i(TAG,
+            if (IBeaconManager.LOG_DEBUG) Log.d(TAG,
                     "iBeacon detected multiple times in scan cycle :" + iBeacon.getProximityUuid() + " "
                             + iBeacon.getMajor() + " " + iBeacon.getMinor()
                             + " accuracy: " + iBeacon.getAccuracy()

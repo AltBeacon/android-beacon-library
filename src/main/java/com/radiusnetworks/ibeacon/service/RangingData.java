@@ -39,7 +39,9 @@ public class RangingData implements Parcelable {
 	private RegionData regionData;
 
 	public RangingData (Collection<IBeacon> iBeacons, Region region) {
-		this.iBeaconDatas =  IBeaconData.fromIBeacons(iBeacons);
+		synchronized (iBeacons) {
+			this.iBeaconDatas =  IBeaconData.fromIBeacons(iBeacons);
+		}
 		this.regionData = new RegionData(region);
 	}
 

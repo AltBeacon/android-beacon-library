@@ -531,7 +531,9 @@ public class IBeaconService extends Service {
             if (IBeaconManager.LOG_DEBUG)
                 Log.d(TAG, "Calling ranging callback with " + rangeState.getIBeacons().size() + " iBeacons");
             rangeState.getCallback().call(IBeaconService.this, "rangingData", new RangingData(rangeState.getIBeacons(), region));
-            rangeState.clearIBeacons();
+            synchronized (rangeState) {
+            	rangeState.clearIBeacons();
+			}
         }
 
     }
@@ -590,7 +592,9 @@ public class IBeaconService extends Service {
             Region region = matchedRegionIterator.next();
             if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "matches ranging region: " + region);
             RangeState rangeState = rangedRegionState.get(region);
-            rangeState.addIBeacon(iBeacon);
+            synchronized (rangeState) {
+            	rangeState.addIBeacon(iBeacon);
+			}
         }
     }
 

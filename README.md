@@ -1,8 +1,8 @@
 Android iBeacon Library
 =======================
 
-An Android library providing APIs to interact with iBeacons
 [![Build Status](https://travis-ci.org/pieces029/android-ibeacon-service.svg?branch=master)](https://travis-ci.org/pieces029/android-ibeacon-service)
+An Android library providing APIs to interact with iBeacons
 
 
 ## What does this library do?

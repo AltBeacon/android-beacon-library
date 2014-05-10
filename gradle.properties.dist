@@ -1,1 +1,4 @@
-sonatypeRepo: ""
+# Copy File To gradles.properties
+sonatypeRepo=placeDeployUrlHere
+sonatypeUsername=userNameHere
+sonatypePassword=sonaTypePasswordHere

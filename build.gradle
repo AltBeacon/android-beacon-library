@@ -30,11 +30,13 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:0.10.+'
         classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.10.+'
+        classpath 'org.robolectric.gradle:gradle-android-test-plugin:0.10.+'
     }
 }
 
 apply plugin: 'android-sdk-manager'
 apply plugin: "android-library"
+apply plugin: 'android-test'
 
 android {
     compileSdkVersion 19
@@ -46,6 +48,12 @@ android {
         versionCode = versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName = version
     }
+
+    sourceSets {
+        androidTest {
+            setRoot('src/test')
+        }
+    }
 }
 
 repositories {
@@ -53,7 +61,17 @@ repositories {
 }
 
 dependencies {
+    androidTestCompile 'junit:junit:4.10'
+    androidTestCompile 'org.robolectric:robolectric:2.1.+'
+    androidTestCompile 'com.squareup:fest-android:1.0.+'
+}
 
+apply plugin: 'idea'
+
+idea {
+    module {
+        testOutputDir = file('build/test-classes/debug')
+    }
 }
 
 apply plugin: "maven"
@@ -150,5 +168,3 @@ task release(dependsOn: 'distribution') << {
 
 build.mustRunAfter clean
 bundleEclipse.mustRunAfter build
-
-

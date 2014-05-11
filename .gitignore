@@ -12,6 +12,7 @@
 bin/
 gen/g
 build/
+src/main/gen
 
 # Local configuration file (sdk path, etc)
 local.properties

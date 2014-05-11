@@ -3,14 +3,16 @@ int versionMinor = 7
 int versionPatch = 6
 int versionBuild = 3
 
-version = "${versionMajor}.${versionMinor}.${versionPatch}"
-group = hasProperty("group") ? getProperty("group") : "com.radiusnetworks"
-
 ext {
     SONATYPE_URL = ""
     IS_DEV_BUILD = false
     IS_RELEASE_BUILD = false
+    GROUP = "com.radiusnetworks"
 }
+
+version = "${versionMajor}.${versionMinor}.${versionPatch}"
+group = GROUP
+
 
 if (hasProperty("release")) {
     IS_RELEASE_BUILD = true
@@ -90,12 +92,14 @@ afterEvaluate { project ->
                         authentication(userName: sonatypeUsername, password: sonatypePassword)
                     }
 
+                    println GROUP
+
                     pom.project {
                         name 'AndroidIBeaconLibrary'
-                        packaging 'jar'
+                        packaging 'aar'
                         description 'IBeacon library for Android applications'
                         artifactId = 'AndroidIBeaconLibrary'
-                        groupId group
+                        groupId GROUP
                         version version
                         url 'https://github.com/RadiusNetworks/android-ibeacon-service'
 

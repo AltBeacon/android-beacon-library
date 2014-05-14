@@ -7,8 +7,6 @@ src/main/gen
 local.properties
 .metadata
 .DS_Store
-.idea/workspace.xml
-.idea/tasks.xml
 *.apk
 *.ap_
 *.dex
@@ -16,3 +14,10 @@ local.properties
 proguard/*
 *.iws
 
+
+# Per https://intellij-support.jetbrains.com/entries/23393067
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/libraries/*.xml
+.idea/dictionaries/*.xml

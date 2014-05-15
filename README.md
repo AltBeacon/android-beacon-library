@@ -18,6 +18,16 @@ to learn how to use this library.  It includes binary downloads, a quick start g
 IMPORTANT:  This project now uses an AndroidStudio/gradle build system and the source code may no longer be imported into Eclipse as a library project.
 Eclipse users may download the latest release binary as a tar.gz file, which may then be imported as an Eclipse Library Project.  See the quick start on the project website for more information.
 
+## Build Instructions
+
+Known working with Android Studio 0.4.0
+
+Key Gradle build targets:
+
+    ./gradlew test # run unit tests
+    ./gradlew build # development build
+    ./gradlew uploadArchives -Prelease # release build
+
 ## License
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,4 +45,5 @@ Eclipse users may download the latest release binary as a tar.gz file, which may
 This software is available under the Apache License 2.0, allowing you to use the library in your applications.
 
 If you want to help with the open source project, contact david@radiusnetworks.com
+
 

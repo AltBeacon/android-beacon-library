@@ -108,8 +108,11 @@ public class IBeaconManager {
     /**
      * set to true if you want to see debug messages associated with this library
      */
-    public static boolean LOG_DEBUG = false;
+    public static boolean debug = false;
 
+    public static void setDebug(boolean debug) {
+        IBeaconManager.debug = debug;
+    }
 
     /**
      * The default duration in milliseconds of the bluetooth scan cycle
@@ -177,7 +180,7 @@ public class IBeaconManager {
 	 */
 	public static IBeaconManager getInstanceForApplication(Context context) {
 		if (client == null) {
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "IBeaconManager instance creation");
+			if (IBeaconManager.debug) Log.d(TAG, "IBeaconManager instance creation");
 			client = new IBeaconManager(context);
 		}
 		return client;
@@ -220,14 +223,14 @@ public class IBeaconManager {
         }
         synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is already bound");
+                if (IBeaconManager.debug) Log.d(TAG, "This consumer is already bound");
             }
             else {
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is not bound.  binding: "+consumer);
+                if (IBeaconManager.debug) Log.d(TAG, "This consumer is not bound.  binding: "+consumer);
                 consumers.put(consumer, new ConsumerInfo());
                 Intent intent = new Intent(consumer.getApplicationContext(), IBeaconService.class);
                 consumer.bindService(intent, iBeaconServiceConnection, Context.BIND_AUTO_CREATE);
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "consumer count is now:"+consumers.size());
+                if (IBeaconManager.debug) Log.d(TAG, "consumer count is now:"+consumers.size());
                 if (serviceMessenger != null) { // If the serviceMessenger is not null, that means we are able to make calls to the service
                     setBackgroundMode(consumer, false); // if we just bound, we assume we are not in the background.
                 }
@@ -253,8 +256,8 @@ public class IBeaconManager {
                 consumers.remove(consumer);
             }
             else {
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is not bound to: "+consumer);
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Bound consumers: ");
+                if (IBeaconManager.debug) Log.d(TAG, "This consumer is not bound to: "+consumer);
+                if (IBeaconManager.debug) Log.d(TAG, "Bound consumers: ");
                 for (int i = 0; i < consumers.size(); i++) {
                     Log.i(TAG, " "+consumers.get(i));
                 }
@@ -315,7 +318,7 @@ public class IBeaconManager {
                 }
             }
             else {
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This consumer is not bound to: "+consumer);
+                if (IBeaconManager.debug) Log.d(TAG, "This consumer is not bound to: "+consumer);
                 return false;
             }
         }
@@ -510,14 +513,14 @@ public class IBeaconManager {
 	
 	private String callbackPackageName() {
 		String packageName = context.getPackageName();
-		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "callback packageName: "+packageName);
+		if (IBeaconManager.debug) Log.d(TAG, "callback packageName: "+packageName);
 		return packageName;
 	}
 
 	private ServiceConnection iBeaconServiceConnection = new ServiceConnection() {
 		// Called when the connection with the service is established
 	    public void onServiceConnected(ComponentName className, IBinder service) {
-            if (IBeaconManager.LOG_DEBUG) Log.d(TAG,  "we have a connection to the service now");
+            if (IBeaconManager.debug) Log.d(TAG,  "we have a connection to the service now");
 	        serviceMessenger = new Messenger(service);
             synchronized(consumers) {
                 Iterator<IBeaconConsumer> consumerIterator = consumers.keySet().iterator();
@@ -606,10 +609,10 @@ public class IBeaconManager {
                 if (!consumers.get(consumer).isInBackground) {
                     background = false;
                 }
-                if (LOG_DEBUG) Log.d(TAG, "Consumer "+consumer+" isInBackground="+consumers.get(consumer).isInBackground);
+                if (debug) Log.d(TAG, "Consumer "+consumer+" isInBackground="+consumers.get(consumer).isInBackground);
             }
         }
-        if (LOG_DEBUG) Log.d(TAG, "Overall background mode is therefore "+background);
+        if (debug) Log.d(TAG, "Overall background mode is therefore "+background);
         return background;
     }
 

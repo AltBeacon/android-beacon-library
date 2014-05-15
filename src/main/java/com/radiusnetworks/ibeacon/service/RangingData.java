@@ -39,7 +39,9 @@ public class RangingData implements Parcelable {
 	private RegionData regionData;
 
 	public RangingData (Collection<IBeacon> iBeacons, Region region) {
-		this.iBeaconDatas =  IBeaconData.fromIBeacons(iBeacons);
+		synchronized (iBeacons) {
+			this.iBeaconDatas =  IBeaconData.fromIBeacons(iBeacons);
+		}
 		this.regionData = new RegionData(region);
 	}
 
@@ -59,10 +61,10 @@ public class RangingData implements Parcelable {
 		return 0;
 	}
     public void writeToParcel(Parcel out, int flags) {    
-    	if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "writing RangingData");
+    	if (IBeaconManager.debug) Log.d(TAG, "writing RangingData");
     	out.writeParcelableArray(iBeaconDatas.toArray(new Parcelable[0]), flags);
     	out.writeParcelable(regionData, flags);
-    	if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "done writing RangingData");
+    	if (IBeaconManager.debug) Log.d(TAG, "done writing RangingData");
 
     }
 
@@ -78,7 +80,7 @@ public class RangingData implements Parcelable {
     };
     
     private RangingData(Parcel in) {
-    	if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "parsing RangingData");
+    	if (IBeaconManager.debug) Log.d(TAG, "parsing RangingData");
     	Parcelable[] parcelables  = in.readParcelableArray(this.getClass().getClassLoader());
     	iBeaconDatas = new ArrayList<IBeaconData>(parcelables.length);
     	for (int i = 0; i < parcelables.length; i++) {

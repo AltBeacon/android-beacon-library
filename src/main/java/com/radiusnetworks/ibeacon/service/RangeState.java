@@ -41,13 +41,17 @@ public class RangeState {
 		return callback;
 	}
 	public void clearIBeacons() {
-		iBeacons.clear();
+		synchronized (iBeacons) {
+			iBeacons.clear();
+		}
 	}
 	public Set<IBeacon> getIBeacons() {
 		return iBeacons;
 	}
 	public void addIBeacon(IBeacon iBeacon) {
-		iBeacons.add(iBeacon);
+		synchronized (iBeacons) {
+			iBeacons.add(iBeacon);
+		}
 	}
 	
 

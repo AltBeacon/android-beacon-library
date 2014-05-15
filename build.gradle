@@ -1,90 +1,165 @@
-defaultTasks 'distribution'
+int versionMajor = 0
+int versionMinor = 7
+int versionPatch = 6
+int versionBuild = 3
 
-// TODO: figure out how to include source code in the generated jar file per http://stackoverflow.com/questions/11474729/how-to-build-sources-jar-with-gradle
+ext {
+    SONATYPE_URL = ""
+    IS_DEV_BUILD = false
+    IS_RELEASE_BUILD = false
+    GROUP = "com.radiusnetworks"
+}
+
+version = "${versionMajor}.${versionMinor}.${versionPatch}"
+group = GROUP
+
+
+if (hasProperty("release")) {
+    IS_RELEASE_BUILD = true
+    SONATYPE_URL = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+} else if (hasProperty("snapshot")) {
+    version += "-SNAPSHOT"
+    SONATYPE_URL = "https://oss.sonatype.org/content/repositories/snapshots/"
+} else {
+    IS_DEV_BUILD = true
+}
+
 buildscript {
     repositories {
         mavenCentral()
     }
+
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.7.+'
+        classpath 'com.android.tools.build:gradle:0.10.+'
+        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.10.+'
+        classpath 'org.robolectric.gradle:gradle-android-test-plugin:0.10.+'
     }
 }
+
+apply plugin: 'android-sdk-manager'
 apply plugin: "android-library"
+apply plugin: 'android-test'
+
 android {
-    compileSdkVersion 18
-    buildToolsVersion '18.0.1'
+    compileSdkVersion 19
+    buildToolsVersion '19.0.3'
+
     defaultConfig {
-        versionCode = 1
+        targetSdkVersion 19
+
+        versionCode = versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName = version
-        testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
+
     sourceSets {
-        main {
-            manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java']
+        androidTest {
+            setRoot('src/test')
         }
-        instrumentTest.setRoot('src/instrumentTest')
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    androidTestCompile 'junit:junit:4.10'
+    androidTestCompile 'org.robolectric:robolectric:2.1.+'
+    androidTestCompile 'com.squareup:fest-android:1.0.+'
+}
+
+apply plugin: 'idea'
+
+idea {
+    module {
+        testOutputDir = file('build/test-classes/debug')
     }
 }
 
 apply plugin: "maven"
 apply plugin: "signing"
 
-version = "0.7.7"
-group = "com.radiusnetworks"
+afterEvaluate { project ->
+    uploadArchives {
+        repositories {
+            if (IS_DEV_BUILD) {
+                mavenLocal()
+            } else {
+                mavenDeployer {
+                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-repositories {
-    mavenCentral()
-}
+                    repository(url: SONATYPE_URL) {
+                        authentication(userName: sonatypeUsername, password: sonatypePassword)
+                    }
 
-sourceSets {
-        unitTest {
-                java.srcDir file('src/test')
+                    println GROUP
+
+                    pom.project {
+                        name 'AndroidIBeaconLibrary'
+                        packaging 'aar'
+                        description 'IBeacon library for Android applications'
+                        artifactId = 'AndroidIBeaconLibrary'
+                        groupId GROUP
+                        version version
+                        url 'https://github.com/RadiusNetworks/android-ibeacon-service'
+
+                        scm {
+                            url 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
+                            connection 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
+                            developerConnection 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
+                        }
+
+                        licenses {
+                            license {
+                                name 'The Apache Software License, Version 2.0'
+                                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'davidgyoung'
+                                name 'David Young'
+                                email 'david@radiusnetworks.com'
+                            }
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    signing {
+        required { IS_RELEASE_BUILD && gradle.taskGraph.hasTask("uploadArchives") }
+        sign configurations.archives
+    }
+
+    task androidJavadocs(type: Javadoc) {
+        source = android.sourceSets.main.allJava
+    }
+
+    task androidJavadocsJar(type: Jar) {
+        classifier = 'javadoc'
+        from androidJavadocs.destinationDir
+    }
+
+    task androidSourcesJar(type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives androidSourcesJar
+        archives androidJavadocsJar
+    }
 }
 
-dependencies {
-        unitTestCompile files("$project.buildDir/classes/debug")
-        unitTestCompile 'junit:junit:[4,)'
-        unitTestCompile 'org.robolectric:robolectric:2.1.1'
-		unitTestCompile 'com.google.android:android:4.0.1.2'        
-}
-
-configurations {
-        unitTestCompile.extendsFrom runtime
-        unitTestRuntime.extendsFrom unitTestCompile
-        archives {
-            extendsFrom configurations.default
-        }
-}
-
-signing {
-    required { has("release") && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
-
-
-task unitTest(type:Test, dependsOn: assemble) {
-        description = "run unit tests"
-        testClassesDir = project.sourceSets.unitTest.output.classesDir
-        classpath = project.sourceSets.unitTest.runtimeClasspath
-}
-
-unitTest {
-	testLogging {
-		exceptionFormat = 'full'
-	}
-}
-
+/** Bundling tasks for eclipse */
 task bundleEclipse << {
     exec {
         executable 'scripts/bundle-eclipse'
     }
-}
-
-
-task wrapper(type: org.gradle.api.tasks.wrapper.Wrapper) {
-    gradleVersion = '1.9'
 }
 
 task distribution(dependsOn: ["bundleEclipse", "build", "clean"]) << {
@@ -92,30 +167,8 @@ task distribution(dependsOn: ["bundleEclipse", "build", "clean"]) << {
 }
 
 task release(dependsOn: 'distribution') << {
-	println('Doing release build')
+    println('Doing release build')
 }
-
-/*
- * Gets the version name from the latest Git tag
- */
-def getVersionName = { ->
-    def stdout = new ByteArrayOutputStream()
-    try {
-      exec {
-          commandLine 'git', 'describe', '--tags'
-          standardOutput = stdout
-      }
-      return stdout.toString().trim()
-    }
-    catch (e) {
-      println("Can't get version from git: "+e);
-      return "adhoc"
-    }
-}
-
-version = getVersionName()
 
 build.mustRunAfter clean
 bundleEclipse.mustRunAfter build
-
-

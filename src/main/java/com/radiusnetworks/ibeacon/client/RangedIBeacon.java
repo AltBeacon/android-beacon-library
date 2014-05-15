@@ -75,7 +75,7 @@ public class RangedIBeacon extends IBeacon{
 		}
 		double runningAverage = sum/(endIndex-startIndex+1);
 
-		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Running average rssi based on "+size+" measurements: "+runningAverage);
+		if (IBeaconManager.debug) Log.d(TAG, "Running average rssi based on "+size+" measurements: "+runningAverage);
 		return runningAverage;
 
 	}
@@ -83,7 +83,7 @@ public class RangedIBeacon extends IBeacon{
 	protected void addRangeMeasurement(Integer rssi) {
 		this.rssi = rssi;
 		addMeasurement(rssi);
-		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "calculating new range measurement with new rssi measurement:"+rssi);
+		if (IBeaconManager.debug) Log.d(TAG, "calculating new range measurement with new rssi measurement:"+rssi);
 		runningAverageRssi = calculateRunningAverage();
 		accuracy = null; // force calculation of accuracy and proximity next time they are requested
 		proximity = null;

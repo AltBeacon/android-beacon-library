@@ -245,7 +245,7 @@ public class IBeacon {
 					((int)scanData[startByte+1] & 0xff) == 0x24 &&
 					((int)scanData[startByte+2] & 0xff) == 0xbf &&
 					((int)scanData[startByte+3] & 0xff) == 0x16) {
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This is a proprietary Estimote beacon advertisement that does not meet the iBeacon standard.  Identifiers cannot be read.");
+                if (IBeaconManager.debug) Log.d(TAG, "This is a proprietary Estimote beacon advertisement that does not meet the iBeacon standard.  Identifiers cannot be read.");
                 IBeacon iBeacon = new IBeacon();
 				iBeacon.major = 0;
 				iBeacon.minor = 0;
@@ -257,7 +257,7 @@ public class IBeacon {
                      ((int)scanData[startByte+1] & 0xff) == 0x77 &&
                      ((int)scanData[startByte+2] & 0xff) == 0x00 &&
                      ((int)scanData[startByte+3] & 0xff) == 0xc6) {
-                    if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This is a proprietary Gimbal beacon advertisement that does not meet the iBeacon standard.  Identifiers cannot be read.");
+                    if (IBeaconManager.debug) Log.d(TAG, "This is a proprietary Gimbal beacon advertisement that does not meet the iBeacon standard.  Identifiers cannot be read.");
                     IBeacon iBeacon = new IBeacon();
                     iBeacon.major = 0;
                     iBeacon.minor = 0;
@@ -271,7 +271,7 @@ public class IBeacon {
 
 		if (patternFound == false) {
 			// This is not an iBeacon
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "This is not an iBeacon advertisment (no 0215 seen in bytes 4-7).  The bytes I see are: "+bytesToHex(scanData));
+			if (IBeaconManager.debug) Log.d(TAG, "This is not an iBeacon advertisment (no 0215 seen in bytes 4-7).  The bytes I see are: "+bytesToHex(scanData));
 			return null;
 		}
 								
@@ -356,7 +356,7 @@ public class IBeacon {
 			return -1.0; // if we cannot determine accuracy, return -1.
 		}
 		
-		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "calculating accuracy based on rssi of "+rssi);
+		if (IBeaconManager.debug) Log.d(TAG, "calculating accuracy based on rssi of "+rssi);
 
 
 		double ratio = rssi*1.0/txPower;
@@ -365,7 +365,7 @@ public class IBeacon {
 		}
 		else {
 			double accuracy =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;	
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
+			if (IBeaconManager.debug) Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
 			return accuracy;
 		}
 	}	

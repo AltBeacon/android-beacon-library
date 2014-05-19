@@ -1,0 +1,7 @@
+# Copy File To gradles.properties
+signing.keyId=xxxxxxx
+signing.password=YourPublicKeyPassword
+signing.secretKeyRingFile=~/.gnupg/secring.gpg
+
+sonatypeUsername=YourUserNameHere
+sonatypePassword=YourRealPasswordHere

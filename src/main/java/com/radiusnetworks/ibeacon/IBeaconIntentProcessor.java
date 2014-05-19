@@ -52,7 +52,7 @@ public class IBeaconIntentProcessor extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got an intent to process");
+		if (IBeaconManager.debug) Log.d(TAG, "got an intent to process");
 		
 		MonitoringData monitoringData = null;
 		RangingData rangingData = null;
@@ -63,7 +63,7 @@ public class IBeaconIntentProcessor extends IntentService {
 		}
 		
 		if (rangingData != null) {
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got ranging data");
+			if (IBeaconManager.debug) Log.d(TAG, "got ranging data");
             if (rangingData.getIBeacons() == null) {
                 Log.w(TAG, "Ranging data has a null iBeacons collection");
             }
@@ -73,7 +73,7 @@ public class IBeaconIntentProcessor extends IntentService {
 				notifier.didRangeBeaconsInRegion(iBeacons, rangingData.getRegion());
 			}
             else {
-                if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "but ranging notifier is null, so we're dropping it.");
+                if (IBeaconManager.debug) Log.d(TAG, "but ranging notifier is null, so we're dropping it.");
             }
             RangeNotifier dataNotifier = IBeaconManager.getInstanceForApplication(this).getDataRequestNotifier();
             if (dataNotifier != null) {
@@ -82,10 +82,10 @@ public class IBeaconIntentProcessor extends IntentService {
 
 		}
 		if (monitoringData != null) {
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "got monitoring data");
+			if (IBeaconManager.debug) Log.d(TAG, "got monitoring data");
 			MonitorNotifier notifier = IBeaconManager.getInstanceForApplication(this).getMonitoringNotifier();
 			if (notifier != null) {
-				if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "Calling monitoring notifier:"+notifier);
+				if (IBeaconManager.debug) Log.d(TAG, "Calling monitoring notifier:"+notifier);
 				notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
 				if (monitoringData.isInside()) {
 					notifier.didEnterRegion(monitoringData.getRegion());

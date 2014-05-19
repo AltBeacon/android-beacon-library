@@ -17,11 +17,11 @@ public class RangingTracker {
 	public void addIBeacon(IBeacon iBeacon) {
 		if (rangedIBeacons.containsKey(iBeacon)) {
 			RangedIBeacon rangedIBeacon = rangedIBeacons.get(iBeacon);
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to existing range for: "+rangedIBeacon.getProximityUuid() );
+			if (IBeaconManager.debug) Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to existing range for: "+rangedIBeacon.getProximityUuid() );
 			rangedIBeacon.addRangeMeasurement(iBeacon.getRssi());
 		}
 		else {
-			if (IBeaconManager.LOG_DEBUG) Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to new rangedIBeacon");
+			if (IBeaconManager.debug) Log.d(TAG, "adding "+iBeacon.getProximityUuid()+" to new rangedIBeacon");
 			rangedIBeacons.put(iBeacon, new RangedIBeacon(iBeacon));
 		}
 	}

@@ -9,6 +9,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.lang.RuntimeException;
+
 @RunWith(RobolectricTestRunner.class)
 public class IBeaconTest {
 
@@ -20,15 +22,6 @@ public class IBeaconTest {
                                + Character.digit(s.charAt(i+1), 16));
       }
       return data;
-  } 
-  
-  @BeforeClass
-  public static void testSetup() {
-  }
-
-  @AfterClass
-  public static void testCleanup() {
-    // Teardown for data used by the unit tests
   }
 
   @Test
@@ -44,7 +37,7 @@ public class IBeaconTest {
   @Test
   public void testCalculateAccuracyWithRssiEqualsPower() {
 	  double accuracy = IBeacon.calculateAccuracy(-55, -55);
-	  assertEquals("Accuracy should be one meter if rssi is the same as power", 1.0, accuracy, 0.1);	  
+	  assertEquals("Accuracy should be one meter if rssi is the same as power", 1.0, accuracy, 0.1);
   }
 
   @Test

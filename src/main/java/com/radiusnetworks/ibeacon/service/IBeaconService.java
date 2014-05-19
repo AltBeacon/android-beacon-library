@@ -40,6 +40,7 @@ import android.os.Messenger;
 import android.util.Log;
 
 import com.radiusnetworks.bluetooth.BluetoothCrashResolver;
+import com.radiusnetworks.ibeacon.BuildConfig;
 import com.radiusnetworks.ibeacon.IBeacon;
 import com.radiusnetworks.ibeacon.IBeaconManager;
 import com.radiusnetworks.ibeacon.Region;
@@ -197,7 +198,7 @@ public class IBeaconService extends Service {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "iBeaconService version is starting up");
+        Log.i(TAG, "iBeaconService version "+ BuildConfig.VERSION_NAME+" is starting up");
         getBluetoothAdapter();
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();

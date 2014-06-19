@@ -547,11 +547,8 @@ public class IBeaconService extends Service {
             Region region = regionIterator.next();
             RangeState rangeState = rangedRegionState.get(region);
             if (IBeaconManager.debug)
-                Log.d(TAG, "Calling ranging callback with " + rangeState.getIBeacons().size() + " iBeacons");
-            rangeState.getCallback().call(IBeaconService.this, "rangingData", new RangingData(rangeState.getIBeacons(), region));
-            synchronized (rangeState) {
-            	rangeState.clearIBeacons();
-			}
+                Log.d(TAG, "Calling ranging callback");
+            rangeState.getCallback().call(IBeaconService.this, "rangingData", new RangingData(rangeState.finalizeIBeacons(), region));
         }
 
     }
@@ -574,16 +571,12 @@ public class IBeaconService extends Service {
         if (trackedBeacons.contains(iBeacon)) {
             if (IBeaconManager.debug) Log.d(TAG,
                     "iBeacon detected multiple times in scan cycle :" + iBeacon.getProximityUuid() + " "
-                            + iBeacon.getMajor() + " " + iBeacon.getMinor()
-                            + " accuracy: " + iBeacon.getAccuracy()
-                            + " proximity: " + iBeacon.getProximity());
+                            + iBeacon.getMajor() + " " + iBeacon.getMinor());
         }
         trackedBeacons.add(iBeacon);
         if (IBeaconManager.debug) Log.d(TAG,
                 "iBeacon detected :" + iBeacon.getProximityUuid() + " "
-                        + iBeacon.getMajor() + " " + iBeacon.getMinor()
-                        + " accuracy: " + iBeacon.getAccuracy()
-                        + " proximity: " + iBeacon.getProximity());
+                        + iBeacon.getMajor() + " " + iBeacon.getMinor());
 
         List<Region> matchedRegions = null;
         synchronized(monitoredRegionState) {

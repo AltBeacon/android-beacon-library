@@ -133,7 +133,14 @@ public class IBeacon {
 	 */
 	public double getAccuracy() {
 		if (accuracy == null) {
-			accuracy = calculateAccuracy(txPower, runningAverageRssi != null ? runningAverageRssi : rssi );		
+            double bestRssiAvailable = rssi;
+            if (runningAverageRssi != null) {
+                bestRssiAvailable = runningAverageRssi;
+            }
+            else {
+                if (IBeaconManager.debug) Log.d(TAG, "Not using running average RSSI because it is null");
+            }
+			accuracy = calculateAccuracy(txPower, bestRssiAvailable );
 		}
 		return accuracy;
 	}
@@ -312,6 +319,7 @@ public class IBeacon {
             iBeacon.bluetoothAddress = device.getAddress();
         }
 
+
 		return iBeacon;
 	}
 	
@@ -324,6 +332,7 @@ public class IBeacon {
 		this.minor = otherIBeacon.minor;
 		this.accuracy = otherIBeacon.accuracy;
 		this.proximity = otherIBeacon.proximity;
+        this.runningAverageRssi = otherIBeacon.runningAverageRssi;
 		this.rssi = otherIBeacon.rssi;
 		this.proximityUuid = otherIBeacon.proximityUuid;
 		this.txPower = otherIBeacon.txPower;

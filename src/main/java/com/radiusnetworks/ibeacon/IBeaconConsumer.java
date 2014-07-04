@@ -87,14 +87,16 @@ public interface IBeaconConsumer {
 	 * @return the application context of your service or activity
 	 */
 	public Context getApplicationContext();
+	
 	/**
-	 * Called by the IBeaconManager to bind your IBeaconConsumer to the  IBeaconService.  This method is implemented by Service or Activity, and
+	 * Called by the IBeaconManager to unbind your IBeaconConsumer to the  IBeaconService.  This method is implemented by Service or Activity, and
 	 * You generally should not override it.
 	 * @return the application context of your service or activity
 	 */
 	public void unbindService(ServiceConnection connection);
+	
 	/**
-	 * Called by the IBeaconManager to unbind your IBeaconConsumer to the  IBeaconService.  This method is implemented by Service or Activity, and
+	 * Called by the IBeaconManager to bind your IBeaconConsumer to the  IBeaconService.  This method is implemented by Service or Activity, and
 	 * You generally should not override it.
 	 * @return the application context of your service or activity
 	 */

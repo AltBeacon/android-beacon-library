@@ -126,6 +126,8 @@ public class IBeacon {
 	 * Used to attach data to individual iBeacons, either locally or in the cloud
 	 */
 	protected static IBeaconDataFactory iBeaconDataFactory = new NullIBeaconDataFactory();
+
+    protected int beaconTypeCode;
 	
 	/**
 	 * @see #accuracy
@@ -183,6 +185,8 @@ public class IBeacon {
 		return txPower;
 	}
 
+    public int getBeaconTypeCode() { return beaconTypeCode; }
+
 	/**
 	 * @see #proximityUuid
 	 * @return proximityUuid
@@ -214,7 +218,12 @@ public class IBeacon {
 			return false;
 		}
 		IBeacon thatIBeacon = (IBeacon) that;		
-		return (thatIBeacon.getMajor() == this.getMajor() && thatIBeacon.getMinor() == this.getMinor() && thatIBeacon.getProximityUuid().equals(this.getProximityUuid()));
+		return (
+                (thatIBeacon.getBeaconTypeCode() == this.getBeaconTypeCode()) &&
+                (thatIBeacon.getMajor() == this.getMajor()) &&
+                (thatIBeacon.getMinor() == this.getMinor()) &&
+                thatIBeacon.getProximityUuid().equals(this.getProximityUuid())
+                );
 	}
 
     /**
@@ -248,7 +257,13 @@ public class IBeacon {
 				patternFound = true;
 				break;
 			}
-			else if (((int)scanData[startByte] & 0xff) == 0x2d &&
+            else if (((int)scanData[startByte+2] & 0xff) == 0xbe &&
+                    ((int)scanData[startByte+3] & 0xff) == 0xac) {
+                // yes!  This is an openBeacon
+                patternFound = true;
+                break;
+            }
+            else if (((int)scanData[startByte] & 0xff) == 0x2d &&
 					((int)scanData[startByte+1] & 0xff) == 0x24 &&
 					((int)scanData[startByte+2] & 0xff) == 0xbf &&
 					((int)scanData[startByte+3] & 0xff) == 0x16) {
@@ -288,6 +303,7 @@ public class IBeacon {
 		iBeacon.minor = (scanData[startByte+22] & 0xff) * 0x100 + (scanData[startByte+23] & 0xff);
 		iBeacon.txPower = (int)scanData[startByte+24]; // this one is signed
 		iBeacon.rssi = rssi;
+        iBeacon.beaconTypeCode = (scanData[startByte+2] & 0xff) * 0x100 + (scanData[startByte+3] & 0xff);
 				
 		// AirLocate:
 		// 02 01 1a 1a ff 4c 00 02 15  # Apple's fixed iBeacon advertising prefix
@@ -337,18 +353,20 @@ public class IBeacon {
 		this.proximityUuid = otherIBeacon.proximityUuid;
 		this.txPower = otherIBeacon.txPower;
         this.bluetoothAddress = otherIBeacon.bluetoothAddress;
+        this.beaconTypeCode = otherIBeacon.getBeaconTypeCode();
 	}
 	
 	protected IBeacon() {
 		
 	}
 
-	protected IBeacon(String proximityUuid, int major, int minor, int txPower, int rssi) {
+	protected IBeacon(String proximityUuid, int major, int minor, int txPower, int rssi, int beaconTypeCode) {
 		this.proximityUuid = proximityUuid.toLowerCase();
 		this.major = major;
 		this.minor = minor;
 		this.rssi = rssi;
 		this.txPower = txPower;
+        this.beaconTypeCode = beaconTypeCode;
 	}
 	
 	public IBeacon(String proximityUuid, int major, int minor) {
@@ -358,6 +376,7 @@ public class IBeacon {
 		this.rssi = rssi;
 		this.txPower = -59;
 		this.rssi = 0;
+        this.beaconTypeCode = 0;
 	}
 
 	protected static double calculateAccuracy(int txPower, double rssi) {
@@ -373,13 +392,14 @@ public class IBeacon {
 			return Math.pow(ratio,10);
 		}
 		else {
-			double accuracy =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;	
+			double accuracy =  (0.42093)*Math.pow(ratio,6.9476) + 0.54992;
 			if (IBeaconManager.debug) Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
 			return accuracy;
 		}
-	}	
-	
-	protected static int calculateProximity(double accuracy) {
+	}
+
+
+    protected static int calculateProximity(double accuracy) {
 		if (accuracy < 0) {
 			return PROXIMITY_UNKNOWN;	 
 			// is this correct?  does proximity only show unknown when accuracy is negative?  I have seen cases where it returns unknown when

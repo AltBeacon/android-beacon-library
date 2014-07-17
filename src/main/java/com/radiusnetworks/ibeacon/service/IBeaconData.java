@@ -68,6 +68,7 @@ public class IBeaconData extends IBeacon implements Parcelable {
         out.writeInt(rssi);
         out.writeInt(txPower);
         out.writeString(bluetoothAddress);
+        out.writeInt(beaconTypeCode);
     }
 
     public static final Parcelable.Creator<IBeaconData> CREATOR
@@ -90,5 +91,6 @@ public class IBeaconData extends IBeacon implements Parcelable {
         rssi = in.readInt();
         txPower = in.readInt();
         bluetoothAddress = in.readString();
+        beaconTypeCode = in.readInt();
     }
 }

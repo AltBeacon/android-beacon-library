@@ -2,7 +2,7 @@ ext {
     SONATYPE_URL = ""
     IS_DEV_BUILD = false
     IS_RELEASE_BUILD = false
-    GROUP = "com.radiusnetworks"
+    GROUP = "org.altbeacon"
 }
 
 /*
@@ -106,18 +106,18 @@ afterEvaluate { project ->
                     println GROUP
 
                     pom.project {
-                        name 'AndroidIBeaconLibrary'
+                        name 'AndroidBeaconLibrary'
                         packaging 'aar'
                         description 'Beacon library for Android applications'
-                        artifactId = 'AndroidIBeaconLibrary'
+                        artifactId = 'AndroidBeaconLibrary'
                         groupId GROUP
                         version version
-                        url 'https://github.com/RadiusNetworks/android-ibeacon-service'
+                        url 'https://github.com/RadiusNetworks/android-beacon-library'
 
                         scm {
-                            url 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
-                            connection 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
-                            developerConnection 'scm:git@github.com:RadiusNetworks/android-ibeacon-service.git'
+                            url 'scm:git@github.com:RadiusNetworks/android-beacon-library.git'
+                            connection 'scm:git@github.com:RadiusNetworks/android-beacon-library.git'
+                            developerConnection 'scm:git@github.com:RadiusNetworks/android-beacon-library.git'
                         }
 
                         licenses {

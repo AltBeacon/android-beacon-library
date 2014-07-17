@@ -23,7 +23,6 @@
  */
 package org.altbeacon.beacon;
 
-import org.altbeacon.beacon.service.BeaconData;
 import org.altbeacon.beacon.service.MonitoringData;
 import org.altbeacon.beacon.service.RangingData;
 
@@ -59,7 +58,7 @@ public class BeaconIntentProcessor extends IntentService {
                 Log.w(TAG, "Ranging data has a null beacons collection");
             }
 			RangeNotifier notifier = BeaconManager.getInstanceForApplication(this).getRangingNotifier();
-            java.util.Collection<Beacon> beacons = BeaconData.fromBeaconDatas(rangingData.getBeacons());
+            java.util.Collection<Beacon> beacons = rangingData.getBeacons();
 			if (notifier != null) {
 				notifier.didRangeBeaconsInRegion(beacons, rangingData.getRegion());
 			}

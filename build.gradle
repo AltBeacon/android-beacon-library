@@ -105,6 +105,7 @@ afterEvaluate { project ->
 
                     println GROUP
 
+
                     pom.project {
                         name 'AndroidBeaconLibrary'
                         packaging 'aar'
@@ -136,6 +137,7 @@ afterEvaluate { project ->
                             }
                         }
                     }
+
                 }
             }
         }

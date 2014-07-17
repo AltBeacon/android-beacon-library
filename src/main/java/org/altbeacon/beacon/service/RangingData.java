@@ -36,25 +36,21 @@ import android.util.Log;
 
 public class RangingData implements Parcelable {
 	private static final String TAG = "RangingData";
-	private Collection<BeaconData> beaconDatas;
-	private RegionData regionData;
+	private Collection<Beacon> beacons;
+	private Region region;
 
 	public RangingData (Collection<Beacon> beacons, Region region) {
 		synchronized (beacons) {
-			this.beaconDatas =  BeaconData.fromBeacons(beacons);
+			this.beacons =  beacons;
 		}
-		this.regionData = new RegionData(region);
+		this.region = region;
 	}
 
-	public RangingData (Collection<BeaconData> beacons, RegionData region) {
-		this.beaconDatas = beacons;
-		this.regionData = region;
+	public Collection<Beacon> getBeacons() {
+		return beacons;
 	}
-	public Collection<BeaconData> getBeacons() {
-		return beaconDatas;
-	}
-	public RegionData getRegion() {
-		return regionData;
+	public Region getRegion() {
+		return region;
 	}
 	
 	@Override
@@ -63,8 +59,8 @@ public class RangingData implements Parcelable {
 	}
     public void writeToParcel(Parcel out, int flags) {    
     	if (BeaconManager.debug) Log.d(TAG, "writing RangingData");
-    	out.writeParcelableArray(beaconDatas.toArray(new Parcelable[0]), flags);
-    	out.writeParcelable(regionData, flags);
+    	out.writeParcelableArray(beacons.toArray(new Parcelable[0]), flags);
+    	out.writeParcelable(region, flags);
     	if (BeaconManager.debug) Log.d(TAG, "done writing RangingData");
 
     }
@@ -83,10 +79,10 @@ public class RangingData implements Parcelable {
     private RangingData(Parcel in) {
     	if (BeaconManager.debug) Log.d(TAG, "parsing RangingData");
     	Parcelable[] parcelables  = in.readParcelableArray(this.getClass().getClassLoader());
-    	beaconDatas = new ArrayList<BeaconData>(parcelables.length);
+    	beacons = new ArrayList<Beacon>(parcelables.length);
     	for (int i = 0; i < parcelables.length; i++) {
-    		beaconDatas.add((BeaconData)parcelables[i]);
+    		beacons.add((Beacon)parcelables[i]);
     	}
-    	regionData = in.readParcelable(this.getClass().getClassLoader());
+    	region = in.readParcelable(this.getClass().getClassLoader());
     }
 }

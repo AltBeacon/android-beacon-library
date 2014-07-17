@@ -32,17 +32,17 @@ public class MonitoringData implements Parcelable {
 	@SuppressWarnings("unused")
 	private static final String TAG = "MonitoringData";
 	private boolean inside;
-	private RegionData regionData;
+	private Region region;
 	
 	public MonitoringData (boolean inside, Region region) {
 		this.inside = inside;
-		this.regionData = new RegionData(region);
+		this.region = region;
 	}
 	public boolean isInside() {
 		return inside;
 	}
 	public Region getRegion() {
-		return regionData;
+		return region;
 	}
 	
 	@Override
@@ -51,7 +51,7 @@ public class MonitoringData implements Parcelable {
 	}
     public void writeToParcel(Parcel out, int flags) {    
     	out.writeByte((byte) (inside ? 1 : 0));  
-    	out.writeParcelable(regionData, flags);
+    	out.writeParcelable(region, flags);
 
     }
 
@@ -68,6 +68,6 @@ public class MonitoringData implements Parcelable {
     
     private MonitoringData(Parcel in) {
     	inside = in.readByte() == 1;
-    	regionData = in.readParcelable(this.getClass().getClassLoader());
+    	region = in.readParcelable(this.getClass().getClassLoader());
     }
 }

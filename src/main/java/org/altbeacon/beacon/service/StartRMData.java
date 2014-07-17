@@ -26,14 +26,16 @@ package org.altbeacon.beacon.service;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.altbeacon.beacon.Region;
+
 public class StartRMData implements Parcelable {
-	private RegionData regionData;
+	private Region region;
     private long scanPeriod;
     private long betweenScanPeriod;
 	private String callbackPackageName;
 	
-    public StartRMData(RegionData regionData, String callbackPackageName) {
-    	this.regionData = regionData;
+    public StartRMData(Region region, String callbackPackageName) {
+    	this.region = region;
     	this.callbackPackageName = callbackPackageName;
 	}
     public StartRMData(long scanPeriod, long betweenScanPeriod) {
@@ -41,18 +43,18 @@ public class StartRMData implements Parcelable {
         this.betweenScanPeriod = betweenScanPeriod;
     }
 
-    public StartRMData(RegionData regionData, String callbackPackageName, long scanPeriod, long betweenScanPeriod) {
+    public StartRMData(Region region, String callbackPackageName, long scanPeriod, long betweenScanPeriod) {
         this.scanPeriod = scanPeriod;
         this.betweenScanPeriod = betweenScanPeriod;
-        this.regionData = regionData;
+        this.region = region;
         this.callbackPackageName = callbackPackageName;
     }
 
 
     public long getScanPeriod() { return scanPeriod; }
     public long getBetweenScanPeriod() { return betweenScanPeriod; }
-    public RegionData getRegionData() {
-    	return regionData;
+    public Region getRegionData() {
+    	return region;
     }
     public String getCallbackPackageName() {
     	return callbackPackageName;
@@ -62,7 +64,7 @@ public class StartRMData implements Parcelable {
     }
 
     public void writeToParcel(Parcel out, int flags) {
-        out.writeParcelable(regionData, flags);
+        out.writeParcelable(region, flags);
         out.writeString(callbackPackageName);
         out.writeLong(scanPeriod);
         out.writeLong(betweenScanPeriod);
@@ -80,7 +82,7 @@ public class StartRMData implements Parcelable {
     };
     
     private StartRMData(Parcel in) { 
-    	regionData = in.readParcelable(this.getClass().getClassLoader());
+    	region = in.readParcelable(this.getClass().getClassLoader());
         callbackPackageName = in.readString();
         scanPeriod = in.readLong();
         betweenScanPeriod = in.readLong();

@@ -31,7 +31,6 @@ import java.util.Map;
 
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
-import org.altbeacon.beacon.service.RegionData;
 import org.altbeacon.beacon.service.StartRMData;
 
 import android.annotation.TargetApi;
@@ -378,7 +377,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (rangedRegions) {
@@ -405,7 +404,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (rangedRegions) {
@@ -439,7 +438,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod()  );
+		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod()  );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
@@ -467,7 +466,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(new RegionData(region), callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (monitoredRegions) {

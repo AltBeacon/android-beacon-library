@@ -28,7 +28,13 @@ import org.altbeacon.beacon.client.NullBeaconDataFactory;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
 * The <code>Beacon</code> class represents a single hardware Beacon detected by
@@ -53,7 +59,7 @@ import android.util.Log;
 * @author  David G. Young
 * @see     Region#matchesBeacon(Beacon Beacon)
 */
-public class Beacon {
+public class Beacon implements Parcelable {
 	/**
 	 * Less than half a meter away
 	 */
@@ -368,7 +374,17 @@ public class Beacon {
 		this.txPower = txPower;
         this.beaconTypeCode = beaconTypeCode;
 	}
-	
+
+    protected Beacon(String proximityUuid, int major, int minor, int txPower, int rssi) {
+        this.proximityUuid = proximityUuid.toLowerCase();
+        this.major = major;
+        this.minor = minor;
+        this.rssi = rssi;
+        this.txPower = txPower;
+        this.beaconTypeCode = 0;
+    }
+
+
 	public Beacon(String proximityUuid, int major, int minor) {
 		this.proximityUuid = proximityUuid.toLowerCase();
 		this.major = major;
@@ -426,5 +442,44 @@ public class Beacon {
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
-    } 
+    }
+
+    public int describeContents() {
+        return 0;
+    }
+
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeInt(major);
+        out.writeInt(minor);
+        out.writeString(proximityUuid);
+        out.writeInt(getProximity());
+        out.writeDouble(getAccuracy());
+        out.writeInt(rssi);
+        out.writeInt(txPower);
+        out.writeString(bluetoothAddress);
+        out.writeInt(beaconTypeCode);
+    }
+
+    public static final Parcelable.Creator<Beacon> CREATOR
+            = new Parcelable.Creator<Beacon>() {
+        public Beacon createFromParcel(Parcel in) {
+            return new Beacon(in);
+        }
+
+        public Beacon[] newArray(int size) {
+            return new Beacon[size];
+        }
+    };
+
+    private Beacon(Parcel in) {
+        major = in.readInt();
+        minor = in.readInt();
+        proximityUuid = in.readString();
+        proximity = in.readInt();
+        accuracy = in.readDouble();
+        rssi = in.readInt();
+        txPower = in.readInt();
+        bluetoothAddress = in.readString();
+        beaconTypeCode = in.readInt();
+    }
 }

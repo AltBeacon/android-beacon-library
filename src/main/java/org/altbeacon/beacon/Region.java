@@ -23,12 +23,12 @@
  */
 package org.altbeacon.beacon;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 /**
- * This class represents a criteria of fields used to match beacons.  The strange name
- * comes from the iOS implementation, where the idea of a "Region" is also used for a geofence.
- * The idea is that a grouping of one or more beacons are analogous to a geofence region.
+ * This class represents a criteria of fields used to match beacons.
  * 
  * The uniqueId field is used to distinguish this Region in the system.  When you set up 
  * monitoring or ranging based on a Region and later want to stop monitoring or ranging, 
@@ -43,7 +43,7 @@ import android.util.Log;
  * @author dyoung
  *
  */
-public class Region  {
+public class Region implements Parcelable {
 	private static final String TAG = "Region";
 	/**
 	 * Part 2 of 3 of an beacon identifier.  A 16 bit integer typically used to identify a common grouping of beacons.
@@ -186,6 +186,40 @@ public class Region  {
 		return sb.toString();
 	}
 
+    public int describeContents() {
+        return 0;
+    }
+
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeInt(major == null ? -1 : major);
+        out.writeInt(minor == null ? -1 : minor);
+        out.writeString(proximityUuid);
+        out.writeString(uniqueId);
+    }
+
+    public static final Parcelable.Creator<Region> CREATOR
+            = new Parcelable.Creator<Region>() {
+        public Region createFromParcel(Parcel in) {
+            return new Region(in);
+        }
+
+        public Region[] newArray(int size) {
+            return new Region[size];
+        }
+    };
+
+    private Region(Parcel in) {
+        major = in.readInt();
+        if (major == -1) {
+            major = null;
+        }
+        minor = in.readInt();
+        if (minor == -1) {
+            minor = null;
+        }
+        proximityUuid = in.readString();
+        uniqueId = in.readString();
+    }
     @Override
     public Object clone() {
         return new Region(this);

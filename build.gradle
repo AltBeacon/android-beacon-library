@@ -108,7 +108,7 @@ afterEvaluate { project ->
                     pom.project {
                         name 'AndroidIBeaconLibrary'
                         packaging 'aar'
-                        description 'IBeacon library for Android applications'
+                        description 'Beacon library for Android applications'
                         artifactId = 'AndroidIBeaconLibrary'
                         groupId GROUP
                         version version

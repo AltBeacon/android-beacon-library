@@ -1,13 +1,13 @@
-Android iBeacon Library [![Build Status](https://travis-ci.org/pieces029/android-ibeacon-service.svg?branch=master)](https://travis-ci.org/pieces029/android-ibeacon-service)
+Android beacon Library [![Build Status](https://travis-ci.org/pieces029/android-ibeacon-service.svg?branch=master)](https://travis-ci.org/pieces029/android-ibeacon-service)
 =======================
 
-An Android library providing APIs to interact with iBeacons
+An Android library providing APIs to interact with beacons
 
 
 ## What does this library do?
 
-It allows Android devices to use iBeacons much like iOS devices do.  An app can request to get notifications when one
-or more iBeacons appear or disappear.  An app can also request to get a ranging update from one or more iBeacons
+It allows Android devices to use beacons much like iOS devices do.  An app can request to get notifications when one
+or more beacons appear or disappear.  An app can also request to get a ranging update from one or more beacons
 at a frequency of 1Hz.  
 
 ## How to Use this Library

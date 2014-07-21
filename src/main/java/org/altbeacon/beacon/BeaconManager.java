@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.altbeacon.beacon.service.BeaconService;
@@ -103,6 +104,7 @@ public class BeaconManager {
     protected MonitorNotifier monitorNotifier = null;
     private ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private ArrayList<Region> rangedRegions = new ArrayList<Region>();
+    private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
 
     /**
      * set to true if you want to see debug messages associated with this library
@@ -184,9 +186,14 @@ public class BeaconManager {
 		}
 		return client;
 	}
-	
+
+    public List<BeaconParser> getAltBeaconParsers() {
+        return beaconParsers;
+    }
+
 	protected BeaconManager(Context context) {
 		this.context = context;
+        this.beaconParsers.add(new AltBeaconParser());
 	}
 	/**
 	 * Check if Bluetooth LE is supported by this Android device, and if so, make sure it is enabled.
@@ -357,7 +364,7 @@ public class BeaconManager {
 	
 	/**
 	 * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
-	 * <code>Region</code> object, and providing updates on the estimated distance very seconds while
+	 * <code>Region</code> object, and providing updates on the estimated mDistance very seconds while
 	 * beacons in the Region are visible.  Note that the Region's unique identifier must be retained to
 	 * later call the stopRangingBeaconsInRegion method.
 	 *  
@@ -386,7 +393,7 @@ public class BeaconManager {
 	}
 	/**
 	 * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
-	 * <code>Region</code> object and providing distance information for them.
+	 * <code>Region</code> object and providing mDistance information for them.
 	 *  
 	 * @see #setMonitorNotifier(MonitorNotifier notifier)
 	 * @see #startMonitoringBeaconsInRegion(Region region)

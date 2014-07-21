@@ -41,6 +41,7 @@ import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
@@ -76,11 +77,12 @@ public class BeaconService extends Service {
     private BluetoothCrashResolver bluetoothCrashResolver;
     private boolean scanCyclerStarted = false;
     private boolean scanningEnabled = false;
+    private List<BeaconParser> beaconParsers;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
      * Each time we restart we only see the unique advertisements once (e.g. unique beacons)
-     * So if we want updates, we have to restart.  iOS gets updates once per second, so ideally we
+     * So if we want updates, we have to restart.  For updates at 1Hz, ideally we
      * would restart scanning that often to get the same update rate.  The trouble is that when you 
      * restart scanning, it is not instantaneous, and you lose any beacon packets that were in the
      * air during the restart.  So the more frequently you restart, the more packets you lose.  The
@@ -203,6 +205,7 @@ public class BeaconService extends Service {
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
 
+        beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getAltBeaconParsers();
 
         // Look for simulated scan data
         try {
@@ -570,13 +573,11 @@ public class BeaconService extends Service {
         trackedBeaconsPacketCount++;
         if (trackedBeacons.contains(beacon)) {
             if (BeaconManager.debug) Log.d(TAG,
-                    "beacon detected multiple times in scan cycle :" + beacon.getProximityUuid() + " "
-                            + beacon.getMajor() + " " + beacon.getMinor());
+                    "beacon detected multiple times in scan cycle :" + beacon.toString());
         }
         trackedBeacons.add(beacon);
         if (BeaconManager.debug) Log.d(TAG,
-                "beacon detected :" + beacon.getProximityUuid() + " "
-                        + beacon.getMajor() + " " + beacon.getMinor());
+                "beacon detected :" + beacon.toString());
 
         List<Region> matchedRegions = null;
         synchronized(monitoredRegionState) {
@@ -614,10 +615,15 @@ public class BeaconService extends Service {
         @Override
         protected Void doInBackground(ScanData... params) {
             ScanData scanData = params[0];
+            Beacon beacon = null;
 
-            Beacon beacon = Beacon.fromScanData(scanData.scanRecord,
-                    scanData.rssi, scanData.device);
-
+            for (BeaconParser parser : BeaconService.this.beaconParsers) {
+                beacon = parser.fromScanData(scanData.scanRecord,
+                        scanData.rssi, scanData.device);
+                if (beacon != null) {
+                    break;
+                }
+            }
             if (beacon != null) {
                 processBeaconFromScan(beacon);
             }

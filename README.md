@@ -1,4 +1,4 @@
-Android beacon Library [![Build Status](https://travis-ci.org/pieces029/android-ibeacon-service.svg?branch=master)](https://travis-ci.org/pieces029/android-ibeacon-service)
+Android beacon Library
 =======================
 
 An Android library providing APIs to interact with beacons

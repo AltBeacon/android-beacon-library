@@ -11,37 +11,41 @@ import android.util.Log;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 
-public class RangedBeacon extends Beacon {
+public class RangedBeacon {
 	private static String TAG = "RangedBeacon";
 	public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
 	private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
-    private boolean tracked = true;
+    private boolean mTracked = true;
+    Beacon mBeacon;
 	public RangedBeacon(Beacon beacon) {
-		super(beacon);
-		addMeasurement(this.rssi);
+		mBeacon = beacon;
+		addMeasurement(mBeacon.getRssi());
 	}
 
     public boolean isTracked() {
-        return tracked;
+        return mTracked;
     }
 
     public void setTracked(boolean tracked) {
-        this.tracked = tracked;
+        mTracked = tracked;
+    }
+
+    public Beacon getBeacon() {
+        return mBeacon;
     }
 
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
-        runningAverageRssi = calculateRunningAverage();
-        if (BeaconManager.debug) Log.d(TAG, "calculated new runningAverageRssi:"+runningAverageRssi);
-        accuracy = null; // force calculation of accuracy and proximity next time they are requested
-        proximity = null;
+        double runningAverage = calculateRunningAverage();
+        mBeacon.setRunningAverageRssi(runningAverage);
+        if (BeaconManager.debug) Log.d(TAG, "calculated new runningAverageRssi:"+ runningAverage);
     }
 
 	public static void setSampleExpirationMilliseconds(long milliseconds) {
 		sampleExpirationMilliseconds = milliseconds;
 	}
 	public void addMeasurement(Integer rssi) {
-            tracked = true;
+            mTracked = true;
 			Measurement measurement = new Measurement();
 			measurement.rssi = rssi;
 			measurement.timestamp = new Date().getTime();
@@ -92,13 +96,13 @@ public class RangedBeacon extends Beacon {
 		}
 		double runningAverage = sum/(endIndex-startIndex+1);
 
-		if (BeaconManager.debug) Log.d(TAG, "Running average rssi based on "+size+" measurements: "+runningAverage);
+		if (BeaconManager.debug) Log.d(TAG, "Running average mRssi based on "+size+" measurements: "+runningAverage);
 		return runningAverage;
 
 	}
 	
 	protected void addRangeMeasurement(Integer rssi) {
-		this.rssi = rssi;
+		mBeacon.setRssi(rssi);
 		addMeasurement(rssi);
 	}
 

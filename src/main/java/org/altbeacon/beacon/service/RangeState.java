@@ -36,42 +36,42 @@ import org.altbeacon.beacon.BeaconManager;
 
 public class RangeState {
     private static final String TAG = "RangeState";
-	private Callback callback;
-    private Map<Beacon,RangedBeacon> rangedBeacons = new HashMap<Beacon,RangedBeacon>();
+	private Callback mCallback;
+    private Map<Beacon,RangedBeacon> mRangedBeacons = new HashMap<Beacon,RangedBeacon>();
 
 	public RangeState(Callback c) {
-		callback = c;		
+		mCallback = c;
 	}
 	
 	public Callback getCallback() {
-		return callback;
+		return mCallback;
 	}
 
 
     public void addBeacon(Beacon beacon) {
-        if (rangedBeacons.containsKey(beacon)) {
-            RangedBeacon rangedBeacon = rangedBeacons.get(beacon);
-            if (BeaconManager.debug) Log.d(TAG, "adding " + beacon.getProximityUuid() + " to existing range for: " + rangedBeacon.getProximityUuid());
+        if (mRangedBeacons.containsKey(beacon)) {
+            RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
+            if (BeaconManager.debug) Log.d(TAG, "adding " + beacon.toString() + " to existing range for: " + rangedBeacon.toString());
             rangedBeacon.addRangeMeasurement(beacon.getRssi()); // sets tracked to true
         }
         else {
-            if (BeaconManager.debug) Log.d(TAG, "adding "+ beacon.getProximityUuid()+" to new rangedBeacon");
-            rangedBeacons.put(beacon, new RangedBeacon(beacon));
+            if (BeaconManager.debug) Log.d(TAG, "adding "+ beacon.toString()+" to new rangedBeacon");
+            mRangedBeacons.put(beacon, new RangedBeacon(beacon));
         }
     }
 
     // returns a list of beacons that are tracked, and then removes any from the list that should not
     // be there for the next cycle
     public synchronized Collection<Beacon> finalizeBeacons() {
-        ArrayList<Beacon> beacons = new ArrayList<Beacon>();
         Map<Beacon,RangedBeacon> newRangedBeacons = new HashMap<Beacon,RangedBeacon>();
+        ArrayList<Beacon> finalizedBeacons = new ArrayList<Beacon>();
 
-        synchronized (rangedBeacons) {
-            for (Beacon beacon : rangedBeacons.keySet()) {
-                RangedBeacon rangedBeacon = rangedBeacons.get(beacon);
+        synchronized (mRangedBeacons) {
+            for (Beacon beacon : mRangedBeacons.keySet()) {
+                RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
                 if (rangedBeacon.isTracked()) {
                     rangedBeacon.commitMeasurements(); // calculates accuracy
-                    beacons.add(rangedBeacon);
+                    finalizedBeacons.add(rangedBeacon.getBeacon());
                 }
                 // If we still have useful measurements, keep it around but mark it as not
                 // tracked anymore so we don't pass it on as visible unless it is seen again
@@ -83,10 +83,10 @@ public class RangeState {
                     if (BeaconManager.debug) Log.d(TAG, "Dumping beacon from RangeState because it has no recent measurements.");
                 }
             }
-            rangedBeacons = newRangedBeacons;
+            mRangedBeacons = newRangedBeacons;
         }
 
-        return beacons;
+        return finalizedBeacons;
     }
 
 

@@ -27,6 +27,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class represents a criteria of fields used to match beacons.
  * 
@@ -35,76 +38,45 @@ import android.util.Log;
  * you must do so by passing a Region object that has the same uniqueId field value.  If it
  * doesn't match, you can't cancel the operation.  There is no other purpose to this field.
  * 
- * The other fields: proximityUuid, major and minor are a three part unique identifier for 
- * a single beacon.  When constructing a range, any or all of these fields may be set to null,
- * which indicates that they are a wildcard and will match any value.  Note that this differs
- * from the iOS implementation that does not let you set a wildcard on the proximityUuid field.
- * 
+ * The region can be constructed from a multi-part identifier.  The first identifier is the most
+ * significant, the second the second most significant, etc.
+ *
+ * When constructing a range, any or all of these identifiers may be set to null,
+ * which indicates that they are a wildcard and will match any value.
+ *
  * @author dyoung
  *
  */
 public class Region implements Parcelable {
 	private static final String TAG = "Region";
-	/**
-	 * Part 2 of 3 of an beacon identifier.  A 16 bit integer typically used to identify a common grouping of beacons.
-	 */
-	protected Integer major;
-	/**
-	 * Part 3 of 3 of an beacon identifier.  A 16 bit integer typically used to identify an individual beacon within a group.
-	 */
-	protected Integer minor;
-	/**
-	 * Part 1 of 3 of an beacon identifier.  A 26 byte UUID typically used to identify the company that owns a set of beacons.
-	 */
-	protected String proximityUuid;
-	/**
-	 * A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
-	 */
-	protected String uniqueId;
+
+    protected List<Identifier> mIdentifiers;
+	protected String mUniqueId;
+
 	/**
 	 * Constructs a new Region object to be used for Ranging or Monitoring
 	 * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
-	 * @param proximityUuid
-	 * @param major
-	 * @param minor
+	 * @param id1 - most significant identifier (can be null)
+	 * @param id2 - second most significant identifier (can be null)
+	 * @param id3 - third most significant identifier (can be null)
 	 */
-	public Region(String uniqueId, String proximityUuid, Integer major, Integer minor) {
-		this.major = major;
-		this.minor = minor;
-		this.proximityUuid = normalizeProximityUuid(proximityUuid);
-		this.uniqueId = uniqueId;
+	public Region(String uniqueId, Identifier id1, Identifier id2, Identifier id3) {
+        this.mIdentifiers = new ArrayList<Identifier>(3);
+		this.mIdentifiers.add(id1);
+        this.mIdentifiers.add(id2);
+        this.mIdentifiers.add(id3);
+		this.mUniqueId = uniqueId;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
 	}
-	/**
-	 * @see #major
-	 * @return major
-	 */
-	public Integer getMajor() {
-		return major;
-	}
-	/**
-	 * @see #minor
-	 * @return minor
-	 */
-	public Integer getMinor() {
-		return minor;
-	}
-	/**
-	 * @see #proximityUuid
-	 * @return proximityUuid
-	 */
 
-	public String getProximityUuid() {
-		return proximityUuid;
-	}
-	/**
-	 * @see #uniqueId
-	 * @return uniqueId
-	 */
+    public Identifier getIdentifier(int i) {
+        return mIdentifiers.get(i);
+    }
+
 	public String getUniqueId() {
-		return uniqueId;
+		return mUniqueId;
 	}
 	
 	/**
@@ -113,88 +85,66 @@ public class Region implements Parcelable {
 	 * @return true if is covered
 	 */
 	public boolean matchesBeacon(Beacon beacon) {
-		if (proximityUuid != null && !beacon.getProximityUuid().equals(proximityUuid)) {
-			if (BeaconManager.debug) Log.d(TAG, "unmatching proxmityUuids: "+ beacon.getProximityUuid()+" != "+proximityUuid);
-			return false;
-		}
-		if (major != null && beacon.getMajor() != major) {
-			if (BeaconManager.debug) Log.d(TAG, "unmatching major: "+ beacon.getMajor()+" != "+major);
-			return false;
-		}
-		if (minor != null && beacon.getMinor() != minor) {
-			if (BeaconManager.debug) Log.d(TAG, "unmatching minor: "+ beacon.getMajor()+" != "+minor);
-			return false;
-		}
-		return true;
+        if (this.mIdentifiers.size() != beacon.mIdentifiers.size()) {
+            return false;
+        }
+        // all identifiers must match, or the region identifier must be null
+        for (int i = 0; i < this.mIdentifiers.size(); i++) {
+            if (getIdentifier(i) != null && !getIdentifier(i).equals(beacon.getIdentifier(i))) {
+                return false;
+            }
+        }
+        return true;
 	}
 	
 	protected Region(Region otherRegion) {
-		major = otherRegion.major;
-		minor = otherRegion.minor;
-		proximityUuid = otherRegion.proximityUuid;
-		uniqueId = otherRegion.uniqueId;
+        super();
+        mIdentifiers = new ArrayList<Identifier>(otherRegion.mIdentifiers.size());
+        for (int i = 0; i < otherRegion.mIdentifiers.size(); i++) {
+            mIdentifiers.add(new Identifier(otherRegion.mIdentifiers.get(i)));
+        }
+		mUniqueId = otherRegion.mUniqueId;
 	}
 	protected Region() {
-		
 	}
 
 	@Override
 	public int hashCode() {
-		return this.uniqueId.hashCode();
+		return this.mUniqueId.hashCode();
 	}
 	
 	public boolean equals(Object other) {
 		 if (other instanceof Region) {
-			return ((Region)other).uniqueId.equals(this.uniqueId);
+			return ((Region)other).mUniqueId.equals(this.mUniqueId);
 		 }
 		 return false;
 	}
 	
 	public String toString() {
-		return "proximityUuid: "+proximityUuid+" major: "+major+" minor:"+minor;
+        StringBuilder sb = new StringBuilder();
+        int i = 1;
+        for (Identifier identifier: mIdentifiers) {
+            sb.append("id");
+            sb.append(i);
+            sb.append(": ");
+            sb.append(identifier.toString());
+            sb.append(" ");
+            i++;
+        }
+        return sb.toString();
 	}
-	
-	/**
-	 * Puts string to a normalized UUID format, or throws a runtime exception if it contains non-hex digits
-	 * other than dashes or spaces, or if it doesn't contain exactly 32 hex digits
-	 * @param proximityUuid uuid with any combination of upper/lower case hex characters, dashes and spaces
-	 * @return a normalized string, all lower case hex characters with dashes in the form e2c56db5-dffb-48d2-b060-d0f5a71096e0
-	 */
-	public static String normalizeProximityUuid(String proximityUuid) {
-		if (proximityUuid == null) {
-			return null;			
-		}
-		String dashlessUuid = proximityUuid.toLowerCase().replaceAll("[\\-\\s]", "");
-		if (dashlessUuid.length() != 32) {
-			// TODO: make this a specific exception
-			throw new RuntimeException("UUID: "+proximityUuid+" is too short.  Must contain exactly 32 hex digits, and there are this value has "+dashlessUuid.length()+" digits.");
-		}
-		if (!dashlessUuid.matches("^[a-fA-F0-9]*$")) {
-			// TODO: make this a specific exception
-			throw new RuntimeException("UUID: "+proximityUuid+" contains invalid characters.  Must be dashes, a-f and 0-9 characters only.");			
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(dashlessUuid.substring(0,8));
-		sb.append('-');
-		sb.append(dashlessUuid.substring(8,12));
-		sb.append('-');
-		sb.append(dashlessUuid.substring(12,16));
-		sb.append('-');
-		sb.append(dashlessUuid.substring(16,20));
-		sb.append('-');
-		sb.append(dashlessUuid.substring(20,32));
-		return sb.toString();
-	}
+
 
     public int describeContents() {
         return 0;
     }
 
     public void writeToParcel(Parcel out, int flags) {
-        out.writeInt(major == null ? -1 : major);
-        out.writeInt(minor == null ? -1 : minor);
-        out.writeString(proximityUuid);
-        out.writeString(uniqueId);
+        out.writeString(mUniqueId);
+        out.writeInt(mIdentifiers.size());
+        for (Identifier identifier: mIdentifiers) {
+            out.writeString(identifier.toString());
+        }
     }
 
     public static final Parcelable.Creator<Region> CREATOR
@@ -209,16 +159,11 @@ public class Region implements Parcelable {
     };
 
     private Region(Parcel in) {
-        major = in.readInt();
-        if (major == -1) {
-            major = null;
+        mUniqueId = in.readString();
+        this.mIdentifiers = new ArrayList<Identifier>(in.readInt());
+        for (int i = 0; i < this.mIdentifiers.size(); i++) {
+            mIdentifiers.add(Identifier.parse(in.readString()));
         }
-        minor = in.readInt();
-        if (minor == -1) {
-            minor = null;
-        }
-        proximityUuid = in.readString();
-        uniqueId = in.readString();
     }
     @Override
     public Object clone() {

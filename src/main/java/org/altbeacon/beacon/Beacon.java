@@ -26,197 +26,150 @@ package org.altbeacon.beacon;
 import org.altbeacon.beacon.client.BeaconDataFactory;
 import org.altbeacon.beacon.client.NullBeaconDataFactory;
 
-import android.annotation.TargetApi;
-import android.bluetooth.BluetoothDevice;
-import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 
 /**
 * The <code>Beacon</code> class represents a single hardware Beacon detected by
 * an Android device.
 * 
-* <pre>An Beacon is identified by a three part identifier based on the fields
-* proximityUUID - a string UUID typically identifying the owner of a
-*                 number of beacons
-* major - a 16 bit integer indicating a group of Beacons
-* minor - a 16 bit integer identifying a single Beacon</pre>
+* <pre>A Beacon is identified by a unique multi-part identifier, with the first of the ordered
+* identifiers being more significant for the purposes of grouping beacons.
 *
 * An Beacon sends a Bluetooth Low Energy (BLE) advertisement that contains these
 * three identifiers, along with the calibrated tx power (in RSSI) of the 
 * Beacon's Bluetooth transmitter.  
 * 
 * This class may only be instantiated from a BLE packet, and an RSSI measurement for
-* the packet.  The class parses out the three part identifier, along with the calibrated
+* the packet.  The class parses out the identifier, along with the calibrated
 * tx power.  It then uses the measured RSSI and calibrated tx power to do a rough
-* distance measurement (the accuracy field) and group it into a more reliable buckets of 
-* distance (the proximity field.)
+* mDistance measurement (the accuracy field) and group it into a more reliable buckets of
+* mDistance (the proximity field.)
 * 
 * @author  David G. Young
 * @see     Region#matchesBeacon(Beacon Beacon)
 */
-public class Beacon implements Parcelable {
-	/**
-	 * Less than half a meter away
-	 */
-	public static final int PROXIMITY_IMMEDIATE = 1;
-	/**
-	 * More than half a meter away, but less than four meters away
-	 */
-	public static final int PROXIMITY_NEAR = 2;
-	/**
-	 * More than four meters away
-	 */
-	public static final int PROXIMITY_FAR = 3;
-	/**
-	 * No distance estimate was possible due to a bad RSSI value or measured TX power
-	 */
-	public static final int PROXIMITY_UNKNOWN = 0;
-
-    final private static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+public abstract class Beacon implements Parcelable {
 	private static final String TAG = "Beacon";
-		
-    /**
-     * A 16 byte UUID that typically represents the company owning a number of Beacons
-     * Example: E2C56DB5-DFFB-48D2-B060-D0F5A71096E0 
-     */
-	protected String proximityUuid;
-	/**
-	 * A 16 bit integer typically used to represent a group of Beacons
-	 */
-	protected int major;
-	/**
-	 * A 16 bit integer that identifies a specific Beacon within a group 
-	 */
-	protected int minor;
-	/**
-	 * An integer with four possible values representing a general idea of how far the Beacon is away
-	 * @see #PROXIMITY_IMMEDIATE
-	 * @see #PROXIMITY_NEAR
-	 * @see #PROXIMITY_FAR
-	 * @see #PROXIMITY_UNKNOWN
-	 */
-	protected Integer proximity;
+
+    protected List<Identifier> mIdentifiers;
+
 	/**
 	 * A double that is an estimate of how far the Beacon is away in meters.  This name is confusing, but is copied from
 	 * the iOS7 SDK terminology.   Note that this number fluctuates quite a bit with RSSI, so despite the name, it is not
 	 * super accurate.   It is recommended to instead use the proximity field, or your own bucketization of this value. 
 	 */
-	protected Double accuracy;
+	protected Double mDistance;
 	/**
 	 * The measured signal strength of the Bluetooth packet that led do this Beacon detection.
 	 */
-	protected int rssi;
+	protected int mRssi;
 	/**
 	 * The calibrated measured Tx power of the Beacon in RSSI
 	 * This value is baked into an Beacon when it is manufactured, and
-	 * it is transmitted with each packet to aid in the distance estimate
+	 * it is transmitted with each packet to aid in the mDistance estimate
 	 */
-	protected int txPower;
+	protected int mTxPower;
 
     /**
      * The bluetooth mac address
      */
-    protected String bluetoothAddress;
+    protected String mBluetoothAddress;
 	
 	/**
 	 * If multiple RSSI samples were available, this is the running average
 	 */
-	protected Double runningAverageRssi = null;
+	private Double mRunningAverageRssi = null;
 	
 	/**
 	 * Used to attach data to individual Beacons, either locally or in the cloud
 	 */
 	protected static BeaconDataFactory beaconDataFactory = new NullBeaconDataFactory();
 
-    protected int beaconTypeCode;
-	
+    protected int mBeaconTypeCode;
+
+    public void setRunningAverageRssi(double rssi) {
+        mRunningAverageRssi = rssi;
+        mDistance = null; // force calculation of accuracy and proximity next time they are requested
+    }
+    public void setRssi(int rssi) {
+        mRssi = rssi;
+    }
+
+
+    /**
+     * Returns the specified identifier (note the first identifier starts with 1)
+     * @param i
+     * @return
+     */
+    public Identifier getIdentifier(int i) {
+        return mIdentifiers.get(i-1);
+    }
 	/**
-	 * @see #accuracy
+	 * @see #mDistance
 	 * @return accuracy
 	 */
-	public double getAccuracy() {
-		if (accuracy == null) {
-            double bestRssiAvailable = rssi;
-            if (runningAverageRssi != null) {
-                bestRssiAvailable = runningAverageRssi;
+	public double getDistance() {
+		if (mDistance == null) {
+            double bestRssiAvailable = mRssi;
+            if (mRunningAverageRssi != null) {
+                bestRssiAvailable = mRunningAverageRssi;
             }
             else {
                 if (BeaconManager.debug) Log.d(TAG, "Not using running average RSSI because it is null");
             }
-			accuracy = calculateAccuracy(txPower, bestRssiAvailable );
+			mDistance = calculateDistance(mTxPower, bestRssiAvailable );
 		}
-		return accuracy;
+		return mDistance;
 	}
 	/**
-	 * @see #major
-	 * @return major
-	 */
-	public int getMajor() {
-		return major;
-	}
-	/**
-	 * @see #minor
-	 * @return minor
-	 */
-	public int getMinor() {
-		return minor;
-	}
-	/**
-	 * @see #proximity
-	 * @return proximity
-	 */
-	public int getProximity() {
-		if (proximity == null) {
-			proximity = calculateProximity(getAccuracy());		
-		}
-		return proximity;		
-	}
-	/**
-	 * @see #rssi
-	 * @return rssi
+	 * @see #mRssi
+	 * @return mRssi
 	 */
 	public int getRssi() {
-		return rssi;
+		return mRssi;
 	}
 	/**
-	 * @see #txPower
+	 * @see #mTxPower
 	 * @return txPowwer
 	 */
 	public int getTxPower() {
-		return txPower;
+		return mTxPower;
 	}
 
-    public int getBeaconTypeCode() { return beaconTypeCode; }
+    public int getBeaconTypeCode() { return mBeaconTypeCode; }
 
-	/**
-	 * @see #proximityUuid
-	 * @return proximityUuid
-	 */
-	public String getProximityUuid() {
-		return proximityUuid;
-	}
 
     /**
-     * @see #bluetoothAddress
-     * @return bluetoothAddress
+     * @see #mBluetoothAddress
+     * @return mBluetoothAddress
      */
     public String getBluetoothAddress() {
-        return bluetoothAddress;
+        return mBluetoothAddress;
     }
 
 
 	@Override
 	public int hashCode() {
-		return minor;
+        StringBuilder sb = new StringBuilder();
+        int hashCode = 0;
+        int i = 1;
+        for (Identifier identifier: mIdentifiers) {
+            sb.append("id");
+            sb.append(i);
+            sb.append(": ");
+            sb.append(identifier.toString());
+            sb.append(" ");
+            i++;
+        }
+        return sb.toString().hashCode();
 	}
 	
 	/**
-	 * Two detected beacons are considered equal if they share the same three identifiers, regardless of their distance or RSSI.
+	 * Two detected beacons are considered equal if they share the same three identifiers, regardless of their mDistance or RSSI.
 	 */
 	@Override
 	public boolean equals(Object that) {
@@ -224,125 +177,16 @@ public class Beacon implements Parcelable {
 			return false;
 		}
 		Beacon thatBeacon = (Beacon) that;
-		return (
-                (thatBeacon.getBeaconTypeCode() == this.getBeaconTypeCode()) &&
-                (thatBeacon.getMajor() == this.getMajor()) &&
-                (thatBeacon.getMinor() == this.getMinor()) &&
-                thatBeacon.getProximityUuid().equals(this.getProximityUuid())
-                );
-	}
-
-    /**
-     * Construct an Beacon from a Bluetooth LE packet collected by Android's Bluetooth APIs
-     *
-     * @param scanData The actual packet bytes
-     * @param rssi The measured signal strength of the packet
-     * @return An instance of an <code>Beacon</code>
-     */
-    public static Beacon fromScanData(byte[] scanData, int rssi) {
-        return fromScanData(scanData, rssi, null);
-    }
-
-	/**
-	 * Construct a beacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
-     * including the raw bluetooth device info
-	 * 
-	 * @param scanData The actual packet bytes
-	 * @param rssi The measured signal strength of the packet
-     * @param device The bluetooth device that was detected
-	 * @return An instance of an <code>Beacon</code>
-	 */
-    @TargetApi(5)
-	public static Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
-		int startByte = 2;
-		boolean patternFound = false;
-		while (startByte <= 5) {
-			if (((int)scanData[startByte+2] & 0xff) == 0x02 &&
-				((int)scanData[startByte+3] & 0xff) == 0x15) {			
-				// yes!  This is an beacon
-				patternFound = true;
-				break;
-			}
-            else if (((int)scanData[startByte+2] & 0xff) == 0xbe &&
-                    ((int)scanData[startByte+3] & 0xff) == 0xac) {
-                // yes!  This is an openBeacon
-                patternFound = true;
-                break;
-            }
-            else if (((int)scanData[startByte] & 0xff) == 0x2d &&
-					((int)scanData[startByte+1] & 0xff) == 0x24 &&
-					((int)scanData[startByte+2] & 0xff) == 0xbf &&
-					((int)scanData[startByte+3] & 0xff) == 0x16) {
-                if (BeaconManager.debug) Log.d(TAG, "This is a proprietary Estimote beacon advertisement that does not meet the beacon standard.  Identifiers cannot be read.");
-                Beacon beacon = new Beacon();
-				beacon.major = 0;
-				beacon.minor = 0;
-				beacon.proximityUuid = "00000000-0000-0000-0000-000000000000";
-				beacon.txPower = -55;
-				return beacon;
-			}
-            else if (((int)scanData[startByte] & 0xff) == 0xad &&
-                     ((int)scanData[startByte+1] & 0xff) == 0x77 &&
-                     ((int)scanData[startByte+2] & 0xff) == 0x00 &&
-                     ((int)scanData[startByte+3] & 0xff) == 0xc6) {
-                    if (BeaconManager.debug) Log.d(TAG, "This is a proprietary Gimbal beacon advertisement that does not meet the beacon standard.  Identifiers cannot be read.");
-                    Beacon beacon = new Beacon();
-                    beacon.major = 0;
-                    beacon.minor = 0;
-                    beacon.proximityUuid = "00000000-0000-0000-0000-000000000000";
-                    beacon.txPower = -55;
-                    return beacon;
-            }
-			startByte++;
-		}
-		
-
-		if (patternFound == false) {
-			// This is not an beacon
-			if (BeaconManager.debug) Log.d(TAG, "This is not an beacon advertisment (no 0215 seen in bytes 4-7).  The bytes I see are: "+bytesToHex(scanData));
-			return null;
-		}
-								
-		Beacon beacon = new Beacon();
-		
-		beacon.major = (scanData[startByte+20] & 0xff) * 0x100 + (scanData[startByte+21] & 0xff);
-		beacon.minor = (scanData[startByte+22] & 0xff) * 0x100 + (scanData[startByte+23] & 0xff);
-		beacon.txPower = (int)scanData[startByte+24]; // this one is signed
-		beacon.rssi = rssi;
-        beacon.beaconTypeCode = (scanData[startByte+2] & 0xff) * 0x100 + (scanData[startByte+3] & 0xff);
-				
-		// AirLocate:
-		// 02 01 1a 1a ff 4c 00 02 15  # Apple's fixed beacon advertising prefix
-		// e2 c5 6d b5 df fb 48 d2 b0 60 d0 f5 a7 10 96 e0 # beacon profile uuid
-		// 00 00 # major 
-		// 00 00 # minor 
-		// c5 # The 2's complement of the calibrated Tx Power
-
-		// Estimote:		
-		// 02 01 1a 11 07 2d 24 bf 16 
-		// 394b31ba3f486415ab376e5c0f09457374696d6f7465426561636f6e00000000000000000000000000000000000000000000000000
-
-		byte[] proximityUuidBytes = new byte[16];
-		System.arraycopy(scanData, startByte+4, proximityUuidBytes, 0, 16); 
-		String hexString = bytesToHex(proximityUuidBytes);
-		StringBuilder sb = new StringBuilder();
-		sb.append(hexString.substring(0,8));
-		sb.append("-");
-		sb.append(hexString.substring(8,12));
-		sb.append("-");
-		sb.append(hexString.substring(12,16));
-		sb.append("-");
-		sb.append(hexString.substring(16,20));
-		sb.append("-");
-		sb.append(hexString.substring(20,32));
-		beacon.proximityUuid = sb.toString();
-
-        if (device != null) {
-            beacon.bluetoothAddress = device.getAddress();
+        if (this.mIdentifiers.size() != thatBeacon.mIdentifiers.size()) {
+            return false;
         }
-
-
-		return beacon;
+        // all identifiers must match
+        for (int i = 0; i < this.mIdentifiers.size(); i++) {
+            if (!getIdentifier(i).equals(thatBeacon.getIdentifier(i))) {
+                return false;
+            }
+        }
+        return true;
 	}
 	
 	public void requestData(BeaconDataNotifier notifier) {
@@ -350,57 +194,62 @@ public class Beacon implements Parcelable {
 	}
 
 	protected Beacon(Beacon otherBeacon) {
-		this.major = otherBeacon.major;
-		this.minor = otherBeacon.minor;
-		this.accuracy = otherBeacon.accuracy;
-		this.proximity = otherBeacon.proximity;
-        this.runningAverageRssi = otherBeacon.runningAverageRssi;
-		this.rssi = otherBeacon.rssi;
-		this.proximityUuid = otherBeacon.proximityUuid;
-		this.txPower = otherBeacon.txPower;
-        this.bluetoothAddress = otherBeacon.bluetoothAddress;
-        this.beaconTypeCode = otherBeacon.getBeaconTypeCode();
+        super();
+        mIdentifiers = new ArrayList<Identifier>(otherBeacon.mIdentifiers.size());
+        for (int i = 0; i < otherBeacon.mIdentifiers.size(); i++) {
+            mIdentifiers.add(new Identifier(otherBeacon.mIdentifiers.get(i)));
+        }
+		this.mDistance = otherBeacon.mDistance;
+        this.mRunningAverageRssi = otherBeacon.mRunningAverageRssi;
+		this.mRssi = otherBeacon.mRssi;
+		this.mTxPower = otherBeacon.mTxPower;
+        this.mBluetoothAddress = otherBeacon.mBluetoothAddress;
+        this.mBeaconTypeCode = otherBeacon.getBeaconTypeCode();
 	}
 	
 	protected Beacon() {
 		
 	}
 
-	protected Beacon(String proximityUuid, int major, int minor, int txPower, int rssi, int beaconTypeCode) {
-		this.proximityUuid = proximityUuid.toLowerCase();
-		this.major = major;
-		this.minor = minor;
-		this.rssi = rssi;
-		this.txPower = txPower;
-        this.beaconTypeCode = beaconTypeCode;
+	protected Beacon(String id1, String id2, String id3, int txPower, int rssi, int beaconTypeCode) {
+        mIdentifiers = new ArrayList<Identifier>(3);
+        mIdentifiers.add(Identifier.parse(id1));
+        if (BeaconManager.debug) Log.d(TAG, "id1 passed in as: " + id1 +", parsed as "+Identifier.parse(id1)+", stored as "+getIdentifier(1));
+
+        mIdentifiers.add(Identifier.parse(id2));
+        mIdentifiers.add(Identifier.parse(id3));
+		this.mRssi = rssi;
+		this.mTxPower = txPower;
+        this.mBeaconTypeCode = beaconTypeCode;
+        if (BeaconManager.debug) Log.d(TAG, "constructed a new beacon with id1: " + getIdentifier(1));
 	}
 
-    protected Beacon(String proximityUuid, int major, int minor, int txPower, int rssi) {
-        this.proximityUuid = proximityUuid.toLowerCase();
-        this.major = major;
-        this.minor = minor;
-        this.rssi = rssi;
-        this.txPower = txPower;
-        this.beaconTypeCode = 0;
+    protected Beacon(String id1, String id2, String id3, int txPower, int rssi) {
+        mIdentifiers = new ArrayList<Identifier>(3);
+        mIdentifiers.add(Identifier.parse(id1));
+        mIdentifiers.add(Identifier.parse(id2));
+        mIdentifiers.add(Identifier.parse(id3));
+        this.mRssi = rssi;
+        this.mTxPower = txPower;
+        this.mBeaconTypeCode = 0;
     }
 
-
-	public Beacon(String proximityUuid, int major, int minor) {
-		this.proximityUuid = proximityUuid.toLowerCase();
-		this.major = major;
-		this.minor = minor;
-		this.rssi = rssi;
-		this.txPower = -59;
-		this.rssi = 0;
-        this.beaconTypeCode = 0;
+	public Beacon(String id1, String id2, String id3) {
+        mIdentifiers = new ArrayList<Identifier>(3);
+        mIdentifiers.add(Identifier.parse(id1));
+        mIdentifiers.add(Identifier.parse(id2));
+        mIdentifiers.add(Identifier.parse(id3));
+		this.mTxPower = -59;
+		this.mRssi = 0;
+        this.mBeaconTypeCode = 0;
 	}
 
-	protected static double calculateAccuracy(int txPower, double rssi) {
+	protected static double calculateDistance(int txPower, double rssi) {
 		if (rssi == 0) {
 			return -1.0; // if we cannot determine accuracy, return -1.
 		}
 		
-		if (BeaconManager.debug) Log.d(TAG, "calculating accuracy based on rssi of "+rssi);
+		if (BeaconManager.debug) Log.d(TAG, "calculating accuracy based on mRssi of "+rssi);
 
 
 		double ratio = rssi*1.0/txPower;
@@ -409,77 +258,22 @@ public class Beacon implements Parcelable {
 		}
 		else {
 			double accuracy =  (0.42093)*Math.pow(ratio,6.9476) + 0.54992;
-			if (BeaconManager.debug) Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
+			if (BeaconManager.debug) Log.d(TAG, " avg mRssi: "+rssi+" accuracy: "+accuracy);
 			return accuracy;
 		}
 	}
 
-
-    protected static int calculateProximity(double accuracy) {
-		if (accuracy < 0) {
-			return PROXIMITY_UNKNOWN;	 
-			// is this correct?  does proximity only show unknown when accuracy is negative?  I have seen cases where it returns unknown when
-			// accuracy is -1;
-		}
-		if (accuracy < 0.5 ) {
-			return Beacon.PROXIMITY_IMMEDIATE;
-		}
-		// forums say 3.0 is the near/far threshold, but it looks to be based on experience that this is 4.0
-		if (accuracy <= 4.0) { 
-			return Beacon.PROXIMITY_NEAR;
-		}
-		// if it is > 4.0 meters, call it far
-		return Beacon.PROXIMITY_FAR;
-
-	}
-
-	private static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        int v;
-        for ( int j = 0; j < bytes.length; j++ ) {
-            v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        int i = 1;
+        for (Identifier identifier: mIdentifiers) {
+            sb.append("id");
+            sb.append(i);
+            sb.append(": ");
+            sb.append(identifier.toString());
         }
-        return new String(hexChars);
+        return sb.toString();
     }
 
-    public int describeContents() {
-        return 0;
-    }
-
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeInt(major);
-        out.writeInt(minor);
-        out.writeString(proximityUuid);
-        out.writeInt(getProximity());
-        out.writeDouble(getAccuracy());
-        out.writeInt(rssi);
-        out.writeInt(txPower);
-        out.writeString(bluetoothAddress);
-        out.writeInt(beaconTypeCode);
-    }
-
-    public static final Parcelable.Creator<Beacon> CREATOR
-            = new Parcelable.Creator<Beacon>() {
-        public Beacon createFromParcel(Parcel in) {
-            return new Beacon(in);
-        }
-
-        public Beacon[] newArray(int size) {
-            return new Beacon[size];
-        }
-    };
-
-    private Beacon(Parcel in) {
-        major = in.readInt();
-        minor = in.readInt();
-        proximityUuid = in.readString();
-        proximity = in.readInt();
-        accuracy = in.readDouble();
-        rssi = in.readInt();
-        txPower = in.readInt();
-        bluetoothAddress = in.readString();
-        beaconTypeCode = in.readInt();
-    }
 }

@@ -182,7 +182,7 @@ public abstract class Beacon implements Parcelable {
         }
         // all identifiers must match
         for (int i = 0; i < this.mIdentifiers.size(); i++) {
-            if (!getIdentifier(i).equals(thatBeacon.getIdentifier(i))) {
+            if (!this.mIdentifiers.get(i).equals(thatBeacon.mIdentifiers.get(i))) {
                 return false;
             }
         }
@@ -211,7 +211,7 @@ public abstract class Beacon implements Parcelable {
 		
 	}
 
-	protected Beacon(String id1, String id2, String id3, int txPower, int rssi, int beaconTypeCode) {
+	protected Beacon(String id1, String id2, String id3, int txPower, int rssi, int beaconTypeCode, String bluetoothAddress) {
         mIdentifiers = new ArrayList<Identifier>(3);
         mIdentifiers.add(Identifier.parse(id1));
         if (BeaconManager.debug) Log.d(TAG, "id1 passed in as: " + id1 +", parsed as "+Identifier.parse(id1)+", stored as "+getIdentifier(1));
@@ -221,6 +221,7 @@ public abstract class Beacon implements Parcelable {
 		this.mRssi = rssi;
 		this.mTxPower = txPower;
         this.mBeaconTypeCode = beaconTypeCode;
+        this.mBluetoothAddress = bluetoothAddress;
         if (BeaconManager.debug) Log.d(TAG, "constructed a new beacon with id1: " + getIdentifier(1));
 	}
 

@@ -127,7 +127,11 @@ public class AltBeaconParser extends BeaconParser {
             beacon.mBluetoothAddress = device.getAddress();
         }
 
-        AltBeacon altBeacon = new AltBeacon(id1, id2.toString(), id3.toString(), txPower, rssi, beaconTypeCode, manData);
+        String macAddress = null;
+        if (device != null) {
+            macAddress = device.getAddress();
+        }
+        AltBeacon altBeacon = new AltBeacon(id1, id2.toString(), id3.toString(), txPower, rssi, beaconTypeCode, manData, macAddress);
         altBeacon.mManData = manData;
         return altBeacon;
     }

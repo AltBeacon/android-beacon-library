@@ -71,8 +71,13 @@ public class Region implements Parcelable {
         }
 	}
 
+    /**
+     * Returns the 1-indexed identifier
+     * @param i
+     * @return
+     */
     public Identifier getIdentifier(int i) {
-        return mIdentifiers.get(i);
+        return mIdentifiers.get(i-1);
     }
 
 	public String getUniqueId() {
@@ -90,7 +95,7 @@ public class Region implements Parcelable {
         }
         // all identifiers must match, or the region identifier must be null
         for (int i = 0; i < this.mIdentifiers.size(); i++) {
-            if (getIdentifier(i) != null && !getIdentifier(i).equals(beacon.getIdentifier(i))) {
+            if (mIdentifiers.get(i) != null && !mIdentifiers.get(i).equals(beacon.mIdentifiers.get(i))) {
                 return false;
             }
         }
@@ -142,8 +147,14 @@ public class Region implements Parcelable {
     public void writeToParcel(Parcel out, int flags) {
         out.writeString(mUniqueId);
         out.writeInt(mIdentifiers.size());
+
         for (Identifier identifier: mIdentifiers) {
-            out.writeString(identifier.toString());
+            if (identifier != null) {
+                out.writeString(identifier.toString());
+            }
+            else {
+                out.writeString(null);
+            }
         }
     }
 
@@ -158,11 +169,13 @@ public class Region implements Parcelable {
         }
     };
 
-    private Region(Parcel in) {
+    protected Region(Parcel in) {
         mUniqueId = in.readString();
-        this.mIdentifiers = new ArrayList<Identifier>(in.readInt());
-        for (int i = 0; i < this.mIdentifiers.size(); i++) {
-            mIdentifiers.add(Identifier.parse(in.readString()));
+        int size = in.readInt();
+        mIdentifiers = new ArrayList<Identifier>(size);
+        for (int i = 0; i < size; i++) {
+            Identifier identifier = Identifier.parse(in.readString());
+            mIdentifiers.add(identifier);
         }
     }
     @Override

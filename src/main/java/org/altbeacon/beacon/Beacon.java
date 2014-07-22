@@ -211,38 +211,20 @@ public abstract class Beacon implements Parcelable {
 		
 	}
 
-	protected Beacon(String id1, String id2, String id3, int txPower, int rssi, int beaconTypeCode, String bluetoothAddress) {
-        mIdentifiers = new ArrayList<Identifier>(3);
-        mIdentifiers.add(Identifier.parse(id1));
-        if (BeaconManager.debug) Log.d(TAG, "id1 passed in as: " + id1 +", parsed as "+Identifier.parse(id1)+", stored as "+getIdentifier(1));
-
-        mIdentifiers.add(Identifier.parse(id2));
-        mIdentifiers.add(Identifier.parse(id3));
-		this.mRssi = rssi;
-		this.mTxPower = txPower;
-        this.mBeaconTypeCode = beaconTypeCode;
-        this.mBluetoothAddress = bluetoothAddress;
-        if (BeaconManager.debug) Log.d(TAG, "constructed a new beacon with id1: " + getIdentifier(1));
-	}
-
-    protected Beacon(String id1, String id2, String id3, int txPower, int rssi) {
-        mIdentifiers = new ArrayList<Identifier>(3);
-        mIdentifiers.add(Identifier.parse(id1));
-        mIdentifiers.add(Identifier.parse(id2));
-        mIdentifiers.add(Identifier.parse(id3));
+    protected Beacon(List<Identifier> identifiers, int txPower, int rssi, int beaconTypeCode, String bluetoothAddress) {
+        mIdentifiers = identifiers;
         this.mRssi = rssi;
         this.mTxPower = txPower;
-        this.mBeaconTypeCode = 0;
+        this.mBeaconTypeCode = beaconTypeCode;
+        this.mBluetoothAddress = bluetoothAddress;
     }
 
-	public Beacon(String id1, String id2, String id3) {
+	protected Beacon(String id1, String id2, String id3, int txPower, int rssi, int beaconTypeCode, String bluetoothAddress) {
+        this(null, txPower, rssi, beaconTypeCode,bluetoothAddress);
         mIdentifiers = new ArrayList<Identifier>(3);
         mIdentifiers.add(Identifier.parse(id1));
         mIdentifiers.add(Identifier.parse(id2));
         mIdentifiers.add(Identifier.parse(id3));
-		this.mTxPower = -59;
-		this.mRssi = 0;
-        this.mBeaconTypeCode = 0;
 	}
 
 	protected static double calculateDistance(int txPower, double rssi) {

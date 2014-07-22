@@ -14,6 +14,9 @@ public class Identifier {
     public static Identifier parse(String identifierString) {
         return new Identifier(identifierString);
     }
+    public static Identifier fromInt(int identifierInt) {
+        return new Identifier(Integer.toString(identifierInt));
+    }
     public Identifier(Identifier identifier) {
         if (identifier != null) {
             // TODO: Validate that this identifier is in one of various valid formats
@@ -29,6 +32,9 @@ public class Identifier {
     // toString() and parse() must always return objects that return true when you call equals()
     public String toString() {
         return mStringValue;
+    }
+    public int toInt() {
+        return Integer.parseInt(mStringValue);
     }
     //TODO:  Add other conversion methods for UUID, int, etc for various identifier types
 

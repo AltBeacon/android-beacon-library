@@ -12,7 +12,7 @@ public class AltBeaconParser extends BeaconParser {
 
     public AltBeaconParser() {
         super();
-        setMatchingBeaconTypeCode(0xbeac);
+        setMatchingBeaconTypeCode(0xacbe);
     }
 
     /**
@@ -28,15 +28,12 @@ public class AltBeaconParser extends BeaconParser {
     public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
 		int startByte = 2;
 		boolean patternFound = false;
+        int typeCodeByte1 = (getMatchingBeaconTypeCode() & 0xff00) >> 8;
+        int typeCodeByte2 = (getMatchingBeaconTypeCode() & 0x00ff);
+
 		while (startByte <= 5) {
-			if (((int)scanData[startByte+2] & 0xff) == 0x02 &&
-				((int)scanData[startByte+3] & 0xff) == 0x15) {
-				// yes!  This is an beacon
-				patternFound = true;
-				break;
-			}
-            else if (((int)scanData[startByte+2] & 0xff) == (getMatchingBeaconTypeCode() & 0x00ff) &&
-                    ((int)scanData[startByte+3] & 0xff) == (getMatchingBeaconTypeCode() & 0xff00) >> 8) {
+            if (((int)scanData[startByte+2] & 0xff) == typeCodeByte1 &&
+                    ((int)scanData[startByte+3] & 0xff) == typeCodeByte2) {
                 // yes!  This is an altBeacon
                 patternFound = true;
                 break;
@@ -92,7 +89,7 @@ public class AltBeaconParser extends BeaconParser {
 
 		if (patternFound == false) {
 			// This is not an beacon
-			if (BeaconManager.debug) Log.d(TAG, "This is not an AltBeacon advertisement (no 0x"+String.format("%04x", getMatchingBeaconTypeCode())+" seen).  The bytes I see are: "+bytesToHex(scanData));
+			if (BeaconManager.debug) Log.d(TAG, "This is not an AltBeacon advertisement.  (Was expecting "+String.format("%02x", typeCodeByte1)+" "+String.format("%02x", typeCodeByte2)+".  The bytes I see are: "+bytesToHex(scanData));
 			return null;
 		}
         else {

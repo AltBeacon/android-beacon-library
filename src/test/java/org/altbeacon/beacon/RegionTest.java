@@ -67,4 +67,10 @@ public class RegionTest {
         // for some reason jUnit won't consider two null values to be equal, so we force it with a prepend of ""
         assertEquals("id3 is same after deserialization", ""+region.getIdentifier(3), ""+region2.getIdentifier(3));
     }
+
+    @Test
+    public void testToString() {
+        Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
+        assertEquals("id1: 1 id2: 2 id3: null", region.toString());
+    }
 }

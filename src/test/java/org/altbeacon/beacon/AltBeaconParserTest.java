@@ -4,6 +4,7 @@ import android.os.Parcel;
 
 import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.robolectric.RobolectricTestRunner;
@@ -37,7 +38,6 @@ public class AltBeaconParserTest {
 
     @Test
     public void testRecognizeBeacon() {
-        BeaconManager.debug = true;
         byte[] bytes = hexStringToByteArray("02011a1affacbe2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
         AltBeaconParser parser = new AltBeaconParser();
         Beacon beacon = parser.fromScanData(bytes, -55, null);
@@ -46,5 +46,15 @@ public class AltBeaconParserTest {
         assertEquals("id2 should be parsed", "1", beacon.getIdentifier(2).toString());
         assertEquals("id3 should be parsed", "2", beacon.getIdentifier(3).toString());
         assertEquals("manData should be parsed", 9, ((AltBeacon) beacon).getManData() );
+    }
+
+    @Test
+    public void testHardwareDetection() {
+        BeaconManager.debug = true;
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02011a1bff1801acbe2f234454cf6d4a0fadf2f4911ba9ffa600050003be020e09526164426561636f6e20555342020a0300000000000000000000000000");
+        AltBeaconParser parser = new AltBeaconParser();
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertNotNull("Beacon should be not null if parsed successfully", beacon);
     }
 }

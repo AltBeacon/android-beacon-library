@@ -129,11 +129,13 @@ public class Region implements Parcelable {
         StringBuilder sb = new StringBuilder();
         int i = 1;
         for (Identifier identifier: mIdentifiers) {
+            if (i > 1) {
+                sb.append(" ");
+            }
             sb.append("id");
             sb.append(i);
             sb.append(": ");
-            sb.append(identifier.toString());
-            sb.append(" ");
+            sb.append(identifier == null ? "null" : identifier.toString());
             i++;
         }
         return sb.toString();

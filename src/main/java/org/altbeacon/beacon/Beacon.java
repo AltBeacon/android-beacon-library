@@ -273,6 +273,8 @@ public abstract class Beacon implements Parcelable {
             sb.append(i);
             sb.append(": ");
             sb.append(identifier.toString());
+            sb.append(" ");
+            i++;
         }
         return sb.toString();
     }

@@ -26,8 +26,6 @@ public class AltBeaconParser extends BeaconParser {
      */
     @TargetApi(5)
     public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
-        AltBeacon beacon = null;
-
 		int startByte = 2;
 		boolean patternFound = false;
 		while (startByte <= 5) {
@@ -129,16 +127,15 @@ public class AltBeaconParser extends BeaconParser {
 		String id1 = sb.toString();
         if (BeaconManager.debug) Log.d(TAG, "parsed uuid as "+id1+" from "+hexString);
 
-        if (device != null) {
-            beacon.mBluetoothAddress = device.getAddress();
-        }
-
         String macAddress = null;
         if (device != null) {
             macAddress = device.getAddress();
         }
         AltBeacon altBeacon = new AltBeacon(id1, id2.toString(), id3.toString(), txPower, rssi, beaconTypeCode, manData, macAddress);
         altBeacon.mManData = manData;
+        if (device != null) {
+            altBeacon.mBluetoothAddress = device.getAddress();
+        }
         return altBeacon;
     }
 

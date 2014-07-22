@@ -21,7 +21,7 @@ public class Identifier {
             // integer (decimal or hex)
             // if it does not match a format, throw a IdentifierFormatException (runtime)
             // if it does match a format, normalize (e.g. lower case hex digits)
-            mStringValue = identifier.mStringValue.toLowerCase();
+            mStringValue = identifier.mStringValue;
         }
     }
 
@@ -41,7 +41,12 @@ public class Identifier {
         return (this.mStringValue.equals(thatIdentifier.mStringValue));
     }
     private Identifier(String stringValue) {
-        this.mStringValue = stringValue;
+        if (stringValue != null) {
+            this.mStringValue = stringValue.toLowerCase();
+        }
+        else {
+            mStringValue = null;
+        }
     }
     private Identifier() {}
 }

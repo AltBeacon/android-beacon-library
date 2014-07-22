@@ -103,8 +103,14 @@ public class AltBeaconParser extends BeaconParser {
 
 		Integer id2 = (scanData[startByte+20] & 0xff) * 0x100 + (scanData[startByte+21] & 0xff);
 		Integer id3 = (scanData[startByte+22] & 0xff) * 0x100 + (scanData[startByte+23] & 0xff);
-		int txPower = (int)scanData[startByte+24]; // this one is signed
-        int manData = (int)(scanData[startByte+25] & 0xff);
+		int txPower = 0;
+        if (scanData.length > startByte+24) {
+            txPower = (int) scanData[startByte + 24]; // this one is signed
+        }
+        int manData = 0;
+        if (scanData.length > startByte+25) {
+            manData = (int)(scanData[startByte+25] & 0xff);
+        }
         int beaconTypeCode = (scanData[startByte+3] & 0xff) * 0x100 + (scanData[startByte+2] & 0xff);
 
 		byte[] id1Bytes = new byte[16];

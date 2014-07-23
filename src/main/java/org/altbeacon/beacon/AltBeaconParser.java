@@ -12,7 +12,7 @@ public class AltBeaconParser extends BeaconParser {
 
     public AltBeaconParser() {
         super();
-        setMatchingBeaconTypeCode(0xacbe);
+        setMatchingBeaconTypeCode(0xbeac);
     }
 
     /**

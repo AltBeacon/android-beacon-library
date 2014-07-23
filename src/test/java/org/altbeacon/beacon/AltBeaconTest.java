@@ -38,7 +38,7 @@ public class AltBeaconTest {
   @Test
   public void testRecognizeBeacon() {
     BeaconManager.debug = true;
-	byte[] bytes = hexStringToByteArray("02011a1affacbe2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+	byte[] bytes = hexStringToByteArray("02011a1affbeac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
     AltBeaconParser parser = new AltBeaconParser();
 	Beacon beacon = parser.fromScanData(bytes, -55, null);
     assertEquals("mRssi should be as passed in", -55, beacon.getRssi());

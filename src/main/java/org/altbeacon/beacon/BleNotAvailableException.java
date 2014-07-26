@@ -25,7 +25,7 @@ package org.altbeacon.beacon;
 
 /**
  * Indicates that low energy bluetooth is not available on this device
- * @see BeaconManager#CheckAvailability
+ * @see BeaconManager#checkAvailability
  * @author David G. Young
  *
  */

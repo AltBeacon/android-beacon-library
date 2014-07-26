@@ -26,28 +26,32 @@ HOW TO SEE DEBUG LINES FROM YOUR UNIT TESTS:
 public class RegionTest {
     @Test
     public void testBeaconMatchesRegionWithSameIdentifiers() {
-        Beacon beacon = new AltBeacon("1","2","3", 4, 5, 6, 7, "1:2:3:4:5:6");
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), Identifier.parse("3"));
         assertTrue("Beacon should match region with all identifiers the same", region.matchesBeacon(beacon));
     }
 
     @Test
     public void testBeaconMatchesRegionWithSameIdentifier1() {
-        Beacon beacon = new AltBeacon("1","2","3", 4, 5, 6, 7, "1:2:3:4:5:6");
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
         Region region = new Region("myRegion", Identifier.parse("1"), null, null);
         assertTrue("Beacon should match region with first identifier the same", region.matchesBeacon(beacon));
     }
 
     @Test
     public void testBeaconMatchesRegionWithSameIdentifier1And2() {
-        Beacon beacon = new AltBeacon("1","2","3", 4, 5, 6, 7, "1:2:3:4:5:6");
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
         assertTrue("Beacon should match region with first two identifiers the same", region.matchesBeacon(beacon));
     }
 
     @Test
     public void testBeaconMatchesRegionWithDifferentIdentifier1() {
-        Beacon beacon = new AltBeacon("1","2","3", 4, 5, 6, 7, "1:2:3:4:5:6");
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
         Region region = new Region("myRegion", Identifier.parse("222222"), null, null);
         assertTrue("Beacon should not match region with first identifier different", !region.matchesBeacon(beacon));
     }

@@ -69,7 +69,7 @@ import android.util.Log;
  *  	 {@literal @}Override 
  *  	protected void onDestroy() {
  *  		super.onDestroy();
- *  		beaconManager.unBind(this);
+ *  		beaconManager.unbind(this);
  *  	}
  *  	 {@literal @}Override
  *  	public void onBeaconServiceConnect() {
@@ -250,7 +250,7 @@ public class BeaconManager {
 	 * 
 	 * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
 	 */
-	public void unBind(BeaconConsumer consumer) {
+	public void unbind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;

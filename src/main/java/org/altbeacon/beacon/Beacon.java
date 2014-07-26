@@ -26,10 +26,12 @@ package org.altbeacon.beacon;
 import org.altbeacon.beacon.client.BeaconDataFactory;
 import org.altbeacon.beacon.client.NullBeaconDataFactory;
 
+import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,21 +48,20 @@ import java.util.List;
 * This class may only be instantiated from a BLE packet, and an RSSI measurement for
 * the packet.  The class parses out the identifier, along with the calibrated
 * tx power.  It then uses the measured RSSI and calibrated tx power to do a rough
-* mDistance measurement (the accuracy field) and group it into a more reliable buckets of
-* mDistance (the proximity field.)
+* distance measurement (the mDistance field)
 * 
 * @author  David G. Young
 * @see     Region#matchesBeacon(Beacon Beacon)
 */
-public abstract class Beacon implements Parcelable {
+public class Beacon implements Parcelable {
 	private static final String TAG = "Beacon";
 
     protected List<Identifier> mIdentifiers;
+    protected List<Long> mDataFields;
 
 	/**
-	 * A double that is an estimate of how far the Beacon is away in meters.  This name is confusing, but is copied from
-	 * the iOS7 SDK terminology.   Note that this number fluctuates quite a bit with RSSI, so despite the name, it is not
-	 * super accurate.   It is recommended to instead use the proximity field, or your own bucketization of this value. 
+	 * A double that is an estimate of how far the Beacon is away in meters.   Note that this number
+     * fluctuates quite a bit with RSSI, so despite the name, it is not super accurate.
 	 */
 	protected Double mDistance;
 	/**
@@ -102,15 +103,36 @@ public abstract class Beacon implements Parcelable {
 
     /**
      * Returns the specified identifier (note the first identifier starts with 1)
-     * @param i
-     * @return
+     * @param i - index identfier
+     * @return identifier
      */
     public Identifier getIdentifier(int i) {
         return mIdentifiers.get(i-1);
     }
+
+    /**
+     * Returns the list of data fields transmitted with the advertisement
+     * @return dataFields
+     */
+    public List<Long> getDataFields() {
+        return Collections.unmodifiableList(mDataFields);
+    }
+    /**
+     * Returns the list of identifiers transmitted with the advertisement
+     * @return identifier
+     */
+    public List<Identifier> getIdentifiers() {
+        return Collections.unmodifiableList(mIdentifiers);
+    }
+
+
 	/**
+     * Provides a calcualted estimate of the distance to the beacon based on a running average of
+     * the RSSI and the transmitted power calibration value included in the beacon advertisement.
+     * This value is specific to the type of Android device receiving the transmission.
+     *
 	 * @see #mDistance
-	 * @return accuracy
+	 * @return distance
 	 */
 	public double getDistance() {
 		if (mDistance == null) {
@@ -155,7 +177,6 @@ public abstract class Beacon implements Parcelable {
 	@Override
 	public int hashCode() {
         StringBuilder sb = new StringBuilder();
-        int hashCode = 0;
         int i = 1;
         for (Identifier identifier: mIdentifiers) {
             sb.append("id");
@@ -188,14 +209,79 @@ public abstract class Beacon implements Parcelable {
         }
         return true;
 	}
-	
+
+    /**
+     * Requests server-side data for this beacon.  Requires that a BeaconDataFactory be set up with
+     * a backend service.
+     * @param notifier interface providing a callback when data are available
+     */
 	public void requestData(BeaconDataNotifier notifier) {
 		beaconDataFactory.requestBeaconData(this, notifier);
 	}
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        int i = 1;
+        for (Identifier identifier: mIdentifiers) {
+            sb.append("id");
+            sb.append(i);
+            sb.append(": ");
+            sb.append(identifier.toString());
+            sb.append(" ");
+            i++;
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Required for making object Parcelable.  If you override this class, you must provide an
+     * equivalent version of this method.
+     */
+    public static final Parcelable.Creator<Beacon> CREATOR
+            = new Parcelable.Creator<Beacon>() {
+        public Beacon createFromParcel(Parcel in) {
+            return new Beacon(in);
+        }
+
+        public Beacon[] newArray(int size) {
+            return new Beacon[size];
+        }
+    };
+
+    /**
+     * Required for making object Parcelable
+     */
+    public int describeContents() {
+        return 0;
+    }
+
+    /**
+     * Required for making object Parcelable.  If you override this class, you must override this
+     * method if you add any additional fields.
+     */
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeInt(mIdentifiers.size());
+        if (BeaconManager.debug) Log.d(TAG, "serializing identifiers of size "+mIdentifiers.size());
+        for (Identifier identifier: mIdentifiers) {
+            out.writeString(identifier == null ? null : identifier.toString());
+        }
+        out.writeDouble(getDistance());
+        out.writeInt(mRssi);
+        out.writeInt(mTxPower);
+        out.writeString(mBluetoothAddress);
+        out.writeInt(mBeaconTypeCode);
+        out.writeInt(mDataFields.size());
+        for (Long dataField: mDataFields) {
+            out.writeLong(dataField);
+        }
+
+    }
+
 	protected Beacon(Beacon otherBeacon) {
         super();
         mIdentifiers = new ArrayList<Identifier>(otherBeacon.mIdentifiers.size());
+        mDataFields = new ArrayList<Long>(otherBeacon.mDataFields.size());
         for (int i = 0; i < otherBeacon.mIdentifiers.size(); i++) {
             mIdentifiers.add(new Identifier(otherBeacon.mIdentifiers.get(i)));
         }
@@ -208,23 +294,8 @@ public abstract class Beacon implements Parcelable {
 	}
 	
 	protected Beacon() {
-		
-	}
-
-    protected Beacon(List<Identifier> identifiers, int txPower, int rssi, int beaconTypeCode, String bluetoothAddress) {
-        mIdentifiers = identifiers;
-        this.mRssi = rssi;
-        this.mTxPower = txPower;
-        this.mBeaconTypeCode = beaconTypeCode;
-        this.mBluetoothAddress = bluetoothAddress;
-    }
-
-	protected Beacon(String id1, String id2, String id3, int txPower, int rssi, int beaconTypeCode, String bluetoothAddress) {
-        this(null, txPower, rssi, beaconTypeCode,bluetoothAddress);
-        mIdentifiers = new ArrayList<Identifier>(3);
-        mIdentifiers.add(Identifier.parse(id1));
-        mIdentifiers.add(Identifier.parse(id2));
-        mIdentifiers.add(Identifier.parse(id3));
+        mIdentifiers = new ArrayList<Identifier>(1);
+        mDataFields = new ArrayList<Long>(1);
 	}
 
 	protected static double calculateDistance(int txPower, double rssi) {
@@ -246,19 +317,172 @@ public abstract class Beacon implements Parcelable {
 		}
 	}
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        int i = 1;
-        for (Identifier identifier: mIdentifiers) {
-            sb.append("id");
-            sb.append(i);
-            sb.append(": ");
-            sb.append(identifier.toString());
-            sb.append(" ");
-            i++;
+    protected Beacon(Parcel in) {
+        int size = in.readInt();
+        if (BeaconManager.debug) Log.d(TAG, "deserializing identifiers of size "+size);
+
+        this.mIdentifiers = new ArrayList<Identifier>(size);
+        for (int i = 0; i < size; i++) {
+            mIdentifiers.add(Identifier.parse(in.readString()));
+            if (BeaconManager.debug) Log.d(TAG, "deserializing "+mIdentifiers.get(i));
         }
-        return sb.toString();
+        mDistance = in.readDouble();
+        if (BeaconManager.debug) Log.d(TAG, "deserialized distance "+mDistance);
+        mRssi = in.readInt();
+        if (BeaconManager.debug) Log.d(TAG, "deserialized rssi "+mRssi);
+        mTxPower = in.readInt();
+        if (BeaconManager.debug) Log.d(TAG, "deserialized txPower "+mTxPower);
+        mBluetoothAddress = in.readString();
+        if (BeaconManager.debug) Log.d(TAG, "deserialized bluetooth address "+mBluetoothAddress);
+        mBeaconTypeCode = in.readInt();
+        int dataSize = in.readInt();
+        this.mDataFields = new ArrayList<Long>(dataSize);
+        for (int i = 0; i < dataSize; i++) {
+            mDataFields.add(in.readLong());
+            if (BeaconManager.debug) Log.d(TAG, "deserializing "+mDataFields.get(i));
+        }
+
     }
+
+    /**
+     * Builder class for Beacon objects. Provides a convenient way to set the various fields of a
+     * Beacon
+     *
+     * <p>Example:
+     *
+     * <pre>
+     * Beacon beacon = new Beacon.Builder()
+     *         .setId1(&quot;2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6&quot;)
+     *         .setId2("1")
+     *         .setId3("2")
+     *         .build();
+     * </pre>
+     */
+    public static class Builder {
+        protected Beacon mBeacon;
+        private Identifier mId1, mId2, mId3;
+
+        /**
+         * Creates a builder instance
+         */
+        public Builder() {
+            mBeacon = new Beacon();
+        }
+
+        /**
+         * Builds an instance of this beacon based on parameters set in the Builder
+         * @return beacon
+         */
+        public Beacon build() {
+            if (mId1!= null) {
+                mBeacon.mIdentifiers.add(mId1);
+                if (mId2!= null) {
+                    mBeacon.mIdentifiers.add(mId2);
+                    if (mId3!= null) {
+                        mBeacon.mIdentifiers.add(mId3);
+                    }
+                }
+            }
+            return mBeacon;
+        }
+
+        /**
+         * @see Beacon#mIdentifiers
+         * @param identifiers identifiers to set
+         * @return builder
+         */
+        public Builder setIdentifiers(List<Identifier>identifiers) {
+            mId1 = null;
+            mId2 = null;
+            mId3 = null;
+            mBeacon.mIdentifiers = identifiers;
+            return this;
+        }
+
+        /**
+         * Convenience method allowing the first beacon identifier to be set as a String.  It will
+         * be parsed into an Identifier object
+         * @param id1String string to parse into an identifier
+         * @return builder
+         */
+        public Builder setId1(String id1String) {
+            mId1 = Identifier.parse(id1String);
+            return this;
+        }
+
+        /**
+         * Convenience method allowing the second beacon identifier to be set as a String.  It will
+         * be parsed into an Identifier object
+         * @param id2String string to parse into an identifier
+         * @return builder
+         */
+        public Builder setId2(String id2String) {
+            mId2 = Identifier.parse(id2String);
+            return this;
+        }
+
+        /**
+         * Convenience method allowing the third beacon identifier to be set as a String.  It will
+         * be parsed into an Identifier object
+         * @param id3String string to parse into an identifier
+         * @return builder
+         */
+        public Builder setId3(String id3String) {
+            mId3 = Identifier.parse(id3String);
+            return this;
+        }
+
+        /**
+         * @see Beacon#mRssi
+         * @param rssi
+         * @return builder
+         */
+        public Builder setRssi(int rssi) {
+            mBeacon.mRssi = rssi;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mTxPower
+         * @param txPower
+         * @return builder
+         */
+        public Builder setTxPower(int txPower) {
+            mBeacon.mTxPower = txPower;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mBeaconTypeCode
+         * @param beaconTypeCode
+         * @return builder
+         */
+        public Builder setBeaconTypeCode(int beaconTypeCode) {
+            mBeacon.mBeaconTypeCode = beaconTypeCode;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mBluetoothAddress
+         * @param bluetoothAddress
+         * @return builder
+         */
+        public Builder setBluetoothAddress(String bluetoothAddress) {
+            mBeacon.mBluetoothAddress = bluetoothAddress;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mDataFields
+         * @param dataFields
+         * @return builder
+         */
+        public Builder setDataFields(List<Long> dataFields) {
+            mBeacon.mDataFields = dataFields;
+            return this;
+        }
+    }
+
+
 
 }

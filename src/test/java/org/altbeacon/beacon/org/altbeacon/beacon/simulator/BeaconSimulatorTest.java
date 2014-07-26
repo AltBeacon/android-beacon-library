@@ -1,4 +1,4 @@
-package org.altbeacon.beacon.simulator;
+package org.altbeacon.beacon.org.altbeacon.beacon.simulator;
 
 
 import static org.junit.Assert.assertEquals;
@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import org.altbeacon.beacon.AltBeacon;
 import org.altbeacon.beacon.AltBeaconParser;
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.simulator.StaticBeaconSimulator;
 import org.robolectric.RobolectricTestRunner;
 
 import org.junit.runner.RunWith;

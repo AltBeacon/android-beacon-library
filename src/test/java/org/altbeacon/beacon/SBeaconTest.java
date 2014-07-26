@@ -48,7 +48,11 @@ public class SBeaconTest {
         private int mTime;
 
         protected SBeacon(int group, String id, int time, int txPower, int rssi, int beaconTypeCode, String bluetoothAddress) {
-            super(null, txPower, rssi, beaconTypeCode, bluetoothAddress);
+            super();
+            mTxPower = txPower;
+            mRssi = rssi;
+            mBeaconTypeCode = beaconTypeCode;
+            mBluetoothAddress = bluetoothAddress;
             mIdentifiers = new ArrayList<Identifier>(2);
             mIdentifiers.add(Identifier.fromInt(group));
             mIdentifiers.add(Identifier.parse(id));

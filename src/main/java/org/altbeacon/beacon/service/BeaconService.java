@@ -205,7 +205,7 @@ public class BeaconService extends Service {
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
 
-        beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getAltBeaconParsers();
+        beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
 
         // Look for simulated scan data
         try {

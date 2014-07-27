@@ -187,7 +187,7 @@ public class BeaconManager {
 		return client;
 	}
 
-    public List<BeaconParser> getAltBeaconParsers() {
+    public List<BeaconParser> getBeaconParsers() {
         return beaconParsers;
     }
 

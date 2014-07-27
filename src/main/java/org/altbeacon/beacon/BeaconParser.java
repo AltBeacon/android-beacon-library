@@ -91,6 +91,10 @@ public class BeaconParser {
         int txPower = 0;
         String powerString = byteArrayToFormattedString(scanData, mPowerStartOffset+startByte, mPowerEndOffset+startByte);
         txPower = Integer.parseInt(powerString);
+        // make sure it is a signed integer
+        if (txPower > 127) {
+            txPower -= 256;
+        }
         // TODO: error handling needed on the parse
 
 

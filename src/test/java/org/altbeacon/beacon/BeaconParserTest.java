@@ -76,6 +76,7 @@ public class BeaconParserTest {
         assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(1).toString());
         assertEquals("id2 should be parsed", "1", beacon.getIdentifier(2).toString());
         assertEquals("id3 should be parsed", "2", beacon.getIdentifier(3).toString());
+        assertEquals("txPower should be parsed", -59, beacon.getTxPower());
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }
 

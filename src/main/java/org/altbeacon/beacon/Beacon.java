@@ -390,18 +390,20 @@ public class Beacon implements Parcelable {
 			return -1.0; // if we cannot determine accuracy, return -1.
 		}
 		
-		BeaconManager.logDebug(TAG, "calculating accuracy based on mRssi of "+rssi);
+		BeaconManager.logDebug(TAG, "calculating distance based on mRssi of "+rssi+" and txPower of "+txPower);
 
 
 		double ratio = rssi*1.0/txPower;
+        double distance;
 		if (ratio < 1.0) {
-			return Math.pow(ratio,10);
+			distance =  Math.pow(ratio,10);
 		}
 		else {
-			double accuracy =  (0.42093)*Math.pow(ratio,6.9476) + 0.54992;
-			BeaconManager.logDebug(TAG, " avg mRssi: "+rssi+" accuracy: "+accuracy);
-			return accuracy;
+			distance =  (0.42093)*Math.pow(ratio,6.9476) + 0.54992;
+			BeaconManager.logDebug(TAG, " avg mRssi: "+rssi+" distance: "+distance);
 		}
+        BeaconManager.logDebug(TAG, " avg mRssi: "+rssi+" distance: "+distance);
+        return distance;
 	}
 
     /**

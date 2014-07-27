@@ -12,20 +12,6 @@ import java.util.ArrayList;
 public class AltBeacon extends Beacon {
     private static final String TAG = "AltBeacon";
 
-    protected AltBeacon() {
-    }
-
-    /**
-     * Returns a field with a value from 0-255 that can be used for the purposes specified by the
-     * manufacturer.  The manufacturer specifications for the beacon should be checked before using
-     * this field, and the manufacturer should be checked against the Beacon#mManufacturerCode
-     * field
-     * @return mfgReserved
-     */
-    public int getMfgReserved() {
-        return mDataFields.get(0).intValue();
-    }
-
     /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
@@ -40,6 +26,45 @@ public class AltBeacon extends Beacon {
             return new AltBeacon[size];
         }
     };
+
+    /**
+     * Copy constructor from base class
+     * @param beacon
+     */
+    protected AltBeacon(Beacon beacon) {
+        super();
+        this.mBluetoothAddress = beacon.mBluetoothAddress;
+        this.mIdentifiers = beacon.mIdentifiers;
+        this.mBeaconTypeCode = beacon.mBeaconTypeCode;
+        this.mDataFields = beacon.mDataFields;
+        this.mDistance = beacon.mDistance;
+        this.mRssi = beacon.mRssi;
+        this.mTxPower = beacon.mTxPower;
+    }
+
+    /**
+     * @see AltBeacon.Builder to make AltBeacon instances
+     */
+    protected AltBeacon() {
+    }
+
+    /**
+     * Required for making object Parcelable
+     **/
+    protected AltBeacon(Parcel in) {
+        super(in);
+    }
+
+    /**
+     * Returns a field with a value from 0-255 that can be used for the purposes specified by the
+     * manufacturer.  The manufacturer specifications for the beacon should be checked before using
+     * this field, and the manufacturer should be checked against the Beacon#mManufacturer
+     * field
+     * @return mfgReserved
+     */
+    public int getMfgReserved() {
+        return mDataFields.get(0).intValue();
+    }
 
     /**
      * Required for making object Parcelable
@@ -58,23 +83,6 @@ public class AltBeacon extends Beacon {
         super.writeToParcel(out, flags);
     }
 
-    /**
-     * Required for making object Parcelable
-     **/
-    protected AltBeacon(Parcel in) {
-        super(in);
-    }
-
-    protected AltBeacon(Beacon beacon) {
-        super();
-        this.mBluetoothAddress = beacon.mBluetoothAddress;
-        this.mIdentifiers = beacon.mIdentifiers;
-        this.mBeaconTypeCode = beacon.mBeaconTypeCode;
-        this.mDataFields = beacon.mDataFields;
-        this.mDistance = beacon.mDistance;
-        this.mRssi = beacon.mRssi;
-        this.mTxPower = beacon.mTxPower;
-    }
 
     /**
      * Builder class for AltBeacon objects. Provides a convenient way to set the various fields of a

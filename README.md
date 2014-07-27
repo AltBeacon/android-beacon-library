@@ -1,4 +1,4 @@
-Android beacon Library
+Android Beacon Library
 =======================
 
 An Android library providing APIs to interact with beacons
@@ -11,9 +11,6 @@ or more beacons appear or disappear.  An app can also request to get a ranging u
 at a frequency of 1Hz.  
 
 ## How to Use this Library
-
-The [project website](http://developer.radiusnetworks.com/ibeacon/android/) is the best place to go if you want
-to learn how to use this library.  It includes binary downloads, a quick start guide, sample code, full API docs and even a reference application.
 
 IMPORTANT:  This project now uses an AndroidStudio/gradle build system and the source code may no longer be imported into Eclipse as a library project.
 Eclipse users may download the latest release binary as a tar.gz file, which may then be imported as an Eclipse Library Project.  See the quick start on the project website for more information.

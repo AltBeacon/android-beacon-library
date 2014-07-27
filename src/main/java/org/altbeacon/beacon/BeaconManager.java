@@ -181,7 +181,7 @@ public class BeaconManager {
 	 */
 	public static BeaconManager getInstanceForApplication(Context context) {
 		if (client == null) {
-			if (BeaconManager.debug) Log.d(TAG, "BeaconManager instance creation");
+			BeaconManager.logDebug(TAG, "BeaconManager instance creation");
 			client = new BeaconManager(context);
 		}
 		return client;
@@ -229,14 +229,14 @@ public class BeaconManager {
         }
         synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
-                if (BeaconManager.debug) Log.d(TAG, "This consumer is already bound");
+                BeaconManager.logDebug(TAG, "This consumer is already bound");
             }
             else {
-                if (BeaconManager.debug) Log.d(TAG, "This consumer is not bound.  binding: "+consumer);
+                BeaconManager.logDebug(TAG, "This consumer is not bound.  binding: "+consumer);
                 consumers.put(consumer, new ConsumerInfo());
                 Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                 consumer.bindService(intent, beaconServiceConnection, Context.BIND_AUTO_CREATE);
-                if (BeaconManager.debug) Log.d(TAG, "consumer count is now:"+consumers.size());
+                BeaconManager.logDebug(TAG, "consumer count is now:"+consumers.size());
                 if (serviceMessenger != null) { // If the serviceMessenger is not null, that means we are able to make calls to the service
                     setBackgroundMode(consumer, false); // if we just bound, we assume we are not in the background.
                 }
@@ -262,8 +262,8 @@ public class BeaconManager {
                 consumers.remove(consumer);
             }
             else {
-                if (BeaconManager.debug) Log.d(TAG, "This consumer is not bound to: "+consumer);
-                if (BeaconManager.debug) Log.d(TAG, "Bound consumers: ");
+                BeaconManager.logDebug(TAG, "This consumer is not bound to: "+consumer);
+                BeaconManager.logDebug(TAG, "Bound consumers: ");
                 for (int i = 0; i < consumers.size(); i++) {
                     Log.i(TAG, " "+consumers.get(i));
                 }
@@ -324,7 +324,7 @@ public class BeaconManager {
                 }
             }
             else {
-                if (BeaconManager.debug) Log.d(TAG, "This consumer is not bound to: "+consumer);
+                BeaconManager.logDebug(TAG, "This consumer is not bound to: "+consumer);
                 return false;
             }
         }
@@ -519,14 +519,14 @@ public class BeaconManager {
 	
 	private String callbackPackageName() {
 		String packageName = context.getPackageName();
-		if (BeaconManager.debug) Log.d(TAG, "callback packageName: "+packageName);
+		BeaconManager.logDebug(TAG, "callback packageName: "+packageName);
 		return packageName;
 	}
 
 	private ServiceConnection beaconServiceConnection = new ServiceConnection() {
 		// Called when the connection with the service is established
 	    public void onServiceConnected(ComponentName className, IBinder service) {
-            if (BeaconManager.debug) Log.d(TAG,  "we have a connection to the service now");
+            BeaconManager.logDebug(TAG,  "we have a connection to the service now");
 	        serviceMessenger = new Messenger(service);
             synchronized(consumers) {
                 Iterator<BeaconConsumer> consumerIterator = consumers.keySet().iterator();
@@ -588,6 +588,25 @@ public class BeaconManager {
             }
         }
         return clonedRangedRegions;
+    }
+
+    /**
+     * Convenience method for logging debug by the library
+     * @param tag
+     * @param message
+     */
+    public static void logDebug(String tag, String message) {
+        if (debug) Log.d(tag, message);
+    }
+
+    /**
+     * Convenience method for logging debug by the library
+     * @param tag
+     * @param message
+     * @param t
+     */
+    public static void logDebug(String tag, String message, Throwable t) {
+        if (debug) Log.d(tag, message, t);
     }
 
     protected static BeaconSimulator beaconSimulator;

@@ -68,11 +68,11 @@ public class BeaconParser {
 
         if (patternFound == false) {
             // This is not an beacon
-            if (BeaconManager.debug) Log.d(TAG, "This is not a matching Beacon advertisement.  (Was expecting "+byteArrayToString(typeCodeBytes)+".  The bytes I see are: "+bytesToHex(scanData));
+            BeaconManager.logDebug(TAG, "This is not a matching Beacon advertisement.  (Was expecting "+byteArrayToString(typeCodeBytes)+".  The bytes I see are: "+bytesToHex(scanData));
             return null;
         }
         else {
-            if (BeaconManager.debug) Log.d(TAG, "This a recognized beacon advertisement -- "+String.format("%04x", getMatchingBeaconTypeCode())+" seen");
+            BeaconManager.logDebug(TAG, "This a recognized beacon advertisement -- "+String.format("%04x", getMatchingBeaconTypeCode())+" seen");
         }
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
@@ -99,6 +99,13 @@ public class BeaconParser {
         beaconTypeCode = Integer.parseInt(beaconTypeString);
         // TODO: error handling needed on the parse
 
+        int manufacturer = 0;
+        String manufacturerString = byteArrayToFormattedString(scanData, startByte, startByte+1);
+        // manufacturer is little-endian, so we have to switch the byte order
+        int manufacturerReversed = Integer.parseInt(manufacturerString);
+        // TODO: error handling needed on the parse
+        manufacturer = ((manufacturerReversed & 0xff) << 8) + ((manufacturerReversed & 0xff00) >> 8);
+
         String macAddress = null;
         if (device != null) {
             macAddress = device.getAddress();
@@ -110,6 +117,7 @@ public class BeaconParser {
         beacon.mRssi = rssi;
         beacon.mBeaconTypeCode = beaconTypeCode;
         beacon.mBluetoothAddress = macAddress;
+        beacon.mManufacturer = manufacturer;
         if (device != null) {
             beacon.mBluetoothAddress = device.getAddress();
         }
@@ -137,11 +145,14 @@ public class BeaconParser {
      * order of definition to the identifier or data array for the beacon when parsing the beacon
      * advertisement.  Terms are separated by commas.
      *
+     * All offsets from the start of the advertisement are relative to the first byte of the
+     * two byte manufacturer code.  The manufacturer code is therefore always at position 0-1
+     *
      * If the expression cannot be parsed, a BeaconLayoutException is thrown.
      *
      * Example of a parser string for AltBeacon:
      *
-     * "m:2,3:beac,i:4,19,i:20-21,i:22-23,p:24-24,d:25-25"
+     * "m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
      *
      * @param beaconLayout
      * @return
@@ -209,7 +220,7 @@ public class BeaconParser {
                 }
             }
             if (!found) {
-                if (BeaconManager.debug) Log.d(TAG, "cannot parse term "+term);
+                BeaconManager.logDebug(TAG, "cannot parse term "+term);
                 throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
             }
         }

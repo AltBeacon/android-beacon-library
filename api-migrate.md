@@ -2,7 +2,11 @@
 =================
 
 The 2.x API has a large number of changes from the 0.x versions of the library.  This document
-describes the changes necessary to move from an app using 0.x versions to the 2.x API.
+describes the changes necessary to move from an app using 0.x versions to the 2.x API.  Note that
+the 2.x API is designed to be configurable to work with a wide variety of beacons.  Out of the box,
+it will work beacons meeting the open AltBeacon standard which have no restrictions on the use with
+Android.  If you wish to configure the library to work with other types of custom or proprietary
+beacons, see the new BeaconParser class.
 
 ## Package changes
 
@@ -23,7 +27,15 @@ The following equivalent class names have changed
 |IBeaconConsumer           |BeaconConsumer      |
 |IBeacon                   |Beacon              |
 
-## Beacon field changes
+## BeaconManager field and method changes
+
+|0.x                       |2.x                 |
+|:------------------------:|:------------------:|
+|unBind(Context)           |unbind(Context)     |
+|N/A                       |getBeaconParsers()  |
+
+
+## Beacon field and method changes
 
 Beacons and regions now support an arbitrary number of identifier parts of varying lengths.  This
 allows the library to work with multiple beacon types that specify different types of identifiers.
@@ -38,6 +50,8 @@ which is fully compatible with the AltBeacon standard.
 |N/A                       |getIdentifier(int i)|
 |accuracy (double)         |distance (double)   |
 |proximity (int)           |N/A                 |
+
+* Instead of using the proximity field, simply use range calculations based on distance.
 
 ## Region field changes
 

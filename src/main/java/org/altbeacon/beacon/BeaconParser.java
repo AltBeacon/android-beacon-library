@@ -11,6 +11,16 @@ import java.util.regex.Pattern;
 
 /**
  * Created by dyoung on 7/21/14.
+ *
+ * A BeaconParser may be used to tell the library how to decode a beacon's fields from a Bluetooth
+ * LE advertisement by specifying what byte offsets match what fields, and what byte sequence
+ * signifies the beacon.  Defining a parser for a specific beacon type may be handled via
+ * subclassing (@see AltBeaconParser) or by simply constructing an instance and calling the
+ * #setLayout method.  Either way, you will then need to tell the BeaconManager about it like so:
+ *
+ * BeaconManager.getBeaconParsers().add(new BeaconParser()
+ *   .setLayout("m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+ *
  */
 public class BeaconParser {
     private static final String TAG = "BeaconParser";
@@ -30,11 +40,126 @@ public class BeaconParser {
     protected Integer mPowerStartOffset;
     protected Integer mPowerEndOffset;
 
+    /**
+     * Makes a new BeaconParser.  Should normally be immediately followed by a call to #setLayout
+     */
     public BeaconParser() {
         mIdentifierStartOffsets = new ArrayList<Integer>();
         mIdentifierEndOffsets = new ArrayList<Integer>();
         mDataStartOffsets = new ArrayList<Integer>();
         mDataEndOffsets = new ArrayList<Integer>();
+    }
+
+    /**
+     * Defines a beacon field parsing algorithm based on a string designating the zero-indexed
+     * offsets to bytes within a BLE advertisement.  Three prefixes are allowed in the string
+     *
+     * m - matching byte sequence for this beacon type to parse (one allowed)
+     * i - identifier (multiple allowed)
+     * p - power calibration field (one allowed)
+     * d - data field (multiple allowed)
+     *
+     * Each prefix is followed by a colon, then an inclusive decimal byte offset for the field from
+     * the beginning of the advertisement.  In the case of the m prefix, an = sign follows the byte
+     * offset, followed by a big endian hex representation of the bytes that must be matched for
+     * this beacon type.  When multiple i or d entries exist in the string, they will be added in
+     * order of definition to the identifier or data array for the beacon when parsing the beacon
+     * advertisement.  Terms are separated by commas.
+     *
+     * All offsets from the start of the advertisement are relative to the first byte of the
+     * two byte manufacturer code.  The manufacturer code is therefore always at position 0-1
+     *
+     * If the expression cannot be parsed, a BeaconLayoutException is thrown.
+     *
+     * Example of a parser string for AltBeacon:
+     *
+     * "m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
+     *
+     * This signifies that the beacon type will be decoded when an advertisement is found with
+     * 0xbeac in bytes 2-3, and a three-part identifier will be pulled out of bytes 4-19, bytes
+     * 20-21 and bytes 22-23, respectively.  A signed power calibration value will be pulled out of
+     * byte 24, and a data field will be pulled out of byte 25.
+     *
+     * @param beaconLayout
+     * @return the BeconParser instance
+     */
+    public BeaconParser setBeaconLayout(String beaconLayout) {
+
+        String[] terms =  beaconLayout.split(",");
+
+        for (String term : terms) {
+            boolean found = false;
+
+            Matcher matcher = I_PATTERN.matcher(term);
+            while (matcher.find()) {
+                found = true;
+                try {
+                    int startOffset = Integer.parseInt(matcher.group(1));
+                    int endOffset = Integer.parseInt(matcher.group(2));
+                    mIdentifierStartOffsets.add(startOffset);
+                    mIdentifierEndOffsets.add(endOffset);
+                } catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse integer byte offset in term: " + term);
+                }
+            }
+            matcher = D_PATTERN.matcher(term);
+            while (matcher.find()) {
+                found = true;
+                try {
+                    int startOffset = Integer.parseInt(matcher.group(1));
+                    int endOffset = Integer.parseInt(matcher.group(2));
+                    mDataStartOffsets.add(startOffset);
+                    mDataEndOffsets.add(endOffset);
+                } catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse integer byte offset in term: " + term);
+                }
+            }
+            matcher = P_PATTERN.matcher(term);
+            while (matcher.find()) {
+                found = true;
+                try {
+                    int startOffset = Integer.parseInt(matcher.group(1));
+                    int endOffset = Integer.parseInt(matcher.group(2));
+                    mPowerStartOffset=startOffset;
+                    mPowerEndOffset=endOffset;
+                } catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse integer power byte offset in term: " + term);
+                }
+            }
+            matcher = M_PATTERN.matcher(term);
+            while (matcher.find()) {
+                found = true;
+                try {
+                    int startOffset = Integer.parseInt(matcher.group(1));
+                    int endOffset = Integer.parseInt(matcher.group(2));
+                    mMatchingBeaconTypeCodeStartOffset = startOffset;
+                    mMatchingBeaconTypeCodeEndOffset = endOffset;
+                } catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse integer byte offset in term: " + term);
+                }
+                String hexString = matcher.group(3);
+                try {
+                    mMatchingBeaconTypeCode = Long.decode("0x"+hexString);
+                }
+                catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse beacon type code: "+hexString+" in term: " + term);
+                }
+            }
+            if (!found) {
+                BeaconManager.logDebug(TAG, "cannot parse term "+term);
+                throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
+            }
+        }
+        return this;
+    }
+
+
+    /**
+     * @see #mMatchingBeaconTypeCode
+     * @return
+     */
+    public Long getMatchingBeaconTypeCode() {
+        return mMatchingBeaconTypeCode;
     }
 
     /**
@@ -133,108 +258,6 @@ public class BeaconParser {
         return this;
     }
 
-    /**
-     * Defines a beacon field parsing algorithm based on a string designating the zero-indexed
-     * offsets to bytes within a BLE advertisement.  Three prefixes are allowed in the string
-     *
-     * m - matching byte sequence for this beacon type to parse (one allowed)
-     * i - identifier (multiple allowed)
-     * p - power calibration field (one allowed)
-     * d - data field (multiple allowed)
-     *
-     * Each prefix is followed by a colon, then an inclusive decimal byte offset for the field from
-     * the beginning of the advertisement.  In the case of the m prefix, an = sign follows the byte
-     * offset, followed by a big endian hex representation of the bytes that must be matched for
-     * this beacon type.  When multiple i or d entries exist in the string, they will be added in
-     * order of definition to the identifier or data array for the beacon when parsing the beacon
-     * advertisement.  Terms are separated by commas.
-     *
-     * All offsets from the start of the advertisement are relative to the first byte of the
-     * two byte manufacturer code.  The manufacturer code is therefore always at position 0-1
-     *
-     * If the expression cannot be parsed, a BeaconLayoutException is thrown.
-     *
-     * Example of a parser string for AltBeacon:
-     *
-     * "m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
-     *
-     * @param beaconLayout
-     * @return
-     */
-    public BeaconParser setBeaconLayout(String beaconLayout) {
-
-        String[] terms =  beaconLayout.split(",");
-
-        for (String term : terms) {
-            boolean found = false;
-
-            Matcher matcher = I_PATTERN.matcher(term);
-            while (matcher.find()) {
-                found = true;
-                try {
-                    int startOffset = Integer.parseInt(matcher.group(1));
-                    int endOffset = Integer.parseInt(matcher.group(2));
-                    mIdentifierStartOffsets.add(startOffset);
-                    mIdentifierEndOffsets.add(endOffset);
-                } catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse integer byte offset in term: " + term);
-                }
-            }
-            matcher = D_PATTERN.matcher(term);
-            while (matcher.find()) {
-                found = true;
-                try {
-                    int startOffset = Integer.parseInt(matcher.group(1));
-                    int endOffset = Integer.parseInt(matcher.group(2));
-                    mDataStartOffsets.add(startOffset);
-                    mDataEndOffsets.add(endOffset);
-                } catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse integer byte offset in term: " + term);
-                }
-            }
-            matcher = P_PATTERN.matcher(term);
-            while (matcher.find()) {
-                found = true;
-                try {
-                    int startOffset = Integer.parseInt(matcher.group(1));
-                    int endOffset = Integer.parseInt(matcher.group(2));
-                    mPowerStartOffset=startOffset;
-                    mPowerEndOffset=endOffset;
-                } catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse integer power byte offset in term: " + term);
-                }
-            }
-            matcher = M_PATTERN.matcher(term);
-            while (matcher.find()) {
-                found = true;
-                try {
-                    int startOffset = Integer.parseInt(matcher.group(1));
-                    int endOffset = Integer.parseInt(matcher.group(2));
-                    mMatchingBeaconTypeCodeStartOffset = startOffset;
-                    mMatchingBeaconTypeCodeEndOffset = endOffset;
-                } catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse integer byte offset in term: " + term);
-                }
-                String hexString = matcher.group(3);
-                try {
-                    mMatchingBeaconTypeCode = Long.decode("0x"+hexString);
-                }
-                catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse beacon type code: "+hexString+" in term: " + term);
-                }
-            }
-            if (!found) {
-                BeaconManager.logDebug(TAG, "cannot parse term "+term);
-                throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
-            }
-        }
-        return this;
-    }
-
-
-    public Long getMatchingBeaconTypeCode() {
-        return mMatchingBeaconTypeCode;
-    }
 
     protected static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
@@ -246,7 +269,8 @@ public class BeaconParser {
         }
         return new String(hexChars);
     }
-    class BeaconLayoutException extends RuntimeException {
+
+    public static class BeaconLayoutException extends RuntimeException {
         public BeaconLayoutException(String s) {
         }
     }

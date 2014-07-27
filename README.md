@@ -3,12 +3,18 @@ Android Beacon Library
 
 An Android library providing APIs to interact with beacons
 
+## Changes from the 0.x library version
+
+This library has changed significantly from the 0.x library version and is now designed to work with
+open AltBeacons which fully support Android without any intellectual property restrictions.  For
+more information on how to migrate projects using the 0.x APIs to the 2.x APIs, see
+[API migration.](api-migrate.html).
 
 ## What does this library do?
 
 It allows Android devices to use beacons much like iOS devices do.  An app can request to get notifications when one
 or more beacons appear or disappear.  An app can also request to get a ranging update from one or more beacons
-at a frequency of 1Hz.  
+at a frequency of approximately 1Hz.
 
 ## How to Use this Library
 
@@ -17,14 +23,13 @@ Eclipse users may download the latest release binary as a tar.gz file, which may
 
 ## Build Instructions
 
-Known working with Android Studio 0.4.0
+Known working with Android Studio 0.5.2 and Gradle 1.10
 
 Key Gradle build targets:
 
     ./gradlew test # run unit tests
     ./gradlew build # development build
     ./gradlew release  # release build  
-    ./gradlew uploadArchives -Prelease # release build
 
 ## License
 

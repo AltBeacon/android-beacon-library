@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.radiusnetworks.ibeacon"
-    android:versionCode="2"
-    android:versionName="0.7.7" >
+    package="org.altbeacon.beacon"
+    android:versionCode="3"
+    android:versionName="1.0.0" >
 
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -11,12 +11,12 @@
     <service android:enabled="true"
         android:exported="true"
         android:isolatedProcess="false"
-        android:label="iBeacon"
-        android:name="com.radiusnetworks.ibeacon.service.IBeaconService">
+        android:label="beacon"
+        android:name=".service.BeaconService">
     </service>
 
     <service android:enabled="true"
-        android:name="com.radiusnetworks.ibeacon.IBeaconIntentProcessor">
+        android:name=".BeaconIntentProcessor">
     </service>
 
     </application>

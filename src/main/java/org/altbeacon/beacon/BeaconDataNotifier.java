@@ -2,6 +2,9 @@ package org.altbeacon.beacon;
 
 import org.altbeacon.beacon.client.DataProviderException;
 
+/**
+ * Notifies when server-side beacon data are available from a web service.
+ */
 public interface BeaconDataNotifier {
 	/**
 	 * This method is called after a request to get or sync beacon data

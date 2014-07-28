@@ -12,14 +12,22 @@ import java.util.regex.Pattern;
 /**
  * Created by dyoung on 7/21/14.
  *
- * A BeaconParser may be used to tell the library how to decode a beacon's fields from a Bluetooth
- * LE advertisement by specifying what byte offsets match what fields, and what byte sequence
- * signifies the beacon.  Defining a parser for a specific beacon type may be handled via
- * subclassing (@see AltBeaconParser) or by simply constructing an instance and calling the
- * #setLayout method.  Either way, you will then need to tell the BeaconManager about it like so:
+ * <p>A <code>BeaconParser</code> may be used to tell the library how to decode a beacon's fields
+ * from a Bluetooth LE advertisement by specifying what byte offsets match what fields, and what
+ * byte sequence signifies the beacon.  Defining a parser for a specific beacon type may be handled
+ * via subclassing ({@link AltBeaconParser see AltBeaconParser}) or by simply constructing an instance and calling the
+ * <code>setLayout</code> method.  Either way, you will then need to tell the BeaconManager about
+ * it like so:</p>
  *
+ * <pre><code>
  * BeaconManager.getBeaconParsers().add(new BeaconParser()
- *   .setLayout("m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+ *   .setBeaconLayout("m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+ * </pre></code>
+ *
+ * <p>
+ * For more information on how to set up parsing of a beacon,
+ * {@link #setBeaconLayout(String) see setBeaconLayout(String)}
+ * </p>
  *
  */
 public class BeaconParser {
@@ -51,37 +59,41 @@ public class BeaconParser {
     }
 
     /**
-     * Defines a beacon field parsing algorithm based on a string designating the zero-indexed
-     * offsets to bytes within a BLE advertisement.  Three prefixes are allowed in the string
+     * <p>Defines a beacon field parsing algorithm based on a string designating the zero-indexed
+     * offsets to bytes within a BLE advertisement.  Three prefixes are allowed in the string</p>
      *
-     * m - matching byte sequence for this beacon type to parse (one allowed)
-     * i - identifier (multiple allowed)
-     * p - power calibration field (one allowed)
-     * d - data field (multiple allowed)
+     * <pre>
+     *   m - matching byte sequence for this beacon type to parse (one allowed)
+     *   i - identifier (multiple allowed)
+     *   p - power calibration field (one allowed)
+     *   d - data field (multiple allowed)
+     * </pre>
      *
-     * Each prefix is followed by a colon, then an inclusive decimal byte offset for the field from
+     * <p>Each prefix is followed by a colon, then an inclusive decimal byte offset for the field from
      * the beginning of the advertisement.  In the case of the m prefix, an = sign follows the byte
      * offset, followed by a big endian hex representation of the bytes that must be matched for
      * this beacon type.  When multiple i or d entries exist in the string, they will be added in
      * order of definition to the identifier or data array for the beacon when parsing the beacon
-     * advertisement.  Terms are separated by commas.
+     * advertisement.  Terms are separated by commas.</p>
      *
-     * All offsets from the start of the advertisement are relative to the first byte of the
-     * two byte manufacturer code.  The manufacturer code is therefore always at position 0-1
+     * <p>All offsets from the start of the advertisement are relative to the first byte of the
+     * two byte manufacturer code.  The manufacturer code is therefore always at position 0-1</p>
      *
-     * If the expression cannot be parsed, a BeaconLayoutException is thrown.
+     * <p>If the expression cannot be parsed, a <code>BeaconLayoutException</code> is thrown.</p>
      *
-     * Example of a parser string for AltBeacon:
+     * <p>Example of a parser string for AltBeacon:</p>
      *
-     * "m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
+     * </pre>
+     *   "m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
+     * </pre>
      *
-     * This signifies that the beacon type will be decoded when an advertisement is found with
+     * <p>This signifies that the beacon type will be decoded when an advertisement is found with
      * 0xbeac in bytes 2-3, and a three-part identifier will be pulled out of bytes 4-19, bytes
      * 20-21 and bytes 22-23, respectively.  A signed power calibration value will be pulled out of
-     * byte 24, and a data field will be pulled out of byte 25.
+     * byte 24, and a data field will be pulled out of byte 25.</p>
      *
      * @param beaconLayout
-     * @return the BeconParser instance
+     * @return the BeaconParser instance
      */
     public BeaconParser setBeaconLayout(String beaconLayout) {
 

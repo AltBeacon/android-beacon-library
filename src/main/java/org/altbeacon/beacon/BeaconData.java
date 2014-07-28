@@ -1,6 +1,9 @@
 package org.altbeacon.beacon;
 
-
+/**
+ * Server-side data associated with a beacon.  Requires registration of a web service to fetch the
+ * data.
+ */
 public interface BeaconData {
 	public Double getLatitude();
 	public void setLatitude(Double latitude);

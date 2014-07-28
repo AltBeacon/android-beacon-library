@@ -5,9 +5,17 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
-    <application
-        android:allowBackup="true">
+    <application android:allowBackup="true">
+    <receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver">
+        <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+            <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+        </intent-filter>
+    </receiver>
+
     <service android:enabled="true"
         android:exported="true"
         android:isolatedProcess="false"

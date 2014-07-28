@@ -50,6 +50,19 @@ import java.util.List;
 public class Region implements Parcelable {
 	private static final String TAG = "Region";
 
+    /**
+     * Required to make class Parcelable
+     */
+    public static final Parcelable.Creator<Region> CREATOR
+            = new Parcelable.Creator<Region>() {
+        public Region createFromParcel(Parcel in) {
+            return new Region(in);
+        }
+
+        public Region[] newArray(int size) {
+            return new Region[size];
+        }
+    };
     protected List<Identifier> mIdentifiers;
 	protected String mUniqueId;
 
@@ -80,6 +93,11 @@ public class Region implements Parcelable {
         return mIdentifiers.get(i-1);
     }
 
+    /**
+     * Returns the identifier used to start or stop ranging/monitoring this region when calling
+     * the <code>BeaconManager</code> methods.
+     * @return
+     */
 	public String getUniqueId() {
 		return mUniqueId;
 	}
@@ -101,23 +119,12 @@ public class Region implements Parcelable {
         }
         return true;
 	}
-	
-	protected Region(Region otherRegion) {
-        super();
-        mIdentifiers = new ArrayList<Identifier>(otherRegion.mIdentifiers.size());
-        for (int i = 0; i < otherRegion.mIdentifiers.size(); i++) {
-            mIdentifiers.add(new Identifier(otherRegion.mIdentifiers.get(i)));
-        }
-		mUniqueId = otherRegion.mUniqueId;
-	}
-	protected Region() {
-	}
 
 	@Override
 	public int hashCode() {
 		return this.mUniqueId.hashCode();
 	}
-	
+
 	public boolean equals(Object other) {
 		 if (other instanceof Region) {
 			return ((Region)other).mUniqueId.equals(this.mUniqueId);
@@ -141,7 +148,6 @@ public class Region implements Parcelable {
         return sb.toString();
 	}
 
-
     public int describeContents() {
         return 0;
     }
@@ -160,16 +166,16 @@ public class Region implements Parcelable {
         }
     }
 
-    public static final Parcelable.Creator<Region> CREATOR
-            = new Parcelable.Creator<Region>() {
-        public Region createFromParcel(Parcel in) {
-            return new Region(in);
+    protected Region(Region otherRegion) {
+        super();
+        mIdentifiers = new ArrayList<Identifier>(otherRegion.mIdentifiers.size());
+        for (int i = 0; i < otherRegion.mIdentifiers.size(); i++) {
+            mIdentifiers.add(new Identifier(otherRegion.mIdentifiers.get(i)));
         }
-
-        public Region[] newArray(int size) {
-            return new Region[size];
-        }
-    };
+        mUniqueId = otherRegion.mUniqueId;
+    }
+    protected Region() {
+    }
 
     protected Region(Parcel in) {
         mUniqueId = in.readString();

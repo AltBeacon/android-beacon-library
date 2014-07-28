@@ -1,3 +1,26 @@
+/**
+ * Radius Networks, Inc.
+ * http://www.radiusnetworks.com
+ *
+ * @author David G. Young
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.altbeacon.beacon;
 
 import android.os.Parcel;
@@ -7,7 +30,16 @@ import android.util.Log;
 import java.util.ArrayList;
 
 /**
- * Created by dyoung on 7/21/14.
+ * <p>The <code>AltBeacon</code> class represents a single hardware AltBeacon detected by
+ * an Android device.  It is more specific than the <code>Beacon</code> class in that it provides
+ * access to the #mfgReserved field.</p>
+ *
+ * <p>An <code>AltBeacon</code> is identified by a unique three part identifier.  The first
+ * identifier Id1 is normally used across an organization, the second identifer Id2 is used to
+ * group beacons and the third identifer Id3 is used to uniquely identify a specific beacon (in
+ * combination with the other two identifiers.)
+ *
+ * @author  David G. Young
  */
 public class AltBeacon extends Beacon {
     private static final String TAG = "AltBeacon";

@@ -50,7 +50,7 @@ import android.content.ServiceConnection;
  *  	 {@literal @}Override 
  *  	protected void onDestroy() {
  *  		super.onDestroy();
- *  		beaconManager.unBind(this);
+ *  		beaconManager.unbind(this);
  *  	}
  *  	 {@literal @}Override
  *  	public void onBeaconServiceConnect() {

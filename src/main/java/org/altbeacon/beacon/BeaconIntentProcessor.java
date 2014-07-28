@@ -31,6 +31,9 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
+/**
+ * Converts internal intents to notifier callbacks
+ */
 @TargetApi(3)
 public class BeaconIntentProcessor extends IntentService {
 	private static final String TAG = "BeaconIntentProcessor";

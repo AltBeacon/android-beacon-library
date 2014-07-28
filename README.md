@@ -8,7 +8,7 @@ An Android library providing APIs to interact with beacons
 This library has changed significantly from the 0.x library version and is now designed to work with
 open AltBeacons which fully support Android without any intellectual property restrictions.  For
 more information on how to migrate projects using the 0.x APIs to the 2.x APIs, see
-[API migration.](api-migrate.html).
+[API migration.](api-migrate.md)
 
 ## What does this library do?
 

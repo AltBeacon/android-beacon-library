@@ -1,7 +1,7 @@
 Android Beacon Library
 =======================
 
-An Android library providing APIs to interact with beacons
+An Android library providing APIs to interact with beacons  
 
 ## Changes from the 0.x library version
 
@@ -16,7 +16,11 @@ It allows Android devices to use beacons much like iOS devices do.  An app can r
 or more beacons appear or disappear.  An app can also request to get a ranging update from one or more beacons
 at a frequency of approximately 1Hz.
 
-## How to Use this Library
+## Documentation
+
+[Javadocs are available here.](http://altbeacon.github.io/android-beacon-library/javadoc/)
+
+## How to build this Library
 
 IMPORTANT:  This project now uses an AndroidStudio/gradle build system and the source code may no longer be imported into Eclipse as a library project.
 Eclipse users may download the latest release binary as a tar.gz file, which may then be imported as an Eclipse Library Project.  See the quick start on the project website for more information.

@@ -10,7 +10,7 @@ open AltBeacons which fully support Android without any intellectual property re
 more information on how to migrate projects using the 0.x APIs to the 2.x APIs, see
 [API migration.](api-migrate.md)
 
-**IMPORTANT:  This library will by default only detect beacons meeting the new AltBeacon specification.**
+**IMPORTANT:  By default, this library will only detect beacons meeting the new AltBeacon specification.**  
 
 ## What does this library do?
 

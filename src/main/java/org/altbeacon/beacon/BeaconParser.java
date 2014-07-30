@@ -92,6 +92,15 @@ public class BeaconParser {
      * 20-21 and bytes 22-23, respectively.  A signed power calibration value will be pulled out of
      * byte 24, and a data field will be pulled out of byte 25.</p>
      *
+     * Note: bytes 0-1 of the BLE manufacturer advertisements are the two byte manufacturer code.
+     * Generally you should not match on these two bytes when using a BeaconParser, because it will
+     * limit your parser to matching only a transmitter made by a specific manufacturer.  Software
+     * and operating systems that scan for beacons typically ignore these two bytes, allowing beacon
+     * manufacturers to use their own company code assigned by Bluetooth SIG.  The default parser
+     * implementation will already pull out this company code and store it in the
+     * beacon.mManufacturer field.  Matcher expressions should therefore start with "m2-3:" followed
+     * by the multi-byte hex value that signifies the beacon type.
+     *
      * @param beaconLayout
      * @return the BeaconParser instance
      */

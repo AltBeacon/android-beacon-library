@@ -18,7 +18,7 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
 
 	@Override
     public void onReceive(Context context, Intent intent) {
-        if (BeaconManager.debug) Log.d(TAG, "onReceive called in startup broadcast receiver");
+        BeaconManager.logDebug(TAG, "onReceive called in startup broadcast receiver");
         if (android.os.Build.VERSION.SDK_INT < 18) {
             Log.w(TAG, "Not starting up beacon service because we do not have SDK version 18 (Android 4.3).  We have: "+android.os.Build.VERSION.SDK_INT);
             return;

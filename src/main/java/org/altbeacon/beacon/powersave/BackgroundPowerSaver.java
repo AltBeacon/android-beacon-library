@@ -67,10 +67,10 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
             BeaconConsumer consumerActivity = (BeaconConsumer) activity;
             if (beaconManager.isBound(consumerActivity)) {
                 beaconManager.setBackgroundMode(consumerActivity, true);
-                if (BeaconManager.debug) Log.d(TAG, "Setting background mode");
+                BeaconManager.logDebug(TAG, "Setting background mode");
             }
             else {
-                if (BeaconManager.debug) Log.d(TAG, "Not setting background mode -- beaconManager is not bound.");
+                BeaconManager.logDebug(TAG, "Not setting background mode -- beaconManager is not bound.");
             }
         }
         catch (ClassCastException e) {}

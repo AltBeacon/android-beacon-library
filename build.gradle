@@ -107,10 +107,10 @@ afterEvaluate { project ->
 
 
                     pom.project {
-                        name 'AndroidBeaconLibrary'
+                        name 'Android Beacon Library'
                         packaging 'aar'
                         description 'Beacon library for Android applications'
-                        artifactId = 'AndroidBeaconLibrary'
+                        artifactId = 'android-beacon-library'
                         groupId GROUP
                         version version
                         url 'https://github.com/RadiusNetworks/android-beacon-library'

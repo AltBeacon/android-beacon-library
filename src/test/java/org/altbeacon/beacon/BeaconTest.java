@@ -28,9 +28,13 @@ public class BeaconTest {
         Beacon beacon = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
                 .setBeaconTypeCode(5).setTxPower(6)
                 .setBluetoothAddress("1:2:3:4:5:6").build();
-        assertEquals("First beacon id should be 1", beacon.getIdentifier(1).toString(), "1");
-        assertEquals("Second beacon id should be 1", beacon.getIdentifier(2).toString(), "2");
-        assertEquals("Third beacon id should be 1", beacon.getIdentifier(3).toString(), "3");
+        assertEquals("First beacon id should be 1", beacon.getIdentifier(0).toString(), "1");
+        assertEquals("Second beacon id should be 1", beacon.getIdentifier(1).toString(), "2");
+        assertEquals("Third beacon id should be 1", beacon.getIdentifier(2).toString(), "3");
+        assertEquals("First beacon id should be 1", beacon.getId1().toString(), "1");
+        assertEquals("Second beacon id should be 1", beacon.getId2().toString(), "2");
+        assertEquals("Third beacon id should be 1", beacon.getId3().toString(), "3");
+
     }
 
     @Test
@@ -123,9 +127,9 @@ public class BeaconTest {
         parcel.setDataPosition(0);
         Beacon beacon2 = new Beacon(parcel);
         assertEquals("Right number of identifiers after deserialization", 3, beacon2.mIdentifiers.size());
-        assertEquals("id1 is same after deserialization", beacon.getIdentifier(1), beacon2.getIdentifier(1));
-        assertEquals("id2 is same after deserialization", beacon.getIdentifier(2), beacon2.getIdentifier(2));
-        assertEquals("id3 is same after deserialization", beacon.getIdentifier(3), beacon2.getIdentifier(3));
+        assertEquals("id1 is same after deserialization", beacon.getIdentifier(0), beacon2.getIdentifier(0));
+        assertEquals("id2 is same after deserialization", beacon.getIdentifier(1), beacon2.getIdentifier(1));
+        assertEquals("id3 is same after deserialization", beacon.getIdentifier(2), beacon2.getIdentifier(2));
         assertEquals("txPower is same after deserialization", beacon.getTxPower(), beacon2.getTxPower());
         assertEquals("rssi is same after deserialization", beacon.getRssi(), beacon2.getRssi());
         assertEquals("distance is same after deserialization", beacon.getDistance(), beacon2.getDistance(), 0.001);

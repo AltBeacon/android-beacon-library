@@ -1,12 +1,12 @@
 #!/bin/sh
-rm -rf build/libs/AndroidBeaconLibrary
-AAR_FILE=`ls build/libs/AndroidBeaconLibrary*.aar | grep -v debug | head -1`
+rm -rf build/libs/android-beacon-library
+AAR_FILE=`ls build/libs/android-beacon-library*.aar | grep -v debug | head -1`
 TARGZ_FILE=`echo "$AAR_FILE" | sed -e 's/aar/tar.gz/g'`
 echo "Generating eclipse bundle from $AAR_FILE to make $TARGZ_FILE"
-cp -r scripts/eclipse-support build/libs/AndroidBeaconLibrary
-tar -xvf $AAR_FILE -C build/libs/AndroidBeaconLibrary
-mkdir build/libs/AndroidBeaconLibrary/src
-mkdir build/libs/AndroidBeaconLibrary/libs
-mkdir build/libs/AndroidBeaconLibrary/gen
-mv build/libs/AndroidBeaconLibrary/*.jar build/libs/AndroidBeaconLibrary/libs
-tar -czvf $TARGZ_FILE -C build/libs AndroidBeaconLibrary
+cp -r scripts/eclipse-support build/libs/android-beacon-library
+tar -xvf $AAR_FILE -C build/libs/android-beacon-library
+mkdir build/libs/android-beacon-library/src
+mkdir build/libs/android-beacon-library/libs
+mkdir build/libs/android-beacon-library/gen
+mv build/libs/AndroidBeaconLibrary/*.jar build/libs/android-beacon-library/libs
+tar -czvf $TARGZ_FILE -C build/libs android-beacon-library

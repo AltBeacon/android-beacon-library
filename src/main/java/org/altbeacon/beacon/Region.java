@@ -85,12 +85,50 @@ public class Region implements Parcelable {
 	}
 
     /**
-     * Returns the 1-indexed identifier
+     * Constructs a new Region object to be used for Ranging or Monitoring
+     * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
+     * @param identifiers - list of identifiers for this region
+     */
+    public Region(String uniqueId, ArrayList<Identifier> identifiers) {
+        this.mIdentifiers = new ArrayList<Identifier>(3);
+        this.mUniqueId = uniqueId;
+        if (uniqueId == null) {
+            throw new NullPointerException("uniqueId may not be null");
+        }
+    }
+
+    /**
+     * Convenience method to get the first identifier
+     * @return
+     */
+    public Identifier getId1() {
+        return mIdentifiers.get(0);
+    }
+
+    /**
+     * Convenience method to get the second identifier
+     * @return
+     */
+    public Identifier getId2() {
+        return mIdentifiers.get(1);
+    }
+
+    /**
+     * Convenience method to get the third identifier
+     * @return
+     */
+    public Identifier getId3() {
+        return mIdentifiers.get(2);
+    }
+
+    /**
+     * Returns the 0-indexed identifier
+     * Note:  IMPORTANT:  to get id1, you would call getIdentifier(0);
      * @param i
      * @return
      */
     public Identifier getIdentifier(int i) {
-        return mIdentifiers.get(i-1);
+        return mIdentifiers.get(i);
     }
 
     /**

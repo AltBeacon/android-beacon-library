@@ -206,12 +206,38 @@ public class Beacon implements Parcelable {
     }
 
     /**
-     * Returns the specified identifier (note the first identifier starts with 1)
+     * Returns the specified identifier - 0 indexed
+     * Note:  to read id1, call getIdentifier(0);
      * @param i - index identfier
      * @return identifier
      */
     public Identifier getIdentifier(int i) {
-        return mIdentifiers.get(i-1);
+        return mIdentifiers.get(i);
+    }
+
+
+    /**
+     * Convenience method to get the first identifier
+     * @return
+     */
+    public Identifier getId1() {
+        return mIdentifiers.get(0);
+    }
+
+    /**
+     * Convenience method to get the second identifier
+     * @return
+     */
+    public Identifier getId2() {
+        return mIdentifiers.get(1);
+    }
+
+    /**
+     * Convenience method to get the third identifier
+     * @return
+     */
+    public Identifier getId3() {
+        return mIdentifiers.get(2);
     }
 
     /**

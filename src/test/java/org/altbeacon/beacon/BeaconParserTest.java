@@ -73,9 +73,9 @@ public class BeaconParserTest {
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
-        assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(1).toString());
-        assertEquals("id2 should be parsed", "1", beacon.getIdentifier(2).toString());
-        assertEquals("id3 should be parsed", "2", beacon.getIdentifier(3).toString());
+        assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(0).toString());
+        assertEquals("id2 should be parsed", "1", beacon.getIdentifier(1).toString());
+        assertEquals("id3 should be parsed", "2", beacon.getIdentifier(2).toString());
         assertEquals("txPower should be parsed", -59, beacon.getTxPower());
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }

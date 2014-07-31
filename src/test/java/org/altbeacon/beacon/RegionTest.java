@@ -66,10 +66,10 @@ public class RegionTest {
         Region region2 = new Region(parcel);
         assertEquals("Right number of identifiers after deserialization", 3, region2.mIdentifiers.size());
         assertEquals("uniqueId is same after deserialization", region.getUniqueId(), region2.getUniqueId());
-        assertEquals("id1 is same after deserialization", region.getIdentifier(1), region2.getIdentifier(1));
-        assertEquals("id2 is same after deserialization", region.getIdentifier(2), region2.getIdentifier(2));
+        assertEquals("id1 is same after deserialization", region.getIdentifier(0), region2.getIdentifier(0));
+        assertEquals("id2 is same after deserialization", region.getIdentifier(1), region2.getIdentifier(1));
         // for some reason jUnit won't consider two null values to be equal, so we force it with a prepend of ""
-        assertEquals("id3 is same after deserialization", ""+region.getIdentifier(3), ""+region2.getIdentifier(3));
+        assertEquals("id3 is same after deserialization", ""+region.getIdentifier(2), ""+region2.getIdentifier(2));
     }
 
     @Test
@@ -77,4 +77,14 @@ public class RegionTest {
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
         assertEquals("id1: 1 id2: 2 id3: null", region.toString());
     }
+
+    @Test
+    public void testConvenienceIdentifierAccessors() {
+        Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), Identifier.parse("3"));
+        assertEquals("1", region.getId1().toString());
+        assertEquals("2", region.getId2().toString());
+        assertEquals("3", region.getId3().toString());
+    }
+
+
 }

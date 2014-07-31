@@ -634,10 +634,10 @@ public class BeaconManager {
                 if (!consumers.get(consumer).isInBackground) {
                     background = false;
                 }
-                if (debug) Log.d(TAG, "Consumer "+consumer+" isInBackground="+consumers.get(consumer).isInBackground);
+                BeaconManager.logDebug(TAG, "Consumer "+consumer+" isInBackground="+consumers.get(consumer).isInBackground);
             }
         }
-        if (debug) Log.d(TAG, "Overall background mode is therefore "+background);
+        BeaconManager.logDebug(TAG, "Overall background mode is therefore "+background);
         return background;
     }
 

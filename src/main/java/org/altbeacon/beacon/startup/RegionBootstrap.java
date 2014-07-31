@@ -56,7 +56,7 @@ public class RegionBootstrap {
         regions.add(region);
 		beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
-        if (BeaconManager.debug) Log.d(TAG, "Waiting for BeaconService connection");
+        BeaconManager.logDebug(TAG, "Waiting for BeaconService connection");
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class RegionBootstrap {
 
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
-        if (BeaconManager.debug) Log.d(TAG, "Waiting for BeaconService connection");
+        BeaconManager.logDebug(TAG, "Waiting for BeaconService connection");
 	}
 	
 	/**
@@ -104,11 +104,11 @@ public class RegionBootstrap {
 		 */
 	    @Override
 	    public void onBeaconServiceConnect() {
-            if (BeaconManager.debug) Log.d(TAG, "Activating background region monitoring");
+            BeaconManager.logDebug(TAG, "Activating background region monitoring");
 	        beaconManager.setMonitorNotifier(application);
 	        try {
 	        	for (Region region : regions) {
-                    if (BeaconManager.debug) Log.d(TAG, "Background region monitoring activated for region "+region);
+                    BeaconManager.logDebug(TAG, "Background region monitoring activated for region "+region);
 	                beaconManager.startMonitoringBeaconsInRegion(region);
                     beaconManager.setBackgroundMode(this, true);
 	        	}

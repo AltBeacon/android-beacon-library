@@ -289,7 +289,7 @@ public class BluetoothCrashResolver {
                 discoveryCanceller.doInBackground();
             }
             else {
-                Log.d(TAG, "We will let this discovery run its course.");
+                if (isDebugEnabled()) Log.d(TAG, "We will let this discovery run its course.");
             }
         }
         else {

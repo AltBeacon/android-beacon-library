@@ -57,7 +57,7 @@ public class SBeaconTest {
             mIdentifiers.add(Identifier.fromInt(group));
             mIdentifiers.add(Identifier.parse(id));
             mTime = time;
-            //if (BeaconManager.debug) Log.d(TAG, "constructed a new sbeacon with id2: " + getIdentifier(2));
+            //BeaconManager.logDebug(TAG, "constructed a new sbeacon with id2: " + getIdentifier(2));
         }
 
         public int getGroup() {
@@ -94,7 +94,7 @@ public class SBeaconTest {
             while (startByte <= 5) {
                 if (((int)scanData[startByte+3] & 0xff) == 0x03 &&
                         ((int)scanData[startByte+4] & 0xff) == 0x15) {
-                    //if (BeaconManager.debug) Log.d(TAG, "This is a SBeacon beacon advertisement");
+                    //BeaconManager.logDebug(TAG, "This is a SBeacon beacon advertisement");
                     // startByte+0 company id (2 bytes)
                     // startByte+2 = 02 (1) byte header
                     // startByte+3 = 0315 (2 bytes) header

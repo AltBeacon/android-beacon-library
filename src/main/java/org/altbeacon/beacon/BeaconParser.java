@@ -230,7 +230,7 @@ public class BeaconParser {
         for (int i = 0; i < mDataEndOffsets.size(); i++) {
             String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i)+startByte, mDataEndOffsets.get(i)+startByte);
             dataFields.add(Long.parseLong(dataString));
-            Log.d(TAG, "parsing found data field "+i);
+            BeaconManager.logDebug(TAG, "parsing found data field "+i);
             // TODO: error handling needed here on the parse
         }
 
@@ -303,9 +303,9 @@ public class BeaconParser {
             long mask = 0xffl << (length-i-1)*8;
             long shift = (length-i-1)*8;
             long value = ((longValue & mask)  >> shift);
-            //Log.d(TAG, "masked value is "+String.format("%08x",longValue & mask));
-            //Log.d(TAG, "masked value shifted is "+String.format("%08x",(longValue & mask) >> shift));
-            //Log.d(TAG, "for long "+String.format("%08x",longValue)+" at position: "+i+" of "+length+" mask: "+String.format("%08x",mask)+" shift: "+shift+" the value is "+String.format("%02x",value));
+            //BeaconManager.logDebug(TAG, "masked value is "+String.format("%08x",longValue & mask));
+            //BeaconManager.logDebug(TAG, "masked value shifted is "+String.format("%08x",(longValue & mask) >> shift));
+            //BeaconManager.logDebug(TAG, "for long "+String.format("%08x",longValue)+" at position: "+i+" of "+length+" mask: "+String.format("%08x",mask)+" shift: "+shift+" the value is "+String.format("%02x",value));
             array[i] = (byte) value;
 
         }
@@ -340,13 +340,13 @@ public class BeaconParser {
         // We treat a 1-6 byte number as decimal string
         if (length <= 6) {
             Long number = 0l;
-            Log.d(TAG, "Byte array is size "+bytes.length);
+            BeaconManager.logDebug(TAG, "Byte array is size "+bytes.length);
             for (int i = 0; i < bytes.length; i++)  {
-                Log.d(TAG, "index is "+i);
+                BeaconManager.logDebug(TAG, "index is "+i);
                 long byteValue = (long) (bytes[bytes.length - i-1] & 0xff);
                 long positionValue = (long) Math.pow(256.0,i*1.0);
                 long calculatedValue =  (long) (byteValue * positionValue);
-                Log.d(TAG, "calculatedValue for position "+i+" with positionValue "+positionValue+"and byteValue "+byteValue+" is "+calculatedValue);
+                BeaconManager.logDebug(TAG, "calculatedValue for position "+i+" with positionValue "+positionValue+" and byteValue "+byteValue+" is "+calculatedValue);
                 number += calculatedValue;
             }
             return number.toString();

@@ -38,7 +38,7 @@ public class RangedBeacon {
     public void commitMeasurements() {
         double runningAverage = calculateRunningAverage();
         mBeacon.setRunningAverageRssi(runningAverage);
-        if (BeaconManager.debug) Log.d(TAG, "calculated new runningAverageRssi:"+ runningAverage);
+        BeaconManager.logDebug(TAG, "calculated new runningAverageRssi:"+ runningAverage);
     }
 
 	public static void setSampleExpirationMilliseconds(long milliseconds) {
@@ -96,7 +96,7 @@ public class RangedBeacon {
 		}
 		double runningAverage = sum/(endIndex-startIndex+1);
 
-		if (BeaconManager.debug) Log.d(TAG, "Running average mRssi based on "+size+" measurements: "+runningAverage);
+		BeaconManager.logDebug(TAG, "Running average mRssi based on "+size+" measurements: "+runningAverage);
 		return runningAverage;
 
 	}

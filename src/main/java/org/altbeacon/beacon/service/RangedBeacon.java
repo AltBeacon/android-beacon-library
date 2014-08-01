@@ -90,7 +90,7 @@ public class RangedBeacon {
 			endIndex = size-size/10-2;
 		}
 
-		int sum = 0;
+		double sum = 0;
 		for (int i = startIndex; i <= endIndex; i++) {
 			sum += measurements.get(i).rssi;
 		}

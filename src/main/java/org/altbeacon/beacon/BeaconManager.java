@@ -105,6 +105,7 @@ public class BeaconManager {
     private ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
+    private boolean mBackgroundMode = false;
 
     /**
      * set to true if you want to see debug messages associated with this library
@@ -237,9 +238,6 @@ public class BeaconManager {
                 Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                 consumer.bindService(intent, beaconServiceConnection, Context.BIND_AUTO_CREATE);
                 BeaconManager.logDebug(TAG, "consumer count is now:"+consumers.size());
-                if (serviceMessenger != null) { // If the serviceMessenger is not null, that means we are able to make calls to the service
-                    setBackgroundMode(consumer, false); // if we just bound, we assume we are not in the background.
-                }
             }
         }
 	}
@@ -283,14 +281,13 @@ public class BeaconManager {
     }
 
     /**
-     * This method notifies the beacon service that the BeaconConsumer is either moving to background mode or foreground mode
-     * When in background mode, BluetoothLE scans to look for beacons are executed less frequently in order to save battery life
-     * The specific scan rates for background and foreground operation are set by the defaults below, but may be customized.
-     * Note that when multiple beaconConsumers exist, all must be in background mode for the the background scan periods to be used
-     * When ranging in the background, the time between updates will be much less fequent than in the foreground.  Updates will come
-     * every time interval equal to the sum total of the BackgroundScanPeriod and the BackgroundBetweenScanPeriod
-     * All beaconConsumers are by default treated as being in foreground mode unless this method is explicitly called indicating
-     * otherwise.
+     * This method notifies the beacon service that the application is either moving to background
+     * mode or foreground mode.  When in background mode, BluetoothLE scans to look for beacons are
+     * executed less frequently in order to save battery life. The specific scan rates for
+     * background and foreground operation are set by the defaults below, but may be customized.
+     * When ranging in the background, the time between updates will be much less frequent than in
+     * the foreground.  Updates will come every time interval equal to the sum total of the
+     * BackgroundScanPeriod and the BackgroundBetweenScanPeriod.
      *
      * @see #DEFAULT_FOREGROUND_SCAN_PERIOD
      * @see #DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
@@ -300,32 +297,19 @@ public class BeaconManager {
      * @see #setForegroundBetweenScanPeriod(long p)
      * @see #setBackgroundScanPeriod(long p)
      * @see #setBackgroundBetweenScanPeriod(long p)
-     * @param consumer
-     * @param backgroundMode true indicates the beaconConsumer is in the background
-     * returns true if background mode is successfully set
+     * @param backgroundMode true indicates the app is in the background
      */
-    public boolean setBackgroundMode(BeaconConsumer consumer, boolean backgroundMode) {
+    public void setBackgroundMode(boolean backgroundMode) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
-            return false;
         }
-        synchronized(consumers) {
-            Log.i(TAG, "setBackgroundMode for consumer"+consumer+" to "+backgroundMode);
-            if (consumers.keySet().contains(consumer)) {
-                try {
-                    ConsumerInfo consumerInfo = consumers.get(consumer);
-                    consumerInfo.isInBackground = backgroundMode;
-                    updateScanPeriods();
-                    return true;
-                }
-                catch (RemoteException e) {
-                    Log.e(TAG, "Failed to set background mode", e);
-                    return false;
-                }
+        if (backgroundMode != mBackgroundMode) {
+            mBackgroundMode = backgroundMode;
+            try {
+                this.updateScanPeriods();
             }
-            else {
-                BeaconManager.logDebug(TAG, "This consumer is not bound to: "+consumer);
-                return false;
+            catch (RemoteException e) {
+                Log.e(TAG, "Cannot contact service to set scan periods");
             }
         }
     }
@@ -492,7 +476,7 @@ public class BeaconManager {
      Updates an already running scan with scanPeriod/betweenScanPeriod according to Background/Foreground state.
      Change will take effect on the start of the next scan cycle.
      @throws RemoteException - If the BeaconManager is not bound to the service.
-     */ 
+     */
     @TargetApi(18)
     public void updateScanPeriods() throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
@@ -503,20 +487,12 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
-        Log.d(TAG, "updating scan period to "+this.getScanPeriod()+", "+this.getBetweenScanPeriod() );
+        BeaconManager.logDebug(TAG, "updating scan period to "+this.getScanPeriod()+", "+this.getBetweenScanPeriod() );
         StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod());
         msg.obj = obj;
-        serviceMessenger.send(msg);        
+        serviceMessenger.send(msg);
     }
 
-    /**
-     * @deprecated Use updateScanPeriods()
-     * @throws RemoteException
-     */
-    public void setScanPeriods() throws RemoteException {
-        updateScanPeriods();
-    }
-	
 	private String callbackPackageName() {
 		String packageName = context.getPackageName();
 		BeaconManager.logDebug(TAG, "callback packageName: "+packageName);
@@ -624,25 +600,10 @@ public class BeaconManager {
 
     private class ConsumerInfo {
         public boolean isConnected = false;
-        public boolean isInBackground = false;
-    }
-
-    private boolean isInBackground() {
-        boolean background = true;
-        synchronized(consumers) {
-            for (BeaconConsumer consumer : consumers.keySet()) {
-                if (!consumers.get(consumer).isInBackground) {
-                    background = false;
-                }
-                BeaconManager.logDebug(TAG, "Consumer "+consumer+" isInBackground="+consumers.get(consumer).isInBackground);
-            }
-        }
-        BeaconManager.logDebug(TAG, "Overall background mode is therefore "+background);
-        return background;
     }
 
     private long getScanPeriod() {
-        if (isInBackground()) {
+        if (mBackgroundMode) {
             return backgroundScanPeriod;
         }
         else {
@@ -650,7 +611,7 @@ public class BeaconManager {
         }
     }
     private long getBetweenScanPeriod() {
-        if (isInBackground()) {
+        if (mBackgroundMode) {
             return backgroundBetweenScanPeriod;
         }
         else {

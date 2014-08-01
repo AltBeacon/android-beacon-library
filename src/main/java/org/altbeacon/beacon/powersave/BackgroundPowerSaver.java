@@ -3,6 +3,7 @@ package org.altbeacon.beacon.powersave;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -10,29 +11,46 @@ import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
 
 /**
- * Created by dyoung on 12/9/13.
+ *
+ * Simply creating an instance of this class and holding a reference to it in your Application can
+ * improve battery life by 60% by slowing down scans when your app is in the background.
+ *
  */
 @TargetApi(18)
 public class BackgroundPowerSaver implements Application.ActivityLifecycleCallbacks {
     private static final String TAG = "BackgroundPowerSaver";
     private BeaconManager beaconManager;
     private int activeActivityCount = 0;
-    private BeaconConsumer applicationConsumer;
 
-    public BackgroundPowerSaver(Application application) {
+    /**
+     *
+     * Constructs a new BackgroundPowerSaver
+     *
+     * @param context
+     *
+     */
+    public BackgroundPowerSaver(Context context, boolean countActiveActivityStrategy) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             Log.w(TAG, "BackgroundPowerSaver requires SDK 18 or higher.");
             return;
         }
-        if (application instanceof BeaconConsumer ) {
-            Log.d(TAG, "Background power saver started.  Application "+application+" is an BeaconConsumer");
-            this.applicationConsumer = (BeaconConsumer) application;
+        if (context instanceof Application ) {
+            ((Application)context).registerActivityLifecycleCallbacks(this);
         }
         else {
-            Log.d(TAG, "Background power saver started.  Application "+application+" is not an BeaconConsumer");
+            Log.e(TAG, "Context is not an application instance, so we cannot use the BackgroundPowerSaver");
         }
-        application.registerActivityLifecycleCallbacks(this);
-        beaconManager = beaconManager.getInstanceForApplication(application);
+        beaconManager = beaconManager.getInstanceForApplication(context);
+    }
+
+    /**
+     *
+     * Constructs a new BackgroundPowerSaver using the default background determination strategy
+     *
+     * @param context
+     */
+    public BackgroundPowerSaver(Context context) {
+        this(context, false);
     }
 
     @Override
@@ -46,39 +64,22 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
     @Override
     public void onActivityResumed(Activity activity) {
         activeActivityCount++;
-        Log.d(TAG, "activity resumed: "+activity+"  active activities: " + activeActivityCount);
-        try {
-            BeaconConsumer consumerActivity = (BeaconConsumer) activity;
-            if (beaconManager.isBound(consumerActivity)) beaconManager.setBackgroundMode(consumerActivity, false);
+        if (activeActivityCount < 1) {
+            BeaconManager.logDebug(TAG, "reset active activity count on resume.  It was "+activeActivityCount);
+            activeActivityCount = 1;
         }
-        catch (ClassCastException e) {}
-        if (beaconManager.isBound(applicationConsumer)) {
-            Log.d(TAG, "application is bound -- going into foreground");
-            beaconManager.setBackgroundMode(applicationConsumer, false);
-        }
-
+        beaconManager.setBackgroundMode(false);
+        BeaconManager.logDebug(TAG, "activity resumed: "+activity+"  active activities: " + activeActivityCount);
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
         activeActivityCount--;
-        Log.d(TAG, "activity paused: "+activity+"  active activities: " + activeActivityCount);
-        try {
-            BeaconConsumer consumerActivity = (BeaconConsumer) activity;
-            if (beaconManager.isBound(consumerActivity)) {
-                beaconManager.setBackgroundMode(consumerActivity, true);
-                BeaconManager.logDebug(TAG, "Setting background mode");
-            }
-            else {
-                BeaconManager.logDebug(TAG, "Not setting background mode -- beaconManager is not bound.");
-            }
+        BeaconManager.logDebug(TAG, "activity paused: "+activity+"  active activities: " + activeActivityCount);
+        if (activeActivityCount < 1) {
+            BeaconManager.logDebug(TAG, "setting background mode");
+            beaconManager.setBackgroundMode(true);
         }
-        catch (ClassCastException e) {}
-        if (beaconManager.isBound(applicationConsumer) && activeActivityCount < 1) {
-            Log.d(TAG, "application is bound -- going into background");
-            beaconManager.setBackgroundMode(applicationConsumer, true);
-        }
-
     }
 
     @Override

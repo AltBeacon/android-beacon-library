@@ -1,5 +1,7 @@
 org.altbeacon.beacon
 org.altbeacon.beacon.client
+org.altbeacon.beacon.powersave
 org.altbeacon.beacon.service
 org.altbeacon.beacon.simulator
+org.altbeacon.beacon.startup
 org.altbeacon.bluetooth

@@ -60,7 +60,13 @@ public class BeaconParser {
 
     /**
      * <p>Defines a beacon field parsing algorithm based on a string designating the zero-indexed
-     * offsets to bytes within a BLE advertisement.  Three prefixes are allowed in the string</p>
+     * offsets to bytes within a BLE advertisement.</p>
+     *
+     * <p>If you want to see examples of how other folks have set up BeaconParsers for different
+     * kinds of beacons, try doing a Google search for "getBeaconParsers" (include the quotes in
+     * the search.)</p>
+     *
+     * <p>Four prefixes are allowed in the string:</p>
      *
      * <pre>
      *   m - matching byte sequence for this beacon type to parse (one allowed)

@@ -73,6 +73,29 @@ allows the library to work with multiple types of beacons.
 |int major = 1             |Identifier id2 = Identifier.parse("1")|
 |int minor = 1             |Identifier id3 = Identifier.parse("1")|
 
+## Background Mode
+
+The methods to set the background mode have been simplified, because the formerly "pro" library
+features have now been moved into the open source library.  You can still use a method like below
+to directly set the background mode, but it is now global instead of specific to a BeaconConsumer.
+See the Pro Features section below for details on the preferred method of managing background mode.
+
+|0.x                       |2.x                 |
+|:------------------------:|:------------------:|
+|iBeaconManager.setBackgroundMode(IBeaconConsumer c, boolean b)|beaconManager.setBackgroundMode(boolean b)|
+
+## Pro Features
+
+Features that were formerly part of the "pro" library are now included in the open source library.
+These include the ability to automatically set the background mode and the ability to launch your
+app automatically at phone startup, and the ability to restart it after being killed by the task
+switcher.
+
+|0.x                       |2.x                 |
+|:------------------------:|:------------------:|
+|N/A (pro library)|org.altbeacon.powersave.BackgroundPowerSaver|
+|N/A (pro library)|org.altbeacon.startup.RegionBootstrap|
+
 
 ## Ranging API 2.x code sample
 

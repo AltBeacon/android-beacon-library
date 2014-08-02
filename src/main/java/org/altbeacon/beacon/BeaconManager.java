@@ -77,7 +77,7 @@ import android.util.Log;
  *        	 {@literal @}Override 
  *        	public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
  *     			if (beacons.size() > 0) {
- *	      			Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getAccuracy()+" meters away.");		
+ *	      			Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");		
  *     			}
  *        	}
  *  		});

@@ -1,3 +1,5 @@
+---
+---
 ###Configuring the Android Beacon Library
 
 #### Eclipse 

@@ -130,7 +130,6 @@ public class RangingActivity extends Activity implements BeaconConsumer {
                }
              }
           });
-
        try {
           beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"), Identifier.parse("1"), null));
        } catch (RemoteException e) {   }

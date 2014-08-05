@@ -105,7 +105,7 @@ switcher.
 
 This sample ranges all beacons matching id1=2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6, id2=1, id3=*
 
-```java
+```
 public class RangingActivity extends Activity implements BeaconConsumer {
     protected static final String TAG = "RangingActivity";
     private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);

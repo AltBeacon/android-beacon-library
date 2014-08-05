@@ -2,7 +2,6 @@
 layout: android-beacon-library
 ---
 
-
 <img src="images/beacon.png" style="display:block; float:left; width:30%"/>
 <p style="height:15px"></p>
 

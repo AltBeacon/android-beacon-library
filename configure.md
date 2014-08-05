@@ -1,14 +1,26 @@
 ---
+layout: android-beacon-library
 ---
+
 ###Configuring the Android Beacon Library
+
 
 #### Eclipse 
 
-1. Download the tar.gz file
-2. Extract the above file
-3. Import the android-beacon-library as an existing project in the workspace
-4. In a new/existing Android Application project, go to Project -> Properties -> Android -> Library -> Add, then select the imported project from step 3.
-5. Add the follwoing sdk and permission declarations to your AndroidManifest.xml
+Step 1. Get the Library and Import it to Eclipse
+
+Download the [tar.gz file](download.html)
+
+Extract the above file
+
+Launch Eclipse and import the android-beacon-library folder above as an existing project in the workspace
+
+
+Step 2. Configure your Eclipse project
+
+Go to Project -> Properties -> Android -> Library -> Add, then select the imported project from step 1.
+
+Add the follwoing sdk and permission declarations to your AndroidManifest.xml
 
    ```
    <uses-sdk
@@ -18,16 +30,24 @@
 	 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
    ```
 
-6. Edit your project.properties file and add the line: 
+Edit your project.properties file and add the line: 
    ```
      manifestmerger.enabled=true
    ```
 
+
 #### Android Studio / Gradle 
 
-1. Download the AAR file
-2. Create a /libs directory inside your project and copy the AAR file there.
-3. Edit your build.gradle file, and add a "flatDir" entry to your repositories like so:
+
+Step 1. Get the Library and Copy it to Your Project
+
+Download the [AAR file](download.html)
+
+Create a /libs directory inside your project and copy the AAR file there.
+
+Step 2. Configure your app's build.gradle File
+
+add a "flatDir" entry to your repositories like so:
 
    ```
    repositories {
@@ -38,11 +58,12 @@
    }
    ```
 
-4. Edit your build.gradle file to add this AAR as a dependency like so:
+add the library AAR as a dependency like so:
 
    ```
    dependencies {
-     compile 'com.radiusnetworks:android-beacon-library:2+@aar'
+     compile 'org.altbeacon:android-beacon-library:2+@aar'
    }
    ```
-
+   
+See [the reference app's build.gradle file](https://github.com/AltBeacon/android-beacon-library-reference/blob/android-studio/app/build.gradle) for an example. 

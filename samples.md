@@ -8,7 +8,8 @@ A minimalist [reference application](https://github.com/AltBeacon/android-beacon
 
 ## Monitoring Example Code
 
-```
+```java
+
 public class MonitoringActivity extends Activity implements BeaconConsumer {
 	protected static final String TAG = "RangingActivity";
 	private beaconManager BeaconManager = BeaconManager.getInstanceForApplication(this);
@@ -55,7 +56,8 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
 
 ## Ranging Example Code
 
-```
+```java
+
 public class RangingActivity extends Activity implements BeaconConsumer {
 	protected static final String TAG = "RangingActivity";
 	private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
@@ -99,7 +101,8 @@ You must create a class that extends `Application` (shown in the example) and th
 
 Here is the AndroidManifest.xml entry.  Note that it declares a custom Application class, and a background launch activity marked as "singleInstance".
 
-```
+```java
+
     <application 
         android:name="com.example.MyApplicationName"
         android:allowBackup="true"
@@ -122,7 +125,8 @@ Here is the AndroidManifest.xml entry.  Note that it declares a custom Applicati
 
 And here is an example Application class.  This will launch the MainActivity as soon as any beacon is seen.
 
-```
+```java
+
 import android.app.Application;
 import android.content.Intent;
 import android.util.Log;
@@ -173,7 +177,8 @@ public class MyApplicationName extends Application implements BootstrapNotifier 
 
 ## Auto Battery Saving Example Code 
 
-```
+```java
+
 public class MyApplication extends Application implements BootstrapNotifier {
     private BackgroundPowerSaver backgroundPowerSaver;
 
@@ -184,6 +189,7 @@ public class MyApplication extends Application implements BootstrapNotifier {
         backgroundPowerSaver = new BackgroundPowerSaver(this);
     }
 }
+
 ```
 
 

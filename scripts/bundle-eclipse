@@ -8,5 +8,5 @@ tar -xvf $AAR_FILE -C build/libs/android-beacon-library
 mkdir build/libs/android-beacon-library/src
 mkdir build/libs/android-beacon-library/libs
 mkdir build/libs/android-beacon-library/gen
-mv build/libs/AndroidBeaconLibrary/*.jar build/libs/android-beacon-library/libs
+mv build/libs/android-beacon-library/*.jar build/libs/android-beacon-library/libs
 tar -czvf $TARGZ_FILE -C build/libs android-beacon-library

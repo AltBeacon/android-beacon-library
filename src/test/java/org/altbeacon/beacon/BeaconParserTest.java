@@ -11,8 +11,10 @@ import org.robolectric.RobolectricTestRunner;
 
 import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(emulateSdk = 18)
 
 /*
 HOW TO SEE DEBUG LINES FROM YOUR UNIT TESTS:

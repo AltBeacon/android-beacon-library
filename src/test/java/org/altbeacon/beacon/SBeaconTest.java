@@ -8,6 +8,7 @@ import android.util.Log;
 
 
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 
@@ -17,6 +18,7 @@ import static junit.framework.Assert.assertNotNull;
 /**
  * Created by dyoung on 7/22/14.
  */
+@Config(emulateSdk = 18)
 public class SBeaconTest {
 
     @Test

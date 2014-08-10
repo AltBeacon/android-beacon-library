@@ -111,6 +111,7 @@ public class BeaconParser {
      * @return the BeaconParser instance
      */
     public BeaconParser setBeaconLayout(String beaconLayout) {
+        // TODO: add endieanness option for each identifier and data field
 
         String[] terms =  beaconLayout.split(",");
 

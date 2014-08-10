@@ -92,6 +92,7 @@ public class SBeaconTest {
         public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
             int startByte = 2;
             while (startByte <= 5) {
+                // "m:2-3=0203,i:2-2,i:7-8,i:14-19,d:10-13,p:9-9"
                 if (((int)scanData[startByte+3] & 0xff) == 0x03 &&
                         ((int)scanData[startByte+4] & 0xff) == 0x15) {
                     //BeaconManager.logDebug(TAG, "This is a SBeacon beacon advertisement");

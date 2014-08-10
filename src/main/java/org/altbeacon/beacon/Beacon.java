@@ -148,7 +148,7 @@ public class Beacon implements Parcelable {
         for (int i = 0; i < dataSize; i++) {
             mDataFields.add(in.readLong());
         }
-
+        mManufacturer = in.readInt();
     }
 
     /**
@@ -401,6 +401,7 @@ public class Beacon implements Parcelable {
         for (Long dataField: mDataFields) {
             out.writeLong(dataField);
         }
+        out.writeInt(mManufacturer);
 
     }
 

@@ -135,6 +135,7 @@ public class BeaconTest {
         assertEquals("distance is same after deserialization", beacon.getDistance(), beacon2.getDistance(), 0.001);
         assertEquals("bluetoothAddress is same after deserialization", beacon.getBluetoothAddress(), beacon2.getBluetoothAddress());
         assertEquals("beaconTypeCode is same after deserialization", beacon.getBeaconTypeCode(), beacon2.getBeaconTypeCode());
+        assertEquals("manufacturer is same after deserialization", beacon.getManufacturer(), beacon2.getManufacturer());
     }
 
 }

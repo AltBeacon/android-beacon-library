@@ -36,9 +36,14 @@ public class RangedBeacon {
 
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
-        double runningAverage = calculateRunningAverage();
-        mBeacon.setRunningAverageRssi(runningAverage);
-        BeaconManager.logDebug(TAG, "calculated new runningAverageRssi:"+ runningAverage);
+        if (measurements.size() > 0) {
+            double runningAverage = calculateRunningAverage();
+            mBeacon.setRunningAverageRssi(runningAverage);
+            BeaconManager.logDebug(TAG, "calculated new runningAverageRssi:"+ runningAverage);
+        }
+        else {
+            BeaconManager.logDebug(TAG, "No measurements available to calculate running average");
+        }
     }
 
 	public static void setSampleExpirationMilliseconds(long milliseconds) {

@@ -55,4 +55,17 @@ public class Identifier {
         }
     }
     private Identifier() {}
+
+    /**
+     * Compares two identifiers
+     * @param that the other identifier
+     * @return 0 if both identifiers are equal.  Otherwise returns -1 or 1 depending on which is
+     * bigger than the other
+     */
+    public int compareTo(Identifier that) {
+        if (mStringValue == null &&  that.mStringValue == null) {
+            return 0;
+        }
+        return mStringValue.compareTo(that.mStringValue);
+    }
 }

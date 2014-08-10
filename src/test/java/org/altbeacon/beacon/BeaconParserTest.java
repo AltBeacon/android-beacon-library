@@ -80,5 +80,17 @@ public class BeaconParserTest {
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }
 
+    @Test
+    public void testRecognizeBeaconCapturedManufacturer() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("0201061affaabbbeace2c56db5dffb48d2b060d0f5a71096e000010004c50000000000000000000000000000000000000000000000000000000000000000");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertEquals("manufacturer should be parsed", "bbaa" ,String.format("%04x", beacon.getManufacturer()));
+    }
+
+
+
 
 }

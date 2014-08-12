@@ -4,6 +4,7 @@ import android.os.Parcel;
 
 import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.robolectric.RobolectricTestRunner;
@@ -68,8 +69,8 @@ public class RegionTest {
         assertEquals("uniqueId is same after deserialization", region.getUniqueId(), region2.getUniqueId());
         assertEquals("id1 is same after deserialization", region.getIdentifier(0), region2.getIdentifier(0));
         assertEquals("id2 is same after deserialization", region.getIdentifier(1), region2.getIdentifier(1));
-        // for some reason jUnit won't consider two null values to be equal, so we force it with a prepend of ""
-        assertEquals("id3 is same after deserialization", ""+region.getIdentifier(2), ""+region2.getIdentifier(2));
+        assertNull("id3 is null before deserialization", region.getIdentifier(2));
+        assertNull("id3 is null after deserialization", region2.getIdentifier(2));
     }
 
     @Test

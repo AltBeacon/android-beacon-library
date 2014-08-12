@@ -220,8 +220,13 @@ public class Region implements Parcelable {
         int size = in.readInt();
         mIdentifiers = new ArrayList<Identifier>(size);
         for (int i = 0; i < size; i++) {
-            Identifier identifier = Identifier.parse(in.readString());
-            mIdentifiers.add(identifier);
+            String identifierString = in.readString();
+            if (identifierString == null) {
+                mIdentifiers.add(null);
+            } else {
+                Identifier identifier = Identifier.parse(identifierString);
+                mIdentifiers.add(identifier);
+            }
         }
     }
     @Override

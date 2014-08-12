@@ -225,7 +225,7 @@ public class BeaconParser {
             return null;
         }
         else {
-            BeaconManager.logDebug(TAG, "This a recognized beacon advertisement -- "+String.format("%04x", getMatchingBeaconTypeCode())+" seen");
+            BeaconManager.logDebug(TAG, "This is a recognized beacon advertisement -- "+String.format("%04x", getMatchingBeaconTypeCode())+" seen");
         }
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();

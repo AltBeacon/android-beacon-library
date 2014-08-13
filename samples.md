@@ -71,7 +71,7 @@ public class RangingActivity extends Activity implements BeaconConsumer {
 	@Override 
 	protected void onDestroy() {
 		super.onDestroy();
-		beaconManager.unBind(this);
+		beaconManager.unbind(this);
 	}
 	@Override
 	public void onBeaconServiceConnect() {

@@ -22,7 +22,7 @@ at a frequency of approximately 1Hz.
 
 ## Documentation
 
-The [project website](http://altbeacon.github.io/android-beacon-library/) has full documentation including [Javadocs.](http://altbeacon.github.io/android-beacon-library/javadoc/)
+The [project website](http://altbeacon.github.io/android-beacon-library/) has [full documentation](http://altbeacon.github.io/android-beacon-library/documentation.html) including [Javadocs.](http://altbeacon.github.io/android-beacon-library/javadoc/)
 
 
 ## Binary Releases

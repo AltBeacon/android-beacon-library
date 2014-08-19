@@ -231,7 +231,12 @@ public class BeaconService extends Service {
         handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
         if (bluetoothAdapter != null) {
-            bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+            try {
+                getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+            }
+            catch (Exception e) {
+                Log.w("Internal Android exception scanning for beacons: ", e);
+            }
             lastScanEndTime = new Date().getTime();
         }
     }
@@ -387,7 +392,12 @@ public class BeaconService extends Service {
                             }
                             else {
                                 if (scanningEnabled) {
-                                    getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                                    try {
+                                        getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                                    }
+                                    catch (Exception e) {
+                                        Log.w("Internal Android exception scanning for beacons: ", e);
+                                    }
                                 }
                                 else {
                                     BeaconManager.logDebug(TAG, "Scanning unnecessary - no monitoring or ranging active.");
@@ -412,7 +422,12 @@ public class BeaconService extends Service {
             BeaconManager.logDebug(TAG, "disabling scan");
             scanning = false;
             if (getBluetoothAdapter() != null) {
-                getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                try {
+                    getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                }
+                catch (Exception e) {
+                    Log.w("Internal Android exception scanning for beacons: ", e);
+                }
                 lastScanEndTime = new Date().getTime();
             }
         }
@@ -477,7 +492,12 @@ public class BeaconService extends Service {
             }
             if (getBluetoothAdapter() != null) {
                 if (getBluetoothAdapter().isEnabled()) {
-                    getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                    try {
+                        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                    }
+                    catch (Exception e) {
+                        Log.w("Internal Android exception scanning for beacons: ", e);
+                    }
                     lastScanEndTime = new Date().getTime();
                 } else {
                     Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");

@@ -77,7 +77,7 @@ import android.util.Log;
  *        	 {@literal @}Override 
  *        	public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
  *     			if (beacons.size() > 0) {
- *	      			Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getAccuracy()+" meters away.");		
+ *	      			Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");		
  *     			}
  *        	}
  *  		});
@@ -330,11 +330,11 @@ public class BeaconManager {
 	}
 
 	/**
-	 * Specifies a class that should be called each time the <code>BeaconService</code> gets sees
+	 * Specifies a class that should be called each time the <code>BeaconService</code> sees
 	 * or stops seeing a Region of beacons.
      *
      * IMPORTANT:  Only one MonitorNotifier may be active for a given application.  If two different
-     * activities or services set different RangeNotifier instances, the last one set will receive
+     * activities or services set different MonitorNotifier instances, the last one set will receive
      * all the notifications.
 	 *
 	 * @see MonitorNotifier 
@@ -348,7 +348,7 @@ public class BeaconManager {
 	
 	/**
 	 * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
-	 * <code>Region</code> object, and providing updates on the estimated mDistance very seconds while
+	 * <code>Region</code> object, and providing updates on the estimated mDistance every seconds while
 	 * beacons in the Region are visible.  Note that the Region's unique identifier must be retained to
 	 * later call the stopRangingBeaconsInRegion method.
 	 *  
@@ -439,7 +439,7 @@ public class BeaconManager {
 	/**
 	 * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
 	 * <code>Region</code> object.  Note that the Region's unique identifier is used to match it to
-	 * and existing monitored Region.
+	 * an existing monitored Region.
 	 *  
 	 * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
 	 * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)

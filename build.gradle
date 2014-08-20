@@ -53,13 +53,14 @@ apply plugin: "android-library"
 apply plugin: 'android-test'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion '19.0.3'
+    compileSdkVersion 'android-L'
+    buildToolsVersion "19.1.0"
 
     defaultConfig {
-        targetSdkVersion 1
-
-        versionName = version
+        minSdkVersion 8
+        targetSdkVersion 20
+        versionCode 1
+        versionName version
     }
 
     sourceSets {
@@ -81,6 +82,7 @@ dependencies {
     androidTestCompile 'junit:junit:4.10'
     androidTestCompile 'org.robolectric:robolectric:2.1.+'
     androidTestCompile 'com.squareup:fest-android:1.0.+'
+    compile 'com.android.support:support-v4:19.1.0'
 }
 
 apply plugin: 'idea'

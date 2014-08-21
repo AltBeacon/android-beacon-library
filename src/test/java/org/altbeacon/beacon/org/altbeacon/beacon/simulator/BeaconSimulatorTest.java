@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 
 import java.lang.Override;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.List;
 import dalvik.annotation.TestTarget;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(emulateSdk = 18)
 public class BeaconSimulatorTest {
 
     public static byte[] hexStringToByteArray(String s) {

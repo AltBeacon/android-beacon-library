@@ -11,6 +11,9 @@ layout: android-beacon-library
 <li><a href='notifications.html'>Sending notifications on beacon detection</a></li>
 <li><a href='battery_manager.html'>Saving battery when your app is in the background</a></li>
 <li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
+<li><a href='resume-after-terminate.html'>Detecting beacons after the app is killed</a></li>
+
+resume_after_terminate.md
 </ul>
 
 ### Code samples and API documentation

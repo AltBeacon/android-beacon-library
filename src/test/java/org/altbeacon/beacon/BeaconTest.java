@@ -9,6 +9,9 @@ import org.robolectric.RobolectricTestRunner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.robolectric.annotation.Config;
+
+@Config(emulateSdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
 

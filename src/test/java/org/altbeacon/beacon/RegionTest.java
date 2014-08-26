@@ -83,6 +83,15 @@ public class RegionTest {
     }
 
     @Test
+    public void testCopyConstructor() {
+        Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
+        Region region2 = new Region(region);
+        assertEquals(region, region2);
+        assertNull(region2.getId3());
+    }
+
+
+    @Test
     public void testConvenienceIdentifierAccessors() {
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), Identifier.parse("3"));
         assertEquals("1", region.getId1().toString());

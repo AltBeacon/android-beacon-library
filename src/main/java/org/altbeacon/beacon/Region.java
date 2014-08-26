@@ -208,10 +208,12 @@ public class Region implements Parcelable {
         super();
         mIdentifiers = new ArrayList<Identifier>(otherRegion.mIdentifiers.size());
         for (int i = 0; i < otherRegion.mIdentifiers.size(); i++) {
-            mIdentifiers.add(new Identifier(otherRegion.mIdentifiers.get(i)));
+            Identifier otherIdentifier = otherRegion.mIdentifiers.get(i);
+            mIdentifiers.add(otherIdentifier != null ? new Identifier(otherIdentifier) : null);
         }
         mUniqueId = otherRegion.mUniqueId;
     }
+    
     protected Region() {
     }
 

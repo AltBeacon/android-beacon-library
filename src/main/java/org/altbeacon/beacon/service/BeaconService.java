@@ -42,9 +42,12 @@ import android.util.Log;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.bluetooth.AndroidBleScanner;
+import org.altbeacon.bluetooth.BleScanner;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.bluetooth.LeScanCallback;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -78,6 +81,7 @@ public class BeaconService extends Service {
     private boolean scanCyclerStarted = false;
     private boolean scanningEnabled = false;
     private List<BeaconParser> beaconParsers;
+    private BleScanner mBleScanner;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -201,7 +205,16 @@ public class BeaconService extends Service {
     @Override
     public void onCreate() {
         Log.i(TAG, "beaconService version "+ BuildConfig.VERSION_NAME+" is starting up");
-        getBluetoothAdapter();
+
+        if (android.os.Build.VERSION.SDK_INT >= 18) {
+            BeaconManager.logDebug(TAG, "SDK is 18 or higher.  Using native Android APIs for BLE scanning");
+            mBleScanner = new AndroidBleScanner(this);
+        }
+        else {
+            BeaconManager.logDebug(TAG, "SDK is < 18.  Checking for availability of Samsung BLE SDK");
+            //mBleScanner = new SamsungBleSDkScanner(this);
+        }
+
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
 
@@ -220,25 +233,22 @@ public class BeaconService extends Service {
     }
 
     @Override
-    @TargetApi(18)
     public void onDestroy() {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
-            return;
+        if (android.os.Build.VERSION.SDK_INT >= 18) {
+            bluetoothCrashResolver.stop();
         }
-        bluetoothCrashResolver.stop();
+
         Log.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
-        if (bluetoothAdapter != null) {
-            try {
-                getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
-            }
-            catch (Exception e) {
-                Log.w("Internal Android exception scanning for beacons: ", e);
-            }
-            lastScanEndTime = new Date().getTime();
+        try {
+            mBleScanner.stopLeScan((LeScanCallback) getLeScanCallback());
+            mBleScanner.finish();
         }
+        catch (Exception e) {
+            Log.w("Internal Android exception finishing scanning for beacons: ", e);
+        }
+        lastScanEndTime = new Date().getTime();
     }
 
     private int ongoing_notification_id = 1;
@@ -351,15 +361,10 @@ public class BeaconService extends Service {
         scanningEnabled = false;
     }
 
-    @TargetApi(18)
     private void scanLeDevice(final Boolean enable) {
         scanCyclerStarted = true;
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
-            return;
-        }
-        if (getBluetoothAdapter() == null) {
-            Log.e(TAG, "No bluetooth adapter.  beaconService cannot scan.");
+        if (mBleScanner.isEnabled()) {
+            Log.w(TAG, "Bluetooth not enabled so we cannot scan.");
             if ((simulatedScanData == null) && (BeaconManager.getBeaconSimulator() == null)) {
                 Log.w(TAG, "exiting");
                 return;
@@ -389,28 +394,26 @@ public class BeaconService extends Service {
                 scanning = true;
                 scanningPaused = false;
                 try {
-                    if (getBluetoothAdapter() != null) {
-                        if (getBluetoothAdapter().isEnabled()) {
-                            if (bluetoothCrashResolver.isRecoveryInProgress()) {
-                                Log.w(TAG, "Skipping scan because crash recovery is in progress.");
+                    if (mBleScanner.isEnabled()) {
+                        if (bluetoothCrashResolver.isRecoveryInProgress()) {
+                            Log.w(TAG, "Skipping scan because crash recovery is in progress.");
+                        }
+                        else {
+                            if (scanningEnabled) {
+                                try {
+                                    mBleScanner.startLeScan((LeScanCallback) getLeScanCallback());
+                                }
+                                catch (Exception e) {
+                                    Log.w("Internal Android exception scanning for beacons: ", e);
+                                }
                             }
                             else {
-                                if (scanningEnabled) {
-                                    try {
-                                        getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
-                                    }
-                                    catch (Exception e) {
-                                        Log.w("Internal Android exception scanning for beacons: ", e);
-                                    }
-                                }
-                                else {
-                                    BeaconManager.logDebug(TAG, "Scanning unnecessary - no monitoring or ranging active.");
-                                }
+                                BeaconManager.logDebug(TAG, "Scanning unnecessary - no monitoring or ranging active.");
                             }
-                            lastScanStartTime = new Date().getTime();
-                        } else {
-                            Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                         }
+                        lastScanStartTime = new Date().getTime();
+                    } else {
+                        Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                     }
                 } catch (Exception e) {
                     Log.e("TAG", "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
@@ -425,15 +428,13 @@ public class BeaconService extends Service {
         } else {
             BeaconManager.logDebug(TAG, "disabling scan");
             scanning = false;
-            if (getBluetoothAdapter() != null) {
-                try {
-                    getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
-                }
-                catch (Exception e) {
-                    Log.w("Internal Android exception scanning for beacons: ", e);
-                }
-                lastScanEndTime = new Date().getTime();
+            try {
+                mBleScanner.stopLeScan((LeScanCallback) getLeScanCallback());
             }
+            catch (Exception e) {
+                Log.w("Internal Android exception scanning for beacons: ", e);
+            }
+            lastScanEndTime = new Date().getTime();
         }
     }
 
@@ -455,12 +456,7 @@ public class BeaconService extends Service {
 
     }
 
-    @TargetApi(18)
     private void finishScanCycle() {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
-            return;
-        }
         BeaconManager.logDebug(TAG, "Done with scan cycle");
         processExpiredMonitors();
         if (scanning == true) {
@@ -494,18 +490,16 @@ public class BeaconService extends Service {
                     Log.w(TAG, "getBeacons is returning null. No simulated beacons to report.");
                 }
             }
-            if (getBluetoothAdapter() != null) {
-                if (getBluetoothAdapter().isEnabled()) {
-                    try {
-                        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
-                    }
-                    catch (Exception e) {
-                        Log.w("Internal Android exception scanning for beacons: ", e);
-                    }
-                    lastScanEndTime = new Date().getTime();
-                } else {
-                    Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+            if (mBleScanner.isEnabled()) {
+                try {
+                    mBleScanner.stopLeScan((LeScanCallback) getLeScanCallback());
                 }
+                catch (Exception e) {
+                    Log.w("Internal Android exception scanning for beacons: ", e);
+                }
+                lastScanEndTime = new Date().getTime();
+            } else {
+                Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
             }
 
             if (!anyRangingOrMonitoringRegionsActive()) {
@@ -528,11 +522,10 @@ public class BeaconService extends Service {
     }
 
     private Object leScanCallback;
-    @TargetApi(18)
     private Object getLeScanCallback() {
         if (leScanCallback == null) {
             leScanCallback =
-                    new BluetoothAdapter.LeScanCallback() {
+                    new LeScanCallback() {
 
                         @Override
                         public void onLeScan(final BluetoothDevice device, final int rssi,
@@ -679,21 +672,6 @@ public class BeaconService extends Service {
      */
     private boolean anyRangingOrMonitoringRegionsActive() {
         return (rangedRegionState.size() + monitoredRegionState.size()) > 0;
-    }
-
-    @TargetApi(18)
-    private BluetoothAdapter getBluetoothAdapter() {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
-            return null;
-        }
-        if (bluetoothAdapter == null) {
-            // Initializes Bluetooth adapter.
-            final BluetoothManager bluetoothManager =
-                    (BluetoothManager) this.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
-            bluetoothAdapter = bluetoothManager.getAdapter();
-        }
-        return bluetoothAdapter;
     }
 
 }

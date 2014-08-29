@@ -216,12 +216,9 @@ public class BeaconService extends Service {
             if (BeaconManager.getInstanceForApplication(this).isSamsungSdkAllowed()) {
                 Log.i(TAG, "SDK is < 18.  Checking for availability of Samsung BLE SDK");
                 SamsungBleSdkScanner scanner = new SamsungBleSdkScanner(this);
-                if (scanner.isAvailable()) {
+                if (scanner.mayBeAvailable()) {
                     mBleScanner = scanner;
-                    Log.i(TAG, "Using Samsung BLE SDK");
-                }
-                else {
-                    Log.i(TAG, "Samsung BLE SDK unavailable");
+                    Log.i(TAG, "Using Samsung BLE SDK... no guarantee it is available.");
                 }
             }
             else {

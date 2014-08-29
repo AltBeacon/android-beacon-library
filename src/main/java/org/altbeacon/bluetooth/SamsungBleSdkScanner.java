@@ -30,50 +30,62 @@ public class SamsungBleSdkScanner implements BleScanner {
 	private boolean startScanWhenReady = false;
 
     /**
-     * This method may block for up to 1s waiting for the service to connect if it is unavailable
+     * This method may block for up to 5s waiting for the service to connect if it is unavailable
      *
      * @return
      */
 	public boolean isAvailable() {
-        if (!Build.MANUFACTURER.contains("Samsung")) {
-            Log.d(TAG, "Manufacturer is not Samsung.  It cannot have Samsung BLE SDK.");
+        if (!mayBeAvailable()) {
+            return false;
+        }
+       //
+       // There is no known way to synchronously check to see if the Samsung BLE SDK is
+       // available on the device.
+       //
+       // If cannot contact the service, you see a:
+       //    BluetoothGattServer Could not bind to Bluetooth Gatt Service
+       // as an error on LogCat.  But no exception is thrown in the call to getProfileProxy
+       // and you just don't get a callback to the scanServiceListener!
+       //
+       // So it seems there is no way to know if the service is actually available other than
+       // to just wait for it.
+       //
+       // And this can take up to four seconds!
+       //
+       // We do that here only for Samsung devices with Android 4.2
+       //
+       for (int i = 0; i < 5; i++) {
+           if (mBluetoothGattServer != null) {
+               return true;
+           }
+           try  {
+               Log.d(TAG, "Waiting for connection to Samsung Bluetooth Gatt Server");
+               Thread.sleep(1000l);
+           }
+           catch (InterruptedException e) {
+               Log.w(TAG, "Interrupted waiting for connection to Samsung Bluetooth Gatt Server");
+           }
+
+       }
+       Log.w(TAG, "Timeout waiting for Samsung Bluetooth Gatt Server");
+        return false;
+	}
+
+    public static boolean mayBeAvailable() {
+        if (!Build.MANUFACTURER.matches("(?i:.*samsung.*)")) {
+            Log.d(TAG, "Manufacturer is not Samsung, it is:"+Build.MANUFACTURER+
+                    "  This device cannot have Samsung BLE SDK.");
             return false;
         }
 
-
-	    if (android.os.Build.VERSION.SDK_INT == 17) {
-           //
-           // There is no known way to synchronously check to see if the Samsung BLE SDK is
-           // available on the device.
-           //
-           // If cannot contact the service, you see a:
-           //    BluetoothGattServer Could not bind to Bluetooth Gatt Service
-           // as an error on LogCat.  But no exception is thrown in the call to getProfileProxy
-           // and you just don't get a callback to the scanServiceListener!
-           //
-           // So it seems there is no way to know if the service is actually available other than
-           // to just wait for it.
-           //
-           // We do that here only for Samsung devices with Android 4.2
-           //
-           for (int i = 0; i < 10; i++) {
-               if (mBluetoothGattServer != null) {
-                   return true;
-               }
-               try  {
-                   Thread.sleep(100l);
-               }
-               catch (InterruptedException e) {
-                   Log.w(TAG, "Interrupted waiting for connection to Bluetooth Gatt Server");
-               }
-
-           }
-	    }
-	    else {
-	    	Log.d(TAG, "Android version is not 17.  It cannot have Samsung BLE SDK.");
-	    }
-		return false;		
-	}
+        if (android.os.Build.VERSION.SDK_INT == 17) {
+            return true;
+        }
+        else {
+            Log.d(TAG, "Android version is not 17.  It cannot have Samsung BLE SDK.");
+        }
+        return false;
+    }
 
     @Override
     public boolean isNative() {

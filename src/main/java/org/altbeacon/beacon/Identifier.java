@@ -12,6 +12,9 @@ public class Identifier {
     private String mStringValue;
 
     public static Identifier parse(String identifierString) {
+        if (identifierString == null) {
+            throw new NullPointerException("cannot parse null string");
+        }
         return new Identifier(identifierString);
     }
     public static Identifier fromInt(int identifierInt) {
@@ -25,6 +28,9 @@ public class Identifier {
             // if it does not match a format, throw a IdentifierFormatException (runtime)
             // if it does match a format, normalize (e.g. lower case hex digits)
             mStringValue = identifier.mStringValue;
+        }
+        else {
+            throw new NullPointerException("cannot construct Identifier from a null value");
         }
     }
 

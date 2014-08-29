@@ -9,4 +9,5 @@ mkdir build/outputs/aar/android-beacon-library/src
 mkdir build/outputs/aar/android-beacon-library/libs
 mkdir build/outputs/aar/android-beacon-library/gen
 mv build/outputs/aar/android-beacon-library/*.jar build/outputs/aar/android-beacon-library/libs
+cp libs/*.jar build/outputs/aar/android-beacon-library/libs
 tar -czvf $TARGZ_FILE -C build/outputs/aar/ android-beacon-library

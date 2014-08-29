@@ -227,6 +227,8 @@ public class BluetoothCrashResolver {
     }
     public boolean isRecoveryInProgress() { return recoveryInProgress; }
 
+
+
     public interface UpdateNotifier {
         public void dataUpdated();
     }
@@ -474,7 +476,6 @@ public class BluetoothCrashResolver {
         protected void onProgressUpdate(Void... values) {
         }
     }
-
 
 }
 

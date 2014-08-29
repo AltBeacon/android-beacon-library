@@ -106,6 +106,7 @@ public class BeaconManager {
     private ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
     private boolean mBackgroundMode = false;
+    private boolean mSamsungSdkAllowed = false;
 
     /**
      * set to true if you want to see debug messages associated with this library
@@ -176,6 +177,23 @@ public class BeaconManager {
         backgroundBetweenScanPeriod = p;
     }
 
+    /**
+     * Determines if the library is allowed to be used with the Samsung BLE SDK on Android 4.2
+     * devices (if available) as an alternative to the native Android BLE APIs.
+     */
+    public boolean isSamsungSdkAllowed() {
+        return mSamsungSdkAllowed;
+    }
+    /**
+     * Allows the app to enable the beacon library to work with Samsung BLE SDK on Android 4.2 devices
+     * (if available) as an alternative to the native Android BLE APIs requiring 4.3+.  This is
+     * disabled by default.  If you want to allow using the Samsung BLE SDK, call this method to
+     * enable it before calling bind()
+     */
+    public void setSamsungSdkAllowed(boolean allow) {
+        mSamsungSdkAllowed = allow;
+    }
+
 	/**
 	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
 	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
@@ -201,7 +219,7 @@ public class BeaconManager {
 	 * @throws  BleNotAvailableException if Bluetooth LE is not supported.  (Note: The Android emulator will do this)
 	 * @return false if it is supported and not enabled
 	 */
-    @TargetApi(18)
+    @TargetApi(17)
 	public boolean checkAvailability() throws BleNotAvailableException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             throw new BleNotAvailableException("Bluetooth LE not supported by this device");
@@ -224,8 +242,8 @@ public class BeaconManager {
 	 * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
 	 */
 	public void bind(BeaconConsumer consumer) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < getMinSdk()) {
+            Log.w(TAG, "Not supported prior to SDK "+getMinSdk()+".  Method invocation will be ignored");
             return;
         }
         synchronized (consumers) {
@@ -249,8 +267,8 @@ public class BeaconManager {
 	 * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
 	 */
 	public void unbind(BeaconConsumer consumer) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < getMinSdk()) {
+            Log.w(TAG, "Not supported prior to SDK "+getMinSdk()+".  Method invocation will be ignored");
             return;
         }
         synchronized(consumers) {
@@ -300,8 +318,8 @@ public class BeaconManager {
      * @param backgroundMode true indicates the app is in the background
      */
     public void setBackgroundMode(boolean backgroundMode) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < getMinSdk()) {
+            Log.w(TAG, "Not supported prior to SDK "+getMinSdk()+".  Method invocation will be ignored");
         }
         if (backgroundMode != mBackgroundMode) {
             mBackgroundMode = backgroundMode;
@@ -358,10 +376,10 @@ public class BeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
-    @TargetApi(18)
+    @TargetApi(17)
 	public void startRangingBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < getMinSdk()) {
+            Log.w(TAG, "Not supported prior to SDK "+getMinSdk()+".  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -385,10 +403,10 @@ public class BeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
-    @TargetApi(18)
+    @TargetApi(17)
 	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < getMinSdk()) {
+            Log.w(TAG, "Not supported prior to SDK "+getMinSdk()+".  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -419,10 +437,10 @@ public class BeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
-    @TargetApi(18)
+    @TargetApi(17)
 	public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < getMinSdk()) {
+            Log.w(TAG, "Not supported prior to API "+getMinSdk()+".  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -447,10 +465,10 @@ public class BeaconManager {
 	 * @see Region 
 	 * @param region
 	 */
-    @TargetApi(18)
+    @TargetApi(17)
 	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < getMinSdk()) {
+            Log.w(TAG, "Not supported prior to API "+getMinSdk()+".  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -477,10 +495,10 @@ public class BeaconManager {
      Change will take effect on the start of the next scan cycle.
      @throws RemoteException - If the BeaconManager is not bound to the service.
      */
-    @TargetApi(18)
+    @TargetApi(17)
     public void updateScanPeriods() throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (android.os.Build.VERSION.SDK_INT < 17) {
+            Log.w(TAG, "Not supported prior to API 17.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -616,6 +634,14 @@ public class BeaconManager {
         }
         else {
             return foregroundBetweenScanPeriod;
+        }
+    }
+    private int getMinSdk() {
+        if (isSamsungSdkAllowed()) {
+            return 17;
+        }
+        else {
+            return 18;
         }
     }
 

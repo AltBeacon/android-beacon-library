@@ -58,6 +58,9 @@ allprojects {
         maven {
             url 'https://oss.sonatype.org/content/repositories/snapshots'
         }
+        flatDir {
+            dirs 'libs'
+        }
     }
 }
 
@@ -108,6 +111,8 @@ robolectric {
 }
 
 dependencies {
+    compile 'com.samsung:samsung_ble_sdk_200@jar'
+
     androidTestCompile 'org.hamcrest:hamcrest-integration:1.3'
     androidTestCompile 'org.hamcrest:hamcrest-core:1.3'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'

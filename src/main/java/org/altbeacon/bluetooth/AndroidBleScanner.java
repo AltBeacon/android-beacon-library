@@ -23,14 +23,24 @@ public class AndroidBleScanner implements BleScanner {
 
     @Override
     public void stopLeScan(LeScanCallback callback) {
-        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) leScanCallback);
+        getBluetoothAdapter().stopLeScan(mNativeLeScanCallback);
     }
 
     @Override
     public void startLeScan(LeScanCallback callback) {
         mCallback = callback;
-        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) leScanCallback);
+        getBluetoothAdapter().startLeScan(mNativeLeScanCallback);
 
+    }
+
+    @Override
+    public boolean isNative() {
+        return true;
+    }
+
+    @Override
+    public BluetoothAdapter.LeScanCallback getNativeLeScanCallback() {
+        return mNativeLeScanCallback;
     }
 
     @Override
@@ -38,7 +48,7 @@ public class AndroidBleScanner implements BleScanner {
         return getBluetoothAdapter().isEnabled();
     }
 
-    private BluetoothAdapter.LeScanCallback leScanCallback =
+    private BluetoothAdapter.LeScanCallback mNativeLeScanCallback =
             new BluetoothAdapter.LeScanCallback() {
 
         @Override

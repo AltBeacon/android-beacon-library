@@ -48,6 +48,7 @@ import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.bluetooth.LeScanCallback;
+import org.altbeacon.bluetooth.SamsungBleSdkScanner;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -207,12 +208,29 @@ public class BeaconService extends Service {
         Log.i(TAG, "beaconService version "+ BuildConfig.VERSION_NAME+" is starting up");
 
         if (android.os.Build.VERSION.SDK_INT >= 18) {
-            BeaconManager.logDebug(TAG, "SDK is 18 or higher.  Using native Android APIs for BLE scanning");
+            Log.i(TAG, "SDK is 18 or higher.  Using native Android APIs for BLE scanning");
             mBleScanner = new AndroidBleScanner(this);
+            Log.i(TAG, "Bluetooth enabled is "+mBleScanner.isEnabled());
         }
         else {
-            BeaconManager.logDebug(TAG, "SDK is < 18.  Checking for availability of Samsung BLE SDK");
-            //mBleScanner = new SamsungBleSDkScanner(this);
+            if (BeaconManager.getInstanceForApplication(this).isSamsungSdkAllowed()) {
+                Log.i(TAG, "SDK is < 18.  Checking for availability of Samsung BLE SDK");
+                SamsungBleSdkScanner scanner = new SamsungBleSdkScanner(this);
+                if (scanner.isAvailable()) {
+                    mBleScanner = scanner;
+                    Log.i(TAG, "Using Samsung BLE SDK");
+                }
+                else {
+                    Log.i(TAG, "Samsung BLE SDK unavailable");
+                }
+            }
+            else {
+                Log.i(TAG, "Samsung BLE SDK is not allowed.  Will not check for availability.");
+            }
+        }
+
+        if (mBleScanner == null) {
+            Log.e(TAG, "No BLE Scanner SDK available on this device");
         }
 
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
@@ -242,8 +260,10 @@ public class BeaconService extends Service {
         handler.removeCallbacksAndMessages(null);
         scanLeDevice(false);
         try {
-            mBleScanner.stopLeScan((LeScanCallback) getLeScanCallback());
-            mBleScanner.finish();
+            if (mBleScanner != null) {
+                mBleScanner.stopLeScan((LeScanCallback) getLeScanCallback());
+                mBleScanner.finish();
+            }
         }
         catch (Exception e) {
             Log.w("Internal Android exception finishing scanning for beacons: ", e);
@@ -363,7 +383,11 @@ public class BeaconService extends Service {
 
     private void scanLeDevice(final Boolean enable) {
         scanCyclerStarted = true;
-        if (mBleScanner.isEnabled()) {
+        if (mBleScanner == null) {
+            Log.w(TAG, "No Bluetooth LE APIs exist on this device so we cannot scan.");
+            return;
+        }
+        if (!mBleScanner.isEnabled()) {
             Log.w(TAG, "Bluetooth not enabled so we cannot scan.");
             if ((simulatedScanData == null) && (BeaconManager.getBeaconSimulator() == null)) {
                 Log.w(TAG, "exiting");
@@ -634,7 +658,9 @@ public class BeaconService extends Service {
             if (beacon != null) {
                 processBeaconFromScan(beacon);
             }
-            bluetoothCrashResolver.notifyScannedDevice(scanData.device, (BluetoothAdapter.LeScanCallback)getLeScanCallback());
+            if (mBleScanner.isNative()) {
+                bluetoothCrashResolver.notifyScannedDevice(scanData.device, mBleScanner.getNativeLeScanCallback());
+            }
             return null;
         }
 

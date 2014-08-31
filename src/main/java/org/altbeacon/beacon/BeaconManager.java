@@ -33,8 +33,10 @@ import java.util.Map;
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 import org.altbeacon.beacon.service.StartRMData;
+import org.altbeacon.bluetooth.SamsungBleSdkScanner;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -106,7 +108,7 @@ public class BeaconManager {
     private ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
     private boolean mBackgroundMode = false;
-    private boolean mSamsungSdkAllowed = false;
+    private static boolean mSamsungSdkAllowed = false;
 
     /**
      * set to true if you want to see debug messages associated with this library
@@ -181,7 +183,7 @@ public class BeaconManager {
      * Determines if the library is allowed to be used with the Samsung BLE SDK on Android 4.2
      * devices (if available) as an alternative to the native Android BLE APIs.
      */
-    public boolean isSamsungSdkAllowed() {
+    public static boolean isSamsungSdkAllowed() {
         return mSamsungSdkAllowed;
     }
     /**
@@ -190,7 +192,7 @@ public class BeaconManager {
      * disabled by default.  If you want to allow using the Samsung BLE SDK, call this method to
      * enable it before calling bind()
      */
-    public void setSamsungSdkAllowed(boolean allow) {
+    public static void setSamsungSdkAllowed(boolean allow) {
         mSamsungSdkAllowed = allow;
     }
 
@@ -221,6 +223,9 @@ public class BeaconManager {
 	 */
     @TargetApi(17)
 	public boolean checkAvailability() throws BleNotAvailableException {
+        if (isSamsungSdkCompatible()) {
+            return isBluetoothOn();
+        }
         if (android.os.Build.VERSION.SDK_INT < 18) {
             throw new BleNotAvailableException("Bluetooth LE not supported by this device");
         }
@@ -228,12 +233,33 @@ public class BeaconManager {
 			throw new BleNotAvailableException("Bluetooth LE not supported by this device"); 
 		}		
 		else {
-			if (((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled()){
-				return true;
-			}
-		}	
-		return false;
+            return isBluetoothOn();
+		}
 	}
+
+    /**
+     * Checks if bluetooth is turned on on this device
+     * @return
+     */
+    @TargetApi(5)
+    public boolean isBluetoothOn() {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+                return true;
+         }
+        return false;
+    }
+
+    /**
+     * Check if this device is a Samsung device on SDK 17 that in theory should have the Samsung SDK
+     * This does not guarantee that the backend Samsung Gatt Service is running and available
+     * @return false if it is supported and not enabled
+     */
+    @TargetApi(17)
+    public boolean isSamsungSdkCompatible() {
+        return SamsungBleSdkScanner.mayBeAvailable();
+    }
+
 	/**
 	 * Binds an Android <code>Activity</code> or <code>Service</code> to the <code>BeaconService</code>.  The
 	 * <code>Activity</code> or <code>Service</code> must implement the <code>beaconConsuemr</code> interface so

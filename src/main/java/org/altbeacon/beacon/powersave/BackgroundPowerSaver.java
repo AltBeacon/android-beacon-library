@@ -30,8 +30,8 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
      *
      */
     public BackgroundPowerSaver(Context context, boolean countActiveActivityStrategy) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "BackgroundPowerSaver requires SDK 18 or higher.");
+        if (android.os.Build.VERSION.SDK_INT < 17) {
+            Log.w(TAG, "BackgroundPowerSaver requires SDK 17 or higher.");
             return;
         }
         if (context instanceof Application ) {

@@ -11,12 +11,15 @@ import com.samsung.android.sdk.bt.gatt.BluetoothGattAdapter;
 import com.samsung.android.sdk.bt.gatt.BluetoothGattServer;
 import com.samsung.android.sdk.bt.gatt.BluetoothGattServerCallback;
 
+import org.altbeacon.beacon.BeaconManager;
+
 /**
  * Wed 5:00-7:15 (2.25)
  * Thu 08:00-09:00 (1)
  * 17:00-19:30 (2.5)
  * 20:15-20:30 (0.25)
  * Fri 08:30-09:30 (1)
+ * Sun 11:00-
  * @author dyoung
  *
  */
@@ -82,7 +85,7 @@ public class SamsungBleSdkScanner implements BleScanner {
             return true;
         }
         else {
-            Log.d(TAG, "Android version is not 17.  It cannot have Samsung BLE SDK.");
+            BeaconManager.logDebug(TAG, "Android version is not 17.  It cannot have Samsung BLE SDK.");
         }
         return false;
     }
@@ -105,7 +108,7 @@ public class SamsungBleSdkScanner implements BleScanner {
 		catch (NullPointerException e) {
 			// This gets called if com.samsung.android.sdk.bt.gatt.BluetoothGattServer.<init> cannot
 			// get a android.bluetooth.BluetoothAdapter instance to call isEnabled()
-			Log.d(TAG, "Failed to get BluetoothGattAdapter.GATT_SERVER due to ", e);
+            BeaconManager.logDebug(TAG, "Failed to get BluetoothGattAdapter.GATT_SERVER due to ", e);
 			mAdapterStartFailed = true;
 		}
 	}
@@ -113,10 +116,9 @@ public class SamsungBleSdkScanner implements BleScanner {
 	@Override
 	public boolean isEnabled() {
 		if (mAdapterStartFailed) {
-			Log.d(TAG, "adapter start failed so BLE is not available");
+            BeaconManager.logDebug(TAG, "adapter start failed so BLE is not available");
 			return false;
 		}
-		// TODO: figure out how to determine if BLE is enabled
 		return true;
 	}	
 	
@@ -124,7 +126,7 @@ public class SamsungBleSdkScanner implements BleScanner {
 	public void stopLeScan(LeScanCallback callback) {
 		if (mBluetoothGattServer != null) {
 			mBluetoothGattServer.stopScan();
-			Log.d(TAG, "Scan stopped");
+			BeaconManager.logDebug(TAG, "Scan stopped");
 		}
 		startScanWhenReady = false;
 	}
@@ -133,11 +135,11 @@ public class SamsungBleSdkScanner implements BleScanner {
 	public void startLeScan(LeScanCallback callback) {
 		mScanCallback = callback;
 		if (mBluetoothGattServer == null) {
-			Log.d(TAG, "Start scan requested.  Deferring until BluetoothProfile.ServiceListener connects...");
+            BeaconManager.logDebug(TAG, "Start scan requested.  Deferring until BluetoothProfile.ServiceListener connects...");
 			startScanWhenReady = true;
 		}
 		else {
-			Log.d(TAG, "Starting scan");
+            BeaconManager.logDebug(TAG, "Starting scan");
 			startScan();
 		}
 	}
@@ -155,6 +157,7 @@ public class SamsungBleSdkScanner implements BleScanner {
                 int rssi,
                 byte[] scanRecord) {
 			if (mScanCallback != null) {
+                BeaconManager.logDebug(TAG, "got onScanResult");
 				mScanCallback.onLeScan(device, rssi, scanRecord);
 			}
 			else {
@@ -167,10 +170,10 @@ public class SamsungBleSdkScanner implements BleScanner {
 
 		@Override
 		public void onServiceConnected(int profile, BluetoothProfile proxy) {
-			Log.d(TAG, "service connected");
+            BeaconManager.logDebug(TAG, "service connected");
 			mBluetoothGattServer = (BluetoothGattServer) proxy;	
 			if (startScanWhenReady) {
-				Log.d(TAG, "starting deferred scan");
+                BeaconManager.logDebug(TAG, "starting deferred scan");
 				startScan();
 			}
 		}
@@ -185,10 +188,10 @@ public class SamsungBleSdkScanner implements BleScanner {
 	private void startScan() {
 		mBluetoothGattServer.registerApp(scanCallback);
 		if (mBluetoothGattServer.startScan()) {
-			Log.d(TAG, "Scan started successfully");
+            BeaconManager.logDebug(TAG, "Scan started successfully");
 		}
 		else {
-			Log.d(TAG, "Scan not started successfully");					
+            BeaconManager.logDebug(TAG, "Scan not started successfully");
 		}					
 	}
 	

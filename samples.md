@@ -12,7 +12,7 @@ A minimalist [reference application](https://github.com/AltBeacon/android-beacon
 
 public class MonitoringActivity extends Activity implements BeaconConsumer {
 	protected static final String TAG = "RangingActivity";
-	private beaconManager BeaconManager = BeaconManager.getInstanceForApplication(this);
+	private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +30,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
 		beaconManager.setMonitorNotifier(new MonitorNotifier() {
       	@Override
       	public void didEnterRegion(Region region) {
-  	  	  Log.i(TAG, "I just saw an beacon for the firt time!");		
+  	  	  Log.i(TAG, "I just saw an beacon for the first time!");		
       	}
 
       	@Override

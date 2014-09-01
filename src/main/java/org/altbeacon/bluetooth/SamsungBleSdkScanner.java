@@ -14,12 +14,10 @@ import com.samsung.android.sdk.bt.gatt.BluetoothGattServerCallback;
 import org.altbeacon.beacon.BeaconManager;
 
 /**
- * Wed 5:00-7:15 (2.25)
- * Thu 08:00-09:00 (1)
- * 17:00-19:30 (2.5)
- * 20:15-20:30 (0.25)
- * Fri 08:30-09:30 (1)
- * Sun 11:00-
+ * This module was sponsored by
+ * Microplus Informatica
+ * http://www.microplus.it/
+ *
  * @author dyoung
  *
  */

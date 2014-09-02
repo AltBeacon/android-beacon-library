@@ -519,9 +519,10 @@ public class BeaconManager {
             }
 	    }
 
-	    // Called when the connection with the service disconnects unexpectedly
+	    // Called when the connection with the service disconnects
 	    public void onServiceDisconnected(ComponentName className) {
             Log.e(TAG, "onServiceDisconnected");
+            serviceMessenger = null;
         }
 	};	
 

@@ -13,6 +13,7 @@ public class AndroidModel {
     String mModel;
     String mManufacturer;
 
+
     public AndroidModel(String version, String buildNumber,
                         String model,
                         String manufacturer) {

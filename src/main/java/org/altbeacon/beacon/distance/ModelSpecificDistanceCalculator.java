@@ -19,11 +19,11 @@ import java.util.Properties;
  */
 public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     Map<AndroidModel,DistanceCalculator> mModelMap;
-    //private static final String CONFIG_FILE = "/model-distance-calculations.json";
-    private static final String CONFIG_FILE = "test.properties";
+    private static final String CONFIG_FILE = "/model-distance-calculations.json";
     private static final String TAG = "ModelSpecificDistanceCalculator";
-    private DistanceCalculator mDefaultDistanceCalculator;
+    private AndroidModel mDefaultModel;
     private DistanceCalculator mDistanceCalculator;
+    private AndroidModel mModel;
 
     public ModelSpecificDistanceCalculator() {
         this(AndroidModel.forThisDevice());
@@ -31,6 +31,9 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     public ModelSpecificDistanceCalculator(AndroidModel model) {
         loadModelMap();
         mDistanceCalculator = findCalculatorForModel(model);
+    }
+    public AndroidModel getModel() {
+        return mModel;
     }
 
     private DistanceCalculator findCalculatorForModel(AndroidModel model) {
@@ -51,11 +54,12 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             Log.d(TAG, "Finding best distance calculator for "+bestMatchingModel.getVersion()+","+
                     bestMatchingModel.getBuildNumber()+","+bestMatchingModel.getModel()+"," +
                     ""+bestMatchingModel.getManufacturer());
-            return mModelMap.get(bestMatchingModel);
+            mModel = bestMatchingModel;
+        } else {
+            mModel = mDefaultModel;
+            Log.d(TAG, "Cannot find match for this device.  Using default");
         }
-
-        Log.d(TAG, "Cannot find match for this device.  Using default");
-        return mDefaultDistanceCalculator;
+        return mModelMap.get(mModel);
     }
 
     private void loadModelMap() {
@@ -65,7 +69,10 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             JSONArray array = jsonObject.getJSONArray("models");
             for (int i = 0; i < array.length(); i++) {
                 JSONObject modelObject = array.getJSONObject(i);
-                boolean defaultFlag = modelObject.getBoolean("default");
+                boolean defaultFlag = false;
+                if (modelObject.has("default")) {
+                    defaultFlag = modelObject.getBoolean("default");
+                }
                 Double coefficient1 = modelObject.getDouble("coefficient1");
                 Double coefficient2 = modelObject.getDouble("coefficient2");
                 Double coefficient3 = modelObject.getDouble("coefficient3");
@@ -80,7 +87,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                 AndroidModel androidModel = new AndroidModel(version, buildNumber, model, manufacturer);
                 mModelMap.put(androidModel, distanceCalculator);
                 if (defaultFlag) {
-                    mDefaultDistanceCalculator = distanceCalculator;
+                    mDefaultModel = androidModel;
                 }
             }
         }
@@ -91,6 +98,11 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
 
     private String stringFromFilePath(String path) throws IOException {
         InputStream stream = ModelSpecificDistanceCalculator.class.getResourceAsStream(path);
+        if (stream == null) {
+            Log.d(TAG, "Try 2");
+            this.getClass().getClassLoader().getResourceAsStream(path);
+        }
+
         if (stream == null) {
             throw new RuntimeException("Cannot load resource at "+path);
         }

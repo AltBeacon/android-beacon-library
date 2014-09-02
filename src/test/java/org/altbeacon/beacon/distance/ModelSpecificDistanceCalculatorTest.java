@@ -32,9 +32,29 @@ HOW TO SEE DEBUG LINES FROM YOUR UNIT TESTS:
  */
 public class ModelSpecificDistanceCalculatorTest {
     @Test
-    public void testRecognizeBeacon() {
+    public void testCalculatesDistance() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+
         ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator();
         Double distance = distanceCalculator.calculateDistance(-59, -59);
-        assertEquals("Distance should be 1.0 for same power and rssi", 1.0, (double) distance, 0.001);
+        assertEquals("Distance should be 1.0 for same power and rssi", 1.0, distance, 0.1);
     }
+
+    @Test
+    public void testSelectsDefaultModel() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator();
+        assertEquals("Default model should be Nexus 5", "Nexus 5", distanceCalculator.getModel().getModel());
+    }
+
+    @Test
+    public void testSelectsNexus4OnExactMatch() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        AndroidModel model = new AndroidModel("4.4.2", "KOT49H","Nexus 4","LGE");
+
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(model);
+        assertEquals("should be Nexus 4", "Nexus 4", distanceCalculator.getModel().getModel());
+    }
+
 }

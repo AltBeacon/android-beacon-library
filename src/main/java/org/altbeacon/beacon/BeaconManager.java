@@ -258,6 +258,11 @@ public class BeaconManager {
                 Log.d(TAG, "Unbinding");
                 consumer.unbindService(beaconServiceConnection);
                 consumers.remove(consumer);
+                if (consumers.size() == 0) {
+                    // If this is the last consumer to disconnect, the service will exit
+                    // release the serviceMessenger.
+                    serviceMessenger = null;
+                }
             }
             else {
                 BeaconManager.logDebug(TAG, "This consumer is not bound to: "+consumer);

@@ -4,6 +4,8 @@ import android.os.Build;
 import android.util.Log;
 
 /**
+ * Represents a specific Android device model based on the available device build information
+ *
  * Created by dyoung on 8/28/14.
  */
 public class AndroidModel {
@@ -64,6 +66,12 @@ public class AndroidModel {
         this.mManufacturer = mManufacturer;
     }
 
+    /**
+     * Calculates a qualitative match score between two different Android device models for the
+     * purposes of how likely they are to have similar bluetooth signal level responses
+     * @param otherModel
+     * @return match quality, higher numbers are a better match
+     */
     public int matchScore(AndroidModel otherModel) {
         int score = 0;
         if (this.mManufacturer.equals(otherModel.mManufacturer)) {

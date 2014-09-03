@@ -15,6 +15,24 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
+ * Obtains a <code>DistanceCalculator</code> appropriate for a specific Android model.  Each model
+ * may have a different bluetooth chipset, radio and antenna and sees a different signal level
+ * at the same distance, therefore requiring a different equation coefficients for each model.
+ *
+ * This class uses a configuration table to look for a matching Android device model for which
+ * coefficients are known.  If an exact match cannot be found, this class will attempt to find the
+ * closest match possible based on the assumption that an unknown model made by Samsung, for example
+ * might have a different signal response as a known device model also made by Samsung.
+ *
+ * If no match can be found at all, the device model marked as the default will be used for the
+ * calculation.
+ *
+ * The configuration table is stored in model-distance-calculations.json
+ *
+ * For information on how to get new Android device models added to this table, please
+ * see <a href='http://altbeacon.github.io/android-beacon-library/distance-calculations.html'
+ * Optimizing Distance Calculations</a>
+ *
  * Created by dyoung on 8/28/14.
  */
 public class ModelSpecificDistanceCalculator implements DistanceCalculator {
@@ -25,15 +43,32 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private DistanceCalculator mDistanceCalculator;
     private AndroidModel mModel;
 
+    /**
+     * Obtains the best possible <code>DistanceCalculator</code> for the Android device calling
+     * the constructor
+     */
     public ModelSpecificDistanceCalculator() {
         this(AndroidModel.forThisDevice());
     }
+    /**
+     * Obtains the best possible <code>DistanceCalculator</code> for the Android device passed
+     * as an argument
+     */
     public ModelSpecificDistanceCalculator(AndroidModel model) {
         loadModelMap();
         mDistanceCalculator = findCalculatorForModel(model);
     }
+
+    /**
+     * @return the Android device model used for distance calculations
+     */
     public AndroidModel getModel() {
         return mModel;
+    }
+
+    @Override
+    public double calculateDistance(int txPower, double rssi) {
+        return mDistanceCalculator.calculateDistance(txPower, rssi);
     }
 
     private DistanceCalculator findCalculatorForModel(AndroidModel model) {
@@ -116,8 +151,4 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         return inputStringBuilder.toString();
     }
 
-    @Override
-    public double calculateDistance(int txPower, double rssi) {
-        return mDistanceCalculator.calculateDistance(txPower, rssi);
-    }
 }

@@ -1,5 +1,4 @@
 ---
-layout: android-beacon-library
 ---
 
 ###Nexus 5 Distance Data

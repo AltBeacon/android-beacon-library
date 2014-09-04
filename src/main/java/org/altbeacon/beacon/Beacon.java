@@ -315,6 +315,13 @@ public class Beacon implements Parcelable {
         return mBluetoothAddress;
     }
 
+    /**
+     * @see #mBluetoothName
+     * @return mBluetoothName
+     */
+    public String getBluetoothName() {
+        return mBluetoothName;
+    }
 
     /**
      * Calculate a hashCode for this beacon
@@ -596,7 +603,7 @@ public class Beacon implements Parcelable {
          * @param name
          * @return builder
          */
-        public Builder setManufacturer(String name) {
+        public Builder setBluetoothName(String name) {
             mBeacon.mBluetoothName = name;
             return this;
         }

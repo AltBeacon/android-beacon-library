@@ -273,8 +273,10 @@ public class BeaconParser {
         manufacturer = ((manufacturerReversed & 0xff) << 8) + ((manufacturerReversed & 0xff00) >> 8);
 
         String macAddress = null;
+        String name = null;
         if (device != null) {
             macAddress = device.getAddress();
+            name = device.getName();
         }
 
         beacon.mIdentifiers = identifiers;
@@ -283,10 +285,8 @@ public class BeaconParser {
         beacon.mRssi = rssi;
         beacon.mBeaconTypeCode = beaconTypeCode;
         beacon.mBluetoothAddress = macAddress;
+        beacon.mBluetoothName= name;
         beacon.mManufacturer = manufacturer;
-        if (device != null) {
-            beacon.mBluetoothAddress = device.getAddress();
-        }
         return beacon;
     }
 

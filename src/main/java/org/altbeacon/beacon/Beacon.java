@@ -113,6 +113,13 @@ public class Beacon implements Parcelable {
     protected int mManufacturer;
 
     /**
+     * The bluetooth device name.  This is a field transmitted by the remote beacon device separate
+     * from the advertisement data
+     */
+    protected String mBluetoothName;
+
+
+    /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
      */
@@ -149,6 +156,7 @@ public class Beacon implements Parcelable {
             mDataFields.add(in.readLong());
         }
         mManufacturer = in.readInt();
+        mBluetoothName = in.readString();
     }
 
     /**
@@ -168,6 +176,7 @@ public class Beacon implements Parcelable {
         this.mTxPower = otherBeacon.mTxPower;
         this.mBluetoothAddress = otherBeacon.mBluetoothAddress;
         this.mBeaconTypeCode = otherBeacon.getBeaconTypeCode();
+        this.mBluetoothName = otherBeacon.mBluetoothName;
     }
 
     /**
@@ -402,6 +411,7 @@ public class Beacon implements Parcelable {
             out.writeLong(dataField);
         }
         out.writeInt(mManufacturer);
+        out.writeString(mBluetoothName);
 
     }
 
@@ -578,6 +588,16 @@ public class Beacon implements Parcelable {
          */
         public Builder setManufacturer(int manufacturer) {
             mBeacon.mManufacturer = manufacturer;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mBluetoothName
+         * @param name
+         * @return builder
+         */
+        public Builder setManufacturer(String name) {
+            mBeacon.mBluetoothName = name;
             return this;
         }
 

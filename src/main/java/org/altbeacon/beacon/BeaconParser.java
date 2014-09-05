@@ -190,7 +190,7 @@ public class BeaconParser {
             throw new BeaconLayoutException("You must supply a power byte offset with a prefix of 'p'");
         }
         if (mMatchingBeaconTypeCodeStartOffset == null || mMatchingBeaconTypeCodeEndOffset == null) {
-            throw new BeaconLayoutException("You must supply a power byte offset with a prefix of 'i'");
+            throw new BeaconLayoutException("You must supply a matching expression of type 'm'");
         }
         if (mIdentifierStartOffsets.size() == 0 || mIdentifierEndOffsets.size() == 0) {
             throw new BeaconLayoutException("You must supply a matching beacon type code offset withh a prefix of 'm'");

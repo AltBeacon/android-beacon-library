@@ -23,11 +23,11 @@
  */
 package org.altbeacon.beacon;
 
-import org.altbeacon.beacon.client.BeaconDataFactory;
-import org.altbeacon.beacon.client.NullBeaconDataFactory;
-
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import org.altbeacon.beacon.client.BeaconDataFactory;
+import org.altbeacon.beacon.client.NullBeaconDataFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -381,11 +381,13 @@ public class Beacon implements Parcelable {
         StringBuilder sb = new StringBuilder();
         int i = 1;
         for (Identifier identifier: mIdentifiers) {
+            if (i > 1) {
+                sb.append(" ");
+            }
             sb.append("id");
             sb.append(i);
             sb.append(": ");
-            sb.append(identifier.toString());
-            sb.append(" ");
+            sb.append(identifier == null ? "null" : identifier.toString());
             i++;
         }
         return sb.toString();

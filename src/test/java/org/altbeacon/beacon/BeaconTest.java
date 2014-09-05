@@ -125,7 +125,7 @@ public class BeaconTest {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         Parcel parcel = Parcel.obtain();
         Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
-                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothName("xx").setBluetoothAddress("1:2:3:4:5:6").build();
         beacon.writeToParcel(parcel, 0);
         parcel.setDataPosition(0);
         Beacon beacon2 = new Beacon(parcel);
@@ -137,6 +137,7 @@ public class BeaconTest {
         assertEquals("rssi is same after deserialization", beacon.getRssi(), beacon2.getRssi());
         assertEquals("distance is same after deserialization", beacon.getDistance(), beacon2.getDistance(), 0.001);
         assertEquals("bluetoothAddress is same after deserialization", beacon.getBluetoothAddress(), beacon2.getBluetoothAddress());
+        assertEquals("bluetoothAddress is same after deserialization", beacon.getBluetoothName(), beacon2.getBluetoothName());
         assertEquals("beaconTypeCode is same after deserialization", beacon.getBeaconTypeCode(), beacon2.getBeaconTypeCode());
         assertEquals("manufacturer is same after deserialization", beacon.getManufacturer(), beacon2.getManufacturer());
     }

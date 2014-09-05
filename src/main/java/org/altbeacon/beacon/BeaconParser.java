@@ -32,17 +32,19 @@ import java.util.regex.Pattern;
  */
 public class BeaconParser {
     private static final String TAG = "BeaconParser";
-    private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)");
+    private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)(l?)");
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-F-a-f]+)");
-    private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)");
+    private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]?)");
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
     private Long mMatchingBeaconTypeCode;
     protected List<Integer> mIdentifierStartOffsets;
     protected List<Integer> mIdentifierEndOffsets;
+    protected List<Boolean> mIdentifierLittleEndianFlags;
     protected List<Integer> mDataStartOffsets;
     protected List<Integer> mDataEndOffsets;
+    protected List<Boolean> mDataLittleEndianFlags;
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mPowerStartOffset;
@@ -56,6 +58,8 @@ public class BeaconParser {
         mIdentifierEndOffsets = new ArrayList<Integer>();
         mDataStartOffsets = new ArrayList<Integer>();
         mDataEndOffsets = new ArrayList<Integer>();
+        mDataLittleEndianFlags = new ArrayList<Boolean>();
+        mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
     }
 
     /**
@@ -124,6 +128,8 @@ public class BeaconParser {
                 try {
                     int startOffset = Integer.parseInt(matcher.group(1));
                     int endOffset = Integer.parseInt(matcher.group(2));
+                    Boolean littleEndian = matcher.group(3).equals("l");
+                    mIdentifierLittleEndianFlags.add(littleEndian);
                     mIdentifierStartOffsets.add(startOffset);
                     mIdentifierEndOffsets.add(endOffset);
                 } catch (NumberFormatException e) {
@@ -136,6 +142,8 @@ public class BeaconParser {
                 try {
                     int startOffset = Integer.parseInt(matcher.group(1));
                     int endOffset = Integer.parseInt(matcher.group(2));
+                    Boolean littleEndian = matcher.group(3).equals("l");
+                    mDataLittleEndianFlags.add(littleEndian);
                     mDataStartOffsets.add(startOffset);
                     mDataEndOffsets.add(endOffset);
                 } catch (NumberFormatException e) {
@@ -239,19 +247,19 @@ public class BeaconParser {
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
-            String idString = byteArrayToFormattedString(scanData, mIdentifierStartOffsets.get(i)+startByte, mIdentifierEndOffsets.get(i)+startByte);
+            String idString = byteArrayToFormattedString(scanData, mIdentifierStartOffsets.get(i)+startByte, mIdentifierEndOffsets.get(i)+startByte, mIdentifierLittleEndianFlags.get(i));
             identifiers.add(Identifier.parse(idString));
         }
         ArrayList<Long> dataFields = new ArrayList<Long>();
         for (int i = 0; i < mDataEndOffsets.size(); i++) {
-            String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i)+startByte, mDataEndOffsets.get(i)+startByte);
+            String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i)+startByte, mDataEndOffsets.get(i)+startByte, mDataLittleEndianFlags.get(i));
             dataFields.add(Long.parseLong(dataString));
             BeaconManager.logDebug(TAG, "parsing found data field "+i);
             // TODO: error handling needed here on the parse
         }
 
         int txPower = 0;
-        String powerString = byteArrayToFormattedString(scanData, mPowerStartOffset+startByte, mPowerEndOffset+startByte);
+        String powerString = byteArrayToFormattedString(scanData, mPowerStartOffset+startByte, mPowerEndOffset+startByte, false);
         txPower = Integer.parseInt(powerString);
         // make sure it is a signed integer
         if (txPower > 127) {
@@ -261,16 +269,13 @@ public class BeaconParser {
 
 
         int beaconTypeCode = 0;
-        String beaconTypeString = byteArrayToFormattedString(scanData, mMatchingBeaconTypeCodeStartOffset+startByte, mMatchingBeaconTypeCodeEndOffset+startByte);
+        String beaconTypeString = byteArrayToFormattedString(scanData, mMatchingBeaconTypeCodeStartOffset+startByte, mMatchingBeaconTypeCodeEndOffset+startByte, false);
         beaconTypeCode = Integer.parseInt(beaconTypeString);
         // TODO: error handling needed on the parse
 
         int manufacturer = 0;
-        String manufacturerString = byteArrayToFormattedString(scanData, startByte, startByte+1);
-        // manufacturer is little-endian, so we have to switch the byte order
-        int manufacturerReversed = Integer.parseInt(manufacturerString);
-        // TODO: error handling needed on the parse
-        manufacturer = ((manufacturerReversed & 0xff) << 8) + ((manufacturerReversed & 0xff00) >> 8);
+        String manufacturerString = byteArrayToFormattedString(scanData, startByte, startByte+1, true);
+        manufacturer = Integer.parseInt(manufacturerString);
 
         String macAddress = null;
         String name = null;
@@ -345,16 +350,24 @@ public class BeaconParser {
         return sb.toString().trim();
     }
 
-    private String byteArrayToFormattedString(byte[] byteBuffer, int startIndex, int endIndex) {
-
+    private String byteArrayToFormattedString(byte[] byteBuffer, int startIndex, int endIndex, Boolean littleEndian) {
         byte[] bytes = new byte[endIndex-startIndex+1];
-        for (int i = 0; i <= endIndex-startIndex; i++) {
-            bytes[i] = byteBuffer[startIndex+i];
+        if (littleEndian) {
+            Log.e(TAG, "Swapping bytes because this should be little endian");
+            for (int i = 0; i <= endIndex-startIndex; i++) {
+                bytes[i] = byteBuffer[startIndex+bytes.length-1-i];
+            }
+        }
+        else {
+            for (int i = 0; i <= endIndex-startIndex; i++) {
+                bytes[i] = byteBuffer[startIndex+i];
+            }
         }
 
+
         int length = endIndex-startIndex +1;
-        // We treat a 1-6 byte number as decimal string
-        if (length <= 6) {
+        // We treat a 1-4 byte number as decimal string
+        if (length < 5) {
             Long number = 0l;
             BeaconManager.logDebug(TAG, "Byte array is size "+bytes.length);
             for (int i = 0; i < bytes.length; i++)  {

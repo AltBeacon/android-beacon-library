@@ -353,7 +353,6 @@ public class BeaconParser {
     private String byteArrayToFormattedString(byte[] byteBuffer, int startIndex, int endIndex, Boolean littleEndian) {
         byte[] bytes = new byte[endIndex-startIndex+1];
         if (littleEndian) {
-            Log.e(TAG, "Swapping bytes because this should be little endian");
             for (int i = 0; i <= endIndex-startIndex; i++) {
                 bytes[i] = byteBuffer[startIndex+bytes.length-1-i];
             }

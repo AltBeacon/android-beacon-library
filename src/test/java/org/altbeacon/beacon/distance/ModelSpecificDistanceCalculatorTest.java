@@ -35,7 +35,7 @@ public class ModelSpecificDistanceCalculatorTest {
     public void testCalculatesDistance() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
 
-        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator();
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null);
         Double distance = distanceCalculator.calculateDistance(-59, -59);
         assertEquals("Distance should be 1.0 for same power and rssi", 1.0, distance, 0.1);
     }
@@ -44,7 +44,7 @@ public class ModelSpecificDistanceCalculatorTest {
     public void testSelectsDefaultModel() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
 
-        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator();
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null);
         assertEquals("Default model should be Nexus 5", "Nexus 5", distanceCalculator.getModel().getModel());
     }
 
@@ -53,7 +53,7 @@ public class ModelSpecificDistanceCalculatorTest {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         AndroidModel model = new AndroidModel("4.4.2", "KOT49H","Nexus 4","LGE");
 
-        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(model);
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
         assertEquals("should be Nexus 4", "Nexus 4", distanceCalculator.getModel().getModel());
     }
 

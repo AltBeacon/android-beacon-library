@@ -110,7 +110,9 @@ public class RegionBootstrap {
 	        	for (Region region : regions) {
                     BeaconManager.logDebug(TAG, "Background region monitoring activated for region "+region);
 	                beaconManager.startMonitoringBeaconsInRegion(region);
-                    beaconManager.setBackgroundMode(true);
+                        if (beaconManager.isBackgroundModeUninitialized()) {
+                            beaconManager.setBackgroundMode(true);
+                        }
 	        	}
 	        } catch (RemoteException e) {   
 	        	Log.e(TAG, "Can't set up bootstrap regions due to "+e);

@@ -92,6 +92,6 @@ public class AndroidModel {
 
     @Override
     public String toString() {
-        return ""+mManufacturer+" "+mModel+" "+mBuildNumber+" "+mVersion;
+        return ""+mManufacturer+";"+mModel+";"+mBuildNumber+";"+mVersion;
     }
 }

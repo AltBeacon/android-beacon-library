@@ -1,12 +1,20 @@
 package org.altbeacon.beacon.distance;
 
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 
+import org.altbeacon.beacon.BeaconManager;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,24 +45,30 @@ import java.util.Properties;
  */
 public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     Map<AndroidModel,DistanceCalculator> mModelMap;
-    private static final String CONFIG_FILE = "/model-distance-calculations.json";
+    private static final String CONFIG_FILE = "model-distance-calculations.json";
     private static final String TAG = "ModelSpecificDistanceCalculator";
     private AndroidModel mDefaultModel;
     private DistanceCalculator mDistanceCalculator;
     private AndroidModel mModel;
+    private AndroidModel mRequestedModel;
+    private String mRemoteUpdateUrlString = null;
+    private Context mContext;
 
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device calling
      * the constructor
      */
-    public ModelSpecificDistanceCalculator() {
-        this(AndroidModel.forThisDevice());
+    public ModelSpecificDistanceCalculator(Context context, String remoteUpdateUrlString) {
+        this(context, remoteUpdateUrlString, AndroidModel.forThisDevice());
     }
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device passed
      * as an argument
      */
-    public ModelSpecificDistanceCalculator(AndroidModel model) {
+    public ModelSpecificDistanceCalculator(Context context, String remoteUpdateUrlString, AndroidModel model) {
+        mRequestedModel = model;
+        mRemoteUpdateUrlString = remoteUpdateUrlString;
+        mContext = context;
         loadModelMap();
         mDistanceCalculator = findCalculatorForModel(model);
     }
@@ -65,14 +79,24 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     public AndroidModel getModel() {
         return mModel;
     }
+    /**
+     * @return the Android device model requested to be used for distance calculations
+     */
+    public AndroidModel getRequestedModel() {
+        return mRequestedModel;
+    }
 
     @Override
     public double calculateDistance(int txPower, double rssi) {
+        if (mDistanceCalculator == null) {
+            Log.w(TAG, "distance calculator has not been set");
+            return -1.0;
+        }
         return mDistanceCalculator.calculateDistance(txPower, rssi);
     }
 
     private DistanceCalculator findCalculatorForModel(AndroidModel model) {
-        Log.d(TAG, "Finding best distance calculator for "+model.getVersion()+","+
+        BeaconManager.logDebug(TAG, "Finding best distance calculator for "+model.getVersion()+","+
                 model.getBuildNumber()+","+model.getModel()+"," +
                 ""+model.getManufacturer());
 
@@ -85,46 +109,163 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
         }
         if (bestMatchingModel != null) {
-            Log.d(TAG, "found a match with score "+highestScore);
-            Log.d(TAG, "Finding best distance calculator for "+bestMatchingModel.getVersion()+","+
+            BeaconManager.logDebug(TAG, "found a match with score "+highestScore);
+            BeaconManager.logDebug(TAG, "Finding best distance calculator for "+bestMatchingModel.getVersion()+","+
                     bestMatchingModel.getBuildNumber()+","+bestMatchingModel.getModel()+"," +
                     ""+bestMatchingModel.getManufacturer());
             mModel = bestMatchingModel;
         } else {
             mModel = mDefaultModel;
-            Log.d(TAG, "Cannot find match for this device.  Using default");
+            Log.w(TAG, "Cannot find match for this device.  Using default");
         }
         return mModelMap.get(mModel);
     }
 
     private void loadModelMap() {
-        mModelMap = new HashMap<AndroidModel, DistanceCalculator>();
+        boolean mapLoaded = false;
+        if (mRemoteUpdateUrlString != null) {
+            mapLoaded= loadModelMapFromFile();
+            // We only want to try to download an update from the server the first time the app is
+            // run.  If we successfully download an update it gets saved to a file, so if the file
+            // is present that means should not download again
+            if (!mapLoaded) {
+                requestModelMapFromWeb();
+            }
+        }
+        if (!mapLoaded) {
+            loadDefaultModelMap();
+        }
+        mDistanceCalculator = findCalculatorForModel(mRequestedModel);
+    }
+
+    private boolean loadModelMapFromFile() {
+        File file = new File(mContext.getFilesDir(), CONFIG_FILE);
+        FileInputStream inputStream = null;
+        BufferedReader reader = null;
+        StringBuilder sb = new StringBuilder();
         try {
-            JSONObject jsonObject = new JSONObject(stringFromFilePath(CONFIG_FILE));
-            JSONArray array = jsonObject.getJSONArray("models");
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject modelObject = array.getJSONObject(i);
-                boolean defaultFlag = false;
-                if (modelObject.has("default")) {
-                    defaultFlag = modelObject.getBoolean("default");
+            inputStream = new FileInputStream(file);
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        }
+        catch (IOException e) {
+            Log.w(TAG, "Cannot open distance model file "+file);
+            return false;
+        }
+        finally {
+            if (reader != null) {
+                try { reader.close(); } catch (Exception e2) {}
+            }
+            if (inputStream != null) {
+                try { inputStream.close(); } catch (Exception e2) {}
+            }
+        }
+        try {
+            buildModelMap(sb.toString());
+            return true;
+        } catch (JSONException e) {
+            Log.w(TAG, "Cannot update distance models from online database at "+mRemoteUpdateUrlString+
+                    " with JSON of "+sb.toString()+" due to exception ", e);
+            return false;
+        }
+    }
+
+    private boolean saveJson(String jsonString) {
+
+        FileOutputStream outputStream = null;
+
+        try {
+            outputStream = mContext.openFileOutput(CONFIG_FILE, Context.MODE_PRIVATE);
+            outputStream.write(jsonString.getBytes());
+            outputStream.close();
+        } catch (Exception e) {
+            Log.w(TAG, "Cannot write updated distance model to local storage", e);
+            return false;
+        }
+        finally {
+            try {
+                if (outputStream != null) outputStream.close();
+            }
+            catch (Exception e) {}
+        }
+        Log.i(TAG, "Successfully saved new distance model file");
+        return true;
+    }
+
+    @TargetApi(Build.VERSION_CODES.CUPCAKE)
+    private void requestModelMapFromWeb() {
+
+        if (mContext.checkCallingOrSelfPermission("android.permission.INTERNET") != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "App has no android.permission.INTERNET permission.  Cannot check for distance model updates");
+            return;
+        }
+
+        new ModelSpecificDistanceUpdater(mContext, mRemoteUpdateUrlString,
+                new ModelSpecificDistanceUpdater.CompletionHandler() {
+            @Override
+            public void onComplete(String body, Exception ex, int code) {
+                if (ex != null) {
+                    Log.w(TAG, "Cannot updated distance models from online database at "+mRemoteUpdateUrlString+
+                            " due to exception: "+ex);
                 }
-                Double coefficient1 = modelObject.getDouble("coefficient1");
-                Double coefficient2 = modelObject.getDouble("coefficient2");
-                Double coefficient3 = modelObject.getDouble("coefficient3");
-                String version = modelObject.getString("version");
-                String buildNumber = modelObject.getString("build_number");
-                String model = modelObject.getString("model");
-                String manufacturer = modelObject.getString("manufacturer");
+                else if (code != 200) {
+                    Log.w(TAG, "Cannot updated distance models from online database at "+mRemoteUpdateUrlString+
+                            " due to HTTP status code "+code);
 
-                CurveFittedDistanceCalculator distanceCalculator =
-                        new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
-
-                AndroidModel androidModel = new AndroidModel(version, buildNumber, model, manufacturer);
-                mModelMap.put(androidModel, distanceCalculator);
-                if (defaultFlag) {
-                    mDefaultModel = androidModel;
+                }
+                else {
+                    BeaconManager.logDebug(TAG,
+                            "Successfully downloaded distance models from online database");
+                    try {
+                        buildModelMap(body);
+                        if (saveJson(body)) {
+                            loadModelMapFromFile();
+                            mDistanceCalculator = findCalculatorForModel(mRequestedModel);
+                            Log.i(TAG, "Successfully updated distance model with latest from online database");
+                        }
+                    } catch (JSONException e) {
+                        Log.w(TAG, "Cannot parse json from downloaded distance model",e);
+                    }
                 }
             }
+        }).execute(null, null, null);
+    }
+
+    private void buildModelMap(String jsonString) throws JSONException {
+        mModelMap = new HashMap<AndroidModel, DistanceCalculator>();
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray array = jsonObject.getJSONArray("models");
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject modelObject = array.getJSONObject(i);
+            boolean defaultFlag = false;
+            if (modelObject.has("default")) {
+                defaultFlag = modelObject.getBoolean("default");
+            }
+            Double coefficient1 = modelObject.getDouble("coefficient1");
+            Double coefficient2 = modelObject.getDouble("coefficient2");
+            Double coefficient3 = modelObject.getDouble("coefficient3");
+            String version = modelObject.getString("version");
+            String buildNumber = modelObject.getString("build_number");
+            String model = modelObject.getString("model");
+            String manufacturer = modelObject.getString("manufacturer");
+
+            CurveFittedDistanceCalculator distanceCalculator =
+                    new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
+
+            AndroidModel androidModel = new AndroidModel(version, buildNumber, model, manufacturer);
+            mModelMap.put(androidModel, distanceCalculator);
+            if (defaultFlag) {
+                mDefaultModel = androidModel;
+            }
+        }
+    }
+    private void loadDefaultModelMap() {
+        mModelMap = new HashMap<AndroidModel, DistanceCalculator>();
+        try {
+            buildModelMap(stringFromFilePath(CONFIG_FILE));
         }
         catch (Exception e) {
             throw new RuntimeException("Cannot build model distance calculations", e);
@@ -132,10 +273,9 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     }
 
     private String stringFromFilePath(String path) throws IOException {
-        InputStream stream = ModelSpecificDistanceCalculator.class.getResourceAsStream(path);
+        InputStream stream = ModelSpecificDistanceCalculator.class.getResourceAsStream("/"+path);
         if (stream == null) {
-            Log.d(TAG, "Try 2");
-            this.getClass().getClassLoader().getResourceAsStream(path);
+            this.getClass().getClassLoader().getResourceAsStream("/"+path);
         }
 
         if (stream == null) {

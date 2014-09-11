@@ -42,6 +42,8 @@ import android.util.Log;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.distance.DistanceCalculator;
+import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
@@ -77,6 +79,7 @@ public class BeaconService extends Service {
     private BluetoothCrashResolver bluetoothCrashResolver;
     private boolean scanCyclerStarted = false;
     private boolean scanningEnabled = false;
+    private DistanceCalculator defaultDistanceCalculator = null;
     private List<BeaconParser> beaconParsers;
 
     /*
@@ -206,6 +209,8 @@ public class BeaconService extends Service {
         bluetoothCrashResolver.start();
 
         beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
+        defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
+        Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
         // Look for simulated scan data
         try {

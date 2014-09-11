@@ -9,7 +9,16 @@ Binary distributions are provided in two formats.  The aar format is recommended
 See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
 
-####Latest Stable Release 2.0-beta3
+####Latest Stable Release 2.0-beta6
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta6.aar](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta6.aar)
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta6.tar.gz](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta6.tar.gz)
+
+[Release Notes](releasenotes_2_0_beta6.html)
+
+
+####Archived Releases
 
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta3.aar](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta3.aar)

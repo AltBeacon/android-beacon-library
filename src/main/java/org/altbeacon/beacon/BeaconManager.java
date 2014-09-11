@@ -106,6 +106,7 @@ public class BeaconManager {
     private ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
     private boolean mBackgroundMode = false;
+    private boolean mBackgroundModeUninitialized = true;
 
     /**
      * set to true if you want to see debug messages associated with this library
@@ -308,6 +309,7 @@ public class BeaconManager {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
         }
+        mBackgroundModeUninitialized = false;
         if (backgroundMode != mBackgroundMode) {
             mBackgroundMode = backgroundMode;
             try {
@@ -317,6 +319,14 @@ public class BeaconManager {
                 Log.e(TAG, "Cannot contact service to set scan periods");
             }
         }
+    }
+
+    /**
+      * @return indicator of whether any calls have yet been made to set the
+      * background mode 
+      */
+    public boolean isBackgroundModeUninitialized() {
+        return mBackgroundModeUninitialized;
     }
 
 	/**

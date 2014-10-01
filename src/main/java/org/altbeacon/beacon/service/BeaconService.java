@@ -38,7 +38,9 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
-
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanSettings;
+import android.bluetooth.le.ScanFilter;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
@@ -393,7 +395,11 @@ public class BeaconService extends Service {
                             else {
                                 if (scanningEnabled) {
                                     try {
-                                        getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback)getLeScanCallback());
+                                        List<ScanFilter> filters = new List<ScanFilter>();
+                                        ScanSettings settings = new ScanSettings();
+                                        //SCAN_MODE_LOW_POWER
+                                        //SCAN_MODE_LOW_LATENCY
+                                        BluetoothLeScanner.startScan(filters, settings, (BluetoothAdapter.LeScanCallback)getLeScanCallback());
                                     }
                                     catch (Exception e) {
                                         Log.w("Internal Android exception scanning for beacons: ", e);

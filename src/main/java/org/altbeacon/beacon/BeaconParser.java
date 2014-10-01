@@ -73,10 +73,10 @@ public class BeaconParser {
      * <p>Four prefixes are allowed in the string:</p>
      *
      * <pre>
-     *   m - matching byte sequence for this beacon type to parse (one allowed)
-     *   i - identifier (multiple allowed)
-     *   p - power calibration field (one allowed)
-     *   d - data field (multiple allowed)
+     *   m - matching byte sequence for this beacon type to parse (exactly one required)
+     *   i - identifier (at least one required, multiple allowed)
+     *   p - power calibration field (exactly one required)
+     *   d - data field (optional, multiple allowed)
      * </pre>
      *
      * <p>Each prefix is followed by a colon, then an inclusive decimal byte offset for the field from
@@ -89,12 +89,16 @@ public class BeaconParser {
      * <p>All offsets from the start of the advertisement are relative to the first byte of the
      * two byte manufacturer code.  The manufacturer code is therefore always at position 0-1</p>
      *
+     * <p>All data field and identifier expressions may be optionally suffixed with the letter l, which
+     * indicates the field should be parsed as little endian.  If not present, the field will be presumed
+     * to be big endian.
+     *
      * <p>If the expression cannot be parsed, a <code>BeaconLayoutException</code> is thrown.</p>
      *
      * <p>Example of a parser string for AltBeacon:</p>
      *
      * </pre>
-     *   "m:2-3:beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
+     *   "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
      * </pre>
      *
      * <p>This signifies that the beacon type will be decoded when an advertisement is found with
@@ -115,7 +119,6 @@ public class BeaconParser {
      * @return the BeaconParser instance
      */
     public BeaconParser setBeaconLayout(String beaconLayout) {
-        // TODO: add endieanness option for each identifier and data field
 
         String[] terms =  beaconLayout.split(",");
 
@@ -190,10 +193,10 @@ public class BeaconParser {
             throw new BeaconLayoutException("You must supply a power byte offset with a prefix of 'p'");
         }
         if (mMatchingBeaconTypeCodeStartOffset == null || mMatchingBeaconTypeCodeEndOffset == null) {
-            throw new BeaconLayoutException("You must supply a matching expression of type 'm'");
+            throw new BeaconLayoutException("You must supply a matching beacon type expression with a prefix of 'm'");
         }
         if (mIdentifierStartOffsets.size() == 0 || mIdentifierEndOffsets.size() == 0) {
-            throw new BeaconLayoutException("You must supply a matching beacon type code offset withh a prefix of 'm'");
+            throw new BeaconLayoutException("You must supply at least one identifier offset withh a prefix of 'i'");
         }
         return this;
     }

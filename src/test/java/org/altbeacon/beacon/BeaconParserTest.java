@@ -11,6 +11,9 @@ import org.robolectric.RobolectricTestRunner;
 
 import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
+
+@Config(emulateSdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -76,6 +79,21 @@ public class BeaconParserTest {
         assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(0).toString());
         assertEquals("id2 should be parsed", "1", beacon.getIdentifier(1).toString());
         assertEquals("id3 should be parsed", "2", beacon.getIdentifier(2).toString());
+        assertEquals("txPower should be parsed", -59, beacon.getTxPower());
+        assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
+    }
+
+    @Test
+    public void testLittleEndianIdentifierParsing() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02011a1aff1801beac0102030405060708090a0b0c0d0e0f1011121314c509");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-9,i:10-15l,i:16-23,p:24-24,d:25-25");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
+        assertEquals("id1 should be big endian", "0x010203040506", beacon.getIdentifier(0).toString());
+        assertEquals("id2 should be little endian", "0x0c0b0a090807", beacon.getIdentifier(1).toString());
+        assertEquals("id3 should be big endian", "0x0d0e0f1011121314", beacon.getIdentifier(2).toString());
         assertEquals("txPower should be parsed", -59, beacon.getTxPower());
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }

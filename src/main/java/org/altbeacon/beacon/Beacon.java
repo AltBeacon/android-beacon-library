@@ -23,11 +23,13 @@
  */
 package org.altbeacon.beacon;
 
-import org.altbeacon.beacon.client.BeaconDataFactory;
-import org.altbeacon.beacon.client.NullBeaconDataFactory;
-
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+
+import org.altbeacon.beacon.client.BeaconDataFactory;
+import org.altbeacon.beacon.client.NullBeaconDataFactory;
+import org.altbeacon.beacon.distance.DistanceCalculator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +56,8 @@ import java.util.List;
 */
 public class Beacon implements Parcelable {
 	private static final String TAG = "Beacon";
+
+    protected static DistanceCalculator sDistanceCalculator = null;
 
     /**
      * The a list of the multi-part identifiers of the beacon.  Together, these identifiers signify
@@ -113,6 +117,13 @@ public class Beacon implements Parcelable {
     protected int mManufacturer;
 
     /**
+     * The bluetooth device name.  This is a field transmitted by the remote beacon device separate
+     * from the advertisement data
+     */
+    protected String mBluetoothName;
+
+
+    /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
      */
@@ -126,6 +137,20 @@ public class Beacon implements Parcelable {
             return new Beacon[size];
         }
     };
+
+    /**
+     * Sets the DistanceCalculator to use with this beacon
+     * @param dc
+     */
+    public static void setDistanceCalculator(DistanceCalculator dc) {
+        sDistanceCalculator = dc;
+    }
+    /**
+     * Gets the DistanceCalculator to use with this beacon
+     */
+    public static DistanceCalculator getDistanceCalculator() {
+        return sDistanceCalculator;
+    }
 
     /**
      * Required for making Beacon parcelable
@@ -149,6 +174,7 @@ public class Beacon implements Parcelable {
             mDataFields.add(in.readLong());
         }
         mManufacturer = in.readInt();
+        mBluetoothName = in.readString();
     }
 
     /**
@@ -168,6 +194,7 @@ public class Beacon implements Parcelable {
         this.mTxPower = otherBeacon.mTxPower;
         this.mBluetoothAddress = otherBeacon.mBluetoothAddress;
         this.mBeaconTypeCode = otherBeacon.getBeaconTypeCode();
+        this.mBluetoothName = otherBeacon.mBluetoothName;
     }
 
     /**
@@ -180,7 +207,6 @@ public class Beacon implements Parcelable {
 
     /**
      * Sets the running average rssi for use in distance calculations
-     * @see #calculateDistance(int, double)
      * @param rssi the running average rssi
      */
     public void setRunningAverageRssi(double rssi) {
@@ -191,7 +217,6 @@ public class Beacon implements Parcelable {
     /**
      * Sets the most recently measured rssi for use in distance calculations if a running average is
      * not available
-     * @see #calculateDistance(int, double)
      * @param rssi
      */
     public void setRssi(int rssi) {
@@ -273,7 +298,7 @@ public class Beacon implements Parcelable {
             else {
                 BeaconManager.logDebug(TAG, "Not using running average RSSI because it is null");
             }
-			mDistance = calculateDistance(mTxPower, bestRssiAvailable );
+            mDistance = calculateDistance(mTxPower, bestRssiAvailable);
 		}
 		return mDistance;
 	}
@@ -306,6 +331,13 @@ public class Beacon implements Parcelable {
         return mBluetoothAddress;
     }
 
+    /**
+     * @see #mBluetoothName
+     * @return mBluetoothName
+     */
+    public String getBluetoothName() {
+        return mBluetoothName;
+    }
 
     /**
      * Calculate a hashCode for this beacon
@@ -365,11 +397,13 @@ public class Beacon implements Parcelable {
         StringBuilder sb = new StringBuilder();
         int i = 1;
         for (Identifier identifier: mIdentifiers) {
+            if (i > 1) {
+                sb.append(" ");
+            }
             sb.append("id");
             sb.append(i);
             sb.append(": ");
-            sb.append(identifier.toString());
-            sb.append(" ");
+            sb.append(identifier == null ? "null" : identifier.toString());
             i++;
         }
         return sb.toString();
@@ -402,36 +436,28 @@ public class Beacon implements Parcelable {
             out.writeLong(dataField);
         }
         out.writeInt(mManufacturer);
+        out.writeString(mBluetoothName);
 
     }
 
     /**
-     * Calculated the estimated distance in meters to the beacon based on a reference rssi at 1m
-     * and the known actual rssi at the current location
+     * Estimate the distance to the beacon using the DistanceCalculator set on this class.  If no
+     * DistanceCalculator has been set, return -1 as the distance.
+     * @see org.altbeacon.beacon.distance.DistanceCalculator
+     *
      * @param txPower
-     * @param rssi
-     * @return estimated distance
+     * @param bestRssiAvailable
+     * @return
      */
-	protected static double calculateDistance(int txPower, double rssi) {
-		if (rssi == 0) {
-			return -1.0; // if we cannot determine accuracy, return -1.
-		}
-		
-		BeaconManager.logDebug(TAG, "calculating distance based on mRssi of "+rssi+" and txPower of "+txPower);
-
-
-		double ratio = rssi*1.0/txPower;
-        double distance;
-		if (ratio < 1.0) {
-			distance =  Math.pow(ratio,10);
-		}
-		else {
-			distance =  (0.42093)*Math.pow(ratio,6.9476) + 0.54992;
-			BeaconManager.logDebug(TAG, " avg mRssi: "+rssi+" distance: "+distance);
-		}
-        BeaconManager.logDebug(TAG, " avg mRssi: "+rssi+" distance: "+distance);
-        return distance;
-	}
+    protected static Double calculateDistance(int txPower, double bestRssiAvailable) {
+        if (Beacon.getDistanceCalculator() != null) {
+            return Beacon.getDistanceCalculator().calculateDistance(txPower, bestRssiAvailable);
+        }
+        else {
+            Log.e(TAG, "Distance calculator not set.  Distance will bet set to -1");
+            return -1.0;
+        }
+    }
 
     /**
      * Builder class for Beacon objects. Provides a convenient way to set the various fields of a
@@ -578,6 +604,16 @@ public class Beacon implements Parcelable {
          */
         public Builder setManufacturer(int manufacturer) {
             mBeacon.mManufacturer = manufacturer;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mBluetoothName
+         * @param name
+         * @return builder
+         */
+        public Builder setBluetoothName(String name) {
+            mBeacon.mBluetoothName = name;
             return this;
         }
 

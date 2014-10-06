@@ -44,6 +44,8 @@ import android.bluetooth.le.ScanFilter;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.distance.DistanceCalculator;
+import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
@@ -79,6 +81,7 @@ public class BeaconService extends Service {
     private BluetoothCrashResolver bluetoothCrashResolver;
     private boolean scanCyclerStarted = false;
     private boolean scanningEnabled = false;
+    private DistanceCalculator defaultDistanceCalculator = null;
     private List<BeaconParser> beaconParsers;
 
     /*
@@ -208,6 +211,8 @@ public class BeaconService extends Service {
         bluetoothCrashResolver.start();
 
         beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
+        defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
+        Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
         // Look for simulated scan data
         try {
@@ -264,20 +269,22 @@ public class BeaconService extends Service {
                 rangedRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
             }
             rangedRegionState.put(region, new RangeState(callback));
+            BeaconManager.logDebug(TAG, "Currently ranging " + rangedRegionState.size() + " regions.");
         }
-        BeaconManager.logDebug(TAG, "Currently ranging " + rangedRegionState.size() + " regions.");
         if (!scanningEnabled) {
             enableScanning();
         }
     }
 
     public void stopRangingBeaconsInRegion(Region region) {
+        int rangedRegionCount;
         synchronized (rangedRegionState) {
             rangedRegionState.remove(region);
+            rangedRegionCount = rangedRegionState.size();
+            BeaconManager.logDebug(TAG, "Currently ranging " + rangedRegionState.size() + " regions.");
         }
-        BeaconManager.logDebug(TAG, "Currently ranging " + rangedRegionState.size() + " regions.");
 
-        if (scanningEnabled && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
+        if (scanningEnabled && rangedRegionCount == 0 && monitoredRegionState.size() == 0) {
             disableScanning();
         }
     }
@@ -298,12 +305,14 @@ public class BeaconService extends Service {
     }
 
     public void stopMonitoringBeaconsInRegion(Region region) {
+        int monitoredRegionCount;
         BeaconManager.logDebug(TAG, "stopMonitoring called");
         synchronized (monitoredRegionState) {
             monitoredRegionState.remove(region);
+            monitoredRegionCount = monitoredRegionState.size();
         }
         BeaconManager.logDebug(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
-        if (scanningEnabled && rangedRegionState.size() == 0 && monitoredRegionState.size() == 0) {
+        if (scanningEnabled && monitoredRegionCount == 0 && monitoredRegionState.size() == 0) {
             disableScanning();
         }
     }
@@ -562,24 +571,27 @@ public class BeaconService extends Service {
     }
 
     private void processRangeData() {
-        Iterator<Region> regionIterator = rangedRegionState.keySet().iterator();
-        while (regionIterator.hasNext()) {
-            Region region = regionIterator.next();
-            RangeState rangeState = rangedRegionState.get(region);
-            BeaconManager.logDebug(TAG, "Calling ranging callback");
-            rangeState.getCallback().call(BeaconService.this, "rangingData", new RangingData(rangeState.finalizeBeacons(), region));
+        synchronized(rangedRegionState) {
+            Iterator<Region> regionIterator = rangedRegionState.keySet().iterator();
+            while (regionIterator.hasNext()) {
+                Region region = regionIterator.next();
+                RangeState rangeState = rangedRegionState.get(region);
+                BeaconManager.logDebug(TAG, "Calling ranging callback");
+                rangeState.getCallback().call(BeaconService.this, "rangingData", new RangingData(rangeState.finalizeBeacons(), region));
+            }
         }
-
     }
 
     private void processExpiredMonitors() {
-        Iterator<Region> monitoredRegionIterator = monitoredRegionState.keySet().iterator();
-        while (monitoredRegionIterator.hasNext()) {
-            Region region = monitoredRegionIterator.next();
-            MonitorState state = monitoredRegionState.get(region);
-            if (state.isNewlyOutside()) {
-                BeaconManager.logDebug(TAG, "found a monitor that expired: " + region);
-                state.getCallback().call(BeaconService.this, "monitoringData", new MonitoringData(state.isInside(), region));
+        synchronized (monitoredRegionState) {
+            Iterator<Region> monitoredRegionIterator = monitoredRegionState.keySet().iterator();
+            while (monitoredRegionIterator.hasNext()) {
+                Region region = monitoredRegionIterator.next();
+                MonitorState state = monitoredRegionState.get(region);
+                if (state.isNewlyOutside()) {
+                    BeaconManager.logDebug(TAG, "found a monitor that expired: " + region);
+                    state.getCallback().call(BeaconService.this, "monitoringData", new MonitoringData(state.isInside(), region));
+                }
             }
         }
     }
@@ -613,15 +625,13 @@ public class BeaconService extends Service {
         BeaconManager.logDebug(TAG, "looking for ranging region matches for this beacon");
         synchronized (rangedRegionState) {
             matchedRegions = matchingRegions(beacon, rangedRegionState.keySet());
-        }
-        matchedRegionIterator = matchedRegions.iterator();
-        while (matchedRegionIterator.hasNext()) {
-            Region region = matchedRegionIterator.next();
-            BeaconManager.logDebug(TAG, "matches ranging region: " + region);
-            RangeState rangeState = rangedRegionState.get(region);
-            synchronized (rangeState) {
-            	rangeState.addBeacon(beacon);
-			}
+            matchedRegionIterator = matchedRegions.iterator();
+            while (matchedRegionIterator.hasNext()) {
+                Region region = matchedRegionIterator.next();
+                BeaconManager.logDebug(TAG, "matches ranging region: " + region);
+                RangeState rangeState = rangedRegionState.get(region);
+                rangeState.addBeacon(beacon);
+            }
         }
     }
 

@@ -1,0 +1,24 @@
+{
+  "models":
+  [
+    {
+      "coefficient1": 0.42093,
+      "coefficient2": 6.9476,
+      "coefficient3": 0.54992,
+      "version":"4.4.2",
+      "build_number":"KOT49H",
+      "model":"Nexus 4",
+      "manufacturer":"LGE"
+    },
+    {
+      "coefficient1": 0.42093,
+      "coefficient2": 6.9476,
+      "coefficient3": 0.54992,
+      "version":"4.4.2",
+      "build_number":"LPV79",
+      "model":"Nexus 5",
+      "manufacturer":"LGE",
+      "default": true
+    }
+  ]
+}

@@ -106,6 +106,7 @@ public class BeaconManager {
     private ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
     private boolean mBackgroundMode = false;
+    private boolean mBackgroundModeUninitialized = true;
 
     /**
      * set to true if you want to see debug messages associated with this library
@@ -258,6 +259,11 @@ public class BeaconManager {
                 Log.d(TAG, "Unbinding");
                 consumer.unbindService(beaconServiceConnection);
                 consumers.remove(consumer);
+                if (consumers.size() == 0) {
+                    // If this is the last consumer to disconnect, the service will exit
+                    // release the serviceMessenger.
+                    serviceMessenger = null;
+                }
             }
             else {
                 BeaconManager.logDebug(TAG, "This consumer is not bound to: "+consumer);
@@ -303,6 +309,7 @@ public class BeaconManager {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
         }
+        mBackgroundModeUninitialized = false;
         if (backgroundMode != mBackgroundMode) {
             mBackgroundMode = backgroundMode;
             try {
@@ -312,6 +319,14 @@ public class BeaconManager {
                 Log.e(TAG, "Cannot contact service to set scan periods");
             }
         }
+    }
+
+    /**
+      * @return indicator of whether any calls have yet been made to set the
+      * background mode 
+      */
+    public boolean isBackgroundModeUninitialized() {
+        return mBackgroundModeUninitialized;
     }
 
 	/**
@@ -519,9 +534,10 @@ public class BeaconManager {
             }
 	    }
 
-	    // Called when the connection with the service disconnects unexpectedly
+	    // Called when the connection with the service disconnects
 	    public void onServiceDisconnected(ComponentName className) {
             Log.e(TAG, "onServiceDisconnected");
+            serviceMessenger = null;
         }
 	};	
 
@@ -586,6 +602,16 @@ public class BeaconManager {
     }
 
     protected static BeaconSimulator beaconSimulator;
+
+    protected static String distanceModelUpdateUrl = "http://data.altbeacon.org/android-distance.json";
+
+    public static String getDistanceModelUpdateUrl() {
+        return distanceModelUpdateUrl;
+    }
+
+    public static void setDistanceModelUpdateUrl(String url) {
+        distanceModelUpdateUrl = url;
+    }
 
     public static void setBeaconSimulator(BeaconSimulator beaconSimulator) {
         BeaconManager.beaconSimulator = beaconSimulator;

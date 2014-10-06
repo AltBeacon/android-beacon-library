@@ -11,6 +11,9 @@ import org.robolectric.RobolectricTestRunner;
 
 import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
+
+@Config(emulateSdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -78,6 +81,15 @@ public class RegionTest {
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
         assertEquals("id1: 1 id2: 2 id3: null", region.toString());
     }
+
+    @Test
+    public void testCopyConstructor() {
+        Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
+        Region region2 = new Region(region);
+        assertEquals(region, region2);
+        assertNull(region2.getId3());
+    }
+
 
     @Test
     public void testConvenienceIdentifierAccessors() {

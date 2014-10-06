@@ -24,13 +24,9 @@ at a frequency of approximately 1Hz.
 
 The [project website](http://altbeacon.github.io/android-beacon-library/) has [full documentation](http://altbeacon.github.io/android-beacon-library/documentation.html) including [Javadocs.](http://altbeacon.github.io/android-beacon-library/javadoc/)
 
-
 ## Binary Releases
 
 You may [download binary releases here.](http://altbeacon.github.io/android-beacon-library/download.html) 
-
-
-
 
 ## How to build this Library
 
@@ -39,7 +35,7 @@ Eclipse users may download the latest release binary as a tar.gz file, which may
 
 ## Build Instructions
 
-Known working with Android Studio 0.5.2 and Gradle 1.10
+Known working with Android Studio 0.8.6 and Gradle 1.12
 
 Key Gradle build targets:
 

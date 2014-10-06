@@ -23,11 +23,13 @@
  */
 package org.altbeacon.beacon.service;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -38,9 +40,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanSettings;
-import android.bluetooth.le.ScanFilter;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
@@ -71,9 +70,6 @@ public class BeaconService extends Service {
     private Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
     private Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
     private BluetoothAdapter bluetoothAdapter;
-    private boolean scanning;
-    private boolean scanningPaused;
-    private Date lastBeaconDetectionTime = new Date();
     private HashSet<Beacon> trackedBeacons;
     int trackedBeaconsPacketCount;
     private Handler handler = new Handler();
@@ -83,6 +79,7 @@ public class BeaconService extends Service {
     private boolean scanningEnabled = false;
     private DistanceCalculator defaultDistanceCalculator = null;
     private List<BeaconParser> beaconParsers;
+    private CycledLeScanner mCycledScanner;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -106,9 +103,6 @@ public class BeaconService extends Service {
      * 
      */
 
-    private long scanPeriod = BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD;
-    private long betweenScanPeriod = BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
-
     private List<Beacon> simulatedScanData = null;
 
     /**
@@ -122,7 +116,6 @@ public class BeaconService extends Service {
             return BeaconService.this;
         }
     }
-
 
     /**
      * Command to the service to display a message
@@ -205,10 +198,11 @@ public class BeaconService extends Service {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "beaconService version "+ BuildConfig.VERSION_NAME+" is starting up");
-        getBluetoothAdapter();
+        Log.i(TAG, "beaconService version " + BuildConfig.VERSION_NAME + " is starting up");
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
+        mCycledScanner = new CycledLeScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
+                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mCycledLeScanCallback,  bluetoothCrashResolver);
 
         beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
@@ -236,16 +230,7 @@ public class BeaconService extends Service {
         bluetoothCrashResolver.stop();
         Log.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
-        scanLeDevice(false);
-        if (bluetoothAdapter != null) {
-            try {
-                getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
-            }
-            catch (Exception e) {
-                Log.w("Internal Android exception scanning for beacons: ", e);
-            }
-            lastScanEndTime = new Date().getTime();
-        }
+        mCycledScanner.stop();
     }
 
     private int ongoing_notification_id = 1;
@@ -272,7 +257,7 @@ public class BeaconService extends Service {
             BeaconManager.logDebug(TAG, "Currently ranging " + rangedRegionState.size() + " regions.");
         }
         if (!scanningEnabled) {
-            enableScanning();
+            mCycledScanner.start();
         }
     }
 
@@ -285,7 +270,7 @@ public class BeaconService extends Service {
         }
 
         if (scanningEnabled && rangedRegionCount == 0 && monitoredRegionState.size() == 0) {
-            disableScanning();
+            mCycledScanner.stop();
         }
     }
 
@@ -300,7 +285,7 @@ public class BeaconService extends Service {
         }
         BeaconManager.logDebug(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
         if (!scanningEnabled) {
-            enableScanning();
+            mCycledScanner.start();
         }
     }
 
@@ -313,168 +298,23 @@ public class BeaconService extends Service {
         }
         BeaconManager.logDebug(TAG, "Currently monitoring " + monitoredRegionState.size() + " regions.");
         if (scanningEnabled && monitoredRegionCount == 0 && monitoredRegionState.size() == 0) {
-            disableScanning();
+            mCycledScanner.stop();
         }
     }
 
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod) {
-        this.scanPeriod = scanPeriod;
-        this.betweenScanPeriod = betweenScanPeriod;
-        long now = new Date().getTime();
-        if (nextScanStartTime > now) {
-            // We are waiting to start scanning.  We may need to adjust the next start time
-            // only do an adjustment if we need to make it happen sooner.  Otherwise, it will
-            // take effect on the next cycle.
-            long proposedNextScanStartTime = (lastScanEndTime + betweenScanPeriod);
-            if (proposedNextScanStartTime < nextScanStartTime) {
-                nextScanStartTime = proposedNextScanStartTime;
-                Log.i(TAG, "Adjusted nextScanStartTime to be " + new Date(nextScanStartTime));
-            }
-        }
-        if (scanStopTime > now) {
-            // we are waiting to stop scanning.  We may need to adjust the stop time
-            // only do an adjustment if we need to make it happen sooner.  Otherwise, it will
-            // take effect on the next cycle.
-            long proposedScanStopTime = (lastScanStartTime + scanPeriod);
-            if (proposedScanStopTime < scanStopTime) {
-                scanStopTime = proposedScanStopTime;
-                Log.i(TAG, "Adjusted scanStopTime to be " + new Date(scanStopTime));
-            }
-        }
+        mCycledScanner.setScanPeriods(scanPeriod, betweenScanPeriod);
     }
 
-    private long lastScanStartTime = 0l;
-    private long lastScanEndTime = 0l;
-    private long nextScanStartTime = 0l;
-    private long scanStopTime = 0l;
-
-    public void enableScanning() {
-        scanningEnabled = true;
-        if (!scanCyclerStarted) {
-            scanLeDevice(true);
-        }
-    }
-    public void disableScanning() {
-        scanningEnabled = false;
-    }
-
-    @TargetApi(18)
-    private void scanLeDevice(final Boolean enable) {
-        scanCyclerStarted = true;
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
-            return;
-        }
-        if (getBluetoothAdapter() == null) {
-            Log.e(TAG, "No bluetooth adapter.  beaconService cannot scan.");
-            if ((simulatedScanData == null) && (BeaconManager.getBeaconSimulator() == null)) {
-                Log.w(TAG, "exiting");
-                return;
-            } else {
-                Log.w(TAG, "proceeding with simulated scan data");
-            }
-        }
-        if (enable) {
-            long millisecondsUntilStart = nextScanStartTime - (new Date().getTime());
-            if (millisecondsUntilStart > 0) {
-                BeaconManager.logDebug(TAG, "Waiting to start next bluetooth scan for another " + millisecondsUntilStart + " milliseconds");
-                // Don't actually wait until the next scan time -- only wait up to 1 second.  this
-                // allows us to start scanning sooner if a consumer enters the foreground and expects
-                // results more quickly
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        scanLeDevice(true);
-                    }
-                }, millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart);
-                return;
-            }
-
-            trackedBeacons = new HashSet<Beacon>();
-            trackedBeaconsPacketCount = 0;
-            if (scanning == false || scanningPaused == true) {
-                scanning = true;
-                scanningPaused = false;
-                try {
-                    if (getBluetoothAdapter() != null) {
-                        if (getBluetoothAdapter().isEnabled()) {
-                            if (bluetoothCrashResolver.isRecoveryInProgress()) {
-                                Log.w(TAG, "Skipping scan because crash recovery is in progress.");
-                            }
-                            else {
-                                if (scanningEnabled) {
-                                    try {
-                                        List<ScanFilter> filters = new List<ScanFilter>();
-                                        ScanSettings settings = new ScanSettings();
-                                        //SCAN_MODE_LOW_POWER
-                                        //SCAN_MODE_LOW_LATENCY
-                                        BluetoothLeScanner.startScan(filters, settings, (BluetoothAdapter.LeScanCallback)getLeScanCallback());
-                                    }
-                                    catch (Exception e) {
-                                        Log.w("Internal Android exception scanning for beacons: ", e);
-                                    }
-                                }
-                                else {
-                                    BeaconManager.logDebug(TAG, "Scanning unnecessary - no monitoring or ranging active.");
-                                }
-                            }
-                            lastScanStartTime = new Date().getTime();
-                        } else {
-                            Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
-                        }
-                    }
-                } catch (Exception e) {
-                    Log.e("TAG", "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
-                }
-            } else {
-                BeaconManager.logDebug(TAG, "We are already scanning");
-            }
-            scanStopTime = (new Date().getTime() + scanPeriod);
-            scheduleScanStop();
-
-            BeaconManager.logDebug(TAG, "Scan started");
-        } else {
-            BeaconManager.logDebug(TAG, "disabling scan");
-            scanning = false;
-            if (getBluetoothAdapter() != null) {
-                try {
-                    getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
-                }
-                catch (Exception e) {
-                    Log.w("Internal Android exception scanning for beacons: ", e);
-                }
-                lastScanEndTime = new Date().getTime();
-            }
-        }
-    }
-
-    private void scheduleScanStop() {
-        // Stops scanning after a pre-defined scan period.
-        long millisecondsUntilStop = scanStopTime - (new Date().getTime());
-        if (millisecondsUntilStop > 0) {
-            BeaconManager.logDebug(TAG, "Waiting to stop scan for another " + millisecondsUntilStop + " milliseconds");
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    scheduleScanStop();
-                }
-            }, millisecondsUntilStop > 1000 ? 1000 : millisecondsUntilStop);
-        } else {
-            finishScanCycle();
+    private CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
         }
 
-
-    }
-
-    @TargetApi(18)
-    private void finishScanCycle() {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
-            return;
-        }
-        BeaconManager.logDebug(TAG, "Done with scan cycle");
-        processExpiredMonitors();
-        if (scanning == true) {
+        @Override
+        public void onCycleEnd() {
+            processExpiredMonitors();
             processRangeData();
             // If we want to use simulated scanning data, do it here.  This is used for testing in an emulator
             if (simulatedScanData != null) {
@@ -493,7 +333,7 @@ public class BeaconService extends Service {
             if (BeaconManager.getBeaconSimulator() != null) {
                 // if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
                 // it will not be used if we are not in debug mode
-                if (BeaconManager.getBeaconSimulator().getBeacons() != null){
+                if (BeaconManager.getBeaconSimulator().getBeacons() != null) {
                     if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                         for (Beacon beacon : BeaconManager.getBeaconSimulator().getBeacons()) {
                             processBeaconFromScan(beacon);
@@ -505,70 +345,8 @@ public class BeaconService extends Service {
                     Log.w(TAG, "getBeacons is returning null. No simulated beacons to report.");
                 }
             }
-            if (getBluetoothAdapter() != null) {
-                if (getBluetoothAdapter().isEnabled()) {
-                    try {
-                        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
-                    }
-                    catch (Exception e) {
-                        Log.w("Internal Android exception scanning for beacons: ", e);
-                    }
-                    lastScanEndTime = new Date().getTime();
-                } else {
-                    Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
-                }
-            }
-
-            if (!anyRangingOrMonitoringRegionsActive()) {
-                BeaconManager.logDebug(TAG, "Not starting scan because no monitoring or ranging regions are defined.");
-                scanCyclerStarted = false;
-            } else {
-                BeaconManager.logDebug(TAG, "Restarting scan.  Unique beacons seen last cycle: " + trackedBeacons.size()+" Total beacon advertisement packets seen: "+trackedBeaconsPacketCount);
-
-                scanningPaused = true;
-                nextScanStartTime = (new Date().getTime() + betweenScanPeriod);
-                if (scanningEnabled) {
-                    scanLeDevice(true);
-                }
-                else {
-                    BeaconManager.logDebug(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
-                    scanCyclerStarted = false;
-                }
-            }
         }
-    }
-
-    private Object leScanCallback;
-    @TargetApi(18)
-    private Object getLeScanCallback() {
-        if (leScanCallback == null) {
-            leScanCallback =
-                    new BluetoothAdapter.LeScanCallback() {
-
-                        @Override
-                        public void onLeScan(final BluetoothDevice device, final int rssi,
-                                             final byte[] scanRecord) {
-                            BeaconManager.logDebug(TAG, "got record");
-                            new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
-
-                        }
-                    };
-        }
-        return leScanCallback;
-    }
-
-    private class ScanData {
-        public ScanData(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            this.device = device;
-            this.rssi = rssi;
-            this.scanRecord = scanRecord;
-        }
-
-        @SuppressWarnings("unused")
-        public BluetoothDevice device;
-        public int rssi;
-        public byte[] scanRecord;
-    }
+    };
 
     private void processRangeData() {
         synchronized(rangedRegionState) {
@@ -597,7 +375,9 @@ public class BeaconService extends Service {
     }
 
     private void processBeaconFromScan(Beacon beacon) {
-        lastBeaconDetectionTime = new Date();
+        if (trackedBeacons == null){
+            trackedBeacons = new HashSet();
+        }
         trackedBeaconsPacketCount++;
         if (trackedBeacons.contains(beacon)) {
             BeaconManager.logDebug(TAG,
@@ -635,6 +415,18 @@ public class BeaconService extends Service {
         }
     }
 
+
+    private class ScanData {
+        public ScanData(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            this.device = device;
+            this.rssi = rssi;
+            this.scanRecord = scanRecord;
+        }
+        int rssi;
+        BluetoothDevice device;
+        byte[] scanRecord;
+    }
+
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
 
         @Override
@@ -652,7 +444,6 @@ public class BeaconService extends Service {
             if (beacon != null) {
                 processBeaconFromScan(beacon);
             }
-            bluetoothCrashResolver.notifyScannedDevice(scanData.device, (BluetoothAdapter.LeScanCallback)getLeScanCallback());
             return null;
         }
 
@@ -683,28 +474,6 @@ public class BeaconService extends Service {
             }
 
         return matched;
-    }
-
-    /*
-     Returns false if no ranging or monitoring regions have beeen requested.  This is useful in determining if we should scan at all.
-     */
-    private boolean anyRangingOrMonitoringRegionsActive() {
-        return (rangedRegionState.size() + monitoredRegionState.size()) > 0;
-    }
-
-    @TargetApi(18)
-    private BluetoothAdapter getBluetoothAdapter() {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
-            return null;
-        }
-        if (bluetoothAdapter == null) {
-            // Initializes Bluetooth adapter.
-            final BluetoothManager bluetoothManager =
-                    (BluetoothManager) this.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
-            bluetoothAdapter = bluetoothManager.getAdapter();
-        }
-        return bluetoothAdapter;
     }
 
 }

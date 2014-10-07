@@ -10,7 +10,6 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 
@@ -27,10 +26,10 @@ import java.util.List;
 public class CycledLeScanner {
     private static final String TAG = "CycledLeScanner";
     private BluetoothAdapter mBluetoothAdapter;
-    private long mLastScanStartTime = 0l;
-    private long mLastScanEndTime = 0l;
-    private long mNextScanStartTime = 0l;
-    private long mScanStopTime = 0l;
+    private long mLastScanCycleStartTime = 0l;
+    private long mLastScanCycleEndTime = 0l;
+    private long mNextScanCycleStartTime = 0l;
+    private long mScanCycleStopTime = 0l;
     boolean mScanning;
     boolean mScanningPaused;
     private boolean mScanCyclerStarted = false;
@@ -67,24 +66,24 @@ public class CycledLeScanner {
         mScanPeriod = scanPeriod;
         mBetweenScanPeriod = betweenScanPeriod;
         long now = new Date().getTime();
-        if (mNextScanStartTime > now) {
+        if (mNextScanCycleStartTime > now) {
             // We are waiting to start scanning.  We may need to adjust the next start time
             // only do an adjustment if we need to make it happen sooner.  Otherwise, it will
             // take effect on the next cycle.
-            long proposedNextScanStartTime = (mLastScanEndTime + betweenScanPeriod);
-            if (proposedNextScanStartTime < mNextScanStartTime) {
-                mNextScanStartTime = proposedNextScanStartTime;
-                Log.i(TAG, "Adjusted nextScanStartTime to be " + new Date(mNextScanStartTime));
+            long proposedNextScanStartTime = (mLastScanCycleEndTime + betweenScanPeriod);
+            if (proposedNextScanStartTime < mNextScanCycleStartTime) {
+                mNextScanCycleStartTime = proposedNextScanStartTime;
+                Log.i(TAG, "Adjusted nextScanStartTime to be " + new Date(mNextScanCycleStartTime));
             }
         }
-        if (mScanStopTime > now) {
+        if (mScanCycleStopTime > now) {
             // we are waiting to stop scanning.  We may need to adjust the stop time
             // only do an adjustment if we need to make it happen sooner.  Otherwise, it will
             // take effect on the next cycle.
-            long proposedScanStopTime = (mLastScanStartTime + scanPeriod);
-            if (proposedScanStopTime < mScanStopTime) {
-                mScanStopTime = proposedScanStopTime;
-                Log.i(TAG, "Adjusted scanStopTime to be " + new Date(mScanStopTime));
+            long proposedScanStopTime = (mLastScanCycleStartTime + scanPeriod);
+            if (proposedScanStopTime < mScanCycleStopTime) {
+                mScanCycleStopTime = proposedScanStopTime;
+                Log.i(TAG, "Adjusted scanStopTime to be " + new Date(mScanCycleStopTime));
             }
         }
     }
@@ -113,9 +112,31 @@ public class CycledLeScanner {
             catch (Exception e) {
                 Log.w("Internal Android exception scanning for beacons: ", e);
             }
-            mLastScanEndTime = new Date().getTime();
+            mLastScanCycleEndTime = new Date().getTime();
         }
 
+    }
+
+    private boolean deferScanIfNeeded() {
+        if (mUseAndroidLScanner) {
+            // never stop scanning on Android L
+            return false;
+        }
+        long millisecondsUntilStart = mNextScanCycleStartTime - (new Date().getTime());
+        if (millisecondsUntilStart > 0) {
+            BeaconManager.logDebug(TAG, "Waiting to start next bluetooth scan for another " + millisecondsUntilStart + " milliseconds");
+            // Don't actually wait until the next scan time -- only wait up to 1 second.  this
+            // allows us to start scanning sooner if a consumer enters the foreground and expects
+            // results more quickly
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    scanLeDevice(true);
+                }
+            }, millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart);
+            return false;
+        }
+        return true;
     }
 
     @SuppressLint("NewApi")
@@ -129,21 +150,10 @@ public class CycledLeScanner {
             Log.e(TAG, "No bluetooth adapter.  beaconService cannot scan.");
         }
         if (enable) {
-            long millisecondsUntilStart = mNextScanStartTime - (new Date().getTime());
-            if (millisecondsUntilStart > 0) {
-                BeaconManager.logDebug(TAG, "Waiting to start next bluetooth scan for another " + millisecondsUntilStart + " milliseconds");
-                // Don't actually wait until the next scan time -- only wait up to 1 second.  this
-                // allows us to start scanning sooner if a consumer enters the foreground and expects
-                // results more quickly
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        scanLeDevice(true);
-                    }
-                }, millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart);
+            if (deferScanIfNeeded()) {
                 return;
             }
-
+            Log.d(TAG, "starting a new scan cycle");
             if (mScanning == false || mScanningPaused == true) {
                 mScanning = true;
                 mScanningPaused = false;
@@ -156,7 +166,6 @@ public class CycledLeScanner {
                             else {
                                 if (mScanningEnabled) {
                                     try {
-                                        Log.d(TAG, "starting a new scan cycle");
                                         if (mUseAndroidLScanner) {
                                             Log.d(TAG, "starting a new bluetooth le scan");
                                             List<ScanFilter> filters = new ArrayList<ScanFilter>();
@@ -187,7 +196,7 @@ public class CycledLeScanner {
                                     BeaconManager.logDebug(TAG, "Scanning unnecessary - no monitoring or ranging active.");
                                 }
                             }
-                            mLastScanStartTime = new Date().getTime();
+                            mLastScanCycleStartTime = new Date().getTime();
                         } else {
                             Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                         }
@@ -198,8 +207,8 @@ public class CycledLeScanner {
             } else {
                 BeaconManager.logDebug(TAG, "We are already scanning");
             }
-            mScanStopTime = (new Date().getTime() + mScanPeriod);
-            scheduleScanStop();
+            mScanCycleStopTime = (new Date().getTime() + mScanPeriod);
+            scheduleScanCycleStop();
 
             BeaconManager.logDebug(TAG, "Scan started");
         } else {
@@ -212,20 +221,20 @@ public class CycledLeScanner {
                 catch (Exception e) {
                     Log.w("Internal Android exception scanning for beacons: ", e);
                 }
-                mLastScanEndTime = new Date().getTime();
+                mLastScanCycleEndTime = new Date().getTime();
             }
         }
     }
 
-    private void scheduleScanStop() {
+    private void scheduleScanCycleStop() {
         // Stops scanning after a pre-defined scan period.
-        long millisecondsUntilStop = mScanStopTime - (new Date().getTime());
+        long millisecondsUntilStop = mScanCycleStopTime - (new Date().getTime());
         if (millisecondsUntilStop > 0) {
-            BeaconManager.logDebug(TAG, "Waiting to stop scan for another " + millisecondsUntilStop + " milliseconds");
+            BeaconManager.logDebug(TAG, "Waiting to stop scan cycle for another " + millisecondsUntilStop + " milliseconds");
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    scheduleScanStop();
+                    scheduleScanCycleStop();
                 }
             }, millisecondsUntilStop > 1000 ? 1000 : millisecondsUntilStop);
         } else {
@@ -256,6 +265,7 @@ public class CycledLeScanner {
                             }
                             else {
                                 mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                                mScanningPaused = true;
                             }
                         }
                         else {
@@ -265,14 +275,13 @@ public class CycledLeScanner {
                     catch (Exception e) {
                         Log.w("Internal Android exception scanning for beacons: ", e);
                     }
-                    mLastScanEndTime = new Date().getTime();
+                    mLastScanCycleEndTime = new Date().getTime();
                 } else {
                     Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                 }
             }
 
-            mScanningPaused = true;
-            mNextScanStartTime = (new Date().getTime() + mBetweenScanPeriod);
+            mNextScanCycleStartTime = (new Date().getTime() + mBetweenScanPeriod);
             if (mScanningEnabled) {
                 scanLeDevice(true);
             }

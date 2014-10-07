@@ -42,8 +42,7 @@ public class CycledLeScanner {
     BluetoothCrashResolver mBluetoothCrashResolver;
     CycledLeScanCallback mCycledLeScanCallback;
     BluetoothLeScanner mScanner;
-
-
+    boolean mUseAndroidLScanner = false;
 
     public CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         mScanPeriod = scanPeriod;
@@ -51,6 +50,7 @@ public class CycledLeScanner {
         mContext = context;
         mCycledLeScanCallback = cycledLeScanCallback;
         mBluetoothCrashResolver = crashResolver;
+        mUseAndroidLScanner = true;
     }
 
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod) {
@@ -93,7 +93,12 @@ public class CycledLeScanner {
         }
         if (mBluetoothAdapter != null) {
             try {
-                getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                if (mUseAndroidLScanner) {
+                    mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                }
+                else {
+                    getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                }
             }
             catch (Exception e) {
                 Log.w("Internal Android exception scanning for beacons: ", e);
@@ -141,16 +146,23 @@ public class CycledLeScanner {
                             else {
                                 if (mScanningEnabled) {
                                     try {
-                                        getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
 
-                                        if (false) {
+                                        if (mUseAndroidLScanner) {
                                             List<ScanFilter> filters = new ArrayList<ScanFilter>();
-                                            mScanner = getBluetoothAdapter().getBluetoothLeScanner();
-                                            ScanSettings settings = (new ScanSettings.Builder()).build();
-                                            //SCAN_MODE_LOW_POWER
-                                            //SCAN_MODE_LOW_LATENCY
+                                            if (mScanner == null) {
+                                                mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+                                            }
+                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+                                            //ScanSettings.SCAN_RESULT_TYPE_FULL
+                                            //ScanSettings.SCAN_MODE_BALANCED
+                                            //ScanSettings.SCAN_MODE_LOW_LATENCY
+                                            //ScanSettings.SCAN_MODE_LOW_POWER
+
                                             mScanner.startScan(filters, settings, (android.bluetooth.le.ScanCallback) getNewLeScanCallback());
 
+                                        }
+                                        else {
+                                            getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
                                         }
 
                                     }

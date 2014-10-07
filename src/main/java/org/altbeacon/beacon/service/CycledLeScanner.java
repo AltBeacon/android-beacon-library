@@ -42,7 +42,7 @@ public class CycledLeScanner {
     BluetoothCrashResolver mBluetoothCrashResolver;
     CycledLeScanCallback mCycledLeScanCallback;
     BluetoothLeScanner mScanner;
-    boolean mUseAndroidLScanner = false;
+    boolean mUseAndroidLScanner = true;
 
     public CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         mScanPeriod = scanPeriod;
@@ -50,10 +50,20 @@ public class CycledLeScanner {
         mContext = context;
         mCycledLeScanCallback = cycledLeScanCallback;
         mBluetoothCrashResolver = crashResolver;
-        mUseAndroidLScanner = true;
+
+        if (android.os.Build.VERSION.SDK_INT < 20) {
+            Log.i(TAG, "This is not Android L.  We are using old scanning APIs");
+            mUseAndroidLScanner = false;
+        }
+        else {
+            Log.i(TAG, "This Android L.  We are using new scanning APIs");
+            mUseAndroidLScanner = true;
+        }
+
     }
 
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod) {
+        Log.d(TAG, "Set scan periods called with "+scanPeriod+", "+betweenScanPeriod+"  Background mode must have changed.");
         mScanPeriod = scanPeriod;
         mBetweenScanPeriod = betweenScanPeriod;
         long now = new Date().getTime();
@@ -85,7 +95,7 @@ public class CycledLeScanner {
             scanLeDevice(true);
         }
     }
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @SuppressLint("NewApi")
     public void stop() {
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
@@ -146,13 +156,15 @@ public class CycledLeScanner {
                             else {
                                 if (mScanningEnabled) {
                                     try {
-
+                                        Log.d(TAG, "starting a new scan cycle");
                                         if (mUseAndroidLScanner) {
+                                            Log.d(TAG, "starting a new bluetooth le scan");
                                             List<ScanFilter> filters = new ArrayList<ScanFilter>();
                                             if (mScanner == null) {
+                                                Log.d(TAG, "Making new Android L scanner");
                                                 mScanner = getBluetoothAdapter().getBluetoothLeScanner();
                                             }
-                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
                                             //ScanSettings.SCAN_RESULT_TYPE_FULL
                                             //ScanSettings.SCAN_MODE_BALANCED
                                             //ScanSettings.SCAN_MODE_LOW_LATENCY
@@ -162,6 +174,7 @@ public class CycledLeScanner {
 
                                         }
                                         else {
+                                            Log.d(TAG, "starting a new bluetooth le scan");
                                             getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
                                         }
 
@@ -218,8 +231,6 @@ public class CycledLeScanner {
         } else {
             finishScanCycle();
         }
-
-
     }
 
     @TargetApi(21)
@@ -230,8 +241,26 @@ public class CycledLeScanner {
             if (getBluetoothAdapter() != null) {
                 if (getBluetoothAdapter().isEnabled()) {
                     try {
-                        //mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
-                        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                        Log.d(TAG, "stopping bluetooth le scan");
+                        if (mUseAndroidLScanner) {
+                            if (mBetweenScanPeriod == 0) {
+                                // Prior to Android L we had to stop scanning at the end of each
+                                // cycle, even the betweenScanPeriod was set to zero, and then
+                                // immediately restart.  This is because on the old APIS, connectable
+                                // advertisements only were passed along to the callback the first
+                                // time seen in a scan period.  This is no longer true with the new
+                                // Android L apis.  All advertisements are passed along even for
+                                // connectable advertisements.  So there is no need to stop scanning
+                                // if we are just going to start back up again.
+                                Log.d(TAG, "Aborting stop scan because this is Android L");
+                            }
+                            else {
+                                mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                            }
+                        }
+                        else {
+                            getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                        }
                     }
                     catch (Exception e) {
                         Log.w("Internal Android exception scanning for beacons: ", e);

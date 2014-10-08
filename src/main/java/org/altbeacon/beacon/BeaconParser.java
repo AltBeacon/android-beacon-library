@@ -298,6 +298,52 @@ public class BeaconParser {
         return beacon;
     }
 
+    /**
+     * Get BLE advertisement bytes for a Beacon
+     * @param beacon the beacon containing the data to be transmitted
+     * @return the byte array of the advertisement
+     */
+    public byte[] getBeaconAdvertisementData(Beacon beacon) {
+        byte[] advertisingBytes;
+
+        advertisingBytes = new byte[26];
+        long beaconTypeCode = this.getMatchingBeaconTypeCode();
+        advertisingBytes[0] = (byte) (beacon.getManufacturer() & 0xff); // little endian, position fixed
+        advertisingBytes[1] = (byte) ((beacon.getManufacturer() >> 8) & 0xff);
+
+        // set type code
+        for (int index = this.mMatchingBeaconTypeCodeStartOffset; index <= this.mMatchingBeaconTypeCodeEndOffset; index++) {
+            byte value = (byte) (this.getMatchingBeaconTypeCode() >> (8*(this.mMatchingBeaconTypeCodeEndOffset-index)) & 0xff);
+            advertisingBytes[index] = value;
+        }
+
+        // set identifiers
+        for (int identifierNum = 0; identifierNum < this.mIdentifierStartOffsets.size(); identifierNum++) {
+            byte[] identifierBytes = beacon.getIdentifier(identifierNum).toByteArrayOfSpecifiedEndianness(this.mIdentifierLittleEndianFlags.get(identifierNum));
+            for (int index = this.mIdentifierStartOffsets.get(identifierNum); index <= this.mIdentifierEndOffsets.get(identifierNum); index ++) {
+                advertisingBytes[index] = (byte) identifierBytes[this.mIdentifierEndOffsets.get(identifierNum)-index];
+            }
+        }
+
+        // set power
+        for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
+            advertisingBytes[index] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+        }
+
+        // set data fields
+        for (int dataFieldNum = 0; dataFieldNum < this.mDataStartOffsets.size(); dataFieldNum++) {
+            long dataField = beacon.getDataFields().get(dataFieldNum);
+            for (int index = this.mDataStartOffsets.get(dataFieldNum); index <= this.mDataEndOffsets.get(dataFieldNum); index ++) {
+                int endianCorrectedIndex = index;
+                if (this.mDataLittleEndianFlags.get(dataFieldNum)) {
+                    endianCorrectedIndex = this.mDataEndOffsets.get(dataFieldNum) - index;
+                }
+                advertisingBytes[endianCorrectedIndex] = (byte) (dataField >> (8*(index - this.mDataStartOffsets.get(dataFieldNum))) & 0xff);
+            }
+        }
+        return advertisingBytes;
+    }
+
     public BeaconParser setMatchingBeaconTypeCode(Long typeCode) {
         mMatchingBeaconTypeCode = typeCode;
         return this;

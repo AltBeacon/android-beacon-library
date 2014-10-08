@@ -3,6 +3,7 @@ package org.altbeacon.beacon;
 import android.os.Parcel;
 
 import static android.test.MoreAsserts.assertNotEqual;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -12,6 +13,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.junit.runner.RunWith;
 import org.junit.Test;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
 
 @Config(emulateSdk = 18)
 
@@ -37,6 +40,13 @@ public class BeaconParserTest {
                     + Character.digit(s.charAt(i+1), 16));
         }
         return data;
+    }
+    public static String byteArrayToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < bytes.length; i++) {
+            sb.append(String.format("%02x", bytes[i]));
+        }
+        return sb.toString();
     }
 
     @Test
@@ -84,6 +94,19 @@ public class BeaconParserTest {
     }
 
     @Test
+    public void testReEncodesBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02011a1aff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
+        byte[] expectedMatch = Arrays.copyOfRange(bytes, 5, bytes.length);
+        assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
+    }
+
+
+    @Test
     public void testLittleEndianIdentifierParsing() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("02011a1aff1801beac0102030405060708090a0b0c0d0e0f1011121314c509");
@@ -97,6 +120,21 @@ public class BeaconParserTest {
         assertEquals("txPower should be parsed", -59, beacon.getTxPower());
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }
+
+    @Test
+    public void testReEncodesLittleEndianBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02011a1aff1801beac0102030405060708090a0b0c0d0e0f1011121314c509");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-9,i:10-15l,i:16-23,p:24-24,d:25-25");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
+        byte[] expectedMatch = Arrays.copyOfRange(bytes, 5, bytes.length);
+        System.err.println(byteArrayToHexString(expectedMatch));
+        System.err.println(byteArrayToHexString(regeneratedBytes));
+        assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
+    }
+
 
     @Test
     public void testRecognizeBeaconCapturedManufacturer() {

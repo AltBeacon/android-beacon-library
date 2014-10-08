@@ -41,4 +41,39 @@ public class IdentifierTest {
         assertEquals("Identifiers of different case should match", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", identifier1.toString());
     }
 
+    @Test
+    public void testToByteArrayConvertsUuids() {
+        Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
+        byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
+        assertEquals("byte array is correct length", bytes.length, 16);
+        assertEquals("first byte of uuid converted properly", 0x2f, bytes[0] & 0xFF);
+        assertEquals("second byte of uuid converted properly", 0x23, bytes[1] & 0xFF);
+        assertEquals("last byte of uuid converted properly", 0xa6, bytes[15] & 0xFF);
+    }
+
+    @Test
+    public void testToByteArrayConvertsUuidsAsLittleEndian() {
+        Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
+        byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(false);
+        assertEquals("byte array is correct length", bytes.length, 16);
+        assertEquals("first byte of uuid converted properly", 0xa6, bytes[0] & 0xFF);
+        assertEquals("last byte of uuid converted properly", 0x2f, bytes[15] & 0xFF);
+    }
+
+    @Test
+    public void testToByteArrayConvertsHex() {
+        Identifier identifier1 = Identifier.parse("0x010203040506");
+        byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
+        assertEquals("byte array is correct length", bytes.length, 6);
+        assertEquals("first byte of hex is converted properly", 0x01, bytes[0] & 0xFF);
+        assertEquals("last byte of hex is converted properly", 0x06, bytes[5] & 0xFF);
+    }
+    @Test
+    public void testToByteArrayConvertsDecimal() {
+        Identifier identifier1 = Identifier.parse("65534");
+        byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
+        assertEquals("byte array is correct length", bytes.length, 2);
+        assertEquals("first byte of decimal converted properly", 0xff, bytes[0] & 0xFF);
+        assertEquals("last byte of decimal converted properly", 0xfe, bytes[1] & 0xFF);
+    }
 }

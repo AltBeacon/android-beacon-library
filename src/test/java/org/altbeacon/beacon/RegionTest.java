@@ -56,7 +56,7 @@ public class RegionTest {
     public void testBeaconMatchesRegionWithDifferentIdentifier1() {
         Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
                 .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
-        Region region = new Region("myRegion", Identifier.parse("222222"), null, null);
+        Region region = new Region("myRegion", Identifier.parse("22222"), null, null);
         assertTrue("Beacon should not match region with first identifier different", !region.matchesBeacon(beacon));
     }
 

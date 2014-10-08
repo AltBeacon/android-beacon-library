@@ -1,5 +1,8 @@
 package org.altbeacon.beacon;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  *
  * Encapsulates a beacon identifier of arbitrary byte length
@@ -9,12 +12,22 @@ package org.altbeacon.beacon;
  * Created by dyoung on 7/18/14.
  */
 public class Identifier {
+    private static final String TAG = "Identifier";
+    private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-F-a-f]+$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+$");
+    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+");
+
     private String mStringValue;
 
+    /**
+     * Allowed formats:
+     *   UUID: 2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6
+     *   HEX: 0x000000000003 
+     *   decimal: 65536 
+     * @param identifierString
+     * @return
+     */
     public static Identifier parse(String identifierString) {
-        if (identifierString == null) {
-            throw new NullPointerException("cannot parse null string");
-        }
         return new Identifier(identifierString);
     }
     public static Identifier fromInt(int identifierInt) {
@@ -22,11 +35,6 @@ public class Identifier {
     }
     public Identifier(Identifier identifier) {
         if (identifier != null) {
-            // TODO: Validate that this identifier is in one of various valid formats
-            // UUID string
-            // integer (decimal or hex)
-            // if it does not match a format, throw a IdentifierFormatException (runtime)
-            // if it does match a format, normalize (e.g. lower case hex digits)
             mStringValue = identifier.mStringValue;
         }
         else {
@@ -42,6 +50,29 @@ public class Identifier {
     public int toInt() {
         return Integer.parseInt(mStringValue);
     }
+
+    /**
+     * Converts identifier to a byte array
+     * @param bigEndian true if bytes are MSB first
+     * @return
+     */
+    public byte[] toByteArrayOfSpecifiedEndianness(boolean bigEndian) {
+        String hexString = toHexString();
+        int length = hexString.length()/2;
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; i++) {
+            String hexByte = hexString.substring(i*2, i*2+2);
+            byte b = (byte) Integer.parseInt(hexByte, 16);
+            if (bigEndian) {
+                bytes[i] = b;
+            }
+            else {
+                bytes[length-i-1] = b;
+            }
+        }
+        return bytes;
+    }
+
     //TODO:  Add other conversion methods for UUID, int, etc for various identifier types
 
     @Override
@@ -54,13 +85,53 @@ public class Identifier {
     }
     private Identifier(String stringValue) {
         if (stringValue != null) {
+            if (!formatValid(stringValue)) {
+                throw new NumberFormatException("Cannot parse identifier string:"+stringValue+"  Must be a decimal number 0-99999, a hex number of the form 0x00 or a UUID");
+            }
             this.mStringValue = stringValue.toLowerCase();
         }
         else {
             mStringValue = null;
         }
     }
+    private static boolean isHex(String string) {
+        if (string.length() < 4) {
+            return false;
+        }
+        return HEX_PATTERN.matcher(string).find();
+    }
+    private static boolean isDecimal(String string) {
+        if (string.length() == 0) {
+            return false;
+        }
+        if (!DECIMAL_PATTERN.matcher(string).find()) {
+            return false;
+        }
+        if (Integer.parseInt(string) > 65535) {
+            return false;
+        }
+        return true;
+    }
+    private static boolean isUuid(String string) {
+        return UUID_PATTERN.matcher(string).find();
+    }
+    private static boolean formatValid(String string) {
+        return (isDecimal(string)|| isHex(string) || isUuid(string));
+    }
+    public String toHexString() {
+        if (isHex(mStringValue)) {
+            return mStringValue.substring(2);
+        }
+        if (isUuid(mStringValue)) {
+            return mStringValue.replaceAll("-", "");
+        }
+        Integer i = Integer.parseInt(mStringValue);
+        return String.format("%04x", i);
+    }
+
+
     private Identifier() {}
+
 
     /**
      * Compares two identifiers
@@ -74,4 +145,6 @@ public class Identifier {
         }
         return mStringValue.compareTo(that.mStringValue);
     }
+
+
 }

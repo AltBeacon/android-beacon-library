@@ -9,16 +9,22 @@ Binary distributions are provided in two formats.  The aar format is recommended
 See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
 
-####Latest Stable Release 2.0-beta7
+####Latest Stable Release 2.0
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0.aar](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0.aar)
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0.tar.gz](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0.tar.gz)
+
+[Release Notes](releasenotes_2_0.html)
+
+
+####Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta7.aar](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta7.aar)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta7.tar.gz](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta7.tar.gz)
 
 [Release Notes](releasenotes_2_0_beta7.html)
-
-
-####Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta6.aar](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta6.aar)
 

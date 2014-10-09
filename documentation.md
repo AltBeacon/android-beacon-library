@@ -17,7 +17,7 @@ layout: android-beacon-library
 ### Code samples and API documentation
 
 <ul>
-<li><a href='configure.md'>Download and project setup guide</a></li>
+<li><a href='configure.html'>Download and project setup guide</a></li>
 <li><a href='samples.html'>Code samples</a></li>
 <li><a href='https://github.com/AltBeacon/android-beacon-library-reference/tree/android-studio/app'>Reference application (Android Studio)</a></li>
 <li><a href='https://github.com/AltBeacon/android-beacon-library-reference'>Reference application (Eclipse)</a></li>

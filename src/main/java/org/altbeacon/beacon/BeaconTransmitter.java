@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.altbeacon.beacon.Beacon;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
@@ -12,8 +13,13 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
+/**
+ * Provides a mechanism for transmitting as a beacon.   Requires Android L
+ */
+@TargetApi(Build.VERSION_CODES.L)
 public class BeaconTransmitter {
     private static final String TAG = "BeaconTransmitter";
     private BluetoothAdapter mBluetoothAdapter;
@@ -21,18 +27,34 @@ public class BeaconTransmitter {
     private int mAdvertiseMode = AdvertiseSettings.ADVERTISE_MODE_LOW_POWER;
     private int mAdvertiseTxPowerLevel = AdvertiseSettings.ADVERTISE_TX_POWER_HIGH;
     private Beacon mBeacon;
+    private BeaconParser mBeaconParser;
 
-    public BeaconTransmitter(Context context, Beacon beacon) {
+    /**
+     * Creates a new beacon transmitter capable of transmitting beacons with the format
+     * specified in the BeaconParser and with the data fields specified in the Beacon object
+     * @param context
+     * @param parser specifies the format of the beacon transmission
+     */
+    public BeaconTransmitter(Context context, BeaconParser parser) {
         BluetoothManager bluetoothManager =
                 (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
         mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-        if (beacon == null) {
-            throw new NullPointerException("Beacon cannot be null");
-        }
+        mBeaconParser = parser;
+    }
+
+    /**
+     * Sets the beacon whose fields will be transmitted
+     * @param beacon
+     */
+    public void setBeacon(Beacon beacon) {
         mBeacon = beacon;
     }
 
+    /**
+     * @see #setAdvertiseMode(int)
+     * @return advertiseMode
+     */
     public int getAdvertiseMode() {
         return mAdvertiseMode;
     }
@@ -47,6 +69,10 @@ public class BeaconTransmitter {
         this.mAdvertiseMode = mAdvertiseMode;
     }
 
+    /**
+     * @see #setAdvertiseTxPowerLevel(int mAdvertiseTxPowerLevel)
+     * @return txPowerLevel
+     */
     public int getAdvertiseTxPowerLevel() {
         return mAdvertiseTxPowerLevel;
     }
@@ -63,15 +89,27 @@ public class BeaconTransmitter {
     }
 
     /**
+     * Starts advertising with fields from the passed beacon
+     * @param beacon
+     */
+    public void startAdvertising(Beacon beacon) {
+        mBeacon = beacon;
+        startAdvertising();
+    }
+
+    /**
      * Starts this beacon advertising
      */
     public void startAdvertising() {
+        if (mBeacon == null) {
+            throw new NullPointerException("Beacon cannot be null.  Set beacon before starting advertising");
+        }
         String id1 = mBeacon.getIdentifiers().get(0).toString();
         int id2 = Integer.parseInt(mBeacon.getIdentifiers().get(1).toString());
         int id3 = Integer.parseInt(mBeacon.getIdentifiers().get(2).toString());
         int manufacturerCode = mBeacon.getManufacturer();
 
-        byte[] advertisingBytes = getAltBeaconAdvertisementData(mBeacon.getBeaconTypeCode(), mBeacon.getManufacturer(), id1, id2, id3, -59);
+        byte[] advertisingBytes = mBeaconParser.getBeaconAdvertisementData(mBeacon);
         Log.d(TAG, "Starting advertising with ID1: "+id1+" ID2: "+id2+" ID3: "+id3);
         try{
             AdvertisementData.Builder dataBuilder = new AdvertisementData.Builder();
@@ -106,33 +144,6 @@ public class BeaconTransmitter {
         mBluetoothLeAdvertiser.stopAdvertising(advertiseCallback);
     }
 
-    /**
-     * Get BLE advertisement bytes for an AltBeacon
-     * @param beaconTypeCode a 2 byte beacon type code
-     *        (0xbeac for an AltBeacon, a different value for other beacon transmissions)
-     * @param id1 a 16 byte UUID represented as a string
-     * @param id2 a 16 bit number
-     * @param id3 a 16 bit number
-     * @param power an 8 byte signed power calibration value
-     * @return the byte array of the advertisement
-     */
-    private byte[] getAltBeaconAdvertisementData(int beaconTypeCode, int manufacturerId, String id1, int id2, int id3, int power) {
-        byte[] advertisingBytes;
-
-        advertisingBytes = new byte[26];
-        advertisingBytes[0] = (byte) (manufacturerId & 0xff); // little endian
-        advertisingBytes[1] = (byte) ((manufacturerId >> 8) & 0xff);
-        advertisingBytes[2] = (byte) ((beaconTypeCode >> 8) & 0xff); // big endian
-        advertisingBytes[3] = (byte) (beaconTypeCode & 0xff);
-        System.arraycopy( uuidToBytes(id1), 0, advertisingBytes, 4, 16 );
-        System.arraycopy( uint16ToBytes(id2), 0, advertisingBytes, 20, 2 );
-        System.arraycopy( uint16ToBytes(id3), 0, advertisingBytes, 22, 2 );
-        advertisingBytes[24] =  int8ToByte(power);
-        advertisingBytes[25] =  0; // manufacturer reserved
-
-        return advertisingBytes;
-    }
-
     private AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
         @Override
         public void onFailure(int errorCode) {
@@ -147,25 +158,4 @@ public class BeaconTransmitter {
 
     };
 
-    private byte[] uuidToBytes(String uuidString) {
-        UUID uuid = UUID.fromString(uuidString);
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(uuid.getMostSignificantBits());
-        bb.putLong(uuid.getLeastSignificantBits());
-        return bb.array();
-    }
-
-    private byte[] uint16ToBytes(int i) {
-        byte[] bytes = new byte[2];
-        bytes[0] = (byte) (i / 256);
-        bytes[1] = (byte) (i & 0xff);
-        return bytes;
-    }
-
-    private byte int8ToByte(int i) {
-        if (i < 0) {
-            return (byte) (256+i);
-        }
-        return (byte) (i & 0x7f);
-    }
 }

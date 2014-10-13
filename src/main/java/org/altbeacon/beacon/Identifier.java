@@ -15,7 +15,7 @@ public class Identifier {
     private static final String TAG = "Identifier";
     private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-F-a-f]+$");
     private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+$");
-    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+");
+    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+-[0-9A-F-a-f]+$");
 
     private String mStringValue;
 
@@ -73,6 +73,15 @@ public class Identifier {
         return bytes;
     }
 
+    /**
+     * Returns the byte length of this identifier
+     * @return
+     */
+    public int getByteCount() {
+        String hexString = toHexString();
+        return hexString.length()/2;
+    }
+
     //TODO:  Add other conversion methods for UUID, int, etc for various identifier types
 
     @Override
@@ -86,7 +95,23 @@ public class Identifier {
     private Identifier(String stringValue) {
         if (stringValue != null) {
             if (!formatValid(stringValue)) {
-                throw new NumberFormatException("Cannot parse identifier string:"+stringValue+"  Must be a decimal number 0-99999, a hex number of the form 0x00 or a UUID");
+                String formatProblem = null;
+                if (DECIMAL_PATTERN.matcher(stringValue).find()) {
+                    formatProblem = "Decimal identifiers must be between 0 and 65535";
+                }
+                else if (HEX_PATTERN.matcher(stringValue).find()) {
+                    if (stringValue.length() % 2 != 0) {
+                        formatProblem = "Hex identifier must have an even number of digits.";
+                    }
+                    else {
+                        formatProblem = "Hex identifier: "+stringValue+" is invalid";
+                    }
+                }
+                else {
+                    formatProblem = "Identifier: "+stringValue+"  must be a decimal number, a 16-byte UUID, or a hex number starting with 0x";
+                }
+                throw new NumberFormatException(formatProblem);
+
             }
             this.mStringValue = stringValue.toLowerCase();
         }
@@ -98,6 +123,10 @@ public class Identifier {
         if (string.length() < 4) {
             return false;
         }
+        if (string.length() % 2 != 0) {
+            return false;
+        }
+
         return HEX_PATTERN.matcher(string).find();
     }
     private static boolean isDecimal(String string) {
@@ -113,6 +142,9 @@ public class Identifier {
         return true;
     }
     private static boolean isUuid(String string) {
+        if (string.length() != 36) {
+            return false;
+        }
         return UUID_PATTERN.matcher(string).find();
     }
     private static boolean formatValid(String string) {

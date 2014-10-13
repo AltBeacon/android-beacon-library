@@ -28,6 +28,8 @@ public class BeaconTransmitter {
     private int mAdvertiseTxPowerLevel = AdvertiseSettings.ADVERTISE_TX_POWER_HIGH;
     private Beacon mBeacon;
     private BeaconParser mBeaconParser;
+    private AdvertiseCallback mAdvertisingClientCallback;
+    private boolean mStarted;
 
     /**
      * Creates a new beacon transmitter capable of transmitting beacons with the format
@@ -41,6 +43,15 @@ public class BeaconTransmitter {
         mBluetoothAdapter = bluetoothManager.getAdapter();
         mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
         mBeaconParser = parser;
+        Log.d(TAG, "new BeaconTransmitter constructed");
+    }
+
+    /**
+     * Tells if transmission has started
+     * @return
+     */
+    public boolean isStarted() {
+        return mStarted;
     }
 
     /**
@@ -49,6 +60,14 @@ public class BeaconTransmitter {
      */
     public void setBeacon(Beacon beacon) {
         mBeacon = beacon;
+    }
+
+    /**
+     * Sets the beaconParsser used for formatting the transmission
+     * @param beaconParser
+     */
+    public void setBeaconParser(BeaconParser beaconParser) {
+        mBeaconParser = beaconParser;
     }
 
     /**
@@ -93,7 +112,16 @@ public class BeaconTransmitter {
      * @param beacon
      */
     public void startAdvertising(Beacon beacon) {
+        startAdvertising(beacon, null);
+    }
+
+    /**
+     * Starts advertising with fields from the passed beacon
+     * @param beacon
+     */
+    public void startAdvertising(Beacon beacon, AdvertiseCallback callback) {
         mBeacon = beacon;
+        mAdvertisingClientCallback = callback;
         startAdvertising();
     }
 
@@ -104,13 +132,10 @@ public class BeaconTransmitter {
         if (mBeacon == null) {
             throw new NullPointerException("Beacon cannot be null.  Set beacon before starting advertising");
         }
-        String id1 = mBeacon.getIdentifiers().get(0).toString();
-        int id2 = Integer.parseInt(mBeacon.getIdentifiers().get(1).toString());
-        int id3 = Integer.parseInt(mBeacon.getIdentifiers().get(2).toString());
         int manufacturerCode = mBeacon.getManufacturer();
 
         byte[] advertisingBytes = mBeaconParser.getBeaconAdvertisementData(mBeacon);
-        Log.d(TAG, "Starting advertising with ID1: "+id1+" ID2: "+id2+" ID3: "+id3);
+        Log.d(TAG, "Starting advertising with ID1: "+mBeacon.getId1()+" ID2: "+mBeacon.getId2()+" ID3: "+mBeacon.getId3());
         try{
             AdvertisementData.Builder dataBuilder = new AdvertisementData.Builder();
             dataBuilder.setManufacturerData(manufacturerCode, advertisingBytes);
@@ -129,7 +154,7 @@ public class BeaconTransmitter {
                 byteString += String.format("%02X", advertisingBytes[i]);
                 byteString += " ";
             }
-            Log.e(TAG, "Started advertising with data: "+byteString);
+            Log.e(TAG, "Started advertising with object "+mBluetoothLeAdvertiser+" and data: "+byteString);
 
         } catch (Exception e){
             Log.e(TAG, "Cannot start advetising due to excepton: ",e);
@@ -140,22 +165,49 @@ public class BeaconTransmitter {
      * Stops this beacon from advertising
      */
     public void stopAdvertising() {
-        Log.d(TAG, "Stopping advertising");
+        stopAdvertising(null);
+    }
+
+
+    /**
+     * Stops this beacon from advertising with a callback that gets issued with
+     * success or fail
+     *
+     * @param callback
+     */
+    public void stopAdvertising(AdvertiseCallback callback) {
+        if (!mStarted) {
+            Log.d(TAG, "Skipping stop advertising -- not started");
+            return;
+        }
+        Log.d(TAG, "Stopping advertising with object "+mBluetoothLeAdvertiser);
+        mAdvertisingClientCallback = callback;
         mBluetoothLeAdvertiser.stopAdvertising(advertiseCallback);
     }
 
     private AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
         @Override
         public void onFailure(int errorCode) {
-            Log.e(TAG,"Advertisement failed.");
+            Log.e(TAG,"Advertisement start/stop failed, code: "+errorCode);
+            if (mAdvertisingClientCallback != null) {
+                mAdvertisingClientCallback.onFailure(errorCode);
+            }
 
         }
 
         @Override
         public void onSuccess(AdvertiseSettings settingsInEffect) {
-            Log.i(TAG,"Advertisement succeeded.");
+            Log.i(TAG,"Advertisement start/stop succeeded.");
+            if (mStarted) {
+                mStarted = false;
+            }
+            else {
+                mStarted = true;
+            }
+            if (mAdvertisingClientCallback != null) {
+                mAdvertisingClientCallback.onSuccess(settingsInEffect);
+            }
+
         }
-
     };
-
 }

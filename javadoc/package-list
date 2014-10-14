@@ -1,5 +1,6 @@
 org.altbeacon.beacon
 org.altbeacon.beacon.client
+org.altbeacon.beacon.distance
 org.altbeacon.beacon.powersave
 org.altbeacon.beacon.service
 org.altbeacon.beacon.simulator

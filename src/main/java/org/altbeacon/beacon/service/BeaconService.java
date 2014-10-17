@@ -378,6 +378,9 @@ public class BeaconService extends Service {
         if (trackedBeacons == null){
             trackedBeacons = new HashSet();
         }
+        if (Stats.getInstance().isEnabled()) {
+            Stats.getInstance().log(beacon);
+        }
         trackedBeaconsPacketCount++;
         if (trackedBeacons.contains(beacon)) {
             BeaconManager.logDebug(TAG,

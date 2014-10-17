@@ -591,6 +591,9 @@ public class BeaconService extends Service {
     }
 
     private void processBeaconFromScan(Beacon beacon) {
+        if (Stats.getInstance().isEnabled()) {
+            Stats.getInstance().log(beacon);
+        }
         lastBeaconDetectionTime = new Date();
         trackedBeaconsPacketCount++;
         if (trackedBeacons.contains(beacon)) {

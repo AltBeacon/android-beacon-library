@@ -64,12 +64,12 @@ allprojects {
 }
 
 android {
-    compileSdkVersion 'android-L'
-    buildToolsVersion "19.1.0"
+    compileSdkVersion 21
+    buildToolsVersion "21"
 
     defaultConfig {
         minSdkVersion 1 
-        targetSdkVersion 20
+        targetSdkVersion 21
         versionCode 1
         versionName version
         testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
@@ -122,6 +122,9 @@ dependencies {
     androidTestCompile('junit:junit:4.11') {
         exclude module: 'hamcrest-core'
     }
+    androidTestCompile ('com.squareup:fest-android:1.0.+') {
+        exclude group: 'com.android.support', module: 'support-v4'
+    }
     androidTestCompile('org.robolectric:robolectric:2.3') {
         exclude module: 'classworlds'
         exclude module: 'commons-logging'
@@ -138,10 +141,11 @@ dependencies {
         exclude module: 'wagon-file'
         exclude module: 'wagon-http-lightweight'
         exclude module: 'wagon-provider-api'
+        exclude group: 'com.android.support', module: 'support-v4'
     }
 
-    androidTestCompile 'com.squareup:fest-android:1.0.+'
-    compile 'com.android.support:support-v4:19.1.0'
+    androidTestCompile 'com.squareup:fest-android:1.0.+@aar'
+    compile 'com.android.support:support-v4:21+'
 }
 
 apply plugin: 'idea'

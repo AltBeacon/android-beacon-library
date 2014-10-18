@@ -50,12 +50,12 @@ public class CycledLeScanner {
         mCycledLeScanCallback = cycledLeScanCallback;
         mBluetoothCrashResolver = crashResolver;
 
-        if (android.os.Build.VERSION.SDK_INT < 20) {
-            Log.i(TAG, "This is not Android L.  We are using old scanning APIs");
+        if (android.os.Build.VERSION.SDK_INT < 21) {
+            Log.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
             mUseAndroidLScanner = false;
         }
         else {
-            Log.i(TAG, "This Android L.  We are using new scanning APIs");
+            Log.i(TAG, "This Android 5.0.  We are using new scanning APIs");
             mUseAndroidLScanner = true;
         }
 
@@ -173,12 +173,11 @@ public class CycledLeScanner {
                                                 Log.d(TAG, "Making new Android L scanner");
                                                 mScanner = getBluetoothAdapter().getBluetoothLeScanner();
                                             }
-                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
                                             //ScanSettings.SCAN_RESULT_TYPE_FULL
                                             //ScanSettings.SCAN_MODE_BALANCED
                                             //ScanSettings.SCAN_MODE_LOW_LATENCY
                                             //ScanSettings.SCAN_MODE_LOW_POWER
-
                                             mScanner.startScan(filters, settings, (android.bluetooth.le.ScanCallback) getNewLeScanCallback());
 
                                         }
@@ -242,7 +241,7 @@ public class CycledLeScanner {
         }
     }
 
-    @TargetApi(21)
+    @TargetApi(18)
     private void finishScanCycle() {
         BeaconManager.logDebug(TAG, "Done with scan cycle");
         mCycledLeScanCallback.onCycleEnd();
@@ -311,17 +310,29 @@ public class CycledLeScanner {
         return leScanCallback;
     }
 
-    @TargetApi(android.os.Build.VERSION_CODES.L)
+    @TargetApi(21)
     private Object getNewLeScanCallback() {
         if (leScanCallback == null) {
             leScanCallback = new android.bluetooth.le.ScanCallback() {
 
                 @Override
-                public void onAdvertisementUpdate(ScanResult scanResult) {
+                public void onScanResult(int callbackType, ScanResult scanResult) {
+                    // callback type
+                    // Determines how this callback was triggered. Currently could only be
+                    // CALLBACK_TYPE_ALL_MATCHES
                     BeaconManager.logDebug(TAG, "got record");
                     mCycledLeScanCallback.onLeScan(scanResult.getDevice(),
-                            scanResult.getRssi(), scanResult.getScanRecord());
+                            scanResult.getRssi(), scanResult.getScanRecord().getBytes());
                     // Don't call bluetoothcrashresolver on androidl.  no need.
+                }
+
+                @Override
+                public void onBatchScanResults (List<ScanResult> results) {
+                    BeaconManager.logDebug(TAG, "got batch records");
+                    for (ScanResult scanResult : results) {
+                        mCycledLeScanCallback.onLeScan(scanResult.getDevice(),
+                                scanResult.getRssi(), scanResult.getScanRecord().getBytes());
+                    }
                 }
 
                 @Override

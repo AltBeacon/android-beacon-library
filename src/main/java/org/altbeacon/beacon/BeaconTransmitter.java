@@ -43,7 +43,8 @@ public class BeaconTransmitter {
         mBluetoothAdapter = bluetoothManager.getAdapter();
         mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
         mBeaconParser = parser;
-        Log.d(TAG, "new BeaconTransmitter constructed");
+        Log.d(TAG, "new BeaconTransmitter constructed.  mbluetoothLeAdvertiser is "+
+                mBluetoothLeAdvertiser);
     }
 
     /**

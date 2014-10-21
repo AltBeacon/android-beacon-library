@@ -173,7 +173,7 @@ public class CycledLeScanner {
                                                 Log.d(TAG, "Making new Android L scanner");
                                                 mScanner = getBluetoothAdapter().getBluetoothLeScanner();
                                             }
-                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
                                             //ScanSettings.SCAN_RESULT_TYPE_FULL
                                             //ScanSettings.SCAN_MODE_BALANCED
                                             //ScanSettings.SCAN_MODE_LOW_LATENCY
@@ -241,7 +241,7 @@ public class CycledLeScanner {
         }
     }
 
-    @TargetApi(18)
+    @TargetApi(21)
     private void finishScanCycle() {
         BeaconManager.logDebug(TAG, "Done with scan cycle");
         mCycledLeScanCallback.onCycleEnd();

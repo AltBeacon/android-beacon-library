@@ -502,8 +502,9 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
+        BeaconManager.logDebug(TAG, "updating background flag to "+this.mBackgroundMode );
         BeaconManager.logDebug(TAG, "updating scan period to "+this.getScanPeriod()+", "+this.getBetweenScanPeriod() );
-        StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod());
+        StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
     }

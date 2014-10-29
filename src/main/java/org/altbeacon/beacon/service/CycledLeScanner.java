@@ -42,13 +42,16 @@ public class CycledLeScanner {
     CycledLeScanCallback mCycledLeScanCallback;
     BluetoothLeScanner mScanner;
     boolean mUseAndroidLScanner = true;
+    boolean mBackgroundFlag = false;
+    boolean mRestartNeeded = false;
 
-    public CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
+    public CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         mScanPeriod = scanPeriod;
         mBetweenScanPeriod = betweenScanPeriod;
         mContext = context;
         mCycledLeScanCallback = cycledLeScanCallback;
         mBluetoothCrashResolver = crashResolver;
+        mBackgroundFlag = backgroundFlag;
 
         if (android.os.Build.VERSION.SDK_INT < 21) {
             Log.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
@@ -59,6 +62,19 @@ public class CycledLeScanner {
             mUseAndroidLScanner = true;
         }
 
+    }
+
+    /**
+     * Tells the cycler whether it is in operating in background mode.
+     * This is used only on Android 5.0 scanning implementations to go to
+     * LOW_POWER_MODE vs. LOW_LATENCY_MODE
+     * @param flag
+     */
+    public void setBackgroundFlag(boolean flag) {
+        if (mBackgroundFlag != flag) {
+            mRestartNeeded = true;
+        }
+        mBackgroundFlag = flag;
     }
 
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod) {
@@ -154,7 +170,7 @@ public class CycledLeScanner {
                 return;
             }
             Log.d(TAG, "starting a new scan cycle");
-            if (mScanning == false || mScanningPaused == true) {
+            if (mScanning == false || mScanningPaused || mRestartNeeded) {
                 mScanning = true;
                 mScanningPaused = false;
                 try {
@@ -167,22 +183,35 @@ public class CycledLeScanner {
                                 if (mScanningEnabled) {
                                     try {
                                         if (mUseAndroidLScanner) {
-                                            Log.d(TAG, "starting a new bluetooth le scan");
+                                            if (mRestartNeeded){
+                                                mRestartNeeded = false;
+                                                Log.d(TAG, "restarting a bluetooth le scan");
+                                            }
+                                            else {
+                                                Log.d(TAG, "starting a new bluetooth le scan");
+                                            }
                                             List<ScanFilter> filters = new ArrayList<ScanFilter>();
                                             if (mScanner == null) {
                                                 Log.d(TAG, "Making new Android L scanner");
                                                 mScanner = getBluetoothAdapter().getBluetoothLeScanner();
                                             }
-                                            ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
-                                            //ScanSettings.SCAN_RESULT_TYPE_FULL
-                                            //ScanSettings.SCAN_MODE_BALANCED
-                                            //ScanSettings.SCAN_MODE_LOW_LATENCY
-                                            //ScanSettings.SCAN_MODE_LOW_POWER
+                                            ScanSettings settings;
+
+                                            if (mBackgroundFlag) {
+                                                Log.d(TAG, "starting scan in SCAN_MODE_LOW_POWER");
+                                                settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+                                            }
+                                            else {
+                                                Log.d(TAG, "starting scan in SCAN_MODE_LOW_LATENCY");
+                                                settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+
+                                            }
                                             mScanner.startScan(filters, settings, (android.bluetooth.le.ScanCallback) getNewLeScanCallback());
 
                                         }
                                         else {
                                             Log.d(TAG, "starting a new bluetooth le scan");
+                                            mRestartNeeded = false;
                                             getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
                                         }
 

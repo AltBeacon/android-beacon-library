@@ -32,13 +32,14 @@ public class StartRMData implements Parcelable {
 	private Region region;
     private long scanPeriod;
     private long betweenScanPeriod;
+    private boolean backgroundFlag;
 	private String callbackPackageName;
 	
     public StartRMData(Region region, String callbackPackageName) {
     	this.region = region;
     	this.callbackPackageName = callbackPackageName;
 	}
-    public StartRMData(long scanPeriod, long betweenScanPeriod) {
+    public StartRMData(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         this.scanPeriod = scanPeriod;
         this.betweenScanPeriod = betweenScanPeriod;
     }
@@ -59,6 +60,7 @@ public class StartRMData implements Parcelable {
     public String getCallbackPackageName() {
     	return callbackPackageName;
     }
+    public boolean getBackgroundFlag() { return backgroundFlag; }
 	public int describeContents() {
         return 0;
     }
@@ -68,6 +70,7 @@ public class StartRMData implements Parcelable {
         out.writeString(callbackPackageName);
         out.writeLong(scanPeriod);
         out.writeLong(betweenScanPeriod);
+        out.writeByte((byte) (backgroundFlag ? 1 : 0));
     }
 
     public static final Parcelable.Creator<StartRMData> CREATOR
@@ -82,10 +85,11 @@ public class StartRMData implements Parcelable {
     };
     
     private StartRMData(Parcel in) { 
-    	region = in.readParcelable(this.getClass().getClassLoader());
+    	region = in.readParcelable(StartRMData.class.getClassLoader());
         callbackPackageName = in.readString();
         scanPeriod = in.readLong();
         betweenScanPeriod = in.readLong();
+        backgroundFlag = in.readByte() != 0;
     }
 
 }

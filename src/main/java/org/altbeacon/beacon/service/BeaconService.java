@@ -80,6 +80,7 @@ public class BeaconService extends Service {
     private DistanceCalculator defaultDistanceCalculator = null;
     private List<BeaconParser> beaconParsers;
     private CycledLeScanner mCycledScanner;
+    private boolean mBackgroundFlag = false;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -126,7 +127,6 @@ public class BeaconService extends Service {
     public static final int MSG_STOP_MONITORING = 5;
     public static final int MSG_SET_SCAN_PERIODS = 6;
 
-
     static class IncomingHandler extends Handler {
         private final WeakReference<BeaconService> mService;
 
@@ -164,6 +164,7 @@ public class BeaconService extends Service {
                     case MSG_SET_SCAN_PERIODS:
                         Log.i(TAG, "set scan intervals received");
                         service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+                        service.setBackgroundFlag(startRMData.getBackgroundFlag());
                         break;
                     default:
                         super.handleMessage(msg);
@@ -202,7 +203,7 @@ public class BeaconService extends Service {
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
         mCycledScanner = new CycledLeScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
-                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mCycledLeScanCallback,  bluetoothCrashResolver);
+                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag,  mCycledLeScanCallback,  bluetoothCrashResolver);
 
         beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
@@ -231,16 +232,6 @@ public class BeaconService extends Service {
         Log.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         mCycledScanner.stop();
-    }
-
-    private int ongoing_notification_id = 1;
-
-    /* 
-     * Returns true if the service is running, but all bound clients have indicated they are in the background
-     */
-    private boolean isInBackground() {
-        BeaconManager.logDebug(TAG, "bound client count:" + bindCount);
-        return bindCount == 0;
     }
 
     /**
@@ -300,6 +291,11 @@ public class BeaconService extends Service {
         if (scanningEnabled && monitoredRegionCount == 0 && monitoredRegionState.size() == 0) {
             mCycledScanner.stop();
         }
+    }
+
+    public void setBackgroundFlag(boolean flag) {
+        mBackgroundFlag = flag;
+        mCycledScanner.setBackgroundFlag(flag);
     }
 
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod) {

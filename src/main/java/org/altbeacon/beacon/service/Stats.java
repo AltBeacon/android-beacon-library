@@ -87,10 +87,6 @@ public class Stats {
         mSample = new Sample();
         mSample.sampleStartTime = boundaryTime;
         mSamples.add(mSample);
-        // If this sample interval is already over, make a new one right away
-        if (new Date().getTime() - boundaryTime.getTime() > mSampleIntervalMillis) {
-            newSampleInterval();
-        }
     }
 
     public void clearSamples() {

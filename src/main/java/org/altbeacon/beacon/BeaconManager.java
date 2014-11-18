@@ -95,7 +95,7 @@ import android.util.Log;
 @TargetApi(4)
 public class BeaconManager {
 	private static final String TAG = "BeaconManager";
-	private Context context;
+	private Context mContext;
 	protected static BeaconManager client = null;
 	private Map<BeaconConsumer,ConsumerInfo> consumers = new HashMap<BeaconConsumer,ConsumerInfo>();
 	private Messenger serviceMessenger = null;
@@ -194,7 +194,8 @@ public class BeaconManager {
     }
 
 	protected BeaconManager(Context context) {
-		this.context = context;
+		mContext = context;
+        verifyServiceDeclaration();
         this.beaconParsers.add(new AltBeaconParser());
 	}
 	/**
@@ -207,11 +208,11 @@ public class BeaconManager {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             throw new BleNotAvailableException("Bluetooth LE not supported by this device");
         }
-		if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+		if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
 			throw new BleNotAvailableException("Bluetooth LE not supported by this device"); 
 		}		
 		else {
-			if (((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled()){
+			if (((BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled()){
 				return true;
 			}
 		}	
@@ -509,7 +510,7 @@ public class BeaconManager {
     }
 
 	private String callbackPackageName() {
-		String packageName = context.getPackageName();
+		String packageName = mContext.getPackageName();
 		BeaconManager.logDebug(TAG, "callback packageName: "+packageName);
 		return packageName;
 	}
@@ -642,6 +643,25 @@ public class BeaconManager {
         }
         else {
             return foregroundBetweenScanPeriod;
+        }
+    }
+
+    private void verifyServiceDeclaration() {
+        final PackageManager packageManager = mContext.getPackageManager();
+        final Intent intent = new Intent(mContext, BeaconService.class);
+        List resolveInfo =
+                packageManager.queryIntentServices(intent,
+                        PackageManager.MATCH_DEFAULT_ONLY);
+        if (resolveInfo.size() == 0) {
+            throw new ServiceNotDeclaredException();
+        }
+    }
+
+
+    public class ServiceNotDeclaredException extends RuntimeException {
+        public ServiceNotDeclaredException() {
+            super("The BeaconService is not properly declared in AndroidManifest.xml.  If using Eclipse,"+
+            " please verify that your project.properties has manifestmerger.enabled=true");
         }
     }
 

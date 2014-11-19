@@ -30,6 +30,7 @@ public class BeaconTransmitter {
     private BeaconParser mBeaconParser;
     private AdvertiseCallback mAdvertisingClientCallback;
     private boolean mStarted;
+    private AdvertiseCallback mAdvertiseCallback;
 
     /**
      * Creates a new beacon transmitter capable of transmitting beacons with the format
@@ -38,13 +39,18 @@ public class BeaconTransmitter {
      * @param parser specifies the format of the beacon transmission
      */
     public BeaconTransmitter(Context context, BeaconParser parser) {
+        mBeaconParser = parser;
         BluetoothManager bluetoothManager =
                 (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-        mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-        mBeaconParser = parser;
-        Log.d(TAG, "new BeaconTransmitter constructed.  mbluetoothLeAdvertiser is "+
-                mBluetoothLeAdvertiser);
+        if (bluetoothManager != null) {
+            mBluetoothAdapter = bluetoothManager.getAdapter();
+            mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+            Log.d(TAG, "new BeaconTransmitter constructed.  mbluetoothLeAdvertiser is " +
+                    mBluetoothLeAdvertiser);
+        }
+        else {
+            Log.e(TAG, "Failed to get BluetoothManager");
+        }
     }
 
     /**
@@ -135,8 +141,19 @@ public class BeaconTransmitter {
         }
         int manufacturerCode = mBeacon.getManufacturer();
 
+        if (mBeaconParser == null) {
+            throw new NullPointerException("You must supply a BeaconParser instance to BeaconTransmitter.");
+        }
+
         byte[] advertisingBytes = mBeaconParser.getBeaconAdvertisementData(mBeacon);
-        Log.d(TAG, "Starting advertising with ID1: "+mBeacon.getId1()+" ID2: "+mBeacon.getId2()+" ID3: "+mBeacon.getId3());
+        String byteString = "";
+        for (int i= 0; i < advertisingBytes.length; i++) {
+            byteString += String.format("%02X", advertisingBytes[i]);
+            byteString += " ";
+        }
+        Log.d(TAG, "Starting advertising with ID1: "+mBeacon.getId1()+" ID2: "+mBeacon.getId2()
+                +" ID3: "+mBeacon.getId3()+" and data: "+byteString+" of size "+advertisingBytes.length);
+
         try{
             AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
             dataBuilder.addManufacturerData(manufacturerCode, advertisingBytes);
@@ -148,13 +165,8 @@ public class BeaconTransmitter {
             settingsBuilder.setTxPowerLevel(mAdvertiseTxPowerLevel);
             settingsBuilder.setConnectable(false);
 
-            mBluetoothLeAdvertiser.startAdvertising(settingsBuilder.build(), dataBuilder.build(), advertiseCallback);
-            String byteString = "";
-            for (int i= 0; i < advertisingBytes.length; i++) {
-                byteString += String.format("%02X", advertisingBytes[i]);
-                byteString += " ";
-            }
-            Log.e(TAG, "Started advertising with object "+mBluetoothLeAdvertiser+" and data: "+byteString);
+            mBluetoothLeAdvertiser.startAdvertising(settingsBuilder.build(), dataBuilder.build(), getAdvertiseCallback());
+            Log.d(TAG, "Started advertisement with callback: "+getAdvertiseCallback());
 
         } catch (Exception e){
             Log.e(TAG, "Cannot start advetising due to excepton: ",e);
@@ -165,49 +177,41 @@ public class BeaconTransmitter {
      * Stops this beacon from advertising
      */
     public void stopAdvertising() {
-        stopAdvertising(null);
-    }
-
-
-    /**
-     * Stops this beacon from advertising with a callback that gets issued with
-     * success or fail
-     *
-     * @param callback
-     */
-    public void stopAdvertising(AdvertiseCallback callback) {
         if (!mStarted) {
             Log.d(TAG, "Skipping stop advertising -- not started");
             return;
         }
         Log.d(TAG, "Stopping advertising with object "+mBluetoothLeAdvertiser);
-        mAdvertisingClientCallback = callback;
-        mBluetoothLeAdvertiser.stopAdvertising(advertiseCallback);
+        mAdvertisingClientCallback = null;
+        mBluetoothLeAdvertiser.stopAdvertising(getAdvertiseCallback());
+        mStarted = false;
     }
 
-    private AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
-        @Override
-        public void onStartFailure(int errorCode) {
-            Log.e(TAG,"Advertisement start failed, code: "+errorCode);
-            if (mAdvertisingClientCallback != null) {
-                mAdvertisingClientCallback.onStartFailure(errorCode);
-            }
+    private AdvertiseCallback getAdvertiseCallback() {
+        if (mAdvertiseCallback == null) {
+            mAdvertiseCallback = new AdvertiseCallback() {
+                @Override
+                public void onStartFailure(int errorCode) {
+                    Log.e(TAG,"Advertisement start failed, code: "+errorCode);
+                    if (mAdvertisingClientCallback != null) {
+                        mAdvertisingClientCallback.onStartFailure(errorCode);
+                    }
+
+                }
+
+                @Override
+                public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                    Log.i(TAG,"Advertisement start succeeded.");
+                    mStarted = true;
+                    if (mAdvertisingClientCallback != null) {
+                        mAdvertisingClientCallback.onStartSuccess(settingsInEffect);
+                    }
+
+                }
+            };
+
 
         }
-
-        @Override
-        public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-            Log.i(TAG,"Advertisement start succeeded.");
-            if (mStarted) {
-                mStarted = false;
-            }
-            else {
-                mStarted = true;
-            }
-            if (mAdvertisingClientCallback != null) {
-                mAdvertisingClientCallback.onStartSuccess(settingsInEffect);
-            }
-
-        }
-    };
+        return mAdvertiseCallback;
+    }
 }

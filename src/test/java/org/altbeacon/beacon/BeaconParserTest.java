@@ -101,7 +101,7 @@ public class BeaconParserTest {
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
-        byte[] expectedMatch = Arrays.copyOfRange(bytes, 5, bytes.length);
+        byte[] expectedMatch = Arrays.copyOfRange(bytes, 7, bytes.length);
         assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
     }
 
@@ -129,7 +129,7 @@ public class BeaconParserTest {
         parser.setBeaconLayout("m:2-3=beac,i:4-9,i:10-15l,i:16-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
-        byte[] expectedMatch = Arrays.copyOfRange(bytes, 5, bytes.length);
+        byte[] expectedMatch = Arrays.copyOfRange(bytes, 7, bytes.length);
         System.err.println(byteArrayToHexString(expectedMatch));
         System.err.println(byteArrayToHexString(regeneratedBytes));
         assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);

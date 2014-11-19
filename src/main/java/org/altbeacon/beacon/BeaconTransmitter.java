@@ -87,8 +87,8 @@ public class BeaconTransmitter {
 
     /**
      * AdvertiseSettings.ADVERTISE_MODE_BALANCED 3 Hz
-     * AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY 1 Hz
-     * AdvertiseSettings.ADVERTISE_MODE_LOW_POWER 10 Hz
+     * AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY 10 Hz
+     * AdvertiseSettings.ADVERTISE_MODE_LOW_POWER 1 Hz
      * @param mAdvertiseMode
      */
     public void setAdvertiseMode(int mAdvertiseMode) {

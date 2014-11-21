@@ -100,6 +100,11 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                 model.getBuildNumber()+","+model.getModel()+"," +
                 ""+model.getManufacturer());
 
+        if (mModelMap == null) {
+            Log.d(TAG, "Cannot get distance calculator because modelMap was never initialized");
+            return null;
+        }
+
         int highestScore = 0;
         AndroidModel bestMatchingModel = null;
         for (AndroidModel candidateModel : mModelMap.keySet()) {
@@ -268,14 +273,14 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             buildModelMap(stringFromFilePath(CONFIG_FILE));
         }
         catch (Exception e) {
-            throw new RuntimeException("Cannot build model distance calculations", e);
+            Log.e(TAG, "Cannot build model distance calculations", e);
         }
     }
 
     private String stringFromFilePath(String path) throws IOException {
         InputStream stream = ModelSpecificDistanceCalculator.class.getResourceAsStream("/"+path);
         if (stream == null) {
-            this.getClass().getClassLoader().getResourceAsStream("/"+path);
+            stream = this.getClass().getClassLoader().getResourceAsStream("/"+path);
         }
 
         if (stream == null) {

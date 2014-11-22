@@ -58,8 +58,14 @@ public class CycledLeScanner {
             mUseAndroidLScanner = false;
         }
         else {
-            Log.i(TAG, "This Android 5.0.  We are using new scanning APIs");
-            mUseAndroidLScanner = true;
+            if (BeaconManager.isAndroidLScanningDisabled()) {
+                Log.i(TAG, "This Android 5.0, but L scanning is disabled. We are using old scanning APIs");
+                mUseAndroidLScanner = false;
+            }
+            else {
+                Log.i(TAG, "This Android 5.0.  We are using new scanning APIs");
+                mUseAndroidLScanner = true;
+            }
         }
 
     }
@@ -105,9 +111,13 @@ public class CycledLeScanner {
     }
 
     public void start() {
+        BeaconManager.logDebug(TAG, "start called");
         mScanningEnabled = true;
         if (!mScanCyclerStarted) {
             scanLeDevice(true);
+        }
+        else {
+            BeaconManager.logDebug(TAG, "scanning already started");
         }
     }
     @SuppressLint("NewApi")
@@ -150,9 +160,9 @@ public class CycledLeScanner {
                     scanLeDevice(true);
                 }
             }, millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     @SuppressLint("NewApi")
@@ -289,7 +299,7 @@ public class CycledLeScanner {
                                 // Android L apis.  All advertisements are passed along even for
                                 // connectable advertisements.  So there is no need to stop scanning
                                 // if we are just going to start back up again.
-                                Log.d(TAG, "Aborting stop scan because this is Android L");
+                                BeaconManager.logDebug(TAG, "Aborting stop scan because this is Android L");
                             }
                             else {
                                 mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
@@ -297,7 +307,10 @@ public class CycledLeScanner {
                             }
                         }
                         else {
+                            // Yes, this is deprecated as of API21.  But we still use it for devices
+                            // With API 18-20
                             getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                            mScanningPaused = true;
                         }
                     }
                     catch (Exception e) {

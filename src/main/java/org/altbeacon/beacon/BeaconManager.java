@@ -112,7 +112,11 @@ public class BeaconManager {
      * set to true if you want to see debug messages associated with this library
      */
     public static boolean debug = false;
+    private static boolean sAndroidLScanningDisabled = false;
 
+    /**
+     * Set to true if you want to show library debugging
+     */
     public static void setDebug(boolean debug) {
         BeaconManager.debug = debug;
     }
@@ -664,6 +668,24 @@ public class BeaconManager {
             super("The BeaconService is not properly declared in AndroidManifest.xml.  If using Eclipse,"+
             " please verify that your project.properties has manifestmerger.enabled=true");
         }
+    }
+
+    /**
+     * Determines if Android L Scanning is disabled by user selection
+     * @return
+     */
+    public static boolean isAndroidLScanningDisabled() {
+        return sAndroidLScanningDisabled;
+    }
+
+    /**
+     * Allows disabling use of Android L BLE Scanning APIs on devices with API 21+
+     * If set to false (default), devices with API 21+ will use the Android L APIs to
+     * scan for beacons
+     * @param disabled
+     */
+    public static void setAndroidLScanningDisabled(boolean disabled) {
+        sAndroidLScanningDisabled = disabled;
     }
 
 }

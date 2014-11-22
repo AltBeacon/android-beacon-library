@@ -77,19 +77,15 @@ public class Stats {
         if (mSample != null) {
             boundaryTime = new Date(mSample.sampleStartTime.getTime()+mSampleIntervalMillis);
             mSample.sampleStopTime = boundaryTime;
-            if (mEnableHistoricalLogging) {
-                logSamples();
-            }
-            else if (mEnableLogging) {
+            if (!mEnableHistoricalLogging && mEnableLogging) {
                 logSample(mSample, true);
             }
         }
         mSample = new Sample();
         mSample.sampleStartTime = boundaryTime;
         mSamples.add(mSample);
-        // If this sample interval is already over, make a new one right away
-        if (new Date().getTime() - boundaryTime.getTime() > mSampleIntervalMillis) {
-            newSampleInterval();
+        if (mEnableHistoricalLogging) {
+            logSamples();
         }
     }
 
@@ -103,9 +99,12 @@ public class Stats {
             Log.d(TAG, "sample start time, sample stop time, first detection"+
                     " time, last detection time, max millis between detections, detection count");
         }
-        Log.d(TAG, sdf.format(sample.sampleStartTime)+","+sdf.format(sample.sampleStopTime)+
-                ", "+sdf.format(sample.firstDetectionTime)+", "+sdf.format(sample.lastDetectionTime)+", "+
+        Log.d(TAG, formattedDate(sample.sampleStartTime)+","+formattedDate(sample.sampleStopTime)+
+                ", "+formattedDate(sample.firstDetectionTime)+", "+formattedDate(sample.lastDetectionTime)+", "+
                 sample.maxMillisBetweenDetections+", "+sample.detectionCount );
+    }
+    private String formattedDate(Date d) {
+        return d == null ? "" : sdf.format(d);
     }
     private void logSamples() {
         Log.d(TAG, "--- Stats for "+mSamples.size()+" samples");

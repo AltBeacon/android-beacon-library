@@ -53,7 +53,7 @@ public class StatsTest {
         Stats.getInstance().log(beacon);
         Thread.sleep(5l);
         ArrayList<Stats.Sample> samples = Stats.getInstance().getSamples();
-        assertEquals("Two samples should have been collected", 3, samples.size());
+        assertTrue("At least two samples should have been collected", samples.size() >= 2);
         assertEquals("Sample should have proper count", 3, samples.get(0).detectionCount);
         assertNotNull("Sample should have a startTime", samples.get(0).sampleStartTime);
         assertNotNull("Sample should have a stopTime", samples.get(0).sampleStopTime);

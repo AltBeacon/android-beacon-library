@@ -50,9 +50,7 @@ buildscript {
 
 apply plugin: 'android-sdk-manager'
 apply plugin: "android-library"
-// must disable robolectric tests becasue Robolectric does not support Android L.  They say they
-// will not do so unil a number identifier is assigned
-//apply plugin: 'robolectric'
+apply plugin: 'robolectric'
 
 allprojects {
     repositories {
@@ -88,11 +86,9 @@ android {
     }
 
     sourceSets {
-        // must disable robolectric tests becasue Robolectric does not support Android L.  They say they
-        // will not do so unil a number identifier is assigned
-        //androidTest {
-        //    setRoot('src/test')
-        //}
+        androidTest {
+            setRoot('src/test')
+        }
     }
 
     lintOptions {
@@ -108,11 +104,9 @@ android {
 
 }
 
-//robolectric {
-    // must disable robolectric tests becasue Robolectric does not support Android L.  They say they
-    // will not do so unil a number identifier is assigned
-    //include '**/*Test.class'
-//}
+robolectric {
+    include '**/*Test.class'
+}
 
 dependencies {
     androidTestCompile 'org.hamcrest:hamcrest-integration:1.3'

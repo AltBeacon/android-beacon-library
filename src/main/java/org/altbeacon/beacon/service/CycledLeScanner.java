@@ -2,6 +2,8 @@ package org.altbeacon.beacon.service;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -10,7 +12,9 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
+import android.provider.AlarmClock;
 import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
@@ -30,20 +34,21 @@ public class CycledLeScanner {
     private long mLastScanCycleEndTime = 0l;
     private long mNextScanCycleStartTime = 0l;
     private long mScanCycleStopTime = 0l;
-    boolean mScanning;
-    boolean mScanningPaused;
+    private boolean mScanning;
+    private boolean mScanningPaused;
     private boolean mScanCyclerStarted = false;
     private boolean mScanningEnabled = false;
     private Context mContext;
-    long mScanPeriod;
-    long mBetweenScanPeriod;
-    Handler mHandler = new Handler();
-    BluetoothCrashResolver mBluetoothCrashResolver;
-    CycledLeScanCallback mCycledLeScanCallback;
-    BluetoothLeScanner mScanner;
-    boolean mUseAndroidLScanner = true;
-    boolean mBackgroundFlag = false;
-    boolean mRestartNeeded = false;
+    private long mScanPeriod;
+    private long mBetweenScanPeriod;
+    private Handler mHandler = new Handler();
+    private BluetoothCrashResolver mBluetoothCrashResolver;
+    private CycledLeScanCallback mCycledLeScanCallback;
+    private BluetoothLeScanner mScanner;
+    private boolean mUseAndroidLScanner = true;
+    private boolean mBackgroundFlag = false;
+    private boolean mRestartNeeded = false;
+    private long mWakeupAlarmTime = 0l;
 
     public CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         mScanPeriod = scanPeriod;
@@ -399,6 +404,18 @@ public class CycledLeScanner {
             mBluetoothAdapter = bluetoothManager.getAdapter();
         }
         return mBluetoothAdapter;
+    }
+
+    // In case we go into deep sleep, we will set up a wakeup alarm when in the background to kick
+    // off the scan cycle again
+    private void setPeriodicWakeUpAlarm() {
+        // wake up time will be the maximum of 5 minutes, the scan period, the between scan period
+        mill
+        AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent();
+        intent.setClassName(mContext, BeaconService.class.getName());
+        PendingIntent operation = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, milliseconds, operation);
     }
 
 }

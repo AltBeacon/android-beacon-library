@@ -144,27 +144,26 @@ public class BeaconService extends Service {
                     case MSG_START_RANGING:
                         Log.i(TAG, "start ranging received");
                         service.startRangingBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
                         break;
                     case MSG_STOP_RANGING:
                         Log.i(TAG, "stop ranging received");
                         service.stopRangingBeaconsInRegion(startRMData.getRegionData());
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
                         break;
                     case MSG_START_MONITORING:
                         Log.i(TAG, "start monitoring received");
                         service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
                         break;
                     case MSG_STOP_MONITORING:
                         Log.i(TAG, "stop monitoring received");
                         service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
+                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
                         break;
                     case MSG_SET_SCAN_PERIODS:
                         Log.i(TAG, "set scan intervals received");
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod());
-                        service.setBackgroundFlag(startRMData.getBackgroundFlag());
+                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
                         break;
                     default:
                         super.handleMessage(msg);
@@ -293,13 +292,8 @@ public class BeaconService extends Service {
         }
     }
 
-    public void setBackgroundFlag(boolean flag) {
-        mBackgroundFlag = flag;
-        mCycledScanner.setBackgroundFlag(flag);
-    }
-
-    public void setScanPeriods(long scanPeriod, long betweenScanPeriod) {
-        mCycledScanner.setScanPeriods(scanPeriod, betweenScanPeriod);
+    public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
+        mCycledScanner.setScanPeriods(scanPeriod, betweenScanPeriod, backgroundFlag);
     }
 
     private CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {

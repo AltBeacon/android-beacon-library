@@ -50,7 +50,6 @@ public class RegionBootstrap {
             throw new NullPointerException("The BootstrapNotifier instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
         }
         beaconManager = BeaconManager.getInstanceForApplication(application.getApplicationContext());
-
         this.application = application;
         regions = new ArrayList<Region>();
         regions.add(region);

@@ -18,6 +18,7 @@ import android.provider.AlarmClock;
 import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.util.ArrayList;
@@ -76,22 +77,27 @@ public class CycledLeScanner {
     }
 
     /**
-     * Tells the cycler whether it is in operating in background mode.
-     * This is used only on Android 5.0 scanning implementations to go to
-     * LOW_POWER_MODE vs. LOW_LATENCY_MODE
-     * @param flag
+     * Tells the cycler the scan rate and whether it is in operating in background mode.
+     * Background mode flag  is used only with the Android 5.0 scanning implementations to switch
+     * between LOW_POWER_MODE vs. LOW_LATENCY_MODE
+     * @param backgroundFlag
      */
-    public void setBackgroundFlag(boolean flag) {
-        if (mBackgroundFlag != flag) {
+    public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
+        Log.d(TAG, "Set scan periods called with "+scanPeriod+", "+betweenScanPeriod+"  Background mode must have changed.");
+        if (mBackgroundFlag != backgroundFlag) {
             mRestartNeeded = true;
         }
-        mBackgroundFlag = flag;
-    }
-
-    public void setScanPeriods(long scanPeriod, long betweenScanPeriod) {
-        Log.d(TAG, "Set scan periods called with "+scanPeriod+", "+betweenScanPeriod+"  Background mode must have changed.");
+        mBackgroundFlag = backgroundFlag;
         mScanPeriod = scanPeriod;
         mBetweenScanPeriod = betweenScanPeriod;
+        if (mBackgroundFlag == true) {
+            BeaconManager.logDebug(TAG, "We are in the background.  Setting wakeup alarm");
+            setWakeUpAlarm();
+        }
+        else {
+            BeaconManager.logDebug(TAG, "We are not in the background.  Cancelling wakeup alarm");
+            cancelWakeUpAlarm();
+        }
         long now = new Date().getTime();
         if (mNextScanCycleStartTime > now) {
             // We are waiting to start scanning.  We may need to adjust the next start time
@@ -159,6 +165,9 @@ public class CycledLeScanner {
             // Don't actually wait until the next scan time -- only wait up to 1 second.  this
             // allows us to start scanning sooner if a consumer enters the foreground and expects
             // results more quickly
+            if (mBackgroundFlag) {
+                setWakeUpAlarm();
+            }
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -274,6 +283,9 @@ public class CycledLeScanner {
         long millisecondsUntilStop = mScanCycleStopTime - (new Date().getTime());
         if (millisecondsUntilStop > 0) {
             BeaconManager.logDebug(TAG, "Waiting to stop scan cycle for another " + millisecondsUntilStop + " milliseconds");
+            if (mBackgroundFlag) {
+                setWakeUpAlarm();
+            }
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -334,6 +346,7 @@ public class CycledLeScanner {
             else {
                 BeaconManager.logDebug(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
                 mScanCyclerStarted = false;
+                cancelWakeUpAlarm();
             }
         }
     }
@@ -406,16 +419,36 @@ public class CycledLeScanner {
         return mBluetoothAdapter;
     }
 
-    // In case we go into deep sleep, we will set up a wakeup alarm when in the background to kick
+
+    private PendingIntent mWakeUpOperation = null;
+    // In case we go into deep sleep, we will set up a wakeup alarm when in the background to kickofƒ
     // off the scan cycle again
-    private void setPeriodicWakeUpAlarm() {
+    @TargetApi(3)
+    private void setWakeUpAlarm() {
         // wake up time will be the maximum of 5 minutes, the scan period, the between scan period
-        mill
+        long milliseconds = 1000l*60*5; /* five minutes */
+        if (milliseconds < mBetweenScanPeriod) {
+            milliseconds = mBetweenScanPeriod;
+        }
+        if (milliseconds < mScanPeriod) {
+            milliseconds = mScanPeriod;
+        }
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent();
-        intent.setClassName(mContext, BeaconService.class.getName());
-        PendingIntent operation = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, milliseconds, operation);
+        intent.setClassName(mContext, StartupBroadcastReceiver.class.getName());
+        intent.putExtra("wakeup", true);
+        cancelWakeUpAlarm();
+        mWakeUpOperation = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis()+milliseconds, mWakeUpOperation);
+        BeaconManager.logDebug(TAG, "Set a wakeup alarm to go off in "+milliseconds+" ms: "+mWakeUpOperation);
     }
 
+    @TargetApi(3)
+    private void cancelWakeUpAlarm() {
+        Log.d(TAG, "cancel wakeup alarm: "+mWakeUpOperation);
+        if (mWakeUpOperation != null) {
+            AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.cancel(mWakeUpOperation);
+        }
+    }
 }

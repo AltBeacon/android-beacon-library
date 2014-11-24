@@ -42,13 +42,15 @@ public class StartRMData implements Parcelable {
     public StartRMData(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         this.scanPeriod = scanPeriod;
         this.betweenScanPeriod = betweenScanPeriod;
+        this.backgroundFlag = backgroundFlag;
     }
 
-    public StartRMData(Region region, String callbackPackageName, long scanPeriod, long betweenScanPeriod) {
+    public StartRMData(Region region, String callbackPackageName, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         this.scanPeriod = scanPeriod;
         this.betweenScanPeriod = betweenScanPeriod;
         this.region = region;
         this.callbackPackageName = callbackPackageName;
+        this.backgroundFlag = backgroundFlag;
     }
 
 

@@ -292,6 +292,13 @@ public class BeaconManager {
     }
 
     /**
+     * Tells you if the any beacon consumer is bound to the service
+     * @return
+     */
+    public boolean isAnyConsumerBound() {
+        return consumers.size() > 0 && (serviceMessenger != null);
+    }
+    /**
      * This method notifies the beacon service that the application is either moving to background
      * mode or foreground mode.  When in background mode, BluetoothLE scans to look for beacons are
      * executed less frequently in order to save battery life. The specific scan rates for
@@ -375,7 +382,7 @@ public class BeaconManager {
 	 * @see BeaconManager#setRangeNotifier(RangeNotifier)
 	 * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
 	 * @see RangeNotifier 
-	 * @see Region 
+	 * @see Region
 	 * @param region
 	 */
     @TargetApi(18)
@@ -388,7 +395,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (rangedRegions) {
@@ -415,7 +422,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (rangedRegions) {
@@ -449,7 +456,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod()  );
+		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode  );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
@@ -477,7 +484,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
 		Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod() );
+		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode );
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
@@ -687,5 +694,6 @@ public class BeaconManager {
     public static void setAndroidLScanningDisabled(boolean disabled) {
         sAndroidLScanningDisabled = disabled;
     }
+
 
 }

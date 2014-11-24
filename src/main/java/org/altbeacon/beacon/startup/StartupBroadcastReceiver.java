@@ -14,7 +14,6 @@ import org.altbeacon.beacon.BeaconManager;
 public class StartupBroadcastReceiver extends BroadcastReceiver
 {
     private static final String TAG = "StartupBroadcastReceiver";
-    private Context context;
 
 	@Override
     public void onReceive(Context context, Intent intent) {
@@ -24,11 +23,14 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
             return;
         }
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());
-
-        Intent startServiceIntent = new Intent(context, BeaconService.class);
-        context.startService(startServiceIntent);
-        startServiceIntent = new Intent(context, BeaconIntentProcessor.class);
-        context.startService(startServiceIntent);
-
+        if (beaconManager.isAnyConsumerBound()) {
+            if (intent.getBooleanExtra("wakeup", false)) {
+                BeaconManager.logDebug(TAG, "got wake up intent");
+            }
+            else {
+                BeaconManager.logDebug(TAG, "Already started.  Ignoring intent: "+intent+" of type:  "+intent.getStringExtra("wakeup"));
+            }
+            return;
+        }
      }
 }

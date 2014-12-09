@@ -183,9 +183,9 @@ beaconLayout, and take care to set the manufacturer field to a value that is exp
 
 ```java
 Beacon beacon = new Beacon.Builder()
-        .setId1(“2f234454-cf6d-4a0f-adf2-f4911ba9ffa6”)
-        .setId2(“1”)
-        .setId3(“2”)
+        .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
+        .setId2("1")
+        .setId3("2")
         .setManufacturer(0x0118)
         .setTxPower(-59)
         .setDataFields(Arrays.asList(new Long[] {0l}))

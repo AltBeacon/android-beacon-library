@@ -12,11 +12,11 @@ Beacons are Bluetooth LE radio transmitters, and detecting one with your Android
 
 ####How it works
 
-The battery manager automatically slows down the Bluetooth LE scan rate when your app is in the background.  By default, it does a 30 second scan once every five minutes -- similar to the way iOS behaves when an app is not Ranging for beacons in the foreground.  But unlike iOS, the details are completely transparent and completely configurable.  You can reduce the background scan frequency further to save even more power, or increase it to make your app more responsive -- it all depends on your requirements!
+The battery manager automatically slows down the Bluetooth LE scan rate when your app is in the background.  By default, it does a 10 second scan once every five minutes -- similar to the way iOS behaves when an app is not Ranging for beacons in the foreground.  But unlike iOS, the details are completely transparent and completely configurable.  You can reduce the background scan frequency further to save even more power, or increase it to make your app more responsive -- it all depends on your requirements!
 
 ####How much does it save?
 
-Our tests show that a Nexus 5 drains the battery at a rate of 90mA when looking for beacons in the foreground.  The default settings for the battery manager reduce this drain to 37mA -- about a 60% savings.  But again, you can customize these settings to save even more.
+Our tests show that a Nexus 4 drains the battery at a rate of 90mA when looking for beacons in the foreground.  The default settings for the battery manager reduce this drain to 37mA -- about a 60% savings.  But again, you can customize these settings to save even more.
 
 ####How do I set this up?
 
@@ -40,7 +40,7 @@ public class MyApplication extends Application {
 ####How do I customize the background scan rate?
 
 You may alter the default background scan period and the time between scans using the methods on the BeaconManager class.  Doing this is easy, but be careful.  The longer you wait
-between scans, the longer it will take to detect a beacon.  And the more reduce the length of the scan, the more likely it is that you might miss an advertisement from an beacon.  We recommend not reducing the scan period to be less than 1.1 seconds, since many beacons only transmit at a frequency of 1 Hz.  But keep in mind that the radio may miss a single beacon advertisement, which is why we make the default background scan period 30 seconds to make extra, extra sure that any transmitting beacons get detected.
+between scans, the longer it will take to detect a beacon.  And the more reduce the length of the scan, the more likely it is that you might miss an advertisement from an beacon.  We recommend not reducing the scan period to be less than 1.1 seconds, since many beacons only transmit at a frequency of 1 Hz.  But keep in mind that the radio may miss a single beacon advertisement, which is why we make the default background scan period 10 seconds to make extra, extra sure that any transmitting beacons get detected.
 
 Below is an example of a rather extreme battery savings configuration: 
 
@@ -51,3 +51,19 @@ beaconManager.setBackgroundScanPeriod(1100l);
 beaconManager.setBackgroundBetweenScanPeriod(3600000l);
 ```
 
+####How does this affect Android 5.0?
+
+On Android 5.0, new scanning APIs allow for more efficient background scanning that saves provide similar
+power scanning to the technique described above, but with much faster beacon detection times.  Instead of 
+it taking up to five minutes to detect a beacon (with the defaults described above), it detections take place
+within a few seconds.
+
+Starting with version 2.1 of this library, these new Android 5.0 APIs are used automatically on devices that 
+have them, and scanning never stops.  The BetweenScanPeriods are effectively ignored.  For devices without
+Android 5.0, behavior is as described above.
+
+If you wish to disable use of Android 5.0 APIs for scanning, you may call:
+
+```
+beaconManager.setAndroidLScanningDisabled(true);
+```

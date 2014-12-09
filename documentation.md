@@ -12,6 +12,10 @@ layout: android-beacon-library
 <li><a href='battery_manager.html'>Saving battery when your app is in the background</a></li>
 <li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
 <li><a href='resume-after-terminate.html'>Detecting beacons after the app is killed</a></li>
+<li><a href='distance-calculations.html'>Getting distance estimates between a device and a beacon.</a></li>
+<li><a href='distance-triggering.html'>Triggering actions at a specific distance.</a></li>
+<li><a href='beacon-simulator.html'>Testing beacon apps in the simulator.</a></li>
+
 </ul>
 
 ### Code samples and API documentation

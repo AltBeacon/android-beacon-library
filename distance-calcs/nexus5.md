@@ -38,4 +38,9 @@ Advertisements per second: 10
 Transmit Power: Max
 
 IPhone 5s Average RSSI @1m: -51
+
+Distance formula coefficients calculated for these values:
+ Intercept: 0.1820634  
+ Multiplier: 0.8229884
+ Power: 6.6525179
 </pre>

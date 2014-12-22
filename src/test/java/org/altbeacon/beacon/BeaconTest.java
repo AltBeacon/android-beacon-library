@@ -12,6 +12,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 @Config(emulateSdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
@@ -130,7 +133,8 @@ public class BeaconTest {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         Parcel parcel = Parcel.obtain();
         Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
-                .setBeaconTypeCode(5).setTxPower(6).setBluetoothName("xx").setBluetoothAddress("1:2:3:4:5:6").build();
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothName("xx")
+                .setBluetoothAddress("1:2:3:4:5:6").setDataFields(Arrays.asList(100l)).build();
         beacon.writeToParcel(parcel, 0);
         parcel.setDataPosition(0);
         Beacon beacon2 = new Beacon(parcel);
@@ -145,6 +149,8 @@ public class BeaconTest {
         assertEquals("bluetoothAddress is same after deserialization", beacon.getBluetoothName(), beacon2.getBluetoothName());
         assertEquals("beaconTypeCode is same after deserialization", beacon.getBeaconTypeCode(), beacon2.getBeaconTypeCode());
         assertEquals("manufacturer is same after deserialization", beacon.getManufacturer(), beacon2.getManufacturer());
+        assertEquals("data field 0 is the same after deserialization", beacon.getDataFields().get(0), beacon2.getDataFields().get(0));
+        assertEquals("data field 0 is the right value", beacon.getDataFields().get(0), (Long) 100l);
     }
 
 }

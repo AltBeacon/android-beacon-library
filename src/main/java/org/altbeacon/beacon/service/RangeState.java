@@ -71,7 +71,9 @@ public class RangeState {
                 RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
                 if (rangedBeacon.isTracked()) {
                     rangedBeacon.commitMeasurements(); // calculates accuracy
-                    finalizedBeacons.add(rangedBeacon.getBeacon());
+                    if (!rangedBeacon.noMeasurementsAvailable()) {
+                        finalizedBeacons.add(rangedBeacon.getBeacon());
+                    }
                 }
                 // If we still have useful measurements, keep it around but mark it as not
                 // tracked anymore so we don't pass it on as visible unless it is seen again

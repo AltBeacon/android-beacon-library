@@ -16,11 +16,17 @@ public class RangedBeacon {
 	public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
 	private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
     private boolean mTracked = true;
+    private ArrayList<Measurement> mMeasurements = new ArrayList<Measurement>();
     Beacon mBeacon;
+
 	public RangedBeacon(Beacon beacon) {
-		mBeacon = beacon;
-		addMeasurement(mBeacon.getRssi());
+		updateBeacon(beacon);
 	}
+
+    public void updateBeacon(Beacon beacon) {
+        mBeacon = beacon;
+        addMeasurement(mBeacon.getRssi());
+    }
 
     public boolean isTracked() {
         return mTracked;
@@ -36,7 +42,7 @@ public class RangedBeacon {
 
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
-        if (measurements.size() > 0) {
+        if (mMeasurements.size() > 0) {
             double runningAverage = calculateRunningAverage();
             mBeacon.setRunningAverageRssi(runningAverage);
             BeaconManager.logDebug(TAG, "calculated new runningAverageRssi:"+ runningAverage);
@@ -54,12 +60,11 @@ public class RangedBeacon {
 			Measurement measurement = new Measurement();
 			measurement.rssi = rssi;
 			measurement.timestamp = new Date().getTime();
-			measurements.add(measurement);
+			mMeasurements.add(measurement);
 	}
-	private ArrayList<Measurement> measurements = new ArrayList<Measurement>();
-	
+
 	public boolean noMeasurementsAvailable() {
-		return measurements.size() == 0;
+		return mMeasurements.size() == 0;
 	}
 
 	private class Measurement implements Comparable<Measurement> {
@@ -74,20 +79,20 @@ public class RangedBeacon {
 	private synchronized void refreshMeasurements() {
 		Date now = new Date();
 		ArrayList<Measurement> newMeasurements = new ArrayList<Measurement>();
-		Iterator<Measurement> iterator = measurements.iterator();
+		Iterator<Measurement> iterator = mMeasurements.iterator();
 		while (iterator.hasNext()) {
 			Measurement measurement = iterator.next();
 			if (now.getTime() - measurement.timestamp < sampleExpirationMilliseconds ) {
 				newMeasurements.add(measurement);
 			}
 		}
-		measurements = newMeasurements;
-		Collections.sort(measurements);
+		mMeasurements = newMeasurements;
+		Collections.sort(mMeasurements);
 	}
 	
 	private double calculateRunningAverage() {
 		refreshMeasurements();
-		int size = measurements.size();
+		int size = mMeasurements.size();
 		int startIndex = 0;
 		int endIndex = size -1;
 		if (size > 2) {
@@ -97,7 +102,7 @@ public class RangedBeacon {
 
 		double sum = 0;
 		for (int i = startIndex; i <= endIndex; i++) {
-			sum += measurements.get(i).rssi;
+			sum += mMeasurements.get(i).rssi;
 		}
 		double runningAverage = sum/(endIndex-startIndex+1);
 
@@ -105,12 +110,6 @@ public class RangedBeacon {
 		return runningAverage;
 
 	}
-	
-	protected void addRangeMeasurement(Integer rssi) {
-		mBeacon.setRssi(rssi);
-		addMeasurement(rssi);
-	}
-
 	
 	
 }

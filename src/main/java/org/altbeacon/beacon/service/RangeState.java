@@ -52,7 +52,7 @@ public class RangeState {
         if (mRangedBeacons.containsKey(beacon)) {
             RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
             BeaconManager.logDebug(TAG, "adding " + beacon.toString() + " to existing range for: " + rangedBeacon.toString());
-            rangedBeacon.addRangeMeasurement(beacon.getRssi()); // sets tracked to true
+            rangedBeacon.updateBeacon(beacon);
         }
         else {
             BeaconManager.logDebug(TAG, "adding "+ beacon.toString()+" to new rangedBeacon");

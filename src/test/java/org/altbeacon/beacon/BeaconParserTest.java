@@ -1,5 +1,7 @@
 package org.altbeacon.beacon;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Parcel;
 
 import static android.test.MoreAsserts.assertNotEqual;
@@ -93,6 +95,7 @@ public class BeaconParserTest {
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     @Test
     public void testReEncodesBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -121,6 +124,7 @@ public class BeaconParserTest {
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     @Test
     public void testReEncodesLittleEndianBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;

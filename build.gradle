@@ -1,14 +1,11 @@
 ext {
-    SONATYPE_URL = ""
-    IS_DEV_BUILD = false
-    IS_RELEASE_BUILD = false
-    GROUP = "org.altbeacon"
+    isSnapshot = !project.hasProperty('release')
 }
 
 /*
  * Gets the version name from the latest Git tag
  */
-def getVersionName = { ->
+def getVersionName = {
     def stdout = new ByteArrayOutputStream()
     try {
         exec {
@@ -18,38 +15,28 @@ def getVersionName = { ->
         return stdout.toString().trim()
     }
     catch (e) {
-        println("Can't get version from git: "+e);
+        println("Can't get version from git: " + e);
         return "adhoc"
     }
 }
 
 version = getVersionName()
-group = GROUP
-
-if (hasProperty("release")) {
-    IS_RELEASE_BUILD = true
-    SONATYPE_URL = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-} else if (hasProperty("snapshot")) {
-    version += "-SNAPSHOT"
-    SONATYPE_URL = "https://oss.sonatype.org/content/repositories/snapshots/"
-} else {
-    IS_DEV_BUILD = true
-}
+group = "org.altbeacon"
 
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.+'
-        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.10.+'
-        classpath 'org.robolectric:robolectric-gradle-plugin:0.11.+'
+        classpath 'com.android.tools.build:gradle:1.0.0'
+        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+        classpath 'org.robolectric:robolectric-gradle-plugin:0.14.1'
     }
 }
 
 apply plugin: 'android-sdk-manager'
-apply plugin: "android-library"
+apply plugin: "com.android.library"
 apply plugin: 'robolectric'
 
 allprojects {
@@ -63,10 +50,10 @@ allprojects {
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21"
+    buildToolsVersion "21.1.1"
 
     defaultConfig {
-        minSdkVersion 4
+        minSdkVersion 7
         targetSdkVersion 21
         versionCode 1
         versionName version
@@ -77,12 +64,6 @@ android {
         encoding "UTF-8"
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
-    }
-
-    buildTypes {
-        release {
-            runProguard false
-        }
     }
 
     sourceSets {
@@ -104,9 +85,7 @@ android {
 
 }
 
-robolectric {
-    include '**/*Test.class'
-}
+robolectric.include '**/*Test.class'
 
 dependencies {
     androidTestCompile 'org.hamcrest:hamcrest-integration:1.3'
@@ -116,7 +95,7 @@ dependencies {
     androidTestCompile('junit:junit:4.11') {
         exclude module: 'hamcrest-core'
     }
-    androidTestCompile ('com.squareup:fest-android:1.0.+') {
+    androidTestCompile('com.squareup:fest-android:1.0.+') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
     androidTestCompile('org.robolectric:robolectric:2.3') {
@@ -150,87 +129,6 @@ idea {
     }
 }
 
-apply plugin: "maven"
-apply plugin: "signing"
-
-afterEvaluate { project ->
-    uploadArchives {
-        repositories {
-            if (IS_DEV_BUILD) {
-                mavenLocal()
-            } else {
-                mavenDeployer {
-                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                    repository(url: SONATYPE_URL) {
-                        authentication(userName: sonatypeUsername, password: sonatypePassword)
-                    }
-
-                    println GROUP
-
-
-                    pom.project {
-                        name 'Android Beacon Library'
-                        packaging 'aar'
-                        description 'Beacon library for Android applications'
-                        artifactId = 'android-beacon-library'
-                        groupId GROUP
-                        version version
-                        url 'https://github.com/RadiusNetworks/android-beacon-library'
-
-                        scm {
-                            url 'scm:git@github.com:RadiusNetworks/android-beacon-library.git'
-                            connection 'scm:git@github.com:RadiusNetworks/android-beacon-library.git'
-                            developerConnection 'scm:git@github.com:RadiusNetworks/android-beacon-library.git'
-                        }
-
-                        licenses {
-                            license {
-                                name 'The Apache Software License, Version 2.0'
-                                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                                distribution 'repo'
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id 'davidgyoung'
-                                name 'David Young'
-                                email 'david@radiusnetworks.com'
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-    }
-
-    signing {
-        required { IS_RELEASE_BUILD && gradle.taskGraph.hasTask("uploadArchives") }
-        sign configurations.archives
-    }
-
-    task androidJavadocs(type: Javadoc) {
-        source = android.sourceSets.main.java
-    }
-
-    task androidJavadocsJar(type: Jar) {
-        classifier = 'javadoc'
-        from androidJavadocs.destinationDir
-    }
-
-    task androidSourcesJar(type: Jar) {
-        classifier = 'sources'
-        from android.sourceSets.main.java.srcDirs
-    }
-
-    artifacts {
-        archives androidSourcesJar
-        archives androidJavadocsJar
-    }
-}
-
 /** Bundling tasks for eclipse */
 task bundleEclipse << {
     exec {
@@ -248,20 +146,20 @@ task release(dependsOn: 'distribution') << {
 
 android.libraryVariants.all { variant ->
 
-        task("generate${variant.name}Javadoc", type: Javadoc) {
-            title = "$name $version API"
-            description "Generates Javadoc for $variant.name."
-            source = variant.javaCompile.source
-            ext.androidJar =
-                    "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-            classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-            options.links("http://docs.oracle.com/javase/7/docs/api/");
-            options.links("http://d.android.com/reference/");
-            exclude '**/BuildConfig.java'
-            exclude '**/R.java'
-        }
-
+    task("generate${variant.name}Javadoc", type: Javadoc) {
+        title = "$name $version API"
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar =
+                "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        options.links("http://docs.oracle.com/javase/7/docs/api/");
+        options.links("http://d.android.com/reference/");
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
     }
+
+}
 
 build.mustRunAfter clean
 bundleEclipse.mustRunAfter build

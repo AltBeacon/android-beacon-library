@@ -1,28 +1,19 @@
-package org.altbeacon.beacon.org.altbeacon.beacon.simulator;
+package org.altbeacon.beacon.service;
 
+
+import org.altbeacon.beacon.Beacon;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
-import org.altbeacon.beacon.AltBeacon;
-import org.altbeacon.beacon.AltBeaconParser;
-import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.service.Stats;
-import org.altbeacon.beacon.simulator.StaticBeaconSimulator;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.lang.Override;
-import java.util.ArrayList;
-import java.util.List;
-
-import dalvik.annotation.TestTarget;
-import org.robolectric.annotation.Config;
 
 @Config(emulateSdk = 18)
 

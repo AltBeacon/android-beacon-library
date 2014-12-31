@@ -32,7 +32,7 @@ You may [download binary releases here.](http://altbeacon.github.io/android-beac
 ## How to build this Library
 
 This project uses an AndroidStudio/gradle build system and is known working with Android Studio
-1.0.11 and Gradle 2.2.1
+1.0.1 and Gradle 2.2.1
 
 Key Gradle build targets:
 

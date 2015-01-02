@@ -156,7 +156,7 @@ public class CycledLeScanner {
 
     private boolean deferScanIfNeeded() {
         if (mUseAndroidLScanner) {
-            // never stop scanning on Android L
+            // never defer scanning on Android L - OS handles power savings
             return false;
         }
         long millisecondsUntilStart = mNextScanCycleStartTime - (new Date().getTime());
@@ -307,21 +307,8 @@ public class CycledLeScanner {
                     try {
                         Log.d(TAG, "stopping bluetooth le scan");
                         if (mUseAndroidLScanner) {
-                            if (mBetweenScanPeriod == 0) {
-                                // Prior to Android L we had to stop scanning at the end of each
-                                // cycle, even the betweenScanPeriod was set to zero, and then
-                                // immediately restart.  This is because on the old APIS, connectable
-                                // advertisements only were passed along to the callback the first
-                                // time seen in a scan period.  This is no longer true with the new
-                                // Android L apis.  All advertisements are passed along even for
-                                // connectable advertisements.  So there is no need to stop scanning
-                                // if we are just going to start back up again.
-                                BeaconManager.logDebug(TAG, "Aborting stop scan because this is Android L");
-                            }
-                            else {
-                                mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
-                                mScanningPaused = true;
-                            }
+                            mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                            mScanningPaused = true;
                         }
                         else {
                             // Yes, this is deprecated as of API21.  But we still use it for devices

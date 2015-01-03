@@ -58,4 +58,26 @@ This software is available under the Apache License 2.0, allowing you to use the
 
 If you want to help with the open source project, contact david@radiusnetworks.com
 
+## Publishing to Maven
+
+The following instructions are for project administrators.
+
+1. Configure your  ~/.gradle/gradle.properties 
+
+    # Copy File To gradle.properties
+    signing.keyId="My GPG user"
+    signing.password=
+    signing.secretKeyRingFile=~/.gnupg/secring.gpg
+
+    bintrayUsername=<bintray username>
+    bintrayKey=<bintray api key>
+
+2. Run the build and upload
+
+   git tag <version>
+   git push --tags 
+   ./gradlew release
+   ./gradlew bintrayUpload -Prelease 
+   ./gradlew artifactoryPublish 
+
 

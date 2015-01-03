@@ -20,9 +20,6 @@ def getVersionName = {
     }
 }
 
-version = getVersionName()
-group = "org.altbeacon"
-
 buildscript {
     repositories {
         jcenter()
@@ -32,6 +29,8 @@ buildscript {
         classpath 'com.android.tools.build:gradle:1.0.0'
         classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
         classpath 'org.robolectric:robolectric-gradle-plugin:0.14.1'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.1'
     }
 }
 
@@ -40,17 +39,17 @@ apply plugin: "com.android.library"
 apply plugin: 'robolectric'
 
 allprojects {
+    version = "${getVersionName()}${isSnapshot == true ? "-SNAPSHOT" : ""}"
+    group = "org.altbeacon"
+
     repositories {
-        mavenCentral()
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots'
-        }
+        jcenter()
     }
 }
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         minSdkVersion 7
@@ -95,7 +94,7 @@ dependencies {
     androidTestCompile('junit:junit:4.11') {
         exclude module: 'hamcrest-core'
     }
-    androidTestCompile('com.squareup:fest-android:1.0.+') {
+    androidTestCompile('com.squareup:fest-android:1.0.+@aar') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
     androidTestCompile('org.robolectric:robolectric:2.3') {
@@ -117,8 +116,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-v4'
     }
 
-    androidTestCompile 'com.squareup:fest-android:1.0.+@aar'
-    compile 'com.android.support:support-v4:21+'
+    androidTestCompile 'com.android.support:support-v4:21.0.2'
 }
 
 apply plugin: 'idea'
@@ -163,3 +161,9 @@ android.libraryVariants.all { variant ->
 
 build.mustRunAfter clean
 bundleEclipse.mustRunAfter build
+
+apply from: 'gradle/credentials.gradle'
+apply from: 'gradle/compile.gradle'
+apply from: 'gradle/publishing.gradle'
+apply from: 'gradle/bintray.gradle'
+apply from: 'gradle/artifactory.gradle'

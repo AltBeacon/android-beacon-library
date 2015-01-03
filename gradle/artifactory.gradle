@@ -1,0 +1,23 @@
+// handles distribution of snapshots to Artifactory (oss.jfrog.org)
+
+apply plugin: 'com.jfrog.artifactory'
+
+artifactory {
+    contextUrl = 'http://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = bintrayUsername
+            password = bintrayKey
+        }
+        defaults {
+            publications('dist')
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'libs-release'
+        }
+    }
+
+}

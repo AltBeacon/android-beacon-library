@@ -1,0 +1,8 @@
+// custom tasks for creating source/javadoc jars
+task androidJavadocsJar(type: Jar) {
+    from "$buildDir/libs/$project.name-$project.version-javadoc.jar"
+}
+
+task androidSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+}

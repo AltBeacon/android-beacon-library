@@ -1,0 +1,51 @@
+// configuration of the Maven artifacts
+apply plugin: 'maven-publish'
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+    archives androidSourcesJar, androidJavadocsJar
+}
+
+publishing {
+    publications {
+        dist(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+            artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
+            artifact androidJavadocsJar {
+                classifier 'source'
+            }
+            artifact androidSourcesJar {
+                classifier 'javadoc'
+            }
+
+            pom.withXml {
+                def Node root = asNode()
+                root.appendNode('name', project.name)
+                root.appendNode('description', project.project_description)
+                root.appendNode('url', project.project_url)
+
+                def issues = root.appendNode('issueManagement')
+                issues.appendNode('system', 'github')
+                issues.appendNode('url', project.project_issues_url)
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', project.project_scm)
+                scm.appendNode('connection', project.project_connection)
+                scm.appendNode('developerConnection', project.project_dev_connection)
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+
+                def dev = root.appendNode('developers').appendNode('developer')
+                dev.appendNode('id', project.project_vendor)
+                dev.appendNode('name', project.project_vendor_name)
+                dev.appendNode('organization', 'AltBeacon')
+                dev.appendNode('organizationUrl', 'altbeacon.org')
+            }
+        }
+    }
+}

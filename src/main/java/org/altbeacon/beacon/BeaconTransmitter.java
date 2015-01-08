@@ -13,6 +13,7 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 
@@ -21,6 +22,11 @@ import android.util.Log;
  */
 @TargetApi(21)
 public class BeaconTransmitter {
+    public static final int SUPPORTED = 0;
+    public static final int NOT_SUPPORTED_MIN_SDK = 1;
+    public static final int NOT_SUPPORTED_BLE = 2;
+    public static final int NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS = 3;
+    public static final int NOT_SUPPORTED_CANNOT_GET_ADVERTISER = 4;
     private static final String TAG = "BeaconTransmitter";
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
@@ -187,6 +193,33 @@ public class BeaconTransmitter {
         mStarted = false;
     }
 
+    /**
+     * Checks to see if this device supports beacon advertising
+     * @return SUPPORTED if yes, otherwise:
+     *          NOT_SUPPORTED_MIN_SDK
+     *          NOT_SUPPORTED_BLE
+     *          NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS
+     *          NOT_SUPPORTED_CANNOT_GET_ADVERTISER
+     */
+    public static int checkTransmissionSupported(Context context) {
+        if (android.os.Build.VERSION.SDK_INT < 21) {
+            return NOT_SUPPORTED_MIN_SDK;
+        }
+        if (!context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            return NOT_SUPPORTED_BLE;
+        }
+        if (!((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isMultipleAdvertisementSupported()) {
+            return NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS;
+        }
+        try {
+            // Check to see if the getBluetoothLeAdvertiser is available.  If not, this will throw an exception indicating we are not running Android L
+            ((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().getBluetoothLeAdvertiser();
+        } catch (Exception e) {
+            return NOT_SUPPORTED_CANNOT_GET_ADVERTISER;
+        }
+        return SUPPORTED;
+    }
+
     private AdvertiseCallback getAdvertiseCallback() {
         if (mAdvertiseCallback == null) {
             mAdvertiseCallback = new AdvertiseCallback() {
@@ -214,4 +247,5 @@ public class BeaconTransmitter {
         }
         return mAdvertiseCallback;
     }
+
 }

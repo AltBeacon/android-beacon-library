@@ -461,7 +461,7 @@ public class BeaconService extends Service {
                 if (region.matchesBeacon(beacon)) {
                     matched.add(region);
                 } else {
-                    BeaconManager.logDebug(TAG, "This region does not match: " + region);
+                    BeaconManager.logDebug(TAG, "This region ("+region+") does not match beacon: " + beacon);
                 }
 
             }

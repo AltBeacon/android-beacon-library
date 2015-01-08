@@ -83,7 +83,7 @@ public class CycledLeScanner {
      * @param backgroundFlag
      */
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
-        Log.d(TAG, "Set scan periods called with "+scanPeriod+", "+betweenScanPeriod+"  Background mode must have changed.");
+        BeaconManager.logDebug(TAG, "Set scan periods called with "+scanPeriod+", "+betweenScanPeriod+"  Background mode must have changed.");
         if (mBackgroundFlag != backgroundFlag) {
             mRestartNeeded = true;
         }
@@ -133,6 +133,7 @@ public class CycledLeScanner {
     }
     @SuppressLint("NewApi")
     public void stop() {
+        BeaconManager.logDebug(TAG, "stop called");
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
             scanLeDevice(false);
@@ -193,7 +194,7 @@ public class CycledLeScanner {
             if (deferScanIfNeeded()) {
                 return;
             }
-            Log.d(TAG, "starting a new scan cycle");
+            BeaconManager.logDebug(TAG, "starting a new scan cycle");
             if (mScanning == false || mScanningPaused || mRestartNeeded) {
                 mScanning = true;
                 mScanningPaused = false;
@@ -209,24 +210,24 @@ public class CycledLeScanner {
                                         if (mUseAndroidLScanner) {
                                             if (mRestartNeeded){
                                                 mRestartNeeded = false;
-                                                Log.d(TAG, "restarting a bluetooth le scan");
+                                                BeaconManager.logDebug(TAG, "restarting a bluetooth le scan");
                                             }
                                             else {
-                                                Log.d(TAG, "starting a new bluetooth le scan");
+                                                BeaconManager.logDebug(TAG, "starting a new bluetooth le scan");
                                             }
                                             List<ScanFilter> filters = new ArrayList<ScanFilter>();
                                             if (mScanner == null) {
-                                                Log.d(TAG, "Making new Android L scanner");
+                                                BeaconManager.logDebug(TAG, "Making new Android L scanner");
                                                 mScanner = getBluetoothAdapter().getBluetoothLeScanner();
                                             }
                                             ScanSettings settings;
 
                                             if (mBackgroundFlag) {
-                                                Log.d(TAG, "starting scan in SCAN_MODE_LOW_POWER");
+                                                BeaconManager.logDebug(TAG, "starting scan in SCAN_MODE_LOW_POWER");
                                                 settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
                                             }
                                             else {
-                                                Log.d(TAG, "starting scan in SCAN_MODE_LOW_LATENCY");
+                                                BeaconManager.logDebug(TAG, "starting scan in SCAN_MODE_LOW_LATENCY");
                                                 settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
 
                                             }
@@ -234,7 +235,7 @@ public class CycledLeScanner {
 
                                         }
                                         else {
-                                            Log.d(TAG, "starting a new bluetooth le scan");
+                                            BeaconManager.logDebug(TAG, "starting a new bluetooth le scan");
                                             mRestartNeeded = false;
                                             getBluetoothAdapter().startLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
                                         }
@@ -266,15 +267,21 @@ public class CycledLeScanner {
         } else {
             BeaconManager.logDebug(TAG, "disabling scan");
             mScanning = false;
-            if (getBluetoothAdapter() != null) {
-                try {
-                    getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
-                }
-                catch (Exception e) {
-                    Log.w("Internal Android exception scanning for beacons: ", e);
-                }
-                mLastScanCycleEndTime = new Date().getTime();
+            if (mUseAndroidLScanner) {
+                mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
             }
+            else {
+                if (getBluetoothAdapter() != null) {
+                    try {
+                        getBluetoothAdapter().stopLeScan((BluetoothAdapter.LeScanCallback) getLeScanCallback());
+                    }
+                    catch (Exception e) {
+                        Log.w("Internal Android exception scanning for beacons: ", e);
+                    }
+                    mLastScanCycleEndTime = new Date().getTime();
+                }
+            }
+
         }
     }
 
@@ -305,7 +312,7 @@ public class CycledLeScanner {
             if (getBluetoothAdapter() != null) {
                 if (getBluetoothAdapter().isEnabled()) {
                     try {
-                        Log.d(TAG, "stopping bluetooth le scan");
+                        BeaconManager.logDebug(TAG, "stopping bluetooth le scan");
                         if (mUseAndroidLScanner) {
                             if (mBetweenScanPeriod == 0) {
                                 // Prior to Android L we had to stop scanning at the end of each
@@ -445,7 +452,7 @@ public class CycledLeScanner {
 
     @TargetApi(3)
     private void cancelWakeUpAlarm() {
-        Log.d(TAG, "cancel wakeup alarm: "+mWakeUpOperation);
+        BeaconManager.logDebug(TAG, "cancel wakeup alarm: "+mWakeUpOperation);
         if (mWakeUpOperation != null) {
             AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(mWakeUpOperation);

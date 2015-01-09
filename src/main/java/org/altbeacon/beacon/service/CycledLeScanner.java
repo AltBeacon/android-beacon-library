@@ -18,6 +18,7 @@ import android.provider.AlarmClock;
 import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
@@ -50,6 +51,7 @@ public class CycledLeScanner {
     private boolean mBackgroundFlag = false;
     private boolean mRestartNeeded = false;
     private long mWakeupAlarmTime = 0l;
+    private BeaconManager mBeaconManager;
 
     public CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         mScanPeriod = scanPeriod;
@@ -58,6 +60,7 @@ public class CycledLeScanner {
         mCycledLeScanCallback = cycledLeScanCallback;
         mBluetoothCrashResolver = crashResolver;
         mBackgroundFlag = backgroundFlag;
+        mBeaconManager = BeaconManager.getInstanceForApplication(mContext);
 
         if (android.os.Build.VERSION.SDK_INT < 21) {
             Log.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
@@ -83,7 +86,7 @@ public class CycledLeScanner {
      * @param backgroundFlag
      */
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
-        BeaconManager.logDebug(TAG, "Set scan periods called with "+scanPeriod+", "+betweenScanPeriod+"  Background mode must have changed.");
+        BeaconManager.logDebug(TAG, "Set scan periods called with " + scanPeriod + ", " + betweenScanPeriod + "  Background mode must have changed.");
         if (mBackgroundFlag != backgroundFlag) {
             mRestartNeeded = true;
         }
@@ -452,10 +455,55 @@ public class CycledLeScanner {
 
     @TargetApi(3)
     private void cancelWakeUpAlarm() {
-        BeaconManager.logDebug(TAG, "cancel wakeup alarm: "+mWakeUpOperation);
+        BeaconManager.logDebug(TAG, "cancel wakeup alarm: " + mWakeUpOperation);
         if (mWakeUpOperation != null) {
             AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(mWakeUpOperation);
         }
+    }
+
+    /*
+      Android 5 scan algorithm
+
+      Same as pre android 5, except when on the between scan period.  In this period:
+
+      * If a beacon has been seen in the past 10 seconds, don't do any scanning for the between scan period.  Otherwise:
+      * create hardware masks for any beacon regardless of identifiers
+      * look for these hardware masks, and if you get one, start next scan cycle early.
+      * when calculating the time to the next scan cycle, male it be on the seconds modulus of the between scan period plus the scan period
+
+      Even the simplified algorithm is an improvement over the current state, but the disadvantages vs. iOS are:
+
+      * If a sombody else's beacon is present and yours is not yet visible when the app is in the background, you won't get the
+        accelerated discovery.  You only get the accelerated discovery if no beacons are visible before one of your regions appears.
+      * Once you are in your region, detecting when you are out of your region will still take 5 minutes.
+
+     */
+    @TargetApi(21)
+    private List<ScanFilter> createScanFiltersFromMonitoredRegions() {
+        List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
+        // for each beacon parser, make a filter expression that includes all its desired
+        // hardware manufacturers
+        for (BeaconParser beaconParser: mBeaconManager.getBeaconParsers()) {
+            for (int manufacturer : beaconParser.getHardwareAssistManufacturers()) {
+                long typeCode = beaconParser.getMatchingBeaconTypeCode();
+                int startOffset = beaconParser.getMatchingBeaconTypeCodeStartOffset();
+                int endOffset = beaconParser.getMatchingBeaconTypeCodeEndOffset();
+
+                byte[] filter = new byte[endOffset + 1];
+                byte[] mask = new byte[endOffset + 1];
+                for (int i = 0; i <= endOffset; i++) {
+                    if (i < startOffset) {
+                        filter[i] = 0;
+                        mask[i] = 0;
+                    } else {
+                        filter[i] = (byte) (typeCode & (0xff >> (i - startOffset) * 8));
+                        mask[i] = (byte) 0xff;
+                    }
+                }
+                scanFilters.add(new ScanFilter.Builder().setManufacturerData((int) manufacturer, filter, mask).build());
+            }
+        }
+        return scanFilters;
     }
 }

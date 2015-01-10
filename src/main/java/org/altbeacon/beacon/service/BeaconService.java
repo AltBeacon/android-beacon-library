@@ -421,6 +421,7 @@ public class BeaconService extends Service {
     }
 
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
+        DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
 
         @Override
         protected Void doInBackground(ScanData... params) {
@@ -435,6 +436,7 @@ public class BeaconService extends Service {
                 }
             }
             if (beacon != null) {
+                mDetectionTracker.recordDetection();
                 processBeaconFromScan(beacon);
             }
             return null;

@@ -439,7 +439,7 @@ public class BeaconParser {
         }
     }
 
-    protected byte[] longToByteArray(long longValue, int length) {
+    public static byte[] longToByteArray(long longValue, int length) {
         byte[] array = new byte[length];
         for (int i = 0; i < length; i++){
             //long mask = (long) Math.pow(256.0,1.0*(length-i))-1;

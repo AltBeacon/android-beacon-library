@@ -16,14 +16,15 @@
         </receiver>
 
         <service android:enabled="true"
-            android:exported="true"
+            android:exported="false"
             android:isolatedProcess="false"
             android:label="beacon"
             android:name=".service.BeaconService"
             />
 
-        <service android:enabled="true"
-            android:name=".BeaconIntentProcessor"
+        <service android:name=".BeaconIntentProcessor"
+            android:enabled="true"
+            android:exported="false"
             />
 
     </application>

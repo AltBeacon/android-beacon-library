@@ -46,7 +46,7 @@ public class DistanceConfigFetcher {
         String currentUrlString = mUrlString;
         int requestCount = 0;
         StringBuilder responseBuilder = new StringBuilder();
-        URL url = null;
+        URL url;
         HttpURLConnection conn = null;
         do {
             if (requestCount != 0) {
@@ -56,6 +56,7 @@ public class DistanceConfigFetcher {
             }
             requestCount++;
             mResponseCode = -1;
+            url = null;
             try {
                 url = new URL(currentUrlString);
             } catch (Exception e) {
@@ -84,9 +85,10 @@ public class DistanceConfigFetcher {
                 }
             }
         }
-        while (requestCount < 10 && mResponseCode == HttpURLConnection.HTTP_MOVED_TEMP
-                || mResponseCode == HttpURLConnection.HTTP_MOVED_PERM
-                || mResponseCode == HttpURLConnection.HTTP_SEE_OTHER);
+        while (requestCount < 10 &&
+                (mResponseCode == HttpURLConnection.HTTP_MOVED_TEMP
+                        || mResponseCode == HttpURLConnection.HTTP_MOVED_PERM
+                        || mResponseCode == HttpURLConnection.HTTP_SEE_OTHER));
 
         if (mException == null) {
             try {

@@ -236,7 +236,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                     }
                 }
             }
-        }).execute(null, null, null);
+        }).execute();
     }
 
     private void buildModelMap(String jsonString) throws JSONException {

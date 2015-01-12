@@ -31,7 +31,7 @@ public abstract class CycledLeScanner {
     protected boolean mScanningPaused;
     private boolean mScanCyclerStarted = false;
     private boolean mScanningEnabled = false;
-    private final Context mContext;
+    protected final Context mContext;
     private long mScanPeriod;
 
     protected long mBetweenScanPeriod;
@@ -253,8 +253,7 @@ public abstract class CycledLeScanner {
                     Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                 }
             }
-
-            mNextScanCycleStartTime = (new Date().getTime() + mBetweenScanPeriod);
+            mNextScanCycleStartTime = getNextScanStartTime();
             if (mScanningEnabled) {
                 scanLeDevice(true);
             } else {
@@ -264,6 +263,7 @@ public abstract class CycledLeScanner {
             }
         }
     }
+
 
     protected BluetoothAdapter getBluetoothAdapter() {
         if (mBluetoothAdapter == null) {

@@ -1,4 +1,4 @@
-package org.altbeacon.beacon.service;
+package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;

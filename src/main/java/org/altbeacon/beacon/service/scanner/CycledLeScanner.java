@@ -1,4 +1,4 @@
-package org.altbeacon.beacon.service;
+package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -305,5 +305,25 @@ public abstract class CycledLeScanner {
             AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(mWakeUpOperation);
         }
+    }
+
+    private long getNextScanStartTime() {
+        // Because many apps may use this library on the same device, we want to try to synchonize
+        // scanning as much as possible in order to save battery.  Therefore, we will set the scan
+        // intervals to be on a predictable interval using a modulus of the system time.  This may
+        // cause scans to start a little earlier than otherwise, but it should be acceptable.
+        // This way, if multiple apps on the device are using the default scan periods, then they
+        // will all be doing scans at the same time, thereby saving battery when none are scanning.
+        // This, of course, won't help at all if people set custom scan periods.  But since most
+        // people accept the defaults, this will likely have a positive effect.
+        if (mBetweenScanPeriod == 0) {
+            return System.currentTimeMillis();
+        }
+        long fullScanCycle = mScanPeriod + mBetweenScanPeriod;
+        long normalizedBetweenScanPeriod = mBetweenScanPeriod-(System.currentTimeMillis() % fullScanCycle);
+        BeaconManager.logDebug(TAG, "Normalizing between scan period from  "+mBetweenScanPeriod+" to "+
+                normalizedBetweenScanPeriod);
+
+        return System.currentTimeMillis()+normalizedBetweenScanPeriod;
     }
 }

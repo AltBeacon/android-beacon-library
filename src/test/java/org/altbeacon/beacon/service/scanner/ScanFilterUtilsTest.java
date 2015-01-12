@@ -1,14 +1,12 @@
-package org.altbeacon.beacon.service;
+package org.altbeacon.beacon.service.scanner;
 
 
-import android.bluetooth.le.ScanFilter;
 import android.content.Context;
 
 import org.altbeacon.beacon.AltBeaconParser;
-import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.bluetooth.BluetoothCrashResolver;
+import org.altbeacon.beacon.service.scanner.ScanFilterUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,7 +15,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -28,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 @Config(emulateSdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
-public class CycledLeScannerTest {
+public class ScanFilterUtilsTest {
 
 
     @BeforeClass
@@ -43,13 +40,11 @@ public class CycledLeScannerTest {
     @Test
     public void testGetAltBeaconScanFilter() throws Exception {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
         BeaconParser parser = new AltBeaconParser();
         BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
-        CycledLeScanner cycledLeScanner = new CycledLeScanner(context, 0l, 0l, false, null, null);
-        List<CycledLeScanner.ScanFilterData> scanFilterDatas = cycledLeScanner.createScanFilterDataForBeaconParser(parser);
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
         assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
-        CycledLeScanner.ScanFilterData sfd = scanFilterDatas.get(0);
+        ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("manufacturer should be right", 0x0118, sfd.manufacturer);
         assertEquals("mask length should be right", 2, sfd.mask.length);
         assertArrayEquals("mask should be right", new byte[] {(byte)0xff, (byte)0xff}, sfd.mask);
@@ -58,14 +53,12 @@ public class CycledLeScannerTest {
     @Test
     public void testGenericScanFilter() throws Exception {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=1111,i:4-6,p:24-24");
         BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
-        CycledLeScanner cycledLeScanner = new CycledLeScanner(context, 0l, 0l, false, null, null);
-        List<CycledLeScanner.ScanFilterData> scanFilterDatas = cycledLeScanner.createScanFilterDataForBeaconParser(parser);
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
         assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
-        CycledLeScanner.ScanFilterData sfd = scanFilterDatas.get(0);
+        ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("manufacturer should be right", 0x004c, sfd.manufacturer);
         assertEquals("mask length should be right", 2, sfd.mask.length);
         assertArrayEquals("mask should be right", new byte[] {(byte)0xff, (byte)0xff}, sfd.mask);
@@ -74,14 +67,12 @@ public class CycledLeScannerTest {
     @Test
     public void testZeroOffsetScanFilter() throws Exception {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:0-3=11223344,i:4-6,p:24-24");
         BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
-        CycledLeScanner cycledLeScanner = new CycledLeScanner(context, 0l, 0l, false, null, null);
-        List<CycledLeScanner.ScanFilterData> scanFilterDatas = cycledLeScanner.createScanFilterDataForBeaconParser(parser);
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
         assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
-        CycledLeScanner.ScanFilterData sfd = scanFilterDatas.get(0);
+        ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("manufacturer should be right", 0x004c, sfd.manufacturer);
         assertEquals("mask length should be right", 2, sfd.mask.length);
         assertArrayEquals("mask should be right", new byte[] {(byte)0xff, (byte)0xff}, sfd.mask);

@@ -41,6 +41,8 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.distance.DistanceCalculator;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
+import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
+import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;

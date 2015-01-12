@@ -76,7 +76,6 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
            will get a callback within a few seconds on Android L vs. up to 5 minutes on older
            operating system versions.
      */
-    @SuppressLint("NewApi")
     protected boolean deferScanIfNeeded() {
         long millisecondsUntilStart = mNextScanCycleStartTime - System.currentTimeMillis();
         if (millisecondsUntilStart > 0) {

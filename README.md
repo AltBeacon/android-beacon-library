@@ -1,6 +1,8 @@
 Android Beacon Library
 =======================
 
+[![Build Status](https://snap-ci.com/AltBeacon/android-beacon-library/branch/master/build_image)](https://snap-ci.com/AltBeacon/android-beacon-library/branch/master)
+
 An Android library providing APIs to interact with beacons.  Please visit the
 [project website](http://altbeacon.github.io/android-beacon-library/) for how to use this library.
 

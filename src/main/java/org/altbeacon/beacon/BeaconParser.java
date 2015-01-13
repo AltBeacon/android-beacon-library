@@ -49,6 +49,7 @@ public class BeaconParser {
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mPowerStartOffset;
     protected Integer mPowerEndOffset;
+    protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
 
     /**
      * Makes a new BeaconParser.  Should normally be immediately followed by a call to #setLayout
@@ -201,6 +202,30 @@ public class BeaconParser {
         return this;
     }
 
+    /**
+     * Returns a list of bluetooth manufactuer codes which will be used for hardware-assisted
+     * accelerated looking for this beacon type
+     *
+     * The possible codes are defined onthis list:
+     * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
+     *
+     * @return manufacturers
+     */
+    public int[] getHardwareAssistManufacturers() {
+        return mHardwareAssistManufacturers;
+    }
+
+    /**
+     * Sets a list of bluetooth manufactuer codes which will be used for hardware-assisted
+     * accelerated looking for this beacon type
+     *
+     * The possible codes are defined onthis list:
+     * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
+     *
+     */
+    public void setHardwareAssistManufacturerCodes(int[] manufacturers) {
+        mHardwareAssistManufacturers = manufacturers;
+    }
 
     /**
      * @see #mMatchingBeaconTypeCode
@@ -208,6 +233,22 @@ public class BeaconParser {
      */
     public Long getMatchingBeaconTypeCode() {
         return mMatchingBeaconTypeCode;
+    }
+
+    /**
+     * see #mMatchingBeaconTypeCodeStartOffset
+     * @return
+     */
+    public int getMatchingBeaconTypeCodeStartOffset() {
+        return mMatchingBeaconTypeCodeStartOffset;
+    }
+
+    /**
+     * see #mMatchingBeaconTypeCodeEndOffset
+     * @return
+     */
+    public int getMatchingBeaconTypeCodeEndOffset() {
+        return mMatchingBeaconTypeCodeEndOffset;
     }
 
     /**
@@ -398,7 +439,7 @@ public class BeaconParser {
         }
     }
 
-    protected byte[] longToByteArray(long longValue, int length) {
+    public static byte[] longToByteArray(long longValue, int length) {
         byte[] array = new byte[length];
         for (int i = 0; i < length; i++){
             //long mask = (long) Math.pow(256.0,1.0*(length-i))-1;

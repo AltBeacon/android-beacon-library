@@ -41,6 +41,7 @@ public class AltBeaconParser extends BeaconParser {
      */
     public AltBeaconParser() {
         super();
+        mHardwareAssistManufacturers = new int[]{0x0118}; // Radius networks
         this.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
     }
     /**

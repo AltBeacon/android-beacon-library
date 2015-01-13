@@ -101,7 +101,7 @@ dependencies {
     androidTestCompile('com.squareup:fest-android:1.0.+@aar') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
-    androidTestCompile('org.robolectric:robolectric:2.3') {
+    androidTestCompile('org.robolectric:robolectric:2.4') {
         exclude module: 'classworlds'
         exclude module: 'commons-logging'
         exclude module: 'httpclient'

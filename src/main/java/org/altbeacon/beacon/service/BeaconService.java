@@ -23,14 +23,10 @@
  */
 package org.altbeacon.beacon.service;
 
-import android.annotation.SuppressLint;
+
 import android.annotation.TargetApi;
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.ScanResult;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
@@ -45,6 +41,8 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.distance.DistanceCalculator;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
+import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
+import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
@@ -52,7 +50,6 @@ import org.altbeacon.beacon.Region;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,13 +66,11 @@ public class BeaconService extends Service {
 
     private Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
     private Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
-    private BluetoothAdapter bluetoothAdapter;
     private HashSet<Beacon> trackedBeacons;
     int trackedBeaconsPacketCount;
     private Handler handler = new Handler();
     private int bindCount = 0;
     private BluetoothCrashResolver bluetoothCrashResolver;
-    private boolean scanCyclerStarted = false;
     private boolean scanningEnabled = false;
     private DistanceCalculator defaultDistanceCalculator = null;
     private List<BeaconParser> beaconParsers;
@@ -201,7 +196,7 @@ public class BeaconService extends Service {
         Log.i(TAG, "beaconService version " + BuildConfig.VERSION_NAME + " is starting up");
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
-        mCycledScanner = new CycledLeScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
+        mCycledScanner = CycledLeScanner.createScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag,  mCycledLeScanCallback,  bluetoothCrashResolver);
 
         beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
@@ -421,6 +416,7 @@ public class BeaconService extends Service {
     }
 
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
+        DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
 
         @Override
         protected Void doInBackground(ScanData... params) {
@@ -435,6 +431,7 @@ public class BeaconService extends Service {
                 }
             }
             if (beacon != null) {
+                mDetectionTracker.recordDetection();
                 processBeaconFromScan(beacon);
             }
             return null;

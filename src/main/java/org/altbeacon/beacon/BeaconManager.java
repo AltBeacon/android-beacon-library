@@ -25,6 +25,7 @@ package org.altbeacon.beacon;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -113,6 +114,7 @@ public class BeaconManager {
      */
     public static boolean debug = false;
     private static boolean sAndroidLScanningDisabled = false;
+    private static boolean sManifestCheckingDisabled = false;
 
     /**
      * Set to true if you want to show library debugging
@@ -193,13 +195,25 @@ public class BeaconManager {
 		return client;
 	}
 
+    /**
+     * Gets a list of the active beaconParsers.  This list may only be modified before any consumers
+     * are bound to the beacon service
+     *
+     * @return list of active BeaconParsers
+     */
+
     public List<BeaconParser> getBeaconParsers() {
+        if (isAnyConsumerBound()) {
+            return Collections.unmodifiableList(beaconParsers);
+        }
         return beaconParsers;
     }
 
 	protected BeaconManager(Context context) {
 		mContext = context;
-        verifyServiceDeclaration();
+        if (!sManifestCheckingDisabled) {
+            verifyServiceDeclaration();
+        }
         this.beaconParsers.add(new AltBeaconParser());
 	}
 	/**
@@ -695,5 +709,12 @@ public class BeaconManager {
         sAndroidLScanningDisabled = disabled;
     }
 
-
+    /**
+     * Allows disabling check of manifest for proper configuration of service.  Useful for unit
+     * testing
+     * @param disabled
+     */
+    public static void setsManifestCheckingDisabled(boolean disabled) {
+        sManifestCheckingDisabled = disabled;
+    }
 }

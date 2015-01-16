@@ -88,22 +88,32 @@ If you want to help with the open source project, contact david@radiusnetworks.c
 
 The following instructions are for project administrators.
 
-1. Configure your  ~/.gradle/gradle.properties 
+1. Upload you Sonotype signing keypair to Bintray
 
-    # Copy File To gradle.properties
-    signing.keyId="My GPG user"
-    signing.password=
+2. Configure your  ~/.gradle/gradle.properties with:
+
+    signing.keyId=<my key id>
+    signing.password=<my passphrase>
     signing.secretKeyRingFile=~/.gnupg/secring.gpg
+    signingPassword=<my passphrase>
 
-    bintrayUsername=<bintray username>
+    bintrayUserName=<bintray username>
     bintrayKey=<bintray api key>
 
-2. Run the build and upload
+1. Run the build and upload
 
    git tag <version>
    git push --tags 
-   ./gradlew release
-   ./gradlew bintrayUpload -Prelease 
-   ./gradlew artifactoryPublish 
+   ./gradlew release -Prelease
+   ./gradlew bintrayUpload -Prelease
+   ./gradlew bintrayPublishContent -Prelease
+   ./gradlew bintraySign -Prelease
+   ./gradlew bintrayPublishContent -Prelease
+   ./gradlew bintrayToMavenCentral -Prelease
 
+   -or-
 
+   git tag <version>
+   git push --tags
+   ./gradlew release -Prelease
+   ./gradlew bintrayRelease -Prelease

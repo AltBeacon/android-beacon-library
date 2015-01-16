@@ -74,7 +74,7 @@ public class AndroidModel {
      */
     public int matchScore(AndroidModel otherModel) {
         int score = 0;
-        if (this.mManufacturer.equals(otherModel.mManufacturer)) {
+        if (this.mManufacturer.equalsIgnoreCase(otherModel.mManufacturer)) {
             score = 1;
         }
         if (score ==1 && this.mModel.equals(otherModel.mModel)) {

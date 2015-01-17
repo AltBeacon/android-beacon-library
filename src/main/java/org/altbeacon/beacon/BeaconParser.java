@@ -186,7 +186,7 @@ public class BeaconParser {
                 }
             }
             if (!found) {
-                BeaconManager.logDebug(TAG, "cannot parse term "+term);
+                BeaconManager.d(TAG, "cannot parse term "+term);
                 throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
             }
         }
@@ -282,11 +282,11 @@ public class BeaconParser {
 
         if (patternFound == false) {
             // This is not an beacon
-            BeaconManager.logDebug(TAG, "This is not a matching Beacon advertisement.  (Was expecting "+byteArrayToString(typeCodeBytes)+".  The bytes I see are: "+bytesToHex(scanData));
+            BeaconManager.d(TAG, "This is not a matching Beacon advertisement.  (Was expecting "+byteArrayToString(typeCodeBytes)+".  The bytes I see are: "+bytesToHex(scanData));
             return null;
         }
         else {
-            BeaconManager.logDebug(TAG, "This is a recognized beacon advertisement -- "+String.format("%04x", getMatchingBeaconTypeCode())+" seen");
+            BeaconManager.d(TAG, "This is a recognized beacon advertisement -- "+String.format("%04x", getMatchingBeaconTypeCode())+" seen");
         }
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
@@ -298,7 +298,7 @@ public class BeaconParser {
         for (int i = 0; i < mDataEndOffsets.size(); i++) {
             String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i)+startByte, mDataEndOffsets.get(i)+startByte, mDataLittleEndianFlags.get(i));
             dataFields.add(Long.parseLong(dataString));
-            BeaconManager.logDebug(TAG, "parsing found data field "+i);
+            BeaconManager.d(TAG, "parsing found data field "+i);
             // TODO: error handling needed here on the parse
         }
 
@@ -490,13 +490,13 @@ public class BeaconParser {
         // We treat a 1-4 byte number as decimal string
         if (length < 5) {
             Long number = 0l;
-            BeaconManager.logDebug(TAG, "Byte array is size "+bytes.length);
+            BeaconManager.d(TAG, "Byte array is size "+bytes.length);
             for (int i = 0; i < bytes.length; i++)  {
-                BeaconManager.logDebug(TAG, "index is "+i);
+                BeaconManager.d(TAG, "index is "+i);
                 long byteValue = (long) (bytes[bytes.length - i-1] & 0xff);
                 long positionValue = (long) Math.pow(256.0,i*1.0);
                 long calculatedValue =  (long) (byteValue * positionValue);
-                BeaconManager.logDebug(TAG, "calculatedValue for position "+i+" with positionValue "+positionValue+" and byteValue "+byteValue+" is "+calculatedValue);
+                BeaconManager.d(TAG, "calculatedValue for position "+i+" with positionValue "+positionValue+" and byteValue "+byteValue+" is "+calculatedValue);
                 number += calculatedValue;
             }
             return number.toString();

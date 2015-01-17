@@ -55,7 +55,7 @@ public class RegionBootstrap {
         regions.add(region);
 		beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
-        BeaconManager.logDebug(TAG, "Waiting for BeaconService connection");
+        BeaconManager.d(TAG, "Waiting for BeaconService connection");
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class RegionBootstrap {
 
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
-        BeaconManager.logDebug(TAG, "Waiting for BeaconService connection");
+        BeaconManager.d(TAG, "Waiting for BeaconService connection");
 	}
 	
 	/**
@@ -91,7 +91,7 @@ public class RegionBootstrap {
                 beaconManager.stopMonitoringBeaconsInRegion(region);        		
         	}
         } catch (RemoteException e) {   
-        	Log.e(TAG, "Can't stop bootstrap regions due to "+e);
+        	BeaconManager.e(TAG, "Can't stop bootstrap regions due to "+e);
         }	
 		beaconManager.unbind(beaconConsumer);
 	}
@@ -103,18 +103,18 @@ public class RegionBootstrap {
 		 */
 	    @Override
 	    public void onBeaconServiceConnect() {
-            BeaconManager.logDebug(TAG, "Activating background region monitoring");
+            BeaconManager.d(TAG, "Activating background region monitoring");
 	        beaconManager.setMonitorNotifier(application);
 	        try {
 	        	for (Region region : regions) {
-                    BeaconManager.logDebug(TAG, "Background region monitoring activated for region "+region);
+                    BeaconManager.d(TAG, "Background region monitoring activated for region "+region);
 	                beaconManager.startMonitoringBeaconsInRegion(region);
                         if (beaconManager.isBackgroundModeUninitialized()) {
                             beaconManager.setBackgroundMode(true);
                         }
 	        	}
 	        } catch (RemoteException e) {   
-	        	Log.e(TAG, "Can't set up bootstrap regions due to "+e);
+	        	BeaconManager.e(TAG, "Can't set up bootstrap regions due to "+e);
 	        }
 	    }
 	

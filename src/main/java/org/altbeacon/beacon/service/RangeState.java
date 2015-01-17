@@ -51,11 +51,11 @@ public class RangeState {
     public void addBeacon(Beacon beacon) {
         if (mRangedBeacons.containsKey(beacon)) {
             RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
-            BeaconManager.logDebug(TAG, "adding " + beacon.toString() + " to existing range for: " + rangedBeacon.toString());
+            BeaconManager.d(TAG, "adding " + beacon.toString() + " to existing range for: " + rangedBeacon.toString());
             rangedBeacon.updateBeacon(beacon);
         }
         else {
-            BeaconManager.logDebug(TAG, "adding "+ beacon.toString()+" to new rangedBeacon");
+            BeaconManager.d(TAG, "adding "+ beacon.toString()+" to new rangedBeacon");
             mRangedBeacons.put(beacon, new RangedBeacon(beacon));
         }
     }
@@ -82,7 +82,7 @@ public class RangeState {
                     newRangedBeacons.put(beacon, rangedBeacon);
                 }
                 else {
-                    BeaconManager.logDebug(TAG, "Dumping beacon from RangeState because it has no recent measurements.");
+                    BeaconManager.d(TAG, "Dumping beacon from RangeState because it has no recent measurements.");
                 }
             }
             mRangedBeacons = newRangedBeacons;

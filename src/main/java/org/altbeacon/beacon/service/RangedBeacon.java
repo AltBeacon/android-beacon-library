@@ -45,10 +45,10 @@ public class RangedBeacon {
         if (mMeasurements.size() > 0) {
             double runningAverage = calculateRunningAverage();
             mBeacon.setRunningAverageRssi(runningAverage);
-            BeaconManager.logDebug(TAG, "calculated new runningAverageRssi:"+ runningAverage);
+            BeaconManager.d(TAG, "calculated new runningAverageRssi:"+ runningAverage);
         }
         else {
-            BeaconManager.logDebug(TAG, "No measurements available to calculate running average");
+            BeaconManager.d(TAG, "No measurements available to calculate running average");
         }
     }
 
@@ -106,7 +106,7 @@ public class RangedBeacon {
 		}
 		double runningAverage = sum/(endIndex-startIndex+1);
 
-		BeaconManager.logDebug(TAG, "Running average mRssi based on "+size+" measurements: "+runningAverage);
+		BeaconManager.d(TAG, "Running average mRssi based on "+size+" measurements: "+runningAverage);
 		return runningAverage;
 
 	}

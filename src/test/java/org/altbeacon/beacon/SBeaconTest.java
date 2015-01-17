@@ -24,7 +24,7 @@ public class SBeaconTest {
 
     @Test
     public void testDetectsSBeacon() {
-        BeaconManager.debug = true;
+        BeaconManager.setsLogger(Loggers.debug());
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("02011a1bff1801031501000100c502000000000000000003");
         SBeaconParser parser = new SBeaconParser();

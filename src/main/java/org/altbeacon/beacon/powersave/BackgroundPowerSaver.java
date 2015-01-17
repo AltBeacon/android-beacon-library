@@ -31,14 +31,14 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
      */
     public BackgroundPowerSaver(Context context, boolean countActiveActivityStrategy) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "BackgroundPowerSaver requires SDK 18 or higher.");
+            BeaconManager.w(TAG, "BackgroundPowerSaver requires SDK 18 or higher.");
             return;
         }
         if (context instanceof Application ) {
             ((Application)context).registerActivityLifecycleCallbacks(this);
         }
         else {
-            Log.e(TAG, "Context is not an application instance, so we cannot use the BackgroundPowerSaver");
+            BeaconManager.e(TAG, "Context is not an application instance, so we cannot use the BackgroundPowerSaver");
         }
         beaconManager = beaconManager.getInstanceForApplication(context);
     }
@@ -65,19 +65,19 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
     public void onActivityResumed(Activity activity) {
         activeActivityCount++;
         if (activeActivityCount < 1) {
-            BeaconManager.logDebug(TAG, "reset active activity count on resume.  It was "+activeActivityCount);
+            BeaconManager.d(TAG, "reset active activity count on resume.  It was "+activeActivityCount);
             activeActivityCount = 1;
         }
         beaconManager.setBackgroundMode(false);
-        BeaconManager.logDebug(TAG, "activity resumed: "+activity+"  active activities: " + activeActivityCount);
+        BeaconManager.d(TAG, "activity resumed: "+activity+"  active activities: " + activeActivityCount);
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
         activeActivityCount--;
-        BeaconManager.logDebug(TAG, "activity paused: "+activity+"  active activities: " + activeActivityCount);
+        BeaconManager.d(TAG, "activity paused: "+activity+"  active activities: " + activeActivityCount);
         if (activeActivityCount < 1) {
-            BeaconManager.logDebug(TAG, "setting background mode");
+            BeaconManager.d(TAG, "setting background mode");
             beaconManager.setBackgroundMode(true);
         }
     }

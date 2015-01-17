@@ -47,7 +47,7 @@ public class CurveFittedDistanceCalculator implements DistanceCalculator {
             return -1.0; // if we cannot determine accuracy, return -1.
         }
 
-        BeaconManager.logDebug(TAG, "calculating distance based on mRssi of " + rssi + " and txPower of " + txPower);
+        BeaconManager.d(TAG, "calculating distance based on mRssi of " + rssi + " and txPower of " + txPower);
 
 
         double ratio = rssi*1.0/txPower;
@@ -58,7 +58,7 @@ public class CurveFittedDistanceCalculator implements DistanceCalculator {
         else {
             distance =  (mCoefficient1)*Math.pow(ratio,mCoefficient2) + mCoefficient3;
         }
-        BeaconManager.logDebug(TAG, " avg mRssi: "+rssi+" distance: "+distance);
+        BeaconManager.d(TAG, " avg mRssi: "+rssi+" distance: "+distance);
         return distance;
     }
 }

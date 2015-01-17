@@ -45,7 +45,7 @@ public class BeaconIntentProcessor extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		BeaconManager.logDebug(TAG, "got an intent to process");
+		BeaconManager.d(TAG, "got an intent to process");
 		
 		MonitoringData monitoringData = null;
 		RangingData rangingData = null;
@@ -56,9 +56,9 @@ public class BeaconIntentProcessor extends IntentService {
 		}
 		
 		if (rangingData != null) {
-			BeaconManager.logDebug(TAG, "got ranging data");
+			BeaconManager.d(TAG, "got ranging data");
             if (rangingData.getBeacons() == null) {
-                Log.w(TAG, "Ranging data has a null beacons collection");
+                BeaconManager.w(TAG, "Ranging data has a null beacons collection");
             }
 			RangeNotifier notifier = BeaconManager.getInstanceForApplication(this).getRangingNotifier();
             java.util.Collection<Beacon> beacons = rangingData.getBeacons();
@@ -66,7 +66,7 @@ public class BeaconIntentProcessor extends IntentService {
 				notifier.didRangeBeaconsInRegion(beacons, rangingData.getRegion());
 			}
             else {
-                BeaconManager.logDebug(TAG, "but ranging notifier is null, so we're dropping it.");
+                BeaconManager.d(TAG, "but ranging notifier is null, so we're dropping it.");
             }
             RangeNotifier dataNotifier = BeaconManager.getInstanceForApplication(this).getDataRequestNotifier();
             if (dataNotifier != null) {
@@ -75,10 +75,10 @@ public class BeaconIntentProcessor extends IntentService {
 
 		}
 		if (monitoringData != null) {
-			BeaconManager.logDebug(TAG, "got monitoring data");
+			BeaconManager.d(TAG, "got monitoring data");
 			MonitorNotifier notifier = BeaconManager.getInstanceForApplication(this).getMonitoringNotifier();
 			if (notifier != null) {
-				BeaconManager.logDebug(TAG, "Calling monitoring notifier:"+notifier);
+				BeaconManager.d(TAG, "Calling monitoring notifier:"+notifier);
 				notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
 				if (monitoringData.isInside()) {
 					notifier.didEnterRegion(monitoringData.getRegion());

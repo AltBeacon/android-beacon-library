@@ -3,6 +3,8 @@ package org.altbeacon.beacon.distance;
 import android.os.Build;
 import android.util.Log;
 
+import org.altbeacon.beacon.BeaconManager;
+
 /**
  * Represents a specific Android device model based on the available device build information
  *
@@ -86,7 +88,7 @@ public class AndroidModel {
         if (score == 3 && this.mVersion.equals(otherModel.mVersion)) {
             score = 4;
         }
-        Log.d(TAG, "Score is " + score + " for " + this + " compared to " + otherModel);
+        BeaconManager.d(TAG, "Score is " + score + " for " + this + " compared to " + otherModel);
         return score;
     }
 

@@ -109,19 +109,8 @@ public class BeaconManager {
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
 
-    /**
-     * set to true if you want to see debug messages associated with this library
-     */
-    public static boolean debug = false;
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
-
-    /**
-     * Set to true if you want to show library debugging
-     */
-    public static void setDebug(boolean debug) {
-        BeaconManager.debug = debug;
-    }
 
     /**
      * The default duration in milliseconds of the bluetooth scan cycle
@@ -144,6 +133,73 @@ public class BeaconManager {
     private long foregroundBetweenScanPeriod = DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
     private long backgroundScanPeriod = DEFAULT_BACKGROUND_SCAN_PERIOD;
     private long backgroundBetweenScanPeriod = DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
+
+    public interface Logger {
+        void v(String tag, String message);
+        void v(String tag, String message, Throwable t);
+        void d(String tag, String message);
+        void d(String tag, String message, Throwable t);
+        void i(String tag, String message);
+        void i(String tag, String message, Throwable t);
+        void w(String tag, String message);
+        void w(String tag, String message, Throwable t);
+        void w(String tag, Throwable t);
+        void e(String tag, String message);
+        void e(String tag, String message, Throwable t);
+    }
+
+    private static Logger sLogger = Loggers.empty();
+
+    public static void setsLogger(Logger logger) {
+        if (logger == null) {
+            throw new IllegalArgumentException("Logger may not be null.");
+        }
+        sLogger = logger;
+    }
+
+    public static void v(String tag, String message) {
+        sLogger.v(tag, message);
+    }
+
+    public static void v(String tag, String message, Throwable t) {
+        sLogger.v(tag, message, t);
+    }
+
+    public static void d(String tag, String message) {
+        sLogger.d(tag, message);
+    }
+
+    public static void d(String tag, String message, Throwable t) {
+        sLogger.d(tag, message, t);
+    }
+
+    public static void i(String tag, String message) {
+        sLogger.i(tag, message);
+    }
+
+    public static void i(String tag, String message, Throwable t) {
+        sLogger.i(tag, message, t);
+    }
+
+    public static void w(String tag, String message) {
+        sLogger.w(tag, message);
+    }
+
+    public static void w(String tag, String message, Throwable t) {
+        sLogger.w(tag, message, t);
+    }
+
+    public static void w(String tag, Throwable t) {
+        sLogger.w(tag, t);
+    }
+
+    public static void e(String tag, String message) {
+        sLogger.e(tag, message);
+    }
+
+    public static void e(String tag, String message, Throwable t) {
+        sLogger.e(tag, message, t);
+    }
 
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.
@@ -189,7 +245,7 @@ public class BeaconManager {
 	 */
 	public static BeaconManager getInstanceForApplication(Context context) {
 		if (client == null) {
-			BeaconManager.logDebug(TAG, "BeaconManager instance creation");
+			sLogger.d(TAG, "BeaconManager instance creation");
 			client = new BeaconManager(context);
 		}
 		return client;
@@ -245,19 +301,19 @@ public class BeaconManager {
 	 */
 	public void bind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
-                BeaconManager.logDebug(TAG, "This consumer is already bound");
+                sLogger.d(TAG, "This consumer is already bound");
             }
             else {
-                BeaconManager.logDebug(TAG, "This consumer is not bound.  binding: "+consumer);
+                sLogger.d(TAG, "This consumer is not bound.  binding: "+consumer);
                 consumers.put(consumer, new ConsumerInfo());
                 Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                 consumer.bindService(intent, beaconServiceConnection, Context.BIND_AUTO_CREATE);
-                BeaconManager.logDebug(TAG, "consumer count is now:"+consumers.size());
+                sLogger.d(TAG, "consumer count is now:"+consumers.size());
             }
         }
 	}
@@ -270,12 +326,12 @@ public class BeaconManager {
 	 */
 	public void unbind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         synchronized(consumers) {
             if (consumers.keySet().contains(consumer)) {
-                Log.d(TAG, "Unbinding");
+                sLogger.d(TAG, "Unbinding");
                 consumer.unbindService(beaconServiceConnection);
                 consumers.remove(consumer);
                 if (consumers.size() == 0) {
@@ -285,10 +341,10 @@ public class BeaconManager {
                 }
             }
             else {
-                BeaconManager.logDebug(TAG, "This consumer is not bound to: "+consumer);
-                BeaconManager.logDebug(TAG, "Bound consumers: ");
+                sLogger.d(TAG, "This consumer is not bound to: "+consumer);
+                sLogger.d(TAG, "Bound consumers: ");
                 for (int i = 0; i < consumers.size(); i++) {
-                    Log.i(TAG, " "+consumers.get(i));
+                    sLogger.i(TAG, " "+consumers.get(i));
                 }
             }
         }
@@ -333,7 +389,7 @@ public class BeaconManager {
      */
     public void setBackgroundMode(boolean backgroundMode) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
         }
         mBackgroundModeUninitialized = false;
         if (backgroundMode != mBackgroundMode) {
@@ -342,7 +398,7 @@ public class BeaconManager {
                 this.updateScanPeriods();
             }
             catch (RemoteException e) {
-                Log.e(TAG, "Cannot contact service to set scan periods");
+                sLogger.e(TAG, "Cannot contact service to set scan periods");
             }
         }
     }
@@ -402,7 +458,7 @@ public class BeaconManager {
     @TargetApi(18)
 	public void startRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -429,7 +485,7 @@ public class BeaconManager {
     @TargetApi(18)
 	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -463,7 +519,7 @@ public class BeaconManager {
     @TargetApi(18)
 	public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -491,7 +547,7 @@ public class BeaconManager {
     @TargetApi(18)
 	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -521,15 +577,15 @@ public class BeaconManager {
     @TargetApi(18)
     public void updateScanPeriods() throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
-        BeaconManager.logDebug(TAG, "updating background flag to "+this.mBackgroundMode );
-        BeaconManager.logDebug(TAG, "updating scan period to "+this.getScanPeriod()+", "+this.getBetweenScanPeriod() );
+        sLogger.d(TAG, "updating background flag to "+this.mBackgroundMode );
+        sLogger.d(TAG, "updating scan period to "+this.getScanPeriod()+", "+this.getBetweenScanPeriod() );
         StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
@@ -537,14 +593,14 @@ public class BeaconManager {
 
 	private String callbackPackageName() {
 		String packageName = mContext.getPackageName();
-		BeaconManager.logDebug(TAG, "callback packageName: "+packageName);
+        sLogger.d(TAG, "callback packageName: "+packageName);
 		return packageName;
 	}
 
 	private ServiceConnection beaconServiceConnection = new ServiceConnection() {
 		// Called when the connection with the service is established
 	    public void onServiceConnected(ComponentName className, IBinder service) {
-            BeaconManager.logDebug(TAG,  "we have a connection to the service now");
+            sLogger.d(TAG,  "we have a connection to the service now");
 	        serviceMessenger = new Messenger(service);
             synchronized(consumers) {
                 Iterator<BeaconConsumer> consumerIterator = consumers.keySet().iterator();
@@ -563,7 +619,7 @@ public class BeaconManager {
 
 	    // Called when the connection with the service disconnects
 	    public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "onServiceDisconnected");
+            sLogger.e(TAG, "onServiceDisconnected");
             serviceMessenger = null;
         }
 	};	
@@ -600,25 +656,6 @@ public class BeaconManager {
         synchronized(this.rangedRegions) {
             return new ArrayList<Region>(this.rangedRegions);
         }
-    }
-
-    /**
-     * Convenience method for logging debug by the library
-     * @param tag
-     * @param message
-     */
-    public static void logDebug(String tag, String message) {
-        if (debug) Log.d(tag, message);
-    }
-
-    /**
-     * Convenience method for logging debug by the library
-     * @param tag
-     * @param message
-     * @param t
-     */
-    public static void logDebug(String tag, String message, Throwable t) {
-        if (debug) Log.d(tag, message, t);
     }
 
     protected static BeaconSimulator beaconSimulator;

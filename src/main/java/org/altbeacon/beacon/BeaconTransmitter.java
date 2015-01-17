@@ -51,11 +51,11 @@ public class BeaconTransmitter {
         if (bluetoothManager != null) {
             mBluetoothAdapter = bluetoothManager.getAdapter();
             mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-            Log.d(TAG, "new BeaconTransmitter constructed.  mbluetoothLeAdvertiser is " +
+            BeaconManager.d(TAG, "new BeaconTransmitter constructed.  mbluetoothLeAdvertiser is " +
                     mBluetoothLeAdvertiser);
         }
         else {
-            Log.e(TAG, "Failed to get BluetoothManager");
+            BeaconManager.e(TAG, "Failed to get BluetoothManager");
         }
     }
 
@@ -157,7 +157,7 @@ public class BeaconTransmitter {
             byteString += String.format("%02X", advertisingBytes[i]);
             byteString += " ";
         }
-        Log.d(TAG, "Starting advertising with ID1: "+mBeacon.getId1()+" ID2: "+mBeacon.getId2()
+        BeaconManager.d(TAG, "Starting advertising with ID1: "+mBeacon.getId1()+" ID2: "+mBeacon.getId2()
                 +" ID3: "+mBeacon.getId3()+" and data: "+byteString+" of size "+advertisingBytes.length);
 
         try{
@@ -172,10 +172,10 @@ public class BeaconTransmitter {
             settingsBuilder.setConnectable(false);
 
             mBluetoothLeAdvertiser.startAdvertising(settingsBuilder.build(), dataBuilder.build(), getAdvertiseCallback());
-            Log.d(TAG, "Started advertisement with callback: "+getAdvertiseCallback());
+            BeaconManager.d(TAG, "Started advertisement with callback: "+getAdvertiseCallback());
 
         } catch (Exception e){
-            Log.e(TAG, "Cannot start advetising due to excepton: ",e);
+            BeaconManager.e(TAG, "Cannot start advetising due to excepton: ",e);
         }
     }
 
@@ -184,10 +184,10 @@ public class BeaconTransmitter {
      */
     public void stopAdvertising() {
         if (!mStarted) {
-            Log.d(TAG, "Skipping stop advertising -- not started");
+            BeaconManager.d(TAG, "Skipping stop advertising -- not started");
             return;
         }
-        Log.d(TAG, "Stopping advertising with object "+mBluetoothLeAdvertiser);
+        BeaconManager.d(TAG, "Stopping advertising with object "+mBluetoothLeAdvertiser);
         mAdvertisingClientCallback = null;
         mBluetoothLeAdvertiser.stopAdvertising(getAdvertiseCallback());
         mStarted = false;
@@ -225,7 +225,7 @@ public class BeaconTransmitter {
             mAdvertiseCallback = new AdvertiseCallback() {
                 @Override
                 public void onStartFailure(int errorCode) {
-                    Log.e(TAG,"Advertisement start failed, code: "+errorCode);
+                    BeaconManager.e(TAG,"Advertisement start failed, code: "+errorCode);
                     if (mAdvertisingClientCallback != null) {
                         mAdvertisingClientCallback.onStartFailure(errorCode);
                     }
@@ -234,7 +234,7 @@ public class BeaconTransmitter {
 
                 @Override
                 public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                    Log.i(TAG,"Advertisement start succeeded.");
+                    BeaconManager.i(TAG,"Advertisement start succeeded.");
                     mStarted = true;
                     if (mAdvertisingClientCallback != null) {
                         mAdvertisingClientCallback.onStartSuccess(settingsInEffect);

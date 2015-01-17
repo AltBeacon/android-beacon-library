@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.json.JSONArray;
@@ -89,19 +88,19 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     @Override
     public double calculateDistance(int txPower, double rssi) {
         if (mDistanceCalculator == null) {
-            Log.w(TAG, "distance calculator has not been set");
+            BeaconManager.w(TAG, "distance calculator has not been set");
             return -1.0;
         }
         return mDistanceCalculator.calculateDistance(txPower, rssi);
     }
 
     private DistanceCalculator findCalculatorForModel(AndroidModel model) {
-        BeaconManager.logDebug(TAG, "Finding best distance calculator for "+model.getVersion()+","+
+        BeaconManager.d(TAG, "Finding best distance calculator for "+model.getVersion()+","+
                 model.getBuildNumber()+","+model.getModel()+"," +
                 ""+model.getManufacturer());
 
         if (mModelMap == null) {
-            Log.d(TAG, "Cannot get distance calculator because modelMap was never initialized");
+            BeaconManager.d(TAG, "Cannot get distance calculator because modelMap was never initialized");
             return null;
         }
 
@@ -114,14 +113,14 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
         }
         if (bestMatchingModel != null) {
-            BeaconManager.logDebug(TAG, "found a match with score "+highestScore);
-            BeaconManager.logDebug(TAG, "Finding best distance calculator for "+bestMatchingModel.getVersion()+","+
+            BeaconManager.d(TAG, "found a match with score "+highestScore);
+            BeaconManager.d(TAG, "Finding best distance calculator for "+bestMatchingModel.getVersion()+","+
                     bestMatchingModel.getBuildNumber()+","+bestMatchingModel.getModel()+"," +
                     ""+bestMatchingModel.getManufacturer());
             mModel = bestMatchingModel;
         } else {
             mModel = mDefaultModel;
-            Log.w(TAG, "Cannot find match for this device.  Using default");
+            BeaconManager.w(TAG, "Cannot find match for this device.  Using default");
         }
         return mModelMap.get(mModel);
     }
@@ -157,7 +156,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
         }
         catch (IOException e) {
-            Log.w(TAG, "Cannot open distance model file "+file);
+            BeaconManager.w(TAG, "Cannot open distance model file "+file);
             return false;
         }
         finally {
@@ -172,7 +171,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             buildModelMap(sb.toString());
             return true;
         } catch (JSONException e) {
-            Log.w(TAG, "Cannot update distance models from online database at "+mRemoteUpdateUrlString+
+            BeaconManager.w(TAG, "Cannot update distance models from online database at "+mRemoteUpdateUrlString+
                     " with JSON of "+sb.toString()+" due to exception ", e);
             return false;
         }
@@ -187,7 +186,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             outputStream.write(jsonString.getBytes());
             outputStream.close();
         } catch (Exception e) {
-            Log.w(TAG, "Cannot write updated distance model to local storage", e);
+            BeaconManager.w(TAG, "Cannot write updated distance model to local storage", e);
             return false;
         }
         finally {
@@ -196,7 +195,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
             catch (Exception e) {}
         }
-        Log.i(TAG, "Successfully saved new distance model file");
+        BeaconManager.i(TAG, "Successfully saved new distance model file");
         return true;
     }
 
@@ -204,7 +203,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private void requestModelMapFromWeb() {
 
         if (mContext.checkCallingOrSelfPermission("android.permission.INTERNET") != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "App has no android.permission.INTERNET permission.  Cannot check for distance model updates");
+            BeaconManager.w(TAG, "App has no android.permission.INTERNET permission.  Cannot check for distance model updates");
             return;
         }
 
@@ -213,26 +212,26 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             @Override
             public void onComplete(String body, Exception ex, int code) {
                 if (ex != null) {
-                    Log.w(TAG, "Cannot updated distance models from online database at "+mRemoteUpdateUrlString+
+                    BeaconManager.w(TAG, "Cannot updated distance models from online database at "+mRemoteUpdateUrlString+
                             " due to exception: "+ex);
                 }
                 else if (code != 200) {
-                    Log.w(TAG, "Cannot updated distance models from online database at "+mRemoteUpdateUrlString+
+                    BeaconManager.w(TAG, "Cannot updated distance models from online database at "+mRemoteUpdateUrlString+
                             " due to HTTP status code "+code);
 
                 }
                 else {
-                    BeaconManager.logDebug(TAG,
+                    BeaconManager.d(TAG,
                             "Successfully downloaded distance models from online database");
                     try {
                         buildModelMap(body);
                         if (saveJson(body)) {
                             loadModelMapFromFile();
                             mDistanceCalculator = findCalculatorForModel(mRequestedModel);
-                            Log.i(TAG, "Successfully updated distance model with latest from online database");
+                            BeaconManager.i(TAG, "Successfully updated distance model with latest from online database");
                         }
                     } catch (JSONException e) {
-                        Log.w(TAG, "Cannot parse json from downloaded distance model",e);
+                        BeaconManager.w(TAG, "Cannot parse json from downloaded distance model",e);
                     }
                 }
             }
@@ -273,7 +272,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             buildModelMap(stringFromFilePath(CONFIG_FILE));
         }
         catch (Exception e) {
-            Log.e(TAG, "Cannot build model distance calculations", e);
+            BeaconManager.e(TAG, "Cannot build model distance calculations", e);
         }
     }
 

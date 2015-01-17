@@ -3,6 +3,7 @@ package org.altbeacon.beacon.service;
 import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.BeaconManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -96,18 +97,18 @@ public class Stats {
 
     private void logSample(Sample sample, boolean showHeader) {
         if (showHeader) {
-            Log.d(TAG, "sample start time, sample stop time, first detection"+
+            BeaconManager.d(TAG, "sample start time, sample stop time, first detection"+
                     " time, last detection time, max millis between detections, detection count");
         }
-        Log.d(TAG, formattedDate(sample.sampleStartTime)+","+formattedDate(sample.sampleStopTime)+
-                ", "+formattedDate(sample.firstDetectionTime)+", "+formattedDate(sample.lastDetectionTime)+", "+
-                sample.maxMillisBetweenDetections+", "+sample.detectionCount );
+        BeaconManager.d(TAG, formattedDate(sample.sampleStartTime) + "," + formattedDate(sample.sampleStopTime) +
+                ", " + formattedDate(sample.firstDetectionTime) + ", " + formattedDate(sample.lastDetectionTime) + ", " +
+                sample.maxMillisBetweenDetections + ", " + sample.detectionCount);
     }
     private String formattedDate(Date d) {
         return d == null ? "" : sdf.format(d);
     }
     private void logSamples() {
-        Log.d(TAG, "--- Stats for "+mSamples.size()+" samples");
+        BeaconManager.d(TAG, "--- Stats for "+mSamples.size()+" samples");
         boolean firstPass = true;
         for (Sample sample : mSamples) {
             logSample(sample, firstPass);

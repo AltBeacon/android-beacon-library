@@ -29,7 +29,7 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
                 bluetoothAdapter.stopLeScan(getLeScanCallback());
             }
         } catch (Exception e) {
-            Log.w("Internal Android exception scanning for beacons: ", e);
+            BeaconManager.w("Internal Android exception scanning for beacons: ", e);
         }
     }
 
@@ -37,7 +37,7 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
     protected boolean deferScanIfNeeded() {
         long millisecondsUntilStart = mNextScanCycleStartTime - (new Date().getTime());
         if (millisecondsUntilStart > 0) {
-            BeaconManager.logDebug(TAG, "Waiting to start next bluetooth scan for another " + millisecondsUntilStart + " milliseconds");
+            BeaconManager.d(TAG, "Waiting to start next bluetooth scan for another " + millisecondsUntilStart + " milliseconds");
             // Don't actually wait until the next scan time -- only wait up to 1 second.  this
             // allows us to start scanning sooner if a consumer enters the foreground and expects
             // results more quickly
@@ -76,7 +76,7 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
                         @Override
                         public void onLeScan(final BluetoothDevice device, final int rssi,
                                              final byte[] scanRecord) {
-                            BeaconManager.logDebug(TAG, "got record");
+                            BeaconManager.d(TAG, "got record");
                             mCycledLeScanCallback.onLeScan(device, rssi, scanRecord);
                             mBluetoothCrashResolver.notifyScannedDevice(device, getLeScanCallback());
                         }

@@ -44,6 +44,8 @@ apply plugin: 'android-sdk-manager'
 apply plugin: "com.android.library"
 apply plugin: 'robolectric'
 
+apply from: 'gradle/eclipse.gradle'
+
 allprojects {
     version = "${getVersionName()}${isSnapshot == true ? "-SNAPSHOT" : ""}"
     group = "org.altbeacon"
@@ -133,39 +135,18 @@ idea {
     }
 }
 
-/** Bundling tasks for eclipse */
-task unzipAar(type: Copy, dependsOn: build) {
-    description = 'Unzip the aar in order to create an eclipse project'
+task renameAarForRelease(type: Copy, dependsOn: build) {
+    description = "Rename the aar for easy release publishing"
 
-    from zipTree(file("$buildDir/outputs/aar/${project.name}-release.aar"))
-    into file("$buildDir/outputs/aar/android-beacon-library")
-}
-
-task bundleEclipse(type: Tar, dependsOn: unzipAar) {
-    description = 'Creates a tar file for eclipse distributions'
-
-    destinationDir = file("$buildDir/outputs/aar/")
-    extension = 'tar.gz'
-    compression = Compression.GZIP
-    includeEmptyDirs = true
-
-    from("$buildDir/outputs/aar/android-beacon-library") {
-        into 'android-beacon-library'
-        exclude '*.jar'
-    }
-
-    from("$buildDir/outputs/aar/android-beacon-library") {
-        into 'android-beacon-library/libs'
-        include '*.jar'
-    }
-
-    from("$rootDir/eclipse-support/") {
-        into 'android-beacon-library/'
-        exclude '**/.retain'
+    from "$buildDir/outputs/aar/" //${project.name}-release.aar
+    into "$buildDir/outputs/aar/" //${project.name}-${project.version}.aar"
+    include "${project.name}-release.aar"
+    rename { String fileName ->
+        fileName = "${project.name}-${project.version}.aar"
     }
 }
 
-task distribution(dependsOn: ["bundleEclipse", "build", "clean"]) << {
+task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) << {
     println "Building with version=$version"
 }
 
@@ -191,7 +172,6 @@ android.libraryVariants.all { variant ->
 }
 
 build.mustRunAfter clean
-bundleEclipse.mustRunAfter build
 
 apply from: 'gradle/credentials.gradle'
 apply from: 'gradle/compile.gradle'

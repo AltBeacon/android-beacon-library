@@ -2,6 +2,12 @@ package org.altbeacon.beacon;
 
 import android.util.Log;
 
+/**
+ * Static factory for getting predefined logging classes.
+ *
+ * @author Andrew Reitz <andrew@andrewreitz.com>
+ * @since 2.1
+ */
 public final class Loggers {
     private static final Logger EMPTY_LOGGER = new Logger() {
         @Override

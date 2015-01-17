@@ -3,7 +3,7 @@ package org.altbeacon.beacon;
 /**
  * Interface to implement in order to get logs from the AltBeacon library.
  *
- * @author Andrew Reitz andrew@andrewreitz.com
+ * @author Andrew Reitz <andrew@andrewreitz.com>
  * @since 2.1
  */
 public interface Logger {

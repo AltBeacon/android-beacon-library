@@ -90,6 +90,7 @@ import android.os.RemoteException;
  *  </code></pre>
  *
  * @author David G. Young
+ * @author Andrew Reitz <andrew@andrewreitz.com>
  */
 @TargetApi(4)
 public class BeaconManager {
@@ -141,6 +142,7 @@ public class BeaconManager {
      * @param logger The logger to be used.,
      * @throws NullPointerException if logger is null.
      * @see org.altbeacon.beacon.Loggers
+     * @since 2.1
      */
     public static void setsLogger(Logger logger) {
         if (logger == null) {
@@ -156,6 +158,7 @@ public class BeaconManager {
      *                the class or activity where the log call occurs.
      * @param message The message you would like logged.
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void v(String tag, String message) {
         sLogger.v(tag, message);
@@ -169,6 +172,7 @@ public class BeaconManager {
      * @param message The message you would like logged.
      * @param t       An exception to log
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void v(String tag, String message, Throwable t) {
         sLogger.v(tag, message, t);
@@ -181,6 +185,7 @@ public class BeaconManager {
      *                the class or activity where the log call occurs.
      * @param message The message you would like logged.
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void d(String tag, String message) {
         sLogger.d(tag, message);
@@ -194,6 +199,7 @@ public class BeaconManager {
      * @param message The message you would like logged.
      * @param t       An exception to log
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void d(String tag, String message, Throwable t) {
         sLogger.d(tag, message, t);
@@ -206,6 +212,7 @@ public class BeaconManager {
      *                the class or activity where the log call occurs.
      * @param message The message you would like logged.
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void i(String tag, String message) {
         sLogger.i(tag, message);
@@ -219,6 +226,7 @@ public class BeaconManager {
      * @param message The message you would like logged.
      * @param t       An exception to log
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void i(String tag, String message, Throwable t) {
         sLogger.i(tag, message, t);
@@ -231,6 +239,7 @@ public class BeaconManager {
      *                the class or activity where the log call occurs.
      * @param message The message you would like logged.
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void w(String tag, String message) {
         sLogger.w(tag, message);
@@ -244,6 +253,7 @@ public class BeaconManager {
      * @param message The message you would like logged.
      * @param t       An exception to log
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void w(String tag, String message, Throwable t) {
         sLogger.w(tag, message, t);
@@ -256,6 +266,7 @@ public class BeaconManager {
      *                the class or activity where the log call occurs.
      * @param message The message you would like logged.
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void e(String tag, String message) {
         sLogger.e(tag, message);
@@ -269,6 +280,7 @@ public class BeaconManager {
      * @param message The message you would like logged.
      * @param t       An exception to log
      * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     * @since 2.1
      */
     public static void e(String tag, String message, Throwable t) {
         sLogger.e(tag, message, t);

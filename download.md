@@ -21,9 +21,9 @@ See [configuring your project](configure.html) for more information on how to us
 
 This release supports beacon transmission and low-power, fast-response background scanning for devices with Android 5.0 and BLE peripheral mode support.  The new APIs are not yet widely used and therefore not for production use.
 
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1-beta2.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.1-beta2/android-beacon-library-2.1-beta2.aar)
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1-beta2.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/untagged-7686360cf5d306bc0456/android-beacon-library-2.1-beta2.aar)
 
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1-beta2.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.1-beta2/android-beacon-library-2.1-beta2.tar.gz)
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1-beta2.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/untagged-7686360cf5d306bc0456/android-beacon-library-2.1-beta2.tar.gz)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.1-beta2)
 

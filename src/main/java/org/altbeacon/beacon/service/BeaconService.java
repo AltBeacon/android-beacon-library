@@ -31,6 +31,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -55,6 +56,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * @author dyoung
@@ -292,9 +294,11 @@ public class BeaconService extends Service {
     }
 
     private CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+        @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
+            new ScanProcessor().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                    new ScanData(device, rssi, scanRecord));
         }
 
         @Override

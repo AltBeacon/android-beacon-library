@@ -76,6 +76,8 @@ public class BeaconService extends Service {
     private List<BeaconParser> beaconParsers;
     private CycledLeScanner mCycledScanner;
     private boolean mBackgroundFlag = false;
+    private int mScanProcessorsQueued = 0;
+    private int mScanProcessorsRunning = 0;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -294,6 +296,10 @@ public class BeaconService extends Service {
     private CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            BeaconManager.logDebug(TAG, "About to run scan processor.  Queued: "+mScanProcessorsQueued+
+                " Running: "+mScanProcessorsRunning+" model updates in progress: "+
+                    BeaconManager.getModelUpdatesInProgress());
+            mScanProcessorsQueued++;
             new ScanProcessor().execute(new ScanData(device, rssi, scanRecord));
         }
 
@@ -420,8 +426,12 @@ public class BeaconService extends Service {
 
         @Override
         protected Void doInBackground(ScanData... params) {
+            mScanProcessorsQueued--;
+            mScanProcessorsRunning++;
             ScanData scanData = params[0];
             Beacon beacon = null;
+
+            BeaconManager.logDebug(TAG, "Running scan processor with "+BeaconService.this.beaconParsers.size()+" parsers");
 
             for (BeaconParser parser : BeaconService.this.beaconParsers) {
                 beacon = parser.fromScanData(scanData.scanRecord,
@@ -434,6 +444,7 @@ public class BeaconService extends Service {
                 mDetectionTracker.recordDetection();
                 processBeaconFromScan(beacon);
             }
+            mScanProcessorsRunning--;
             return null;
         }
 

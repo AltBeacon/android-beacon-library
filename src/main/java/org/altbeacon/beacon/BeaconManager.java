@@ -108,6 +108,7 @@ public class BeaconManager {
     private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
+    private static boolean sModelUpdatesInProgress = false;
 
     /**
      * set to true if you want to see debug messages associated with this library
@@ -183,6 +184,13 @@ public class BeaconManager {
         backgroundBetweenScanPeriod = p;
     }
 
+    public static void setModelUpdatesInProgress(boolean inProgress) {
+        sModelUpdatesInProgress = inProgress;
+    }
+
+    public static boolean getModelUpdatesInProgress() {
+        return sModelUpdatesInProgress;
+    }
 	/**
 	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
 	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.

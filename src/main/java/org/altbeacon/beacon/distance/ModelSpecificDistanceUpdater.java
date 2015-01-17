@@ -8,6 +8,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
+import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BuildConfig;
 import org.json.JSONObject;
 
@@ -27,10 +28,14 @@ public class ModelSpecificDistanceUpdater extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected Void doInBackground(Void... params) {
+        BeaconManager.setModelUpdatesInProgress(true);
+        BeaconManager.logDebug(TAG, "updating distance formulas...");
         mDistanceConfigFetcher.request();
         if (mCompletionHandler != null) {
             mCompletionHandler.onComplete(mDistanceConfigFetcher.getResponseString(), mDistanceConfigFetcher.getException(), mDistanceConfigFetcher.getResponseCode());
         }
+        BeaconManager.logDebug(TAG, "done updating distance formulas");
+        BeaconManager.setModelUpdatesInProgress(false);
         return null;
     }
 

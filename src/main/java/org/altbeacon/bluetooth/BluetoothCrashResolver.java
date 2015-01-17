@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
 
@@ -63,6 +62,7 @@ public class BluetoothCrashResolver {
     private Context context = null;
     private UpdateNotifier updateNotifier;
     private Set<String> distinctBluetoothAddresses = new HashSet<String>();
+    
     /**
      // It is very likely a crash if Bluetooth turns off and comes
      // back on in an extremely short interval.  Testing on a Nexus 4 shows
@@ -438,7 +438,7 @@ public class BluetoothCrashResolver {
         try {
             Thread.sleep(TIME_TO_LET_DISCOVERY_RUN_MILLIS);
             if (!discoveryStartConfirmed) {
-                Log.w(TAG, "BluetoothAdapter.ACTION_DISCOVERY_STARTED never received.  Recovery may fail.");
+                BeaconManager.w(TAG, "BluetoothAdapter.ACTION_DISCOVERY_STARTED never received.  Recovery may fail.");
             }
 
             final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();

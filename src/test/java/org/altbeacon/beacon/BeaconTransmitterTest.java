@@ -22,7 +22,7 @@ public class BeaconTransmitterTest {
 
     @Test
     public void testBeaconAdvertisingBytes() {
-        BeaconManager.setsLogger(Loggers.debug());
+        BeaconManager.setsLogger(Loggers.androidLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
         Context context = Robolectric.getShadowApplication().getApplicationContext();
 

@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
 import android.os.Build;
 import android.os.Parcel;
-import android.util.Log;
 
 
 import org.junit.Test;
@@ -24,7 +23,7 @@ public class SBeaconTest {
 
     @Test
     public void testDetectsSBeacon() {
-        BeaconManager.setsLogger(Loggers.debug());
+        BeaconManager.setsLogger(Loggers.androidLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("02011a1bff1801031501000100c502000000000000000003");
         SBeaconParser parser = new SBeaconParser();

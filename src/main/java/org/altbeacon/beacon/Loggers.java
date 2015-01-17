@@ -2,8 +2,6 @@ package org.altbeacon.beacon;
 
 import android.util.Log;
 
-import static org.altbeacon.beacon.BeaconManager.Logger;
-
 public final class Loggers {
     private static final Logger EMPTY_LOGGER = new Logger() {
         @Override
@@ -47,11 +45,6 @@ public final class Loggers {
         }
 
         @Override
-        public void w(String tag, Throwable t) {
-
-        }
-
-        @Override
         public void e(String tag, String message) {
 
         }
@@ -62,7 +55,7 @@ public final class Loggers {
         }
     };
 
-    private static final Logger DEBUG_LOGGER = new Logger() {
+    private static final Logger ANDROID_LOGGER = new Logger() {
         @Override
         public void v(String tag, String message) {
             Log.v(tag, message);
@@ -104,11 +97,6 @@ public final class Loggers {
         }
 
         @Override
-        public void w(String tag, Throwable t) {
-            Log.w(tag, t);
-        }
-
-        @Override
         public void e(String tag, String message) {
             Log.e(tag, message);
         }
@@ -119,12 +107,21 @@ public final class Loggers {
         }
     };
 
+    /**
+     * A logger that does nothing.
+     *
+     * @return an empty logger.
+     */
     public static Logger empty() {
         return EMPTY_LOGGER;
     }
 
-    public static Logger debug() {
-        return DEBUG_LOGGER;
+    /**
+     * @return A logger that logs all messages to the default android logs.
+     * @see android.util.Log
+     */
+    public static Logger androidLogger() {
+        return ANDROID_LOGGER;
     }
 
     private Loggers() {

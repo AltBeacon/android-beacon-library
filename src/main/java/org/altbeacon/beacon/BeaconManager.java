@@ -1,9 +1,9 @@
 /**
  * Radius Networks, Inc.
  * http://www.radiusnetworks.com
- * 
+ *
  * @author David G. Young
- * 
+ *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -11,9 +11,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -46,61 +46,59 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.util.Log;
 
 /**
  * An class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
  * This class is used in conjunction with <code>BeaconConsumer</code> interface, which provides a callback
  * when the <code>BeaconService</code> is ready to use.  Until this callback is made, ranging and monitoring
  * of beacons is not possible.
- * 
+ * <p/>
  * In the example below, an Activity implements the <code>BeaconConsumer</code> interface, binds
  * to the service, then when it gets the callback saying the service is ready, it starts ranging.
- * 
- *  <pre><code>
+ * <p/>
+ * <pre><code>
  *  public class RangingActivity extends Activity implements BeaconConsumer {
  *  	protected static final String TAG = "RangingActivity";
  *  	private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
- *  	 {@literal @}Override
+ *     {@literal @}Override
  *  	protected void onCreate(Bundle savedInstanceState) {
  *  		super.onCreate(savedInstanceState);
  *  		setContentView(R.layout.activity_ranging);
  *  		beaconManager.bind(this);
- *  	}
- *  	 {@literal @}Override 
+ *    }
+ *     {@literal @}Override
  *  	protected void onDestroy() {
  *  		super.onDestroy();
  *  		beaconManager.unbind(this);
- *  	}
- *  	 {@literal @}Override
+ *    }
+ *     {@literal @}Override
  *  	public void onBeaconServiceConnect() {
  *  		beaconManager.setRangeNotifier(new RangeNotifier() {
- *        	 {@literal @}Override 
+ *             {@literal @}Override
  *        	public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
  *     			if (beacons.size() > 0) {
- *	      			Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");		
- *     			}
- *        	}
- *  		});
- *  		
+ * 	      			Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");
+ *                }
+ *            }
+ *        });
+ * <p/>
  *  		try {
  *  			beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
- *  		} catch (RemoteException e) {	}
- *  	}
+ *        } catch (RemoteException e) {    }
+ *    }
  *  }
  *  </code></pre>
- * 
- * @author David G. Young
  *
+ * @author David G. Young
  */
 @TargetApi(4)
 public class BeaconManager {
-	private static final String TAG = "BeaconManager";
-	private Context mContext;
-	protected static BeaconManager client = null;
-	private Map<BeaconConsumer,ConsumerInfo> consumers = new HashMap<BeaconConsumer,ConsumerInfo>();
-	private Messenger serviceMessenger = null;
-	protected RangeNotifier rangeNotifier = null;
+    private static final String TAG = "BeaconManager";
+    private Context mContext;
+    protected static BeaconManager client = null;
+    private Map<BeaconConsumer, ConsumerInfo> consumers = new HashMap<BeaconConsumer, ConsumerInfo>();
+    private Messenger serviceMessenger = null;
+    protected RangeNotifier rangeNotifier = null;
     protected RangeNotifier dataRequestNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
     private ArrayList<Region> monitoredRegions = new ArrayList<Region>();
@@ -127,76 +125,151 @@ public class BeaconManager {
     /**
      * The default duration in milliseconds spent not scanning between each bluetooth scan cycle when no ranging/monitoring clients are in the foreground
      */
-    public static final long DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD = 5*60*1000;
+    public static final long DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD = 5 * 60 * 1000;
 
     private long foregroundScanPeriod = DEFAULT_FOREGROUND_SCAN_PERIOD;
     private long foregroundBetweenScanPeriod = DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
     private long backgroundScanPeriod = DEFAULT_BACKGROUND_SCAN_PERIOD;
     private long backgroundBetweenScanPeriod = DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
 
-    public interface Logger {
-        void v(String tag, String message);
-        void v(String tag, String message, Throwable t);
-        void d(String tag, String message);
-        void d(String tag, String message, Throwable t);
-        void i(String tag, String message);
-        void i(String tag, String message, Throwable t);
-        void w(String tag, String message);
-        void w(String tag, String message, Throwable t);
-        void w(String tag, Throwable t);
-        void e(String tag, String message);
-        void e(String tag, String message, Throwable t);
-    }
-
     private static Logger sLogger = Loggers.empty();
 
+    /**
+     * Set the logger to be used with in the AltBeacon library. This will receive all log message
+     * the library outputs.
+     *
+     * @param logger The logger to be used.,
+     * @throws NullPointerException if logger is null.
+     * @see org.altbeacon.beacon.Loggers
+     */
     public static void setsLogger(Logger logger) {
         if (logger == null) {
-            throw new IllegalArgumentException("Logger may not be null.");
+            throw new NullPointerException("Logger may not be null.");
         }
         sLogger = logger;
     }
 
+    /**
+     * Send a verbose log message to the logger.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void v(String tag, String message) {
         sLogger.v(tag, message);
     }
 
+    /**
+     * Send a verbose log message to the logger and an exception.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @param t       An exception to log
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void v(String tag, String message, Throwable t) {
         sLogger.v(tag, message, t);
     }
 
+    /**
+     * Send a debug log message to the logger.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void d(String tag, String message) {
         sLogger.d(tag, message);
     }
 
+    /**
+     * Send a debug log message to the logger and an exception.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @param t       An exception to log
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void d(String tag, String message, Throwable t) {
         sLogger.d(tag, message, t);
     }
 
+    /**
+     * Send a info log message to the logger.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void i(String tag, String message) {
         sLogger.i(tag, message);
     }
 
+    /**
+     * Send a info log message to the logger and an exception.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @param t       An exception to log
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void i(String tag, String message, Throwable t) {
         sLogger.i(tag, message, t);
     }
 
+    /**
+     * Send a warning log message to the logger.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void w(String tag, String message) {
         sLogger.w(tag, message);
     }
 
+    /**
+     * Send a warning log message to the logger and an exception.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @param t       An exception to log
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void w(String tag, String message, Throwable t) {
         sLogger.w(tag, message, t);
     }
 
-    public static void w(String tag, Throwable t) {
-        sLogger.w(tag, t);
-    }
-
+    /**
+     * Send a error log message to the logger.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void e(String tag, String message) {
         sLogger.e(tag, message);
     }
 
+    /**
+     * Send a error log message to the logger and an exception.
+     *
+     * @param tag     Used to identify the source of a log message.  It usually identifies
+     *                the class or activity where the log call occurs.
+     * @param message The message you would like logged.
+     * @param t       An exception to log
+     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
+     */
     public static void e(String tag, String message, Throwable t) {
         sLogger.e(tag, message, t);
     }
@@ -206,15 +279,19 @@ public class BeaconManager {
      * This function is used to setup the period before calling {@link #bind}  or when switching
      * between background/foreground. To have it effect on an already running scan (when the next
      * cycle starts), call {@link #updateScanPeriods}
+     *
      * @param p
      */
-    public void setForegroundScanPeriod(long p) { foregroundScanPeriod = p; }
+    public void setForegroundScanPeriod(long p) {
+        foregroundScanPeriod = p;
+    }
 
     /**
      * Sets the duration in milliseconds between each Bluetooth LE scan cycle to look for beacons.
      * This function is used to setup the period before calling {@link #bind}  or when switching
      * between background/foreground. To have it effect on an already running scan (when the next
      * cycle starts), call {@link #updateScanPeriods}
+     *
      * @param p
      */
     public void setForegroundBetweenScanPeriod(long p) {
@@ -226,30 +303,33 @@ public class BeaconManager {
      * This function is used to setup the period before calling {@link #bind}  or when switching
      * between background/foreground. To have it effect on an already running scan (when the next
      * cycle starts), call {@link #updateScanPeriods}
+     *
      * @param p
      */
     public void setBackgroundScanPeriod(long p) {
         backgroundScanPeriod = p;
     }
+
     /**
      * Sets the duration in milliseconds spent not scanning between each Bluetooth LE scan cycle when no ranging/monitoring clients are in the foreground
+     *
      * @param p
      */
     public void setBackgroundBetweenScanPeriod(long p) {
         backgroundBetweenScanPeriod = p;
     }
 
-	/**
-	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
-	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
-	 */
-	public static BeaconManager getInstanceForApplication(Context context) {
-		if (client == null) {
-			sLogger.d(TAG, "BeaconManager instance creation");
-			client = new BeaconManager(context);
-		}
-		return client;
-	}
+    /**
+     * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
+     * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
+     */
+    public static BeaconManager getInstanceForApplication(Context context) {
+        if (client == null) {
+            sLogger.d(TAG, "BeaconManager instance creation");
+            client = new BeaconManager(context);
+        }
+        return client;
+    }
 
     /**
      * Gets a list of the active beaconParsers.  This list may only be modified before any consumers
@@ -265,41 +345,43 @@ public class BeaconManager {
         return beaconParsers;
     }
 
-	protected BeaconManager(Context context) {
-		mContext = context;
+    protected BeaconManager(Context context) {
+        mContext = context;
         if (!sManifestCheckingDisabled) {
             verifyServiceDeclaration();
         }
         this.beaconParsers.add(new AltBeaconParser());
-	}
-	/**
-	 * Check if Bluetooth LE is supported by this Android device, and if so, make sure it is enabled.
-	 * @throws  BleNotAvailableException if Bluetooth LE is not supported.  (Note: The Android emulator will do this)
-	 * @return false if it is supported and not enabled
-	 */
+    }
+
+    /**
+     * Check if Bluetooth LE is supported by this Android device, and if so, make sure it is enabled.
+     *
+     * @return false if it is supported and not enabled
+     * @throws BleNotAvailableException if Bluetooth LE is not supported.  (Note: The Android emulator will do this)
+     */
     @TargetApi(18)
-	public boolean checkAvailability() throws BleNotAvailableException {
+    public boolean checkAvailability() throws BleNotAvailableException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             throw new BleNotAvailableException("Bluetooth LE not supported by this device");
         }
-		if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-			throw new BleNotAvailableException("Bluetooth LE not supported by this device"); 
-		}		
-		else {
-			if (((BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled()){
-				return true;
-			}
-		}	
-		return false;
-	}
-	/**
-	 * Binds an Android <code>Activity</code> or <code>Service</code> to the <code>BeaconService</code>.  The
-	 * <code>Activity</code> or <code>Service</code> must implement the <code>beaconConsuemr</code> interface so
-	 * that it can get a callback when the service is ready to use.
-	 * 
-	 * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
-	 */
-	public void bind(BeaconConsumer consumer) {
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            throw new BleNotAvailableException("Bluetooth LE not supported by this device");
+        } else {
+            if (((BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Binds an Android <code>Activity</code> or <code>Service</code> to the <code>BeaconService</code>.  The
+     * <code>Activity</code> or <code>Service</code> must implement the <code>beaconConsuemr</code> interface so
+     * that it can get a callback when the service is ready to use.
+     *
+     * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
+     */
+    public void bind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
@@ -307,29 +389,28 @@ public class BeaconManager {
         synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
                 sLogger.d(TAG, "This consumer is already bound");
-            }
-            else {
-                sLogger.d(TAG, "This consumer is not bound.  binding: "+consumer);
+            } else {
+                sLogger.d(TAG, "This consumer is not bound.  binding: " + consumer);
                 consumers.put(consumer, new ConsumerInfo());
                 Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                 consumer.bindService(intent, beaconServiceConnection, Context.BIND_AUTO_CREATE);
-                sLogger.d(TAG, "consumer count is now:"+consumers.size());
+                sLogger.d(TAG, "consumer count is now:" + consumers.size());
             }
         }
-	}
-	
-	/**
-	 * Unbinds an Android <code>Activity</code> or <code>Service</code> to the <code>BeaconService</code>.  This should
-	 * typically be called in the onDestroy() method.
-	 * 
-	 * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
-	 */
-	public void unbind(BeaconConsumer consumer) {
+    }
+
+    /**
+     * Unbinds an Android <code>Activity</code> or <code>Service</code> to the <code>BeaconService</code>.  This should
+     * typically be called in the onDestroy() method.
+     *
+     * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
+     */
+    public void unbind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
-        synchronized(consumers) {
+        synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
                 sLogger.d(TAG, "Unbinding");
                 consumer.unbindService(beaconServiceConnection);
@@ -339,35 +420,37 @@ public class BeaconManager {
                     // release the serviceMessenger.
                     serviceMessenger = null;
                 }
-            }
-            else {
-                sLogger.d(TAG, "This consumer is not bound to: "+consumer);
+            } else {
+                sLogger.d(TAG, "This consumer is not bound to: " + consumer);
                 sLogger.d(TAG, "Bound consumers: ");
                 for (int i = 0; i < consumers.size(); i++) {
-                    sLogger.i(TAG, " "+consumers.get(i));
+                    sLogger.i(TAG, " " + consumers.get(i));
                 }
             }
         }
- 	}
+    }
 
     /**
      * Tells you if the passed beacon consumer is bound to the service
+     *
      * @param consumer
      * @return
      */
     public boolean isBound(BeaconConsumer consumer) {
-        synchronized(consumers) {
+        synchronized (consumers) {
             return consumers.keySet().contains(consumer) && (serviceMessenger != null);
         }
     }
 
     /**
      * Tells you if the any beacon consumer is bound to the service
+     *
      * @return
      */
     public boolean isAnyConsumerBound() {
         return consumers.size() > 0 && (serviceMessenger != null);
     }
+
     /**
      * This method notifies the beacon service that the application is either moving to background
      * mode or foreground mode.  When in background mode, BluetoothLE scans to look for beacons are
@@ -377,6 +460,7 @@ public class BeaconManager {
      * the foreground.  Updates will come every time interval equal to the sum total of the
      * BackgroundScanPeriod and the BackgroundBetweenScanPeriod.
      *
+     * @param backgroundMode true indicates the app is in the background
      * @see #DEFAULT_FOREGROUND_SCAN_PERIOD
      * @see #DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
      * @see #DEFAULT_BACKGROUND_SCAN_PERIOD;
@@ -385,7 +469,6 @@ public class BeaconManager {
      * @see #setForegroundBetweenScanPeriod(long p)
      * @see #setBackgroundScanPeriod(long p)
      * @see #setBackgroundBetweenScanPeriod(long p)
-     * @param backgroundMode true indicates the app is in the background
      */
     public void setBackgroundMode(boolean backgroundMode) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
@@ -396,67 +479,66 @@ public class BeaconManager {
             mBackgroundMode = backgroundMode;
             try {
                 this.updateScanPeriods();
-            }
-            catch (RemoteException e) {
+            } catch (RemoteException e) {
                 sLogger.e(TAG, "Cannot contact service to set scan periods");
             }
         }
     }
 
     /**
-      * @return indicator of whether any calls have yet been made to set the
-      * background mode 
-      */
+     * @return indicator of whether any calls have yet been made to set the
+     * background mode
+     */
     public boolean isBackgroundModeUninitialized() {
         return mBackgroundModeUninitialized;
     }
 
-	/**
-	 * Specifies a class that should be called each time the <code>BeaconService</code> gets ranging
-	 * data, which is nominally once per second when beacons are detected.
-     *
+    /**
+     * Specifies a class that should be called each time the <code>BeaconService</code> gets ranging
+     * data, which is nominally once per second when beacons are detected.
+     * <p/>
      * IMPORTANT:  Only one RangeNotifier may be active for a given application.  If two different
      * activities or services set different RangeNotifier instances, the last one set will receive
      * all the notifications.
-	 *  
-	 * @see RangeNotifier 
-	 * @param notifier
-	 */
-	public void setRangeNotifier(RangeNotifier notifier) {
-		rangeNotifier = notifier;
-	}
-
-	/**
-	 * Specifies a class that should be called each time the <code>BeaconService</code> sees
-	 * or stops seeing a Region of beacons.
      *
+     * @param notifier
+     * @see RangeNotifier
+     */
+    public void setRangeNotifier(RangeNotifier notifier) {
+        rangeNotifier = notifier;
+    }
+
+    /**
+     * Specifies a class that should be called each time the <code>BeaconService</code> sees
+     * or stops seeing a Region of beacons.
+     * <p/>
      * IMPORTANT:  Only one MonitorNotifier may be active for a given application.  If two different
      * activities or services set different MonitorNotifier instances, the last one set will receive
      * all the notifications.
-	 *
-	 * @see MonitorNotifier 
-	 * @see #startMonitoringBeaconsInRegion(Region region)
-	 * @see Region 
-	 * @param notifier
-	 */
-	public void setMonitorNotifier(MonitorNotifier notifier) {
-		monitorNotifier = notifier;
-	}
-	
-	/**
-	 * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
-	 * <code>Region</code> object, and providing updates on the estimated mDistance every seconds while
-	 * beacons in the Region are visible.  Note that the Region's unique identifier must be retained to
-	 * later call the stopRangingBeaconsInRegion method.
-	 *  
-	 * @see BeaconManager#setRangeNotifier(RangeNotifier)
-	 * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
-	 * @see RangeNotifier 
-	 * @see Region
-	 * @param region
-	 */
+     *
+     * @param notifier
+     * @see MonitorNotifier
+     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see Region
+     */
+    public void setMonitorNotifier(MonitorNotifier notifier) {
+        monitorNotifier = notifier;
+    }
+
+    /**
+     * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
+     * <code>Region</code> object, and providing updates on the estimated mDistance every seconds while
+     * beacons in the Region are visible.  Note that the Region's unique identifier must be retained to
+     * later call the stopRangingBeaconsInRegion method.
+     *
+     * @param region
+     * @see BeaconManager#setRangeNotifier(RangeNotifier)
+     * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
+     * @see RangeNotifier
+     * @see Region
+     */
     @TargetApi(18)
-	public void startRangingBeaconsInRegion(Region region) throws RemoteException {
+    public void startRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
@@ -464,26 +546,27 @@ public class BeaconManager {
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
-		Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode );
-		msg.obj = obj;
-		serviceMessenger.send(msg);
+        Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
+        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
+        msg.obj = obj;
+        serviceMessenger.send(msg);
         synchronized (rangedRegions) {
             rangedRegions.add(region);
         }
-	}
-	/**
-	 * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
-	 * <code>Region</code> object and providing mDistance information for them.
-	 *  
-	 * @see #setMonitorNotifier(MonitorNotifier notifier)
-	 * @see #startMonitoringBeaconsInRegion(Region region)
-	 * @see MonitorNotifier 
-	 * @see Region 
-	 * @param region
-	 */
+    }
+
+    /**
+     * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
+     * <code>Region</code> object and providing mDistance information for them.
+     *
+     * @param region
+     * @see #setMonitorNotifier(MonitorNotifier notifier)
+     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see MonitorNotifier
+     * @see Region
+     */
     @TargetApi(18)
-	public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
+    public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
@@ -491,10 +574,10 @@ public class BeaconManager {
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
-		Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode );
-		msg.obj = obj;
-		serviceMessenger.send(msg);
+        Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
+        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
+        msg.obj = obj;
+        serviceMessenger.send(msg);
         synchronized (rangedRegions) {
             Region regionToRemove = null;
             for (Region rangedRegion : rangedRegions) {
@@ -504,20 +587,21 @@ public class BeaconManager {
             }
             rangedRegions.remove(regionToRemove);
         }
-	}
-	/**
-	 * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
-	 * <code>Region</code> object.  Note that the Region's unique identifier must be retained to
-	 * later call the stopMonitoringBeaconsInRegion method.
-	 *  
-	 * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
-	 * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
-	 * @see MonitorNotifier 
-	 * @see Region 
-	 * @param region
-	 */
+    }
+
+    /**
+     * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
+     * <code>Region</code> object.  Note that the Region's unique identifier must be retained to
+     * later call the stopMonitoringBeaconsInRegion method.
+     *
+     * @param region
+     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
+     * @see MonitorNotifier
+     * @see Region
+     */
     @TargetApi(18)
-	public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
+    public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
@@ -525,27 +609,28 @@ public class BeaconManager {
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
-		Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode  );
-		msg.obj = obj;
-		serviceMessenger.send(msg);
+        Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
+        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
+        msg.obj = obj;
+        serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
             monitoredRegions.add(region);
         }
-	}
-	/**
-	 * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
-	 * <code>Region</code> object.  Note that the Region's unique identifier is used to match it to
-	 * an existing monitored Region.
-	 *  
-	 * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
-	 * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)
-	 * @see MonitorNotifier 
-	 * @see Region 
-	 * @param region
-	 */
+    }
+
+    /**
+     * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
+     * <code>Region</code> object.  Note that the Region's unique identifier is used to match it to
+     * an existing monitored Region.
+     *
+     * @param region
+     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)
+     * @see MonitorNotifier
+     * @see Region
+     */
     @TargetApi(18)
-	public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
+    public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
@@ -553,10 +638,10 @@ public class BeaconManager {
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
-		Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
-		StartRMData obj = new StartRMData(region, callbackPackageName(),this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode );
-		msg.obj = obj;
-		serviceMessenger.send(msg);
+        Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
+        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
+        msg.obj = obj;
+        serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
             Region regionToRemove = null;
             for (Region monitoredRegion : monitoredRegions) {
@@ -566,13 +651,14 @@ public class BeaconManager {
             }
             monitoredRegions.remove(regionToRemove);
         }
-	}
+    }
 
 
     /**
-     Updates an already running scan with scanPeriod/betweenScanPeriod according to Background/Foreground state.
-     Change will take effect on the start of the next scan cycle.
-     @throws RemoteException - If the BeaconManager is not bound to the service.
+     * Updates an already running scan with scanPeriod/betweenScanPeriod according to Background/Foreground state.
+     * Change will take effect on the start of the next scan cycle.
+     *
+     * @throws RemoteException - If the BeaconManager is not bound to the service.
      */
     @TargetApi(18)
     public void updateScanPeriods() throws RemoteException {
@@ -584,25 +670,25 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
-        sLogger.d(TAG, "updating background flag to "+this.mBackgroundMode );
-        sLogger.d(TAG, "updating scan period to "+this.getScanPeriod()+", "+this.getBetweenScanPeriod() );
+        sLogger.d(TAG, "updating background flag to " + this.mBackgroundMode);
+        sLogger.d(TAG, "updating scan period to " + this.getScanPeriod() + ", " + this.getBetweenScanPeriod());
         StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
     }
 
-	private String callbackPackageName() {
-		String packageName = mContext.getPackageName();
-        sLogger.d(TAG, "callback packageName: "+packageName);
-		return packageName;
-	}
+    private String callbackPackageName() {
+        String packageName = mContext.getPackageName();
+        sLogger.d(TAG, "callback packageName: " + packageName);
+        return packageName;
+    }
 
-	private ServiceConnection beaconServiceConnection = new ServiceConnection() {
-		// Called when the connection with the service is established
-	    public void onServiceConnected(ComponentName className, IBinder service) {
-            sLogger.d(TAG,  "we have a connection to the service now");
-	        serviceMessenger = new Messenger(service);
-            synchronized(consumers) {
+    private ServiceConnection beaconServiceConnection = new ServiceConnection() {
+        // Called when the connection with the service is established
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            sLogger.d(TAG, "we have a connection to the service now");
+            serviceMessenger = new Messenger(service);
+            synchronized (consumers) {
                 Iterator<BeaconConsumer> consumerIterator = consumers.keySet().iterator();
                 while (consumerIterator.hasNext()) {
                     BeaconConsumer consumer = consumerIterator.next();
@@ -611,33 +697,34 @@ public class BeaconManager {
                         consumer.onBeaconServiceConnect();
                         ConsumerInfo consumerInfo = consumers.get(consumer);
                         consumerInfo.isConnected = true;
-                        consumers.put(consumer,consumerInfo);
+                        consumers.put(consumer, consumerInfo);
                     }
                 }
             }
-	    }
+        }
 
-	    // Called when the connection with the service disconnects
-	    public void onServiceDisconnected(ComponentName className) {
+        // Called when the connection with the service disconnects
+        public void onServiceDisconnected(ComponentName className) {
             sLogger.e(TAG, "onServiceDisconnected");
             serviceMessenger = null;
         }
-	};	
+    };
 
     /**
-     * @see #monitorNotifier
      * @return monitorNotifier
+     * @see #monitorNotifier
      */
-	public MonitorNotifier getMonitoringNotifier() {
-		return this.monitorNotifier;		
-	}	
-	/**
-	 * @see #rangeNotifier
-	 * @return rangeNotifier
-	 */
-	public RangeNotifier getRangingNotifier() {
-		return this.rangeNotifier;		
-	}
+    public MonitorNotifier getMonitoringNotifier() {
+        return this.monitorNotifier;
+    }
+
+    /**
+     * @return rangeNotifier
+     * @see #rangeNotifier
+     */
+    public RangeNotifier getRangingNotifier() {
+        return this.rangeNotifier;
+    }
 
     /**
      * @return the list of regions currently being monitored
@@ -646,7 +733,6 @@ public class BeaconManager {
         synchronized(this.monitoredRegions) {
             return new ArrayList<Region>(this.monitoredRegions);
         }
-
     }
 
     /**
@@ -673,13 +759,19 @@ public class BeaconManager {
     public static void setBeaconSimulator(BeaconSimulator beaconSimulator) {
         BeaconManager.beaconSimulator = beaconSimulator;
     }
+
     public static BeaconSimulator getBeaconSimulator() {
         return BeaconManager.beaconSimulator;
     }
 
 
-    protected void setDataRequestNotifier(RangeNotifier notifier) { this.dataRequestNotifier = notifier; }
-    protected RangeNotifier getDataRequestNotifier() { return this.dataRequestNotifier; }
+    protected void setDataRequestNotifier(RangeNotifier notifier) {
+        this.dataRequestNotifier = notifier;
+    }
+
+    protected RangeNotifier getDataRequestNotifier() {
+        return this.dataRequestNotifier;
+    }
 
     private class ConsumerInfo {
         public boolean isConnected = false;
@@ -688,16 +780,15 @@ public class BeaconManager {
     private long getScanPeriod() {
         if (mBackgroundMode) {
             return backgroundScanPeriod;
-        }
-        else {
+        } else {
             return foregroundScanPeriod;
         }
     }
+
     private long getBetweenScanPeriod() {
         if (mBackgroundMode) {
             return backgroundBetweenScanPeriod;
-        }
-        else {
+        } else {
             return foregroundBetweenScanPeriod;
         }
     }
@@ -716,13 +807,14 @@ public class BeaconManager {
 
     public class ServiceNotDeclaredException extends RuntimeException {
         public ServiceNotDeclaredException() {
-            super("The BeaconService is not properly declared in AndroidManifest.xml.  If using Eclipse,"+
-            " please verify that your project.properties has manifestmerger.enabled=true");
+            super("The BeaconService is not properly declared in AndroidManifest.xml.  If using Eclipse," +
+                    " please verify that your project.properties has manifestmerger.enabled=true");
         }
     }
 
     /**
      * Determines if Android L Scanning is disabled by user selection
+     *
      * @return
      */
     public static boolean isAndroidLScanningDisabled() {
@@ -733,6 +825,7 @@ public class BeaconManager {
      * Allows disabling use of Android L BLE Scanning APIs on devices with API 21+
      * If set to false (default), devices with API 21+ will use the Android L APIs to
      * scan for beacons
+     *
      * @param disabled
      */
     public static void setAndroidLScanningDisabled(boolean disabled) {
@@ -742,6 +835,7 @@ public class BeaconManager {
     /**
      * Allows disabling check of manifest for proper configuration of service.  Useful for unit
      * testing
+     *
      * @param disabled
      */
     public static void setsManifestCheckingDisabled(boolean disabled) {

@@ -3,6 +3,8 @@ import org._10ne.gradle.rest.RestTask
 
 ext {
     isSnapshot = !project.hasProperty('release')
+    isSnapCi = System.getenv('SNAP_CI') != null
+    isSnapPullRequest = System.getenv('SNAP_PULL_REQUEST_NUMBER') != null
 }
 
 /*
@@ -220,4 +222,9 @@ task bintrayRelease {
     dependsOn bintraySign
     dependsOn bintrayPublishContent
     dependsOn bintrayToMavenCentral
+}
+
+artifactoryPublish {
+    // Skip deploying to artifactory if building a pull request
+    onlyIf { !isSnapPullRequest }
 }

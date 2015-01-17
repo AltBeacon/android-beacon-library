@@ -183,7 +183,7 @@ public abstract class CycledLeScanner {
                                     try {
                                         startScan();
                                     } catch (Exception e) {
-                                        BeaconManager.w("Internal Android exception scanning for beacons: ", e);
+                                        BeaconManager.w(TAG, "Internal Android exception scanning for beacons: ", e);
                                     }
                                 } else {
                                     BeaconManager.d(TAG, "Scanning unnecessary - no monitoring or ranging active.");
@@ -246,7 +246,7 @@ public abstract class CycledLeScanner {
                         finishScan();
 
                     } catch (Exception e) {
-                        BeaconManager.w("Internal Android exception scanning for beacons: ", e);
+                        BeaconManager.w(TAG, "Internal Android exception scanning for beacons: ", e);
                     }
                     mLastScanCycleEndTime = new Date().getTime();
                 } else {

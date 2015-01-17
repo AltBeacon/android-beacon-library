@@ -29,7 +29,7 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
                 bluetoothAdapter.stopLeScan(getLeScanCallback());
             }
         } catch (Exception e) {
-            BeaconManager.w("Internal Android exception scanning for beacons: ", e);
+            BeaconManager.w(TAG, "Internal Android exception scanning for beacons: ", e);
         }
     }
 

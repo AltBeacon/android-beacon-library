@@ -161,6 +161,7 @@ task bundleEclipse(type: Tar, dependsOn: unzipAar) {
 
     from("$rootDir/eclipse-support/") {
         into 'android-beacon-library/'
+        exclude '**/.retain'
     }
 }
 

@@ -44,6 +44,8 @@ apply plugin: 'android-sdk-manager'
 apply plugin: "com.android.library"
 apply plugin: 'robolectric'
 
+apply from: 'gradle/eclipse.gradle'
+
 allprojects {
     version = "${getVersionName()}${isSnapshot == true ? "-SNAPSHOT" : ""}"
     group = "org.altbeacon"
@@ -133,14 +135,18 @@ idea {
     }
 }
 
-/** Bundling tasks for eclipse */
-task bundleEclipse << {
-    exec {
-        executable 'scripts/bundle-eclipse'
+task renameAarForRelease(type: Copy, dependsOn: build) {
+    description = "Rename the aar for easy release publishing"
+
+    from "$buildDir/outputs/aar/" //${project.name}-release.aar
+    into "$buildDir/outputs/aar/" //${project.name}-${project.version}.aar"
+    include "${project.name}-release.aar"
+    rename { String fileName ->
+        fileName = "${project.name}-${project.version}.aar"
     }
 }
 
-task distribution(dependsOn: ["bundleEclipse", "build", "clean"]) << {
+task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) << {
     println "Building with version=$version"
 }
 
@@ -166,7 +172,6 @@ android.libraryVariants.all { variant ->
 }
 
 build.mustRunAfter clean
-bundleEclipse.mustRunAfter build
 
 apply from: 'gradle/credentials.gradle'
 apply from: 'gradle/compile.gradle'

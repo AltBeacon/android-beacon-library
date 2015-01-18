@@ -13,6 +13,7 @@ publishing {
             artifactId project.name
             version project.version
             artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
+            artifact "${project.buildDir}/outputs/aar/${project.name}-${project.version}.tar.gz"
             artifact androidJavadocsJar {
                 classifier 'source'
             }

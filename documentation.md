@@ -15,7 +15,7 @@ layout: android-beacon-library
 <li><a href='distance-calculations.html'>Getting distance estimates between a device and a beacon.</a></li>
 <li><a href='distance-triggering.html'>Triggering actions at a specific distance.</a></li>
 <li><a href='beacon_simulator.html'>Testing beacon apps in the simulator.</a></li>
-
+<li><a href='uses-feature.html'>Play Store feature filtering</a></li>
 </ul>
 
 ### Code samples and API documentation

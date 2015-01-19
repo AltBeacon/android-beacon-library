@@ -10,6 +10,7 @@ bintray {
     publications = ['dist']
     filesSpec {
         from "${project.buildDir}/outputs/aar/${project.name}-${project.version}.tar.gz"
+        into "."
     }
     pkg {
         repo = attr 'project_bintray_repo'

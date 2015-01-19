@@ -8,6 +8,9 @@ bintray {
     user = bintrayUsername
     key = bintrayKey
     publications = ['dist']
+    filesSpec {
+        from "${project.buildDir}/outputs/aar/${project.name}-${project.version}.tar.gz"
+    }
     pkg {
         repo = attr 'project_bintray_repo'
         name = attr 'name'
@@ -15,5 +18,17 @@ bintray {
         desc = attr 'project_description'
         licenses = ['Apache-2.0']
         labels = ['android', 'beacon', 'BLE', 'bluetooth']
+        version {
+            name = attr 'version'
+            gpg {
+                sign = true
+                passphrase = attr 'signingPassword'
+            }
+            mavenCentralSync {
+                sync = true
+                user = attr 'sonatypeUserName'
+                password = attr 'sonatypePassword'
+            }
+        }
     }
 }

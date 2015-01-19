@@ -3,6 +3,7 @@ package org.altbeacon.beacon.distance;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
@@ -20,7 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Obtains a <code>DistanceCalculator</code> appropriate for a specific Android model.  Each model
@@ -200,7 +200,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         return true;
     }
 
-    @TargetApi(Build.VERSION_CODES.CUPCAKE)
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void requestModelMapFromWeb() {
 
         if (mContext.checkCallingOrSelfPermission("android.permission.INTERNET") != PackageManager.PERMISSION_GRANTED) {
@@ -236,7 +236,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                     }
                 }
             }
-        }).execute();
+        }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     private void buildModelMap(String jsonString) throws JSONException {

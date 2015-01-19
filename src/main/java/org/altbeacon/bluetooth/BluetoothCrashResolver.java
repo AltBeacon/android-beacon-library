@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -63,7 +62,6 @@ public class BluetoothCrashResolver {
     private Context context = null;
     private UpdateNotifier updateNotifier;
     private Set<String> distinctBluetoothAddresses = new HashSet<String>();
-    private DiscoveryCanceller discoveryCanceller = new DiscoveryCanceller();
     /**
      // It is very likely a crash if Bluetooth turns off and comes
      // back on in an extremely short interval.  Testing on a Nexus 4 shows
@@ -286,7 +284,7 @@ public class BluetoothCrashResolver {
             // terms of battery, we will cancel it.
             if (TIME_TO_LET_DISCOVERY_RUN_MILLIS > 0 ) {
                 if (isDebugEnabled()) Log.d(TAG, "We will be cancelling this discovery in "+TIME_TO_LET_DISCOVERY_RUN_MILLIS+" milliseconds.");
-                discoveryCanceller.doInBackground();
+                cancelDiscovery();
             }
             else {
                 if (isDebugEnabled()) Log.d(TAG, "We will let this discovery run its course.");
@@ -439,42 +437,25 @@ public class BluetoothCrashResolver {
         if (isDebugEnabled()) Log.d(TAG, "Read "+distinctBluetoothAddresses.size()+" bluetooth addresses");
     }
 
-    private class DiscoveryCanceller extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                Thread.sleep(TIME_TO_LET_DISCOVERY_RUN_MILLIS);
-                if (!discoveryStartConfirmed) {
-                    Log.w(TAG, "BluetoothAdapter.ACTION_DISCOVERY_STARTED never received.  Recovery may fail.");
-                }
-
-                final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-                if (adapter.isDiscovering()) {
-                    if (isDebugEnabled()) Log.d(TAG, "Cancelling discovery");
-                    adapter.cancelDiscovery();
-                }
-                else {
-                    if (isDebugEnabled()) Log.d(TAG, "Discovery not running.  Won't cancel it");
-                }
-            } catch (InterruptedException e) {
-                if (isDebugEnabled()) Log.d(TAG, "DiscoveryCanceller sleep interrupted.");
+    private void cancelDiscovery() {
+        try {
+            Thread.sleep(TIME_TO_LET_DISCOVERY_RUN_MILLIS);
+            if (!discoveryStartConfirmed) {
+                Log.w(TAG, "BluetoothAdapter.ACTION_DISCOVERY_STARTED never received.  Recovery may fail.");
             }
-            return null;
-        }
 
-        @Override
-        protected void onPostExecute(Void result) {
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
+            final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter.isDiscovering()) {
+                if (isDebugEnabled()) Log.d(TAG, "Cancelling discovery");
+                adapter.cancelDiscovery();
+            }
+            else {
+                if (isDebugEnabled()) Log.d(TAG, "Discovery not running.  Won't cancel it");
+            }
+        } catch (InterruptedException e) {
+            if (isDebugEnabled()) Log.d(TAG, "DiscoveryCanceller sleep interrupted.");
         }
     }
-
 
 }
 

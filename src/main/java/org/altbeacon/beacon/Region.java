@@ -25,7 +25,6 @@ package org.altbeacon.beacon;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +62,8 @@ public class Region implements Parcelable {
             return new Region[size];
         }
     };
-    protected List<Identifier> mIdentifiers;
-	protected String mUniqueId;
+    protected final List<Identifier> mIdentifiers;
+	protected final String mUniqueId;
 
 	/**
 	 * Constructs a new Region object to be used for Ranging or Monitoring
@@ -89,8 +88,8 @@ public class Region implements Parcelable {
      * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
      * @param identifiers - list of identifiers for this region
      */
-    public Region(String uniqueId, ArrayList<Identifier> identifiers) {
-        this.mIdentifiers = new ArrayList<Identifier>(3);
+    public Region(String uniqueId, List<Identifier> identifiers) {
+        this.mIdentifiers = new ArrayList<Identifier>(identifiers);
         this.mUniqueId = uniqueId;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
@@ -102,7 +101,7 @@ public class Region implements Parcelable {
      * @return
      */
     public Identifier getId1() {
-        return mIdentifiers.get(0);
+        return getIdentifier(0);
     }
 
     /**
@@ -110,7 +109,7 @@ public class Region implements Parcelable {
      * @return
      */
     public Identifier getId2() {
-        return mIdentifiers.get(1);
+        return getIdentifier(1);
     }
 
     /**
@@ -118,7 +117,7 @@ public class Region implements Parcelable {
      * @return
      */
     public Identifier getId3() {
-        return mIdentifiers.get(2);
+        return getIdentifier(2);
     }
 
     /**
@@ -128,7 +127,7 @@ public class Region implements Parcelable {
      * @return
      */
     public Identifier getIdentifier(int i) {
-        return mIdentifiers.get(i);
+        return mIdentifiers.size() > i ? mIdentifiers.get(i) : null;
     }
 
     /**
@@ -150,7 +149,7 @@ public class Region implements Parcelable {
         for (int i = 0; i < this.mIdentifiers.size(); i++) {
             if (beacon.getIdentifiers().size() <= i && mIdentifiers.get(i) == null) {
                 // If the beacon has fewer identifiers than the region, but the region's
-                // corresponding identifer is null, consider it a match
+                // corresponding identifier is null, consider it a match
             }
             else {
                 if (mIdentifiers.get(i) != null && !mIdentifiers.get(i).equals(beacon.mIdentifiers.get(i))) {
@@ -161,19 +160,20 @@ public class Region implements Parcelable {
         return true;
 	}
 
-	@Override
-	public int hashCode() {
-		return this.mUniqueId.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return this.mUniqueId.hashCode();
+    }
 
-	public boolean equals(Object other) {
-		 if (other instanceof Region) {
-			return ((Region)other).mUniqueId.equals(this.mUniqueId);
-		 }
-		 return false;
-	}
-	
-	public String toString() {
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof Region) {
+            return ((Region)other).mUniqueId.equals(this.mUniqueId);
+        }
+        return false;
+    }
+
+    public String toString() {
         StringBuilder sb = new StringBuilder();
         int i = 1;
         for (Identifier identifier: mIdentifiers) {
@@ -207,18 +207,6 @@ public class Region implements Parcelable {
         }
     }
 
-    protected Region(Region otherRegion) {
-        super();
-        mIdentifiers = new ArrayList<Identifier>(otherRegion.mIdentifiers.size());
-        for (int i = 0; i < otherRegion.mIdentifiers.size(); i++) {
-            Identifier otherIdentifier = otherRegion.mIdentifiers.get(i);
-            mIdentifiers.add(otherIdentifier != null ? new Identifier(otherIdentifier) : null);
-        }
-        mUniqueId = otherRegion.mUniqueId;
-    }
-    
-    protected Region() {
-    }
 
     protected Region(Parcel in) {
         mUniqueId = in.readString();
@@ -234,9 +222,16 @@ public class Region implements Parcelable {
             }
         }
     }
-    @Override
-    public Object clone() {
-        return new Region(this);
-    }
 
+    /**
+     * Returns a clone of this instance.
+     * @deprecated instances of this class are immutable and therefore don't have to be cloned when
+     * used in concurrent code.
+     * @return a new instance of this class with the same uniqueId and identifiers
+     */
+    @Override
+    @Deprecated
+    public Region clone() {
+        return new Region(mUniqueId, mIdentifiers);
+    }
 }

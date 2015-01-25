@@ -413,7 +413,7 @@ public class BeaconManager {
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (rangedRegions) {
-            rangedRegions.add((Region) region.clone());
+            rangedRegions.add(region);
         }
 	}
 	/**
@@ -474,7 +474,7 @@ public class BeaconManager {
 		msg.obj = obj;
 		serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
-            monitoredRegions.add((Region) region.clone());
+            monitoredRegions.add(region);
         }
 	}
 	/**
@@ -587,26 +587,19 @@ public class BeaconManager {
      * @return the list of regions currently being monitored
      */
     public Collection<Region> getMonitoredRegions() {
-        ArrayList<Region> clonedMontoredRegions = new ArrayList<Region>();
         synchronized(this.monitoredRegions) {
-            for (Region montioredRegion : this.monitoredRegions) {
-                clonedMontoredRegions.add((Region) montioredRegion.clone());
-            }
+            return new ArrayList<Region>(this.monitoredRegions);
         }
-        return clonedMontoredRegions;
+
     }
 
     /**
      * @return the list of regions currently being ranged
      */
     public Collection<Region> getRangedRegions() {
-        ArrayList<Region> clonedRangedRegions = new ArrayList<Region>();
         synchronized(this.rangedRegions) {
-            for (Region rangedRegion : this.rangedRegions) {
-                clonedRangedRegions.add((Region) rangedRegion.clone());
-            }
+            return new ArrayList<Region>(this.rangedRegions);
         }
-        return clonedRangedRegions;
     }
 
     /**

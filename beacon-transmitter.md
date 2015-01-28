@@ -76,9 +76,11 @@ transmission.
 <tr><td>LGE</td><td>Nexus 4</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>LGE</td><td>Nexus 5</td><td>LPX13D</td><td>5.0</td></tr>
 <tr><td>LGE</td><td>Nexus 5</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>lge</td><td>LG-D802</td><td>LRX22G</td><td>5.0.2</td></tr>
 <tr><td>motorola</td><td>Moto X</td><td>LRX22G</td><td>5.0.2</td></tr>
 <tr><td>motorola</td><td>XT1033</td><td>LXB22.46-28</td><td>5.0.2</td></tr>
 <tr><td>motorola</td><td>XT1068</td><td>LXB22.46-28</td><td>5.0.2</td></tr>
+<tr><td>NVIDIA</td><td>SHIELD Tablet</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>OnePlus</td><td>A0001</td><td>LRX21V</td><td>5.0</td></tr>
 <tr><td>OnePlus</td><td>A0001</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>OnePlus</td><td>A0001</td><td>LRX22G</td><td>5.0.2</td></tr>

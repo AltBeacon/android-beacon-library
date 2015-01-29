@@ -278,20 +278,33 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     }
 
     private String stringFromFilePath(String path) throws IOException {
-        InputStream stream = ModelSpecificDistanceCalculator.class.getResourceAsStream("/"+path);
-        if (stream == null) {
-            stream = this.getClass().getClassLoader().getResourceAsStream("/"+path);
-        }
-
-        if (stream == null) {
-            throw new RuntimeException("Cannot load resource at "+path);
-        }
+        InputStream stream = null;
+        BufferedReader bufferedReader = null;
         StringBuilder inputStringBuilder = new StringBuilder();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-        String line = bufferedReader.readLine();
-        while(line != null){
-            inputStringBuilder.append(line);inputStringBuilder.append('\n');
-            line = bufferedReader.readLine();
+        try {
+            stream = ModelSpecificDistanceCalculator.class.getResourceAsStream("/"+path);
+            if (stream == null) {
+                stream = this.getClass().getClassLoader().getResourceAsStream("/"+path);
+            }
+
+            if (stream == null) {
+                throw new RuntimeException("Cannot load resource at "+path);
+            }
+            bufferedReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+            String line = bufferedReader.readLine();
+            while(line != null){
+                inputStringBuilder.append(line);inputStringBuilder.append('\n');
+                line = bufferedReader.readLine();
+            }
+
+        }
+        finally {
+            if (bufferedReader != null) {
+                bufferedReader.close();
+            }
+            if (stream != null) {
+                stream.close();
+            }
         }
         return inputStringBuilder.toString();
     }

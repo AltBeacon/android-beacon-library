@@ -11,9 +11,9 @@ See [configuring your project](configure.html) for more information on how to us
 
 ####Latest Stable Release 2.1
 
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1.aar](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.1.aar)
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.1/android-beacon-library-2.1.aar)
 
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1.tar.gz](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.1.tar.gz)
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.1.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.1/android-beacon-library-2.1.tar.gz)
 
 [Release Notes](releasenotes_2_1.html)
 

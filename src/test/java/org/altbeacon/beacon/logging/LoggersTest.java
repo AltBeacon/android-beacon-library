@@ -29,22 +29,22 @@ import static org.junit.Assert.assertThat;
  */
 public class LoggersTest {
     @Test
-    public void loggerReturnsDebugInstance() {
-        Logger logger = Loggers.debug();
+    public void loggersReturnsVerboseInstance() {
+        Logger logger = Loggers.verboseLogger();
 
-        assertThat(logger, instanceOf(DebugLogger.class));
+        assertThat(logger, instanceOf(VerboseAndroidLogger.class));
     }
 
     @Test
-    public void debugLoggerReturnsSameInstance() {
-        Logger logger1 = Loggers.debug();
-        Logger logger2 = Loggers.debug();
+    public void verboseLoggerReturnsSameInstance() {
+        Logger logger1 = Loggers.verboseLogger();
+        Logger logger2 = Loggers.verboseLogger();
 
         assertThat(logger1, sameInstance(logger2));
     }
 
     @Test
-    public void loggerReturnsEmptyInstance() {
+    public void loggersReturnsEmptyInstance() {
         Logger logger = Loggers.empty();
 
         assertThat(logger, instanceOf(EmptyLogger.class));
@@ -54,6 +54,21 @@ public class LoggersTest {
     public void emptyLoggerReturnsSameInstance() {
         Logger logger1 = Loggers.empty();
         Logger logger2 = Loggers.empty();
+
+        assertThat(logger1, sameInstance(logger2));
+    }
+
+    @Test
+    public void loggersReturnsWarningLoggerInstance() {
+        Logger logger = Loggers.warningLogger();
+
+        assertThat(logger, instanceOf(WarningAndroidLogger.class));
+    }
+
+    @Test
+    public void warningLoggerReturnsSameInstance() {
+        Logger logger1 = Loggers.warningLogger();
+        Logger logger2 = Loggers.warningLogger();
 
         assertThat(logger1, sameInstance(logger2));
     }

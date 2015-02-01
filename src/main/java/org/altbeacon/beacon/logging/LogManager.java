@@ -18,13 +18,13 @@ package org.altbeacon.beacon.logging;
 
 /**
  * Manager for logging in the Altbeacon library. The default is a
- * {@link org.altbeacon.beacon.logging.Loggers#debug()}.
+ * {@link Loggers#warningLogger()} ()}.
  *
  * @author Andrew Reitz
  * @since 2.2
  */
 public final class LogManager {
-    private static Logger sLogger = Loggers.debug();
+    private static Logger sLogger = Loggers.warningLogger();
 
     /**
      * Set the logger that the Altbeacon library will use to send it's log messages to.

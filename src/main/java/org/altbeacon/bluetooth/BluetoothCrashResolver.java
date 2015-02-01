@@ -59,8 +59,6 @@ public class BluetoothCrashResolver {
     private long lastStateSaveTime = 0l;
     private static final long MIN_TIME_BETWEEN_STATE_SAVES_MILLIS = 60000l;
 
-    private volatile boolean debug = false;
-
     private Context context = null;
     private UpdateNotifier updateNotifier;
     private final Set<String> distinctBluetoothAddresses = new HashSet<String>();
@@ -104,7 +102,7 @@ public class BluetoothCrashResolver {
      */
     public BluetoothCrashResolver(Context context) {
         this.context = context.getApplicationContext();
-        debugLog("constructed");
+        LogManager.d(TAG, "constructed");
         loadState();
     }
 
@@ -120,7 +118,7 @@ public class BluetoothCrashResolver {
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         context.registerReceiver(receiver, filter);
 
-        debugLog("started listening for BluetoothAdapter events");
+        LogManager.d(TAG, "started listening for BluetoothAdapter events");
     }
 
     /**
@@ -129,25 +127,33 @@ public class BluetoothCrashResolver {
      */
     public void stop() {
         context.unregisterReceiver(receiver);
-        debugLog("stopped listening for BluetoothAdapter events");
+        LogManager.d(TAG, "stopped listening for BluetoothAdapter events");
         saveState();
     }
 
     /**
      * Enable debug logging.  By default no debug lines are logged.
-     * This method is thread safe.
+     * @deprecated Since the default logger used by the android-beacon-library only logs warnings and
+     * above, this method is no logger used. To log debug messages use the
+     * {@link org.altbeacon.beacon.logging.Loggers#verboseLogger()}
+     * @see org.altbeacon.beacon.logging.LogManager
+     * @see org.altbeacon.beacon.logging.Loggers
      */
+    @Deprecated
     public void enableDebug() {
-        debug = true;
+
     }
     
     /**
-     * Disable debug logging
-     * This method is thread safe.
+     * Disable debug logging.
+     * @deprecated Since the default logger used by the android-beacon-library only logs warnings and
+     * above, this method is no logger used. To log debug messages use the
+     * {@link org.altbeacon.beacon.logging.Loggers#verboseLogger()}
+     * @see org.altbeacon.beacon.logging.LogManager
+     * @see org.altbeacon.beacon.logging.Loggers
      */
-    public void disableDebug() {
-        debug = false;
-    }
+    @Deprecated
+    public void disableDebug() { }
 
     /**
      * Call this method from your BluetoothAdapter.LeScanCallback method.
@@ -179,7 +185,7 @@ public class BluetoothCrashResolver {
 
         newSize = distinctBluetoothAddresses.size();
         if (oldSize != newSize && newSize % 100 == 0) {
-            debugLog("Distinct bluetooth devices seen: %s", distinctBluetoothAddresses.size());
+            LogManager.d(TAG, "Distinct bluetooth devices seen: %s", distinctBluetoothAddresses.size());
         }
         if (distinctBluetoothAddresses.size()  > getCrashRiskDeviceCount()) {
             if (PREEMPTIVE_ACTION_ENABLED && !recoveryInProgress) {
@@ -196,20 +202,20 @@ public class BluetoothCrashResolver {
 
     public void crashDetected() {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            debugLog("Ignoring crashes before SDK 18, because BLE is unsupported.");
+            LogManager.d(TAG, "Ignoring crashes before SDK 18, because BLE is unsupported.");
             return;
         }
         LogManager.w(TAG, "BluetoothService crash detected");
         if (distinctBluetoothAddresses.size() > 0) {
-            debugLog("Distinct bluetooth devices seen at crash: %s",
+            LogManager.d(TAG, "Distinct bluetooth devices seen at crash: %s",
                     distinctBluetoothAddresses.size());
         }
-        long nowTimestamp = System.currentTimeMillis();
+        long nowTimestamp = new Date().getTime();
         lastBluetoothCrashDetectionTime = nowTimestamp;
         detectedCrashCount++;
 
         if (recoveryInProgress) {
-            debugLog("Ignoring bluetooth crash because recovery is already in progress.");
+            LogManager.d(TAG, "Ignoring bluetooth crash because recovery is already in progress.");
         }
         else {
             startRecovery();
@@ -272,25 +278,25 @@ public class BluetoothCrashResolver {
         // most recently seen BLE mac addresses.
         recoveryAttemptCount++;
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        debugLog("about to check if discovery is active");
+        LogManager.d(TAG, "about to check if discovery is active");
         if (!adapter.isDiscovering()) {
             LogManager.w(TAG, "Recovery attempt started");
             recoveryInProgress = true;
             discoveryStartConfirmed = false;
-            debugLog("about to command discovery");
+            LogManager.d(TAG, "about to command discovery");
             if (!adapter.startDiscovery()) {
                 LogManager.w(TAG, "Can't start discovery.  Is bluetooth turned on?");
             }
-            debugLog("startDiscovery commanded.  isDiscovering()=%s", adapter.isDiscovering());
+            LogManager.d(TAG, "startDiscovery commanded.  isDiscovering()=%s", adapter.isDiscovering());
             // We don't actually need to do a discovery -- we just need to kick one off so the
             // mac list will be pared back to 256.  Because discovery is an expensive operation in
             // terms of battery, we will cancel it.
             if (TIME_TO_LET_DISCOVERY_RUN_MILLIS > 0 ) {
-                debugLog("We will be cancelling this discovery in %s milliseconds.", TIME_TO_LET_DISCOVERY_RUN_MILLIS);
+                LogManager.d(TAG, "We will be cancelling this discovery in %s milliseconds.", TIME_TO_LET_DISCOVERY_RUN_MILLIS);
                 cancelDiscovery();
             }
             else {
-                debugLog("We will let this discovery run its course.");
+                LogManager.d(TAG, "We will let this discovery run its course.");
             }
         }
         else {
@@ -313,20 +319,20 @@ public class BluetoothCrashResolver {
 
             if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
                 if (recoveryInProgress) {
-                    debugLog("Bluetooth discovery finished");
+                    LogManager.d(TAG, "Bluetooth discovery finished");
                     finishRecovery();
                 }
                 else {
-                    debugLog("Bluetooth discovery finished (external)");
+                    LogManager.d(TAG, "Bluetooth discovery finished (external)");
                 }
             }
             if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
                 if (recoveryInProgress) {
                     discoveryStartConfirmed = true;
-                    debugLog("Bluetooth discovery started");
+                    LogManager.d(TAG, "Bluetooth discovery started");
                 }
                 else {
-                    debugLog("Bluetooth discovery started (external)");
+                    LogManager.d(TAG, "Bluetooth discovery started (external)");
                 }
             }
 
@@ -335,24 +341,24 @@ public class BluetoothCrashResolver {
                         BluetoothAdapter.ERROR);
                 switch (state) {
                     case BluetoothAdapter.ERROR:
-                        debugLog("Bluetooth state is ERROR");
+                        LogManager.d(TAG, "Bluetooth state is ERROR");
                         break;
                     case BluetoothAdapter.STATE_OFF:
-                        debugLog("Bluetooth state is OFF");
+                        LogManager.d(TAG, "Bluetooth state is OFF");
                         lastBluetoothOffTime = System.currentTimeMillis();
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         break;
                     case BluetoothAdapter.STATE_ON:
-                        debugLog("Bluetooth state is ON");
-                        debugLog("Bluetooth was turned off for %s milliseconds", lastBluetoothTurningOnTime - lastBluetoothOffTime);
+                        LogManager.d(TAG, "Bluetooth state is ON");
+                        LogManager.d(TAG, "Bluetooth was turned off for %s milliseconds", lastBluetoothTurningOnTime - lastBluetoothOffTime);
                         if (lastBluetoothTurningOnTime - lastBluetoothOffTime < SUSPICIOUSLY_SHORT_BLUETOOTH_OFF_INTERVAL_MILLIS) {
                             crashDetected();
                         }
                         break;
                     case BluetoothAdapter.STATE_TURNING_ON:
                         lastBluetoothTurningOnTime = new Date().getTime();
-                        debugLog("Bluetooth state is TURNING_ON");
+                        LogManager.d(TAG, "Bluetooth state is TURNING_ON");
                         break;
                 }
             }
@@ -388,7 +394,7 @@ public class BluetoothCrashResolver {
                 } catch (IOException e1) { }
             }
         }
-        debugLog("Wrote %s bluetooth addresses", distinctBluetoothAddresses.size());
+        LogManager.d(TAG, "Wrote %s bluetooth addresses", distinctBluetoothAddresses.size());
 
     }
 
@@ -437,7 +443,7 @@ public class BluetoothCrashResolver {
                 } catch (IOException e1) { }
             }
         }
-        debugLog("Read %s bluetooth addresses", distinctBluetoothAddresses.size());
+        LogManager.d(TAG, "Read %s bluetooth addresses", distinctBluetoothAddresses.size());
     }
 
     private void cancelDiscovery() {
@@ -449,20 +455,14 @@ public class BluetoothCrashResolver {
 
             final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
             if (adapter.isDiscovering()) {
-                debugLog("Cancelling discovery");
+                LogManager.d(TAG, "Cancelling discovery");
                 adapter.cancelDiscovery();
             }
             else {
-                debugLog("Discovery not running.  Won't cancel it");
+                LogManager.d(TAG, "Discovery not running.  Won't cancel it");
             }
         } catch (InterruptedException e) {
-            debugLog("DiscoveryCanceller sleep interrupted.");
-        }
-    }
-
-    private void debugLog(String message, Object... args) {
-        if (debug) {
-            LogManager.d(TAG, message, args);
+            LogManager.d(TAG, "DiscoveryCanceller sleep interrupted.");
         }
     }
 }

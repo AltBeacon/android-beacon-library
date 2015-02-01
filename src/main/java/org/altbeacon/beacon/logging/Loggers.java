@@ -28,7 +28,10 @@ public final class Loggers {
     private static final Logger EMPTY_LOGGER = new EmptyLogger();
 
     /** Debug Logger Singleton. */
-    private static final Logger DEBUG_LOGGER = new DebugLogger();
+    private static final Logger VERBOSE_ANDROID_LOGGER = new VerboseAndroidLogger();
+
+    /** Warning Logger Singleton. */
+    private static final Logger WARNING_ANDROID_LOGGER = new WarningAndroidLogger();
 
     /**
      * @return Get a logger that does nothing.
@@ -38,11 +41,19 @@ public final class Loggers {
     }
 
     /**
-     * @return Get a logger that logs to default Android logs.
+     * @return Get a logger that logs all messages to default Android logs.
      * @see android.util.Log
      */
-    public static Logger debug() {
-        return DEBUG_LOGGER;
+    public static Logger verboseLogger() {
+        return VERBOSE_ANDROID_LOGGER;
+    }
+
+    /**
+     * @return Get a logger that logs messages of warning and greater.
+     * @see android.util.Log
+     */
+    public static Logger warningLogger() {
+        return WARNING_ANDROID_LOGGER;
     }
 
     private Loggers() {

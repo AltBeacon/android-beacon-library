@@ -30,118 +30,109 @@ import static android.util.Log.WARN;
 import static junit.framework.Assert.assertEquals;
 
 /**
- * Ensure the debug logger logs correctly.
+ * Ensure the verbose logger logs correctly.
  *
  * @author Andrew Reitz
  */
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
-public class DebugLoggerTest {
-    Logger logger = new DebugLogger();
+public class VerboseAndroidLoggerTest {
+    private String tag = getClass().getName();
+    private Logger logger = new VerboseAndroidLogger();
 
     @Test
     public void verboseLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
 
-        logger.v(expectedTag, "Hello %s", "World");
+        logger.v(tag, "Hello %s", "World");
 
-        assertLogged(VERBOSE, expectedTag, expectedMessage, null);
+        assertLogged(VERBOSE, tag, expectedMessage, null);
     }
 
     @Test
     public void verboseWithThrowableLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
         Throwable t = new Throwable("Test Throwable");
 
-        logger.v(t, expectedTag, "Hello %s", "World");
+        logger.v(t, tag, "Hello %s", "World");
 
-        assertLogged(VERBOSE, expectedTag, expectedMessage, t);
+        assertLogged(VERBOSE, tag, expectedMessage, t);
     }
 
     @Test
     public void debugLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
 
-        logger.d(expectedTag, "Hello %s", "World");
+        logger.d(tag, "Hello %s", "World");
 
-        assertLogged(DEBUG, expectedTag, expectedMessage, null);
+        assertLogged(DEBUG, tag, expectedMessage, null);
     }
 
     @Test
     public void debugWithThrowableLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
         Throwable t = new Throwable("Test Throwable");
 
-        logger.d(t, expectedTag, "Hello %s", "World");
+        logger.d(t, tag, "Hello %s", "World");
 
-        assertLogged(DEBUG, expectedTag, expectedMessage, t);
+        assertLogged(DEBUG, tag, expectedMessage, t);
     }
 
     @Test
     public void infoLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
 
-        logger.v(expectedTag, "Hello %s", "World");
+        logger.v(tag, "Hello %s", "World");
 
-        assertLogged(VERBOSE, expectedTag, expectedMessage, null);
+        assertLogged(VERBOSE, tag, expectedMessage, null);
     }
 
     @Test
     public void infoWithThrowableLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
         Throwable t = new Throwable("Test Throwable");
 
-        logger.i(t, expectedTag, "Hello %s", "World");
+        logger.i(t, tag, "Hello %s", "World");
 
-        assertLogged(INFO, expectedTag, expectedMessage, t);
+        assertLogged(INFO, tag, expectedMessage, t);
     }
 
     @Test
     public void warningLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
 
-        logger.w(expectedTag, "Hello %s", "World");
+        logger.w(tag, "Hello %s", "World");
 
-        assertLogged(WARN, expectedTag, expectedMessage, null);
+        assertLogged(WARN, tag, expectedMessage, null);
     }
 
     @Test
     public void warningWithThrowableLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
         Throwable t = new Throwable("Test Throwable");
 
-        logger.w(t, expectedTag, "Hello %s", "World");
+        logger.w(t, tag, "Hello %s", "World");
 
-        assertLogged(WARN, expectedTag, expectedMessage, t);
+        assertLogged(WARN, tag, expectedMessage, t);
     }
 
     @Test
     public void errorLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
 
-        logger.e(expectedTag, "Hello %s", "World");
+        logger.e(tag, "Hello %s", "World");
 
-        assertLogged(ERROR, expectedTag, expectedMessage, null);
+        assertLogged(ERROR, tag, expectedMessage, null);
     }
 
     @Test
     public void errorWithThrowableLoggedCorrectly() {
-        String expectedTag = "TestTag";
         String expectedMessage = "Hello World";
         Throwable t = new Throwable("Test Throwable");
 
-        logger.e(t, expectedTag, "Hello %s", "World");
+        logger.e(t, tag, "Hello %s", "World");
 
-        assertLogged(ERROR, expectedTag, expectedMessage, t);
+        assertLogged(ERROR, tag, expectedMessage, t);
     }
 
     private void assertLogged(int type, String tag, String msg, Throwable throwable) {

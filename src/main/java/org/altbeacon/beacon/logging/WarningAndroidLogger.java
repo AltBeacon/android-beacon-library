@@ -19,42 +19,29 @@ package org.altbeacon.beacon.logging;
 import android.util.Log;
 
 /**
- * Logger class that logs using the default Android logging mechanism.
+ * Android logger that only logs out warning and above to the {@link android.util.Log}.
  *
- * @author Android Reitz
  * @since 2.2
+ * @author Andrew Reitz
  */
-final class DebugLogger implements Logger {
+final class WarningAndroidLogger extends AbstractAndroidLogger {
+    @Override
+    public void v(String tag, String message, Object... args) { }
 
     @Override
-    public void v(String tag, String message, Object... args) {
-        Log.v(tag, formatString(message, args));
-    }
+    public void v(Throwable t, String tag, String message, Object... args) { }
 
     @Override
-    public void v(Throwable t, String tag, String message, Object... args) {
-        Log.v(tag, formatString(message, args), t);
-    }
+    public void d(String tag, String message, Object... args) { }
 
     @Override
-    public void d(String tag, String message, Object... args) {
-        Log.d(tag, formatString(message, args));
-    }
+    public void d(Throwable t, String tag, String message, Object... args) { }
 
     @Override
-    public void d(Throwable t, String tag, String message, Object... args) {
-        Log.d(tag, formatString(message, args), t);
-    }
+    public void i(String tag, String message, Object... args) { }
 
     @Override
-    public void i(String tag, String message, Object... args) {
-        Log.i(tag, formatString(message, args));
-    }
-
-    @Override
-    public void i(Throwable t, String tag, String message, Object... args) {
-        Log.i(tag, formatString(message, args), t);
-    }
+    public void i(Throwable t, String tag, String message, Object... args) { }
 
     @Override
     public void w(String tag, String message, Object... args) {
@@ -74,10 +61,5 @@ final class DebugLogger implements Logger {
     @Override
     public void e(Throwable t, String tag, String message, Object... args) {
         Log.e(tag, formatString(message, args), t);
-    }
-
-    private String formatString(String message, Object... args) {
-        // If no varargs are supplied, treat it as a request to log the string without formatting.
-        return args.length == 0 ? message : String.format(message, args);
     }
 }

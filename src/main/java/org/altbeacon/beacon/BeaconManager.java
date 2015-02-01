@@ -54,10 +54,10 @@ import android.os.RemoteException;
  * This class is used in conjunction with <code>BeaconConsumer</code> interface, which provides a callback
  * when the <code>BeaconService</code> is ready to use.  Until this callback is made, ranging and monitoring
  * of beacons is not possible.
- * <p/>
+ *
  * In the example below, an Activity implements the <code>BeaconConsumer</code> interface, binds
  * to the service, then when it gets the callback saying the service is ready, it starts ranging.
- * <p/>
+ *
  * <pre><code>
  *  public class RangingActivity extends Activity implements BeaconConsumer {
  *  	protected static final String TAG = "RangingActivity";
@@ -83,7 +83,7 @@ import android.os.RemoteException;
  *                }
  *            }
  *        });
- * <p/>
+ *
  *  		try {
  *  			beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
  *        } catch (RemoteException e) {    }
@@ -125,7 +125,7 @@ public class BeaconManager {
     @Deprecated
     public static void setDebug(boolean debug) {
         if (debug) {
-            LogManager.setLogger(Loggers.debug());
+            LogManager.setLogger(Loggers.verboseLogger());
         } else {
             LogManager.setLogger(Loggers.empty());
         }

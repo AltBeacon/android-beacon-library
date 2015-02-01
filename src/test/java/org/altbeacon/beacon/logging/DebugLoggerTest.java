@@ -29,6 +29,11 @@ import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
 import static junit.framework.Assert.assertEquals;
 
+/**
+ * Ensure the debug logger logs correctly.
+ *
+ * @author Andrew Reitz
+ */
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class DebugLoggerTest {

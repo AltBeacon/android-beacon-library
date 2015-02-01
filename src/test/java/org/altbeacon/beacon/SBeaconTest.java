@@ -6,6 +6,8 @@ import android.os.Build;
 import android.os.Parcel;
 
 
+import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.logging.Loggers;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -23,7 +25,6 @@ public class SBeaconTest {
 
     @Test
     public void testDetectsSBeacon() {
-        BeaconManager.setsLogger(Loggers.androidLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("02011a1bff1801031501000100c502000000000000000003");
         SBeaconParser parser = new SBeaconParser();

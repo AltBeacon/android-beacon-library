@@ -27,10 +27,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 import org.altbeacon.beacon.service.StartRMData;
@@ -94,22 +95,29 @@ import android.os.RemoteException;
  */
 @TargetApi(4)
 public class BeaconManager {
-    private static final String TAG = "BeaconManager";
-    private Context mContext;
-    protected static BeaconManager client = null;
-    private Map<BeaconConsumer, ConsumerInfo> consumers = new HashMap<BeaconConsumer, ConsumerInfo>();
-    private Messenger serviceMessenger = null;
-    protected RangeNotifier rangeNotifier = null;
+	private static final String TAG = "BeaconManager";
+	private Context mContext;
+	protected static BeaconManager client = null;
+	private final Map<BeaconConsumer, ConsumerInfo> consumers = new HashMap<BeaconConsumer,ConsumerInfo>();
+	private Messenger serviceMessenger = null;
+	protected RangeNotifier rangeNotifier = null;
     protected RangeNotifier dataRequestNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
-    private ArrayList<Region> monitoredRegions = new ArrayList<Region>();
-    private ArrayList<Region> rangedRegions = new ArrayList<Region>();
-    private ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
+    private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
+    private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
+    private final ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
 
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
+
+    /**
+     * Set to true if you want to show library debugging
+     */
+    @Deprecated
+    public static void setDebug(boolean debug) {
+    }
 
     /**
      * The default duration in milliseconds of the bluetooth scan cycle
@@ -132,159 +140,6 @@ public class BeaconManager {
     private long foregroundBetweenScanPeriod = DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
     private long backgroundScanPeriod = DEFAULT_BACKGROUND_SCAN_PERIOD;
     private long backgroundBetweenScanPeriod = DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
-
-    private static Logger sLogger = Loggers.empty();
-
-    /**
-     * Set the logger to be used with in the AltBeacon library. This will receive all log message
-     * the library outputs.
-     *
-     * @param logger The logger to be used.,
-     * @throws NullPointerException if logger is null.
-     * @see org.altbeacon.beacon.Loggers
-     * @since 2.1
-     */
-    public static void setsLogger(Logger logger) {
-        if (logger == null) {
-            throw new NullPointerException("Logger may not be null.");
-        }
-        sLogger = logger;
-    }
-
-    /**
-     * Send a verbose log message to the logger.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void v(String tag, String message) {
-        sLogger.v(tag, message);
-    }
-
-    /**
-     * Send a verbose log message to the logger and an exception.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @param t       An exception to log
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void v(String tag, String message, Throwable t) {
-        sLogger.v(tag, message, t);
-    }
-
-    /**
-     * Send a debug log message to the logger.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void d(String tag, String message) {
-        sLogger.d(tag, message);
-    }
-
-    /**
-     * Send a debug log message to the logger and an exception.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @param t       An exception to log
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void d(String tag, String message, Throwable t) {
-        sLogger.d(tag, message, t);
-    }
-
-    /**
-     * Send a info log message to the logger.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void i(String tag, String message) {
-        sLogger.i(tag, message);
-    }
-
-    /**
-     * Send a info log message to the logger and an exception.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @param t       An exception to log
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void i(String tag, String message, Throwable t) {
-        sLogger.i(tag, message, t);
-    }
-
-    /**
-     * Send a warning log message to the logger.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void w(String tag, String message) {
-        sLogger.w(tag, message);
-    }
-
-    /**
-     * Send a warning log message to the logger and an exception.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @param t       An exception to log
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void w(String tag, String message, Throwable t) {
-        sLogger.w(tag, message, t);
-    }
-
-    /**
-     * Send a error log message to the logger.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void e(String tag, String message) {
-        sLogger.e(tag, message);
-    }
-
-    /**
-     * Send a error log message to the logger and an exception.
-     *
-     * @param tag     Used to identify the source of a log message.  It usually identifies
-     *                the class or activity where the log call occurs.
-     * @param message The message you would like logged.
-     * @param t       An exception to log
-     * @see org.altbeacon.beacon.BeaconManager#setsLogger(Logger)
-     * @since 2.1
-     */
-    public static void e(String tag, String message, Throwable t) {
-        sLogger.e(tag, message, t);
-    }
 
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.
@@ -331,17 +186,17 @@ public class BeaconManager {
         backgroundBetweenScanPeriod = p;
     }
 
-    /**
-     * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
-     * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
-     */
-    public static BeaconManager getInstanceForApplication(Context context) {
-        if (client == null) {
-            sLogger.d(TAG, "BeaconManager instance creation");
-            client = new BeaconManager(context);
-        }
-        return client;
-    }
+	/**
+	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
+	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
+	 */
+	public static BeaconManager getInstanceForApplication(Context context) {
+		if (client == null) {
+            LogManager.d(TAG, "BeaconManager instance creation");
+			client = new BeaconManager(context);
+		}
+		return client;
+	}
 
     /**
      * Gets a list of the active beaconParsers.  This list may only be modified before any consumers
@@ -395,18 +250,19 @@ public class BeaconManager {
      */
     public void bind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
-                sLogger.d(TAG, "This consumer is already bound");
-            } else {
-                sLogger.d(TAG, "This consumer is not bound.  binding: " + consumer);
+                LogManager.d(TAG, "This consumer is already bound");
+            }
+            else {
+                LogManager.d(TAG, "This consumer is not bound.  binding: %s", consumer);
                 consumers.put(consumer, new ConsumerInfo());
                 Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                 consumer.bindService(intent, beaconServiceConnection, Context.BIND_AUTO_CREATE);
-                sLogger.d(TAG, "consumer count is now:" + consumers.size());
+                LogManager.d(TAG, "consumer count is now: %s", consumers.size());
             }
         }
     }
@@ -419,12 +275,12 @@ public class BeaconManager {
      */
     public void unbind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         synchronized (consumers) {
             if (consumers.keySet().contains(consumer)) {
-                sLogger.d(TAG, "Unbinding");
+                LogManager.d(TAG, "Unbinding");
                 consumer.unbindService(beaconServiceConnection);
                 consumers.remove(consumer);
                 if (consumers.size() == 0) {
@@ -432,11 +288,13 @@ public class BeaconManager {
                     // release the serviceMessenger.
                     serviceMessenger = null;
                 }
-            } else {
-                sLogger.d(TAG, "This consumer is not bound to: " + consumer);
-                sLogger.d(TAG, "Bound consumers: ");
-                for (int i = 0; i < consumers.size(); i++) {
-                    sLogger.i(TAG, " " + consumers.get(i));
+            }
+            else {
+                LogManager.d(TAG, "This consumer is not bound to: %s", consumer);
+                LogManager.d(TAG, "Bound consumers: ");
+                Set<Map.Entry<BeaconConsumer, ConsumerInfo>> consumers = this.consumers.entrySet();
+                for (Map.Entry<BeaconConsumer, ConsumerInfo> consumerEntry : consumers) {
+                    LogManager.i(TAG, String.valueOf(consumerEntry.getValue()));
                 }
             }
         }
@@ -449,8 +307,8 @@ public class BeaconManager {
      * @return
      */
     public boolean isBound(BeaconConsumer consumer) {
-        synchronized (consumers) {
-            return consumers.keySet().contains(consumer) && (serviceMessenger != null);
+        synchronized(consumers) {
+            return consumers.get(consumer) != null && (serviceMessenger != null);
         }
     }
 
@@ -484,7 +342,7 @@ public class BeaconManager {
      */
     public void setBackgroundMode(boolean backgroundMode) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
         }
         mBackgroundModeUninitialized = false;
         if (backgroundMode != mBackgroundMode) {
@@ -492,7 +350,7 @@ public class BeaconManager {
             try {
                 this.updateScanPeriods();
             } catch (RemoteException e) {
-                sLogger.e(TAG, "Cannot contact service to set scan periods");
+                LogManager.e(TAG, "Cannot contact service to set scan periods");
             }
         }
     }
@@ -552,7 +410,7 @@ public class BeaconManager {
     @TargetApi(18)
     public void startRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -580,7 +438,7 @@ public class BeaconManager {
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -615,7 +473,7 @@ public class BeaconManager {
     @TargetApi(18)
     public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -644,7 +502,7 @@ public class BeaconManager {
     @TargetApi(18)
     public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -675,35 +533,33 @@ public class BeaconManager {
     @TargetApi(18)
     public void updateScanPeriods() throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            sLogger.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
-        sLogger.d(TAG, "updating background flag to " + this.mBackgroundMode);
-        sLogger.d(TAG, "updating scan period to " + this.getScanPeriod() + ", " + this.getBetweenScanPeriod());
+        LogManager.d(TAG, "updating background flag to %s", mBackgroundMode);
+        LogManager.d(TAG, "updating scan period to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
         StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
     }
 
-    private String callbackPackageName() {
-        String packageName = mContext.getPackageName();
-        sLogger.d(TAG, "callback packageName: " + packageName);
-        return packageName;
-    }
+	private String callbackPackageName() {
+		String packageName = mContext.getPackageName();
+        LogManager.d(TAG, "callback packageName: %s", packageName);
+		return packageName;
+	}
 
-    private ServiceConnection beaconServiceConnection = new ServiceConnection() {
-        // Called when the connection with the service is established
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            sLogger.d(TAG, "we have a connection to the service now");
-            serviceMessenger = new Messenger(service);
-            synchronized (consumers) {
-                Iterator<BeaconConsumer> consumerIterator = consumers.keySet().iterator();
-                while (consumerIterator.hasNext()) {
-                    BeaconConsumer consumer = consumerIterator.next();
+	private ServiceConnection beaconServiceConnection = new ServiceConnection() {
+		// Called when the connection with the service is established
+	    public void onServiceConnected(ComponentName className, IBinder service) {
+            LogManager.d(TAG, "we have a connection to the service now");
+	        serviceMessenger = new Messenger(service);
+            synchronized(consumers) {
+                for (BeaconConsumer consumer : consumers.keySet()) {
                     Boolean alreadyConnected = consumers.get(consumer).isConnected;
                     if (!alreadyConnected) {
                         consumer.onBeaconServiceConnect();
@@ -715,9 +571,9 @@ public class BeaconManager {
             }
         }
 
-        // Called when the connection with the service disconnects
-        public void onServiceDisconnected(ComponentName className) {
-            sLogger.e(TAG, "onServiceDisconnected");
+	    // Called when the connection with the service disconnects
+	    public void onServiceDisconnected(ComponentName className) {
+            LogManager.e(TAG, "onServiceDisconnected");
             serviceMessenger = null;
         }
     };
@@ -754,6 +610,25 @@ public class BeaconManager {
         synchronized(this.rangedRegions) {
             return new ArrayList<Region>(this.rangedRegions);
         }
+    }
+
+    /**
+     * Convenience method for logging debug by the library
+     * @param tag
+     * @param message
+     */
+    @Deprecated
+    public static void logDebug(String tag, String message) {
+    }
+
+    /**
+     * Convenience method for logging debug by the library
+     * @param tag
+     * @param message
+     * @param t
+     */
+    @Deprecated
+    public static void logDebug(String tag, String message, Throwable t) {
     }
 
     protected static BeaconSimulator beaconSimulator;

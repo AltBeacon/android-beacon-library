@@ -22,7 +22,6 @@ public class BeaconTransmitterTest {
 
     @Test
     public void testBeaconAdvertisingBytes() {
-        BeaconManager.setsLogger(Loggers.androidLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
         Context context = Robolectric.getShadowApplication().getApplicationContext();
 
@@ -32,7 +31,7 @@ public class BeaconTransmitterTest {
                 .setId3("2")
                 .setManufacturer(0x0118)
                 .setTxPower(-59)
-                .setDataFields(Arrays.asList(new Long[]{0l}))
+                .setDataFields(Arrays.asList(0L))
                 .build();
         BeaconParser beaconParser = new BeaconParser()
                 .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");

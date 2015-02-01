@@ -26,14 +26,12 @@ package org.altbeacon.beacon.service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Messenger;
 import android.os.Parcelable;
 
-import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.logging.LogManager;
 
 public class Callback {
-	private String TAG = "Callback";
-	private Messenger messenger;
+	private static final String TAG = "Callback";
 	private Intent intent;
 	public Callback(String intentPackageName) {
 		if (intentPackageName != null) {
@@ -57,7 +55,7 @@ public class Callback {
 	 */
 	public boolean call(Context context, String dataName, Parcelable data) {
 		if (intent != null) {
-			BeaconManager.d(TAG, "attempting callback via intent: " + intent.getComponent());
+			LogManager.d(TAG, "attempting callback via intent: %s", intent.getComponent());
 			intent.putExtra(dataName, data);
 			context.startService(intent);		
 			return true;			

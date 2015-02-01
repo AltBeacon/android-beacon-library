@@ -29,6 +29,7 @@ import android.os.Parcelable;
 import org.altbeacon.beacon.client.BeaconDataFactory;
 import org.altbeacon.beacon.client.NullBeaconDataFactory;
 import org.altbeacon.beacon.distance.DistanceCalculator;
+import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -295,7 +296,7 @@ public class Beacon implements Parcelable {
                 bestRssiAvailable = mRunningAverageRssi;
             }
             else {
-                BeaconManager.d(TAG, "Not using running average RSSI because it is null");
+                LogManager.d(TAG, "Not using running average RSSI because it is null");
             }
             mDistance = calculateDistance(mTxPower, bestRssiAvailable);
 		}
@@ -421,7 +422,7 @@ public class Beacon implements Parcelable {
      */
     public void writeToParcel(Parcel out, int flags) {
         out.writeInt(mIdentifiers.size());
-        BeaconManager.d(TAG, "serializing identifiers of size "+mIdentifiers.size());
+        LogManager.d(TAG, "serializing identifiers of size %s", mIdentifiers.size());
         for (Identifier identifier: mIdentifiers) {
             out.writeString(identifier == null ? null : identifier.toString());
         }
@@ -453,7 +454,7 @@ public class Beacon implements Parcelable {
             return Beacon.getDistanceCalculator().calculateDistance(txPower, bestRssiAvailable);
         }
         else {
-            BeaconManager.e(TAG, "Distance calculator not set.  Distance will bet set to -1");
+            LogManager.e(TAG, "Distance calculator not set.  Distance will bet set to -1");
             return -1.0;
         }
     }

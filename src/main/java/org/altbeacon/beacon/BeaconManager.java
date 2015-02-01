@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 import org.altbeacon.beacon.service.StartRMData;
@@ -113,10 +114,21 @@ public class BeaconManager {
     private static boolean sManifestCheckingDisabled = false;
 
     /**
-     * Set to true if you want to show library debugging
+     * Set to true if you want to show library debugging.
+     *
+     * @param debug True turn on all logs for this library to be printed out to logcat. False turns
+     *              off all logging.
+     * @deprecated To be removed in a future release. Use
+     * {@link org.altbeacon.beacon.logging.LogManager#setLogger(org.altbeacon.beacon.logging.Logger)}
+     * instead.
      */
     @Deprecated
     public static void setDebug(boolean debug) {
+        if (debug) {
+            LogManager.setLogger(Loggers.debug());
+        } else {
+            LogManager.setLogger(Loggers.empty());
+        }
     }
 
     /**
@@ -614,21 +626,30 @@ public class BeaconManager {
 
     /**
      * Convenience method for logging debug by the library
+     *
      * @param tag
      * @param message
+     * @deprecated This will be removed in a later release. Use
+     * {@link org.altbeacon.beacon.logging.LogManager#d(String, String, Object...)} instead.
      */
     @Deprecated
     public static void logDebug(String tag, String message) {
+        LogManager.d(tag, message);
     }
 
     /**
      * Convenience method for logging debug by the library
+     *
      * @param tag
      * @param message
      * @param t
+     * @deprecated This will be removed in a later release. Use
+     * {@link org.altbeacon.beacon.logging.LogManager#d(Throwable, String, String, Object...)}
+     * instead.
      */
     @Deprecated
     public static void logDebug(String tag, String message, Throwable t) {
+        LogManager.d(t, tag, message);
     }
 
     protected static BeaconSimulator beaconSimulator;

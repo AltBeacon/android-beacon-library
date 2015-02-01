@@ -4,6 +4,7 @@ import android.os.Parcel;
 
 import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 import org.robolectric.RobolectricTestRunner;
@@ -11,6 +12,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.junit.runner.RunWith;
 import org.junit.Test;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
@@ -34,11 +37,19 @@ public class IdentifierTest {
 
         assertTrue("Identifiers of different case should match", identifier1.equals(identifier2));
     }
+
     @Test
     public void testToStringNormalizesCase() {
         Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
 
         assertEquals("Identifiers of different case should match", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", identifier1.toString());
+    }
+
+    @Test
+    public void testToStringEqualsUuid() {
+        Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
+
+        assertEquals("uuidString of Identifier should match", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", identifier1.toUuidString());
     }
 
     @Test
@@ -73,7 +84,54 @@ public class IdentifierTest {
         Identifier identifier1 = Identifier.parse("65534");
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
         assertEquals("byte array is correct length", bytes.length, 2);
+        assertEquals("reported byte array is correct length", identifier1.getByteCount(), 2);
         assertEquals("first byte of decimal converted properly", 0xff, bytes[0] & 0xFF);
         assertEquals("last byte of decimal converted properly", 0xfe, bytes[1] & 0xFF);
+    }
+
+    @Test
+    public void testToByteArrayConvertsInt() {
+        Identifier identifier1 = Identifier.fromInt(65534);
+        byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
+        assertEquals("byte array is correct length", bytes.length, 2);
+        assertEquals("reported byte array is correct length", identifier1.getByteCount(), 2);
+        assertEquals("conversion back equals original value", identifier1.toInt(), 65534);
+        assertEquals("first byte of decimal converted properly", 0xff, bytes[0] & 0xFF);
+        assertEquals("last byte of decimal converted properly", 0xfe, bytes[1] & 0xFF);
+    }
+
+    @Test
+    public void testToByteArrayFromByteArray() {
+        byte[] value = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25};
+        Identifier identifier1 = Identifier.fromBytes(value, 0, value.length, false);
+        byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
+
+        assertEquals("byte array is correct length", bytes.length, 4);
+        assertEquals("correct string representation", identifier1.toString(), "0xffab1225");
+        assertTrue("arrays equal", Arrays.equals(value, bytes));
+        assertNotSame("arrays are copied", bytes, value);
+    }
+
+    @Test
+    public void testComparableDifferentLength() {
+        byte[] value1 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25};
+        Identifier identifier1 = Identifier.fromBytes(value1, 0, value1.length, false);
+        byte[] value2 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
+        Identifier identifier2 = Identifier.fromBytes(value2, 0, value2.length, false);
+
+        assertEquals("identifier1 is smaller than identifier2", identifier1.compareTo(identifier2), -1);
+        assertEquals("identifier2 is larger than identifier1", identifier2.compareTo(identifier1), 1);
+    }
+
+    @Test
+    public void testComparableSameLength() {
+        byte[] value1 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x22, 0x25};
+        Identifier identifier1 = Identifier.fromBytes(value1, 0, value1.length, false);
+        byte[] value2 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
+        Identifier identifier2 = Identifier.fromBytes(value2, 0, value2.length, false);
+
+        assertEquals("identifier1 is equal to identifier2", identifier1.compareTo(identifier1), 0);
+        assertEquals("identifier1 is larger than identifier2", identifier1.compareTo(identifier2), 1);
+        assertEquals("identifier2 is smaller than identifier1", identifier2.compareTo(identifier1), -1);
     }
 }

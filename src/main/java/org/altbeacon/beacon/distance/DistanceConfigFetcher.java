@@ -71,13 +71,13 @@ public class DistanceConfigFetcher {
                     mResponseCode = conn.getResponseCode();
                     LogManager.d(TAG, "response code is %s", conn.getResponseCode());
                 } catch (SecurityException e1) {
-                    LogManager.w(TAG, "Can't reach sever.  Have you added android.permission.INTERNET to your manifest?", e1);
+                    LogManager.w(e1, TAG, "Can't reach sever.  Have you added android.permission.INTERNET to your manifest?");
                     mException = e1;
                 } catch (FileNotFoundException e2) {
-                    LogManager.w(TAG, "No data exists at \"+urlString", e2);
+                    LogManager.w(e2, TAG, "No data exists at \"+urlString");
                     mException = e2;
                 } catch (java.io.IOException e3) {
-                    LogManager.w(TAG, "Can't reach server", e3);
+                    LogManager.w(e3, TAG, "Can't reach server");
                     mException = e3;
                 }
             }
@@ -100,7 +100,7 @@ public class DistanceConfigFetcher {
                 mResponse = responseBuilder.toString();
             } catch (Exception e) {
                 mException = e;
-                LogManager.w(TAG, "error reading beacon data", e);
+                LogManager.w(e, TAG, "error reading beacon data");
             }
         }
 

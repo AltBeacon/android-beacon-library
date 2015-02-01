@@ -185,7 +185,7 @@ public abstract class CycledLeScanner {
                                     try {
                                         startScan();
                                     } catch (Exception e) {
-                                        LogManager.e(TAG, "Internal Android exception scanning for beacons: ", e);
+                                        LogManager.e(e, TAG, "Internal Android exception scanning for beacons");
                                     }
                                 } else {
                                     LogManager.d(TAG, "Scanning unnecessary - no monitoring or ranging active.");
@@ -197,7 +197,7 @@ public abstract class CycledLeScanner {
                         }
                     }
                 } catch (Exception e) {
-                    LogManager.e(TAG, "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?", e);
+                    LogManager.e(e, TAG, "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
                 }
             } else {
                 LogManager.d(TAG, "We are already scanning");
@@ -249,7 +249,7 @@ public abstract class CycledLeScanner {
                         finishScan();
 
                     } catch (Exception e) {
-                        LogManager.w(TAG, "Internal Android exception scanning for beacons: ", e);
+                        LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
                     }
                     mLastScanCycleEndTime = new Date().getTime();
                 } else {

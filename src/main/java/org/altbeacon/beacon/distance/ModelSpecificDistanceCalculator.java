@@ -157,7 +157,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
         }
         catch (IOException e) {
-            LogManager.e(TAG, "Cannot open distance model file %s", e, file);
+            LogManager.e(e, TAG, "Cannot open distance model file %s", file);
             return false;
         }
         finally {
@@ -187,7 +187,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             outputStream.write(jsonString.getBytes());
             outputStream.close();
         } catch (Exception e) {
-            LogManager.w(TAG, "Cannot write updated distance model to local storage", e);
+            LogManager.w(e, TAG, "Cannot write updated distance model to local storage");
             return false;
         }
         finally {
@@ -232,7 +232,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                             LogManager.i(TAG, "Successfully updated distance model with latest from online database");
                         }
                     } catch (JSONException e) {
-                        LogManager.w(TAG, "Cannot parse json from downloaded distance model", e);
+                        LogManager.w(e, TAG, "Cannot parse json from downloaded distance model");
                     }
                 }
             }
@@ -273,7 +273,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             buildModelMap(stringFromFilePath(CONFIG_FILE));
         }
         catch (Exception e) {
-            LogManager.e(TAG, "Cannot build model distance calculations", e);
+            LogManager.e(e, TAG, "Cannot build model distance calculations");
         }
     }
 

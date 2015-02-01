@@ -38,7 +38,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             mScanner.stopScan(getNewLeScanCallback());
         }
         catch (Exception e) {
-            LogManager.w(TAG, "Internal Android exception scanning for beacons: ", e);
+            LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
         }
     }
 

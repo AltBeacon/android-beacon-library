@@ -195,7 +195,7 @@ public class BeaconService extends Service {
 
     @Override
     public void onCreate() {
-        LogManager.i(TAG, "beaconService version " + BuildConfig.VERSION_NAME + " is starting up");
+        LogManager.i(TAG, "beaconService version %s is starting up", BuildConfig.VERSION_NAME );
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
         mCycledScanner = CycledLeScanner.createScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
@@ -213,7 +213,7 @@ public class BeaconService extends Service {
         } catch (ClassNotFoundException e) {
             LogManager.d(TAG, "No org.altbeacon.beacon.SimulatedScanData class exists.");
         } catch (Exception e) {
-            LogManager.e(TAG, "Cannot get simulated Scan data.  Make sure your org.altbeacon.beacon.SimulatedScanData class defines a field with the signature 'public static List<Beacon> beacons'", e);
+            LogManager.e(e, TAG, "Cannot get simulated Scan data.  Make sure your org.altbeacon.beacon.SimulatedScanData class defines a field with the signature 'public static List<Beacon> beacons'");
         }
     }
 
@@ -356,7 +356,7 @@ public class BeaconService extends Service {
                 Region region = monitoredRegionIterator.next();
                 MonitorState state = monitoredRegionState.get(region);
                 if (state.isNewlyOutside()) {
-                    LogManager.d(TAG, "found a monitor that expired: " + region);
+                    LogManager.d(TAG, "found a monitor that expired: %s", region);
                     state.getCallback().call(BeaconService.this, "monitoringData", new MonitoringData(state.isInside(), region));
                 }
             }

@@ -92,7 +92,7 @@ public class RegionBootstrap {
                 beaconManager.stopMonitoringBeaconsInRegion(region);        		
         	}
         } catch (RemoteException e) {
-            LogManager.e(TAG, "Can't stop bootstrap regions", e);
+            LogManager.e(e, TAG, "Can't stop bootstrap regions");
         }	
 		beaconManager.unbind(beaconConsumer);
 	}
@@ -115,7 +115,7 @@ public class RegionBootstrap {
                         }
 	        	}
 	        } catch (RemoteException e) {   
-	        	LogManager.e(TAG, "Can't set up bootstrap regions", e);
+	        	LogManager.e(e, TAG, "Can't set up bootstrap regions");
 	        }
 	    }
 	

@@ -171,7 +171,7 @@ public class BeaconTransmitter {
             LogManager.d(TAG, "Started advertisement with callback: %s", getAdvertiseCallback());
 
         } catch (Exception e){
-            LogManager.e(TAG, "Cannot start advetising due to excepton: ", e);
+            LogManager.e(e, TAG, "Cannot start advertising due to exception");
         }
     }
 

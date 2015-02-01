@@ -175,7 +175,7 @@ public class BluetoothCrashResolver {
 
         newSize = distinctBluetoothAddresses.size();
         if (oldSize != newSize && newSize % 100 == 0) {
-            LogManager.d(TAG, "Distinct bluetooth devices seen: "+distinctBluetoothAddresses.size());
+            LogManager.d(TAG, "Distinct bluetooth devices seen: %s", distinctBluetoothAddresses.size());
         }
         if (distinctBluetoothAddresses.size()  > getCrashRiskDeviceCount()) {
             if (PREEMPTIVE_ACTION_ENABLED && !recoveryInProgress) {

@@ -1,0 +1,10 @@
+---
+layout: android-beacon-library
+---
+
+
+###Release 2.1.1
+
+Changes from release 2.1:
+
+* Fixes a crash on Android 5.0 devices when bluetooth is turned off and the app switches from the foreground to the background 

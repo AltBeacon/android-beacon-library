@@ -186,7 +186,7 @@ public class Beacon implements Parcelable {
         mIdentifiers = new ArrayList<Identifier>(otherBeacon.mIdentifiers.size());
         mDataFields = new ArrayList<Long>(otherBeacon.mDataFields.size());
         for (int i = 0; i < otherBeacon.mIdentifiers.size(); i++) {
-            mIdentifiers.add(new Identifier(otherBeacon.mIdentifiers.get(i)));
+            mIdentifiers.add(otherBeacon.mIdentifiers.get(i));
         }
         this.mDistance = otherBeacon.mDistance;
         this.mRunningAverageRssi = otherBeacon.mRunningAverageRssi;

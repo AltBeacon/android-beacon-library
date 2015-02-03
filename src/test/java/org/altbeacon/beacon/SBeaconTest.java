@@ -30,7 +30,7 @@ public class SBeaconTest {
         SBeaconParser parser = new SBeaconParser();
         SBeacon sBeacon = (SBeacon) parser.fromScanData(bytes, -55, null);
         assertNotNull("SBeacon should be not null if parsed successfully", sBeacon);
-        assertEquals("id should be parsed", "000000000003", sBeacon.getId());
+        assertEquals("id should be parsed", "0x000000000003", sBeacon.getId());
         assertEquals("group should be parsed", 1, sBeacon.getGroup());
         assertEquals("time should be parsed", 2, sBeacon.getTime());
         assertEquals("txPower should be parsed", -59, sBeacon.getTxPower());
@@ -117,7 +117,7 @@ public class SBeaconTest {
                     String hexString = bytesToHex(beaconId);
                     StringBuilder sb = new StringBuilder();
                     sb.append(hexString.substring(0,12));
-                    String id = sb.toString();
+                    String id = "0x" + sb.toString();
                     int beaconTypeCode = (scanData[startByte+3] & 0xff) * 0x100 + (scanData[startByte+2] & 0xff);
 
 

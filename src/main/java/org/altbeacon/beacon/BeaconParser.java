@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public class BeaconParser {
     private static final String TAG = "BeaconParser";
     private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)(l?)");
-    private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-F-a-f]+)");
+    private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]?)");
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
@@ -291,8 +291,8 @@ public class BeaconParser {
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
-            String idString = byteArrayToFormattedString(scanData, mIdentifierStartOffsets.get(i)+startByte, mIdentifierEndOffsets.get(i)+startByte, mIdentifierLittleEndianFlags.get(i));
-            identifiers.add(Identifier.parse(idString));
+            Identifier identifier = Identifier.fromBytes(scanData, mIdentifierStartOffsets.get(i)+startByte, mIdentifierEndOffsets.get(i)+startByte + 1, mIdentifierLittleEndianFlags.get(i));
+            identifiers.add(identifier);
         }
         ArrayList<Long> dataFields = new ArrayList<Long>();
         for (int i = 0; i < mDataEndOffsets.size(); i++) {
@@ -472,7 +472,7 @@ public class BeaconParser {
         return sb.toString().trim();
     }
 
-    private String byteArrayToFormattedString(byte[] byteBuffer, int startIndex, int endIndex, Boolean littleEndian) {
+    private String byteArrayToFormattedString(byte[] byteBuffer, int startIndex, int endIndex, boolean littleEndian) {
         byte[] bytes = new byte[endIndex-startIndex+1];
         if (littleEndian) {
             for (int i = 0; i <= endIndex-startIndex; i++) {
@@ -489,7 +489,7 @@ public class BeaconParser {
         int length = endIndex-startIndex +1;
         // We treat a 1-4 byte number as decimal string
         if (length < 5) {
-            Long number = 0l;
+            long number = 0l;
             BeaconManager.logDebug(TAG, "Byte array is size "+bytes.length);
             for (int i = 0; i < bytes.length; i++)  {
                 BeaconManager.logDebug(TAG, "index is "+i);
@@ -499,7 +499,7 @@ public class BeaconParser {
                 BeaconManager.logDebug(TAG, "calculatedValue for position "+i+" with positionValue "+positionValue+" and byteValue "+byteValue+" is "+calculatedValue);
                 number += calculatedValue;
             }
-            return number.toString();
+            return Long.toString(number);
         }
 
         // We treat a 7+ byte number as a hex string

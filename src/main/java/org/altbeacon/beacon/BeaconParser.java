@@ -2,7 +2,8 @@ package org.altbeacon.beacon;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
-import android.util.Log;
+
+import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -186,7 +187,7 @@ public class BeaconParser {
                 }
             }
             if (!found) {
-                BeaconManager.logDebug(TAG, "cannot parse term "+term);
+                LogManager.d(TAG, "cannot parse term %s", term);
                 throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
             }
         }
@@ -282,11 +283,14 @@ public class BeaconParser {
 
         if (patternFound == false) {
             // This is not an beacon
-            BeaconManager.logDebug(TAG, "This is not a matching Beacon advertisement.  (Was expecting "+byteArrayToString(typeCodeBytes)+".  The bytes I see are: "+bytesToHex(scanData));
+            LogManager.d(TAG, "This is not a matching Beacon advertisement. (Was expecting %s.  "
+                            + "The bytes I see are: %s", byteArrayToString(typeCodeBytes),
+                    bytesToHex(scanData));
             return null;
         }
         else {
-            BeaconManager.logDebug(TAG, "This is a recognized beacon advertisement -- "+String.format("%04x", getMatchingBeaconTypeCode())+" seen");
+            LogManager.d(TAG, "This is a recognized beacon advertisement -- %04x seen",
+                    getMatchingBeaconTypeCode());
         }
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
@@ -298,7 +302,7 @@ public class BeaconParser {
         for (int i = 0; i < mDataEndOffsets.size(); i++) {
             String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i)+startByte, mDataEndOffsets.get(i)+startByte, mDataLittleEndianFlags.get(i));
             dataFields.add(Long.parseLong(dataString));
-            BeaconManager.logDebug(TAG, "parsing found data field "+i);
+            LogManager.d(TAG, "parsing found data field %s", i);
             // TODO: error handling needed here on the parse
         }
 
@@ -490,13 +494,15 @@ public class BeaconParser {
         // We treat a 1-4 byte number as decimal string
         if (length < 5) {
             long number = 0l;
-            BeaconManager.logDebug(TAG, "Byte array is size "+bytes.length);
+            LogManager.d(TAG, "Byte array is size %s", bytes.length);
             for (int i = 0; i < bytes.length; i++)  {
-                BeaconManager.logDebug(TAG, "index is "+i);
+                LogManager.d(TAG, "index is %s", i);
                 long byteValue = (long) (bytes[bytes.length - i-1] & 0xff);
                 long positionValue = (long) Math.pow(256.0,i*1.0);
-                long calculatedValue =  (long) (byteValue * positionValue);
-                BeaconManager.logDebug(TAG, "calculatedValue for position "+i+" with positionValue "+positionValue+" and byteValue "+byteValue+" is "+calculatedValue);
+                long calculatedValue =  (byteValue * positionValue);
+                LogManager.d(TAG, "calculatedValue for position %s with positionValue %s and "
+                                + "byteValue %s is %s", i, positionValue, byteValue,
+                        calculatedValue);
                 number += calculatedValue;
             }
             return Long.toString(number);

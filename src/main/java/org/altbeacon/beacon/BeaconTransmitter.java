@@ -1,9 +1,6 @@
 package org.altbeacon.beacon;
 
-import java.nio.ByteBuffer;
-import java.util.UUID;
-
-import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.logging.LogManager;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
@@ -14,8 +11,6 @@ import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.util.Log;
 
 /**
  * Provides a mechanism for transmitting as a beacon.   Requires Android 5.0
@@ -51,11 +46,11 @@ public class BeaconTransmitter {
         if (bluetoothManager != null) {
             mBluetoothAdapter = bluetoothManager.getAdapter();
             mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-            Log.d(TAG, "new BeaconTransmitter constructed.  mbluetoothLeAdvertiser is " +
+            LogManager.d(TAG, "new BeaconTransmitter constructed.  mbluetoothLeAdvertiser is %s",
                     mBluetoothLeAdvertiser);
         }
         else {
-            Log.e(TAG, "Failed to get BluetoothManager");
+            LogManager.e(TAG, "Failed to get BluetoothManager");
         }
     }
 
@@ -157,8 +152,9 @@ public class BeaconTransmitter {
             byteString += String.format("%02X", advertisingBytes[i]);
             byteString += " ";
         }
-        Log.d(TAG, "Starting advertising with ID1: "+mBeacon.getId1()+" ID2: "+mBeacon.getId2()
-                +" ID3: "+mBeacon.getId3()+" and data: "+byteString+" of size "+advertisingBytes.length);
+        LogManager.d(TAG, "Starting advertising with ID1: %s ID2: %s ID3: %s and data: %s of size "
+                        + "%s", mBeacon.getId1(), mBeacon.getId2(), mBeacon.getId3(), byteString,
+                advertisingBytes.length);
 
         try{
             AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
@@ -172,10 +168,10 @@ public class BeaconTransmitter {
             settingsBuilder.setConnectable(false);
 
             mBluetoothLeAdvertiser.startAdvertising(settingsBuilder.build(), dataBuilder.build(), getAdvertiseCallback());
-            Log.d(TAG, "Started advertisement with callback: "+getAdvertiseCallback());
+            LogManager.d(TAG, "Started advertisement with callback: %s", getAdvertiseCallback());
 
         } catch (Exception e){
-            Log.e(TAG, "Cannot start advetising due to excepton: ",e);
+            LogManager.e(e, TAG, "Cannot start advertising due to exception");
         }
     }
 
@@ -184,10 +180,10 @@ public class BeaconTransmitter {
      */
     public void stopAdvertising() {
         if (!mStarted) {
-            Log.d(TAG, "Skipping stop advertising -- not started");
+            LogManager.d(TAG, "Skipping stop advertising -- not started");
             return;
         }
-        Log.d(TAG, "Stopping advertising with object "+mBluetoothLeAdvertiser);
+        LogManager.d(TAG, "Stopping advertising with object %s", mBluetoothLeAdvertiser);
         mAdvertisingClientCallback = null;
         mBluetoothLeAdvertiser.stopAdvertising(getAdvertiseCallback());
         mStarted = false;
@@ -225,7 +221,7 @@ public class BeaconTransmitter {
             mAdvertiseCallback = new AdvertiseCallback() {
                 @Override
                 public void onStartFailure(int errorCode) {
-                    Log.e(TAG,"Advertisement start failed, code: "+errorCode);
+                    LogManager.e(TAG,"Advertisement start failed, code: %s", errorCode);
                     if (mAdvertisingClientCallback != null) {
                         mAdvertisingClientCallback.onStartFailure(errorCode);
                     }
@@ -234,7 +230,7 @@ public class BeaconTransmitter {
 
                 @Override
                 public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                    Log.i(TAG,"Advertisement start succeeded.");
+                    LogManager.i(TAG,"Advertisement start succeeded.");
                     mStarted = true;
                     if (mAdvertisingClientCallback != null) {
                         mAdvertisingClientCallback.onStartSuccess(settingsInEffect);

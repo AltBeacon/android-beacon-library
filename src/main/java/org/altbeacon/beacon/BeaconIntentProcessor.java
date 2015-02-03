@@ -23,13 +23,13 @@
  */
 package org.altbeacon.beacon;
 
+import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.MonitoringData;
 import org.altbeacon.beacon.service.RangingData;
 
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
 
 /**
  * Converts internal intents to notifier callbacks
@@ -37,7 +37,6 @@ import android.util.Log;
 @TargetApi(3)
 public class BeaconIntentProcessor extends IntentService {
 	private static final String TAG = "BeaconIntentProcessor";
-	private boolean initialized = false;
 
 	public BeaconIntentProcessor() {
 		super("BeaconIntentProcessor");
@@ -45,7 +44,7 @@ public class BeaconIntentProcessor extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		BeaconManager.logDebug(TAG, "got an intent to process");
+		LogManager.d(TAG, "got an intent to process");
 		
 		MonitoringData monitoringData = null;
 		RangingData rangingData = null;
@@ -56,9 +55,9 @@ public class BeaconIntentProcessor extends IntentService {
 		}
 		
 		if (rangingData != null) {
-			BeaconManager.logDebug(TAG, "got ranging data");
+            LogManager.d(TAG, "got ranging data");
             if (rangingData.getBeacons() == null) {
-                Log.w(TAG, "Ranging data has a null beacons collection");
+                LogManager.w(TAG, "Ranging data has a null beacons collection");
             }
 			RangeNotifier notifier = BeaconManager.getInstanceForApplication(this).getRangingNotifier();
             java.util.Collection<Beacon> beacons = rangingData.getBeacons();
@@ -66,7 +65,7 @@ public class BeaconIntentProcessor extends IntentService {
 				notifier.didRangeBeaconsInRegion(beacons, rangingData.getRegion());
 			}
             else {
-                BeaconManager.logDebug(TAG, "but ranging notifier is null, so we're dropping it.");
+                LogManager.d(TAG, "but ranging notifier is null, so we're dropping it.");
             }
             RangeNotifier dataNotifier = BeaconManager.getInstanceForApplication(this).getDataRequestNotifier();
             if (dataNotifier != null) {
@@ -75,10 +74,10 @@ public class BeaconIntentProcessor extends IntentService {
 
 		}
 		if (monitoringData != null) {
-			BeaconManager.logDebug(TAG, "got monitoring data");
+            LogManager.d(TAG, "got monitoring data");
 			MonitorNotifier notifier = BeaconManager.getInstanceForApplication(this).getMonitoringNotifier();
 			if (notifier != null) {
-				BeaconManager.logDebug(TAG, "Calling monitoring notifier:"+notifier);
+                LogManager.d(TAG, "Calling monitoring notifier: %s", notifier);
 				notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
 				if (monitoringData.isInside()) {
 					notifier.didEnterRegion(monitoringData.getRegion());

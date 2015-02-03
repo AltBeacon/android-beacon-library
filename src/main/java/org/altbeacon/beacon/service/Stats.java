@@ -1,8 +1,7 @@
 package org.altbeacon.beacon.service;
 
-import android.util.Log;
-
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.logging.LogManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,7 +12,8 @@ import java.util.Date;
  * Created by dyoung on 10/16/14.
  */
 public class Stats {
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+    private static final String TAG = "Stats";
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
 
     private ArrayList<Sample> mSamples;
     private long mSampleIntervalMillis;
@@ -21,7 +21,6 @@ public class Stats {
     private boolean mEnableHistoricalLogging;
     private boolean mEnabled;
     private Sample mSample;
-    private static final String TAG = "Stats";
     private static Stats mInstance;
 
     public static Stats getInstance() {
@@ -96,18 +95,21 @@ public class Stats {
 
     private void logSample(Sample sample, boolean showHeader) {
         if (showHeader) {
-            Log.d(TAG, "sample start time, sample stop time, first detection"+
+            LogManager.d(TAG, "sample start time, sample stop time, first detection" +
                     " time, last detection time, max millis between detections, detection count");
         }
-        Log.d(TAG, formattedDate(sample.sampleStartTime)+","+formattedDate(sample.sampleStopTime)+
-                ", "+formattedDate(sample.firstDetectionTime)+", "+formattedDate(sample.lastDetectionTime)+", "+
-                sample.maxMillisBetweenDetections+", "+sample.detectionCount );
+        LogManager.d(TAG, "%s, %s, %s, %s, %s, %s",
+                formattedDate(sample.sampleStartTime), formattedDate(sample.sampleStopTime),
+                formattedDate(sample.firstDetectionTime), formattedDate(sample.lastDetectionTime),
+                sample.maxMillisBetweenDetections, sample.detectionCount);
     }
+
     private String formattedDate(Date d) {
-        return d == null ? "" : sdf.format(d);
+        return d == null ? "" : SIMPLE_DATE_FORMAT.format(d);
     }
+
     private void logSamples() {
-        Log.d(TAG, "--- Stats for "+mSamples.size()+" samples");
+        LogManager.d(TAG, "--- Stats for %s samples", mSamples.size());
         boolean firstPass = true;
         for (Sample sample : mSamples) {
             logSample(sample, firstPass);

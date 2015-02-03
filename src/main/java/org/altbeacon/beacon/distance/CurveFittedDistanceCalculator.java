@@ -1,6 +1,7 @@
 package org.altbeacon.beacon.distance;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.logging.LogManager;
 
 /**
  * This class estimates the distance between the mobile device and a BLE beacon based on the measured
@@ -47,7 +48,7 @@ public class CurveFittedDistanceCalculator implements DistanceCalculator {
             return -1.0; // if we cannot determine accuracy, return -1.
         }
 
-        BeaconManager.logDebug(TAG, "calculating distance based on mRssi of " + rssi + " and txPower of " + txPower);
+        LogManager.d(TAG, "calculating distance based on mRssi of %s and txPower of %s", rssi, txPower);
 
 
         double ratio = rssi*1.0/txPower;
@@ -58,7 +59,7 @@ public class CurveFittedDistanceCalculator implements DistanceCalculator {
         else {
             distance =  (mCoefficient1)*Math.pow(ratio,mCoefficient2) + mCoefficient3;
         }
-        BeaconManager.logDebug(TAG, " avg mRssi: "+rssi+" distance: "+distance);
+        LogManager.d(TAG, "avg mRssi: %s distance: %s", rssi, distance);
         return distance;
     }
 }

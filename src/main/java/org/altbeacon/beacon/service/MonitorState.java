@@ -25,7 +25,7 @@ package org.altbeacon.beacon.service;
 
 import java.util.Date;
 
-import android.util.Log;
+import org.altbeacon.beacon.logging.LogManager;
 
 public class MonitorState {
 	private static final String TAG = "MonitorState";
@@ -44,7 +44,7 @@ public class MonitorState {
 
 	// returns true if it is newly inside 
 	public boolean markInside() {
-		lastSeenTime = (new Date()).getTime();
+		lastSeenTime = System.currentTimeMillis();
 		if (!inside) {
 			inside = true;
 			return true;
@@ -55,7 +55,10 @@ public class MonitorState {
 		if (inside) {
 			if (lastSeenTime > 0 && (new Date()).getTime() - lastSeenTime > INSIDE_EXPIRATION_MILLIS) {
 				inside = false;
-				Log.d(TAG, "We are newly outside the region because the lastSeenTime of "+lastSeenTime+" was "+((new Date()).getTime() - lastSeenTime)+" seconds ago, and that is over the expiration duration of  "+INSIDE_EXPIRATION_MILLIS);
+				LogManager.d(TAG, "We are newly outside the region because the lastSeenTime of %s "
+                                + "was %s seconds ago, and that is over the expiration duration "
+                                + "of %s", lastSeenTime, System.currentTimeMillis() - lastSeenTime,
+                        INSIDE_EXPIRATION_MILLIS);
 				lastSeenTime = 0l;
 				return true;
 			}			

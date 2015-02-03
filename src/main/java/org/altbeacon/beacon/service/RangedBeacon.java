@@ -4,15 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-
-
-import android.util.Log;
-
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.logging.LogManager;
 
 public class RangedBeacon {
-	private static String TAG = "RangedBeacon";
+	private static final String TAG = "RangedBeacon";
 	public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
 	private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
     private boolean mTracked = true;
@@ -45,10 +42,10 @@ public class RangedBeacon {
         if (mMeasurements.size() > 0) {
             double runningAverage = calculateRunningAverage();
             mBeacon.setRunningAverageRssi(runningAverage);
-            BeaconManager.logDebug(TAG, "calculated new runningAverageRssi:"+ runningAverage);
+            LogManager.d(TAG, "calculated new runningAverageRssi: %s", runningAverage);
         }
         else {
-            BeaconManager.logDebug(TAG, "No measurements available to calculate running average");
+            LogManager.d(TAG, "No measurements available to calculate running average");
         }
     }
 
@@ -106,7 +103,8 @@ public class RangedBeacon {
 		}
 		double runningAverage = sum/(endIndex-startIndex+1);
 
-		BeaconManager.logDebug(TAG, "Running average mRssi based on "+size+" measurements: "+runningAverage);
+        LogManager.d(TAG, "Running average mRssi based on %s measurements: %s",
+                size, runningAverage);
 		return runningAverage;
 
 	}

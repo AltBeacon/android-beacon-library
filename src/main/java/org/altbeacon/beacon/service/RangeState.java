@@ -23,8 +23,6 @@
  */
 package org.altbeacon.beacon.service;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,6 +31,7 @@ import java.util.Map;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.logging.LogManager;
 
 public class RangeState {
     private static final String TAG = "RangeState";
@@ -51,11 +50,11 @@ public class RangeState {
     public void addBeacon(Beacon beacon) {
         if (mRangedBeacons.containsKey(beacon)) {
             RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
-            BeaconManager.logDebug(TAG, "adding " + beacon.toString() + " to existing range for: " + rangedBeacon.toString());
+            LogManager.d(TAG, "adding %s to existing range for: %s", beacon, rangedBeacon);
             rangedBeacon.updateBeacon(beacon);
         }
         else {
-            BeaconManager.logDebug(TAG, "adding "+ beacon.toString()+" to new rangedBeacon");
+            LogManager.d(TAG, "adding %s to new rangedBeacon", beacon);
             mRangedBeacons.put(beacon, new RangedBeacon(beacon));
         }
     }
@@ -82,7 +81,7 @@ public class RangeState {
                     newRangedBeacons.put(beacon, rangedBeacon);
                 }
                 else {
-                    BeaconManager.logDebug(TAG, "Dumping beacon from RangeState because it has no recent measurements.");
+                    LogManager.d(TAG, "Dumping beacon from RangeState because it has no recent measurements.");
                 }
             }
             mRangedBeacons = newRangedBeacons;

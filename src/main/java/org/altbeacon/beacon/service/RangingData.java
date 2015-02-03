@@ -29,10 +29,10 @@ import java.util.Collection;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.logging.LogManager;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 public class RangingData implements Parcelable {
 	private static final String TAG = "RangingData";
@@ -58,10 +58,10 @@ public class RangingData implements Parcelable {
 		return 0;
 	}
     public void writeToParcel(Parcel out, int flags) {    
-    	BeaconManager.logDebug(TAG, "writing RangingData");
+    	LogManager.d(TAG, "writing RangingData");
     	out.writeParcelableArray(beacons.toArray(new Parcelable[0]), flags);
     	out.writeParcelable(region, flags);
-    	BeaconManager.logDebug(TAG, "done writing RangingData");
+        LogManager.d(TAG, "done writing RangingData");
 
     }
 
@@ -77,7 +77,7 @@ public class RangingData implements Parcelable {
     };
     
     private RangingData(Parcel in) {
-    	BeaconManager.logDebug(TAG, "parsing RangingData");
+        LogManager.d(TAG, "parsing RangingData");
     	Parcelable[] parcelables  = in.readParcelableArray(this.getClass().getClassLoader());
     	beacons = new ArrayList<Beacon>(parcelables.length);
     	for (int i = 0; i < parcelables.length; i++) {

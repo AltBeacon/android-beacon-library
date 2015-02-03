@@ -1,12 +1,6 @@
 package org.altbeacon.beacon;
 
-import android.annotation.TargetApi;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertiseSettings;
 import android.content.Context;
-import android.os.Build;
-import android.os.Parcel;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,12 +8,9 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
 
 @Config(emulateSdk = 18)
 
@@ -31,7 +22,6 @@ public class BeaconTransmitterTest {
 
     @Test
     public void testBeaconAdvertisingBytes() {
-        BeaconManager.debug = true;
         org.robolectric.shadows.ShadowLog.stream = System.err;
         Context context = Robolectric.getShadowApplication().getApplicationContext();
 
@@ -41,7 +31,7 @@ public class BeaconTransmitterTest {
                 .setId3("2")
                 .setManufacturer(0x0118)
                 .setTxPower(-59)
-                .setDataFields(Arrays.asList(new Long[]{0l}))
+                .setDataFields(Arrays.asList(0L))
                 .build();
         BeaconParser beaconParser = new BeaconParser()
                 .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
@@ -51,7 +41,7 @@ public class BeaconTransmitterTest {
 
         assertEquals("Data should be 24 bytes long", 24, data.length);
         String byteString = "";
-        for (int i= 0; i < data.length; i++) {
+        for (int i = 0; i < data.length; i++) {
             byteString += String.format("%02X", data[i]);
             byteString += " ";
         }

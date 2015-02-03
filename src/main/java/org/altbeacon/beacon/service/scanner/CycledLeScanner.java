@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
@@ -55,19 +56,19 @@ public abstract class CycledLeScanner {
     public static CycledLeScanner createScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         boolean useAndroidLScanner;
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            Log.w(TAG, "Not supported prior to API 18.");
+            LogManager.w(TAG, "Not supported prior to API 18.");
             return null;
         }
 
         if (android.os.Build.VERSION.SDK_INT < 21) {
-            Log.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
+            LogManager.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
             useAndroidLScanner = false;
         } else {
             if (BeaconManager.isAndroidLScanningDisabled()) {
-                Log.i(TAG, "This Android 5.0, but L scanning is disabled. We are using old scanning APIs");
+                LogManager.i(TAG, "This Android 5.0, but L scanning is disabled. We are using old scanning APIs");
                 useAndroidLScanner = false;
             } else {
-                Log.i(TAG, "This Android 5.0.  We are using new scanning APIs");
+                LogManager.i(TAG, "This Android 5.0.  We are using new scanning APIs");
                 useAndroidLScanner = true;
             }
         }
@@ -87,7 +88,8 @@ public abstract class CycledLeScanner {
      * @param backgroundFlag
      */
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
-        BeaconManager.logDebug(TAG, "Set scan periods called with " + scanPeriod + ", " + betweenScanPeriod + "  Background mode must have changed.");
+        LogManager.d(TAG, "Set scan periods called with %s, %s Background mode must have changed.",
+                scanPeriod, betweenScanPeriod);
         if (mBackgroundFlag != backgroundFlag) {
             mRestartNeeded = true;
         }
@@ -95,10 +97,10 @@ public abstract class CycledLeScanner {
         mScanPeriod = scanPeriod;
         mBetweenScanPeriod = betweenScanPeriod;
         if (mBackgroundFlag) {
-            BeaconManager.logDebug(TAG, "We are in the background.  Setting wakeup alarm");
+            LogManager.d(TAG, "We are in the background.  Setting wakeup alarm");
             setWakeUpAlarm();
         } else {
-            BeaconManager.logDebug(TAG, "We are not in the background.  Cancelling wakeup alarm");
+            LogManager.d(TAG, "We are not in the background.  Cancelling wakeup alarm");
             cancelWakeUpAlarm();
         }
         long now = new Date().getTime();
@@ -109,7 +111,7 @@ public abstract class CycledLeScanner {
             long proposedNextScanStartTime = (mLastScanCycleEndTime + betweenScanPeriod);
             if (proposedNextScanStartTime < mNextScanCycleStartTime) {
                 mNextScanCycleStartTime = proposedNextScanStartTime;
-                Log.i(TAG, "Adjusted nextScanStartTime to be " + new Date(mNextScanCycleStartTime));
+                LogManager.i(TAG, "Adjusted nextScanStartTime to be %s", new Date(mNextScanCycleStartTime));
             }
         }
         if (mScanCycleStopTime > now) {
@@ -119,24 +121,24 @@ public abstract class CycledLeScanner {
             long proposedScanStopTime = (mLastScanCycleStartTime + scanPeriod);
             if (proposedScanStopTime < mScanCycleStopTime) {
                 mScanCycleStopTime = proposedScanStopTime;
-                Log.i(TAG, "Adjusted scanStopTime to be " + new Date(mScanCycleStopTime));
+                LogManager.i(TAG, "Adjusted scanStopTime to be %s", mScanCycleStopTime);
             }
         }
     }
 
     public void start() {
-        BeaconManager.logDebug(TAG, "start called");
+        LogManager.d(TAG, "start called");
         mScanningEnabled = true;
         if (!mScanCyclerStarted) {
             scanLeDevice(true);
         } else {
-            BeaconManager.logDebug(TAG, "scanning already started");
+            LogManager.d(TAG, "scanning already started");
         }
     }
 
     @SuppressLint("NewApi")
     public void stop() {
-        BeaconManager.logDebug(TAG, "stop called");
+        LogManager.d(TAG, "stop called");
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
             scanLeDevice(false);
@@ -157,13 +159,13 @@ public abstract class CycledLeScanner {
     protected void scanLeDevice(final Boolean enable) {
         mScanCyclerStarted = true;
         if (getBluetoothAdapter() == null) {
-            Log.e(TAG, "No bluetooth adapter.  beaconService cannot scan.");
+            LogManager.e(TAG, "No bluetooth adapter.  beaconService cannot scan.");
         }
         if (enable) {
             if (deferScanIfNeeded()) {
                 return;
             }
-            BeaconManager.logDebug(TAG, "starting a new scan cycle");
+            LogManager.d(TAG, "starting a new scan cycle");
             if (!mScanning || mScanningPaused || mRestartNeeded) {
                 mScanning = true;
                 mScanningPaused = false;
@@ -171,41 +173,41 @@ public abstract class CycledLeScanner {
                     if (getBluetoothAdapter() != null) {
                         if (getBluetoothAdapter().isEnabled()) {
                             if (mBluetoothCrashResolver != null && mBluetoothCrashResolver.isRecoveryInProgress()) {
-                                Log.w(TAG, "Skipping scan because crash recovery is in progress.");
+                                LogManager.w(TAG, "Skipping scan because crash recovery is in progress.");
                             } else {
                                 if (mScanningEnabled) {
                                     if (mRestartNeeded) {
                                         mRestartNeeded = false;
-                                        BeaconManager.logDebug(TAG, "restarting a bluetooth le scan");
+                                        LogManager.d(TAG, "restarting a bluetooth le scan");
                                     } else {
-                                        BeaconManager.logDebug(TAG, "starting a new bluetooth le scan");
+                                        LogManager.d(TAG, "starting a new bluetooth le scan");
                                     }
                                     try {
                                         startScan();
                                     } catch (Exception e) {
-                                        Log.w("Internal Android exception scanning for beacons: ", e);
+                                        LogManager.e(e, TAG, "Internal Android exception scanning for beacons");
                                     }
                                 } else {
-                                    BeaconManager.logDebug(TAG, "Scanning unnecessary - no monitoring or ranging active.");
+                                    LogManager.d(TAG, "Scanning unnecessary - no monitoring or ranging active.");
                                 }
                             }
                             mLastScanCycleStartTime = new Date().getTime();
                         } else {
-                            Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+                            LogManager.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                         }
                     }
                 } catch (Exception e) {
-                    Log.e("TAG", "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?", e);
+                    LogManager.e(e, TAG, "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
                 }
             } else {
-                BeaconManager.logDebug(TAG, "We are already scanning");
+                LogManager.d(TAG, "We are already scanning");
             }
             mScanCycleStopTime = (new Date().getTime() + mScanPeriod);
             scheduleScanCycleStop();
 
-            BeaconManager.logDebug(TAG, "Scan started");
+            LogManager.d(TAG, "Scan started");
         } else {
-            BeaconManager.logDebug(TAG, "disabling scan");
+            LogManager.d(TAG, "disabling scan");
             mScanning = false;
 
             stopScan();
@@ -217,7 +219,8 @@ public abstract class CycledLeScanner {
         // Stops scanning after a pre-defined scan period.
         long millisecondsUntilStop = mScanCycleStopTime - (new Date().getTime());
         if (millisecondsUntilStop > 0) {
-            BeaconManager.logDebug(TAG, "Waiting to stop scan cycle for another " + millisecondsUntilStop + " milliseconds");
+            LogManager.d(TAG, "Waiting to stop scan cycle for another %s milliseconds",
+                    millisecondsUntilStop);
             if (mBackgroundFlag) {
                 setWakeUpAlarm();
             }
@@ -235,29 +238,29 @@ public abstract class CycledLeScanner {
     protected abstract void finishScan();
 
     private void finishScanCycle() {
-        BeaconManager.logDebug(TAG, "Done with scan cycle");
+        LogManager.d(TAG, "Done with scan cycle");
         mCycledLeScanCallback.onCycleEnd();
         if (mScanning) {
             if (getBluetoothAdapter() != null) {
                 if (getBluetoothAdapter().isEnabled()) {
                     try {
-                        BeaconManager.logDebug(TAG, "stopping bluetooth le scan");
+                        LogManager.d(TAG, "stopping bluetooth le scan");
 
                         finishScan();
 
                     } catch (Exception e) {
-                        Log.w("Internal Android exception scanning for beacons: ", e);
+                        LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
                     }
                     mLastScanCycleEndTime = new Date().getTime();
                 } else {
-                    Log.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+                    LogManager.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                 }
             }
             mNextScanCycleStartTime = getNextScanStartTime();
             if (mScanningEnabled) {
                 scanLeDevice(true);
             } else {
-                BeaconManager.logDebug(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
+                LogManager.d(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
                 mScanCyclerStarted = false;
                 cancelWakeUpAlarm();
             }
@@ -296,11 +299,11 @@ public abstract class CycledLeScanner {
         cancelWakeUpAlarm();
         mWakeUpOperation = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis() + milliseconds, mWakeUpOperation);
-        BeaconManager.logDebug(TAG, "Set a wakeup alarm to go off in " + milliseconds + " ms: " + mWakeUpOperation);
+        LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, mWakeUpOperation);
     }
 
     protected void cancelWakeUpAlarm() {
-        BeaconManager.logDebug(TAG, "cancel wakeup alarm: " + mWakeUpOperation);
+        LogManager.d(TAG, "cancel wakeup alarm: %s", mWakeUpOperation);
         if (mWakeUpOperation != null) {
             AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(mWakeUpOperation);
@@ -321,7 +324,7 @@ public abstract class CycledLeScanner {
         }
         long fullScanCycle = mScanPeriod + mBetweenScanPeriod;
         long normalizedBetweenScanPeriod = mBetweenScanPeriod-(System.currentTimeMillis() % fullScanCycle);
-        BeaconManager.logDebug(TAG, "Normalizing between scan period from  "+mBetweenScanPeriod+" to "+
+        LogManager.d(TAG, "Normalizing between scan period from %s to %s", mBetweenScanPeriod,
                 normalizedBetweenScanPeriod);
 
         return System.currentTimeMillis()+normalizedBetweenScanPeriod;

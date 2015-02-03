@@ -1,11 +1,7 @@
 package org.altbeacon.beacon;
 
-import android.os.Parcel;
-
-import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.robolectric.RobolectricTestRunner;
 
@@ -48,7 +44,6 @@ public class AltBeaconParserTest {
 
     @Test
     public void testDetectsDaveMHardwareBeacon() {
-        BeaconManager.debug = true;
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600050003be020e09526164426561636f6e20555342020a0300000000000000000000000000");
         AltBeaconParser parser = new AltBeaconParser();
@@ -57,7 +52,6 @@ public class AltBeaconParserTest {
     }
     @Test
     public void testDetectsAlternateBeconType() {
-        BeaconManager.debug = true;
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("02011a1aff1801aabb2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
         AltBeaconParser parser = new AltBeaconParser();

@@ -9,6 +9,7 @@ import android.util.Log;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,7 @@ public class RegionBootstrap {
         regions.add(region);
 		beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
-        BeaconManager.logDebug(TAG, "Waiting for BeaconService connection");
+        LogManager.d(TAG, "Waiting for BeaconService connection");
 	}
 
 	/**
@@ -74,7 +75,7 @@ public class RegionBootstrap {
 
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
-        BeaconManager.logDebug(TAG, "Waiting for BeaconService connection");
+        LogManager.d(TAG, "Waiting for BeaconService connection");
 	}
 	
 	/**
@@ -90,8 +91,8 @@ public class RegionBootstrap {
         	for (Region region : regions) {
                 beaconManager.stopMonitoringBeaconsInRegion(region);        		
         	}
-        } catch (RemoteException e) {   
-        	Log.e(TAG, "Can't stop bootstrap regions due to "+e);
+        } catch (RemoteException e) {
+            LogManager.e(e, TAG, "Can't stop bootstrap regions");
         }	
 		beaconManager.unbind(beaconConsumer);
 	}
@@ -103,18 +104,18 @@ public class RegionBootstrap {
 		 */
 	    @Override
 	    public void onBeaconServiceConnect() {
-            BeaconManager.logDebug(TAG, "Activating background region monitoring");
+            LogManager.d(TAG, "Activating background region monitoring");
 	        beaconManager.setMonitorNotifier(application);
 	        try {
 	        	for (Region region : regions) {
-                    BeaconManager.logDebug(TAG, "Background region monitoring activated for region "+region);
+                    LogManager.d(TAG, "Background region monitoring activated for region %s", region);
 	                beaconManager.startMonitoringBeaconsInRegion(region);
                         if (beaconManager.isBackgroundModeUninitialized()) {
                             beaconManager.setBackgroundMode(true);
                         }
 	        	}
 	        } catch (RemoteException e) {   
-	        	Log.e(TAG, "Can't set up bootstrap regions due to "+e);
+	        	LogManager.e(e, TAG, "Can't set up bootstrap regions");
 	        }
 	    }
 	

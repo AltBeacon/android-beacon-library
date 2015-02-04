@@ -274,6 +274,9 @@ public abstract class CycledLeScanner {
             final BluetoothManager bluetoothManager =
                     (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
             mBluetoothAdapter = bluetoothManager.getAdapter();
+            if (mBluetoothAdapter == null) {
+                LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+            }
         }
         return mBluetoothAdapter;
     }

@@ -35,7 +35,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     @Override
     protected void stopScan() {
         try {
-            mScanner.stopScan(getNewLeScanCallback());
+            if (getScanner() != null) {
+                getScanner().stopScan(getNewLeScanCallback());
+            }
         }
         catch (Exception e) {
             LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
@@ -94,8 +96,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                         ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
 
                         try {
-                        mScanner.startScan(new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                                mBeaconManager.getBeaconParsers()), settings, getNewLeScanCallback());
+                            if (getScanner() != null) {
+                                getScanner().startScan(new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                                        mBeaconManager.getBeaconParsers()), settings, getNewLeScanCallback());
+                            }
                         }
                         catch (IllegalStateException e) {
                             LogManager.w(TAG, "Cannot start scan.  Bluetooth may be turned off.");
@@ -120,7 +124,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                             // so we do not drain battery
                             LogManager.d(TAG, "We've been detecting for a bit.  Stopping Android L background scanning");
                             try {
-                                mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                                if (getScanner() != null) {
+                                    getScanner().stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                                }
                             }
                             catch (IllegalStateException e) {
                                 LogManager.w(TAG, "Cannot stop scan.  Bluetooth may be turned off.");
@@ -155,13 +161,18 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         else {
             if (mBackgroundLScanStartTime > 0l) {
                 try {
-                    mScanner.stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                    if (getScanner() != null) {
+                        getScanner().stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
+                    }
                 }
                 catch (IllegalStateException e) {
                     LogManager.w(TAG, "Cannot stop scan.  Bluetooth may be turned off.");
                 }
 
-                mScanner.stopScan(getNewLeScanCallback());
+                if (getScanner() != null) {
+                    getScanner().stopScan(getNewLeScanCallback());
+                }
+
                 mBackgroundLScanStartTime = 0;
             }
             mScanDeferredBefore = false;
@@ -169,14 +180,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         return false;
     }
 
-
     @Override
     protected void startScan() {
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
-        if (mScanner == null) {
-            LogManager.d(TAG, "Making new Android L scanner");
-            mScanner = getBluetoothAdapter().getBluetoothLeScanner();
-        }
         ScanSettings settings;
 
         if (mBackgroundFlag) {
@@ -188,7 +194,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
         }
         try {
-            mScanner.startScan(filters, settings, getNewLeScanCallback());
+            if (getScanner() != null) {
+                getScanner().startScan(filters, settings, getNewLeScanCallback());
+            }
         }
         catch (IllegalStateException e) {
             LogManager.w(TAG, "Cannot start scan.  Bluetooth may be turned off.");
@@ -198,13 +206,26 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     @Override
     protected void finishScan() {
         try {
-            mScanner.stopScan(getNewLeScanCallback());
+            if (getScanner() != null) {
+                getScanner().stopScan(getNewLeScanCallback());
+            }
         }
         catch (IllegalStateException e) {
             LogManager.w(TAG, "Cannot stop scan.  Bluetooth may be turned off.");
         }
 
         mScanningPaused = true;
+    }
+
+    private BluetoothLeScanner getScanner() {
+        if (mScanner == null) {
+            LogManager.d(TAG, "Making new Android L scanner");
+            mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+            if (mScanner == null) {
+                LogManager.w(TAG, "Failed to make new Android L scanner");
+            }
+        }
+        return mScanner;
     }
 
     private ScanCallback getNewLeScanCallback() {

@@ -109,7 +109,12 @@ public class BeaconManager {
     private final ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
-
+    
+    /**
+    * set to true if you want to see debug messages associated with this library
+    */
+    public static boolean debug = false;
+    
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
 

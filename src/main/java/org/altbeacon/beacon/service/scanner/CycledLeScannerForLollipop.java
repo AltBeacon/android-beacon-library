@@ -169,10 +169,6 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     LogManager.w(TAG, "Cannot stop scan.  Bluetooth may be turned off.");
                 }
 
-                if (getScanner() != null) {
-                    getScanner().stopScan(getNewLeScanCallback());
-                }
-
                 mBackgroundLScanStartTime = 0;
             }
             mScanDeferredBefore = false;

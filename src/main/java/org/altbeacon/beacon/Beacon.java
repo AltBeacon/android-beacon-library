@@ -179,6 +179,7 @@ public class Beacon implements Parcelable {
         mTxPower = in.readInt();
         mBluetoothAddress = in.readString();
         mBeaconTypeCode = in.readInt();
+        mServiceUuid = in.readInt();
         int dataSize = in.readInt();
         this.mDataFields = new ArrayList<Long>(dataSize);
         for (int i = 0; i < dataSize; i++) {
@@ -205,6 +206,7 @@ public class Beacon implements Parcelable {
         this.mTxPower = otherBeacon.mTxPower;
         this.mBluetoothAddress = otherBeacon.mBluetoothAddress;
         this.mBeaconTypeCode = otherBeacon.getBeaconTypeCode();
+        this.mServiceUuid = otherBeacon.getServiceUuid();
         this.mBluetoothName = otherBeacon.mBluetoothName;
     }
 
@@ -449,6 +451,7 @@ public class Beacon implements Parcelable {
         out.writeInt(mTxPower);
         out.writeString(mBluetoothAddress);
         out.writeInt(mBeaconTypeCode);
+        out.writeInt(mServiceUuid);
         out.writeInt(mDataFields.size());
         for (Long dataField: mDataFields) {
             out.writeLong(dataField);

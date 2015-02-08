@@ -5,12 +5,17 @@ import org.altbeacon.beacon.logging.LogManager;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import java.nio.ByteOrder;
+import java.nio.ByteBuffer;
+import java.util.UUID;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.content.pm.PackageManager;
+
+import android.os.ParcelUuid;
 
 /**
  * Provides a mechanism for transmitting as a beacon.   Requires Android 5.0
@@ -141,6 +146,7 @@ public class BeaconTransmitter {
             throw new NullPointerException("Beacon cannot be null.  Set beacon before starting advertising");
         }
         int manufacturerCode = mBeacon.getManufacturer();
+        int serviceUuid = mBeacon.getServiceUuid();
 
         if (mBeaconParser == null) {
             throw new NullPointerException("You must supply a BeaconParser instance to BeaconTransmitter.");
@@ -158,7 +164,16 @@ public class BeaconTransmitter {
 
         try{
             AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-            dataBuilder.addManufacturerData(manufacturerCode, advertisingBytes);
+            if (serviceUuid > 0) {
+                byte[] serviceUuidBytes = new byte[] {
+                        (byte) ((serviceUuid >> 8) & 0xff),
+                        (byte) (serviceUuid & 0xff)};
+                ParcelUuid parcelUuid = parseUuidFrom(serviceUuidBytes);
+                dataBuilder.addServiceData(parcelUuid, advertisingBytes);
+            }
+            else {
+                dataBuilder.addManufacturerData(manufacturerCode, advertisingBytes);
+            }
 
             AdvertiseSettings.Builder settingsBuilder = new AdvertiseSettings.Builder();
 
@@ -242,6 +257,60 @@ public class BeaconTransmitter {
 
         }
         return mAdvertiseCallback;
+    }
+
+    /**
+     * Parse UUID from bytes. The {@code uuidBytes} can represent a 16-bit, 32-bit or 128-bit UUID,
+     * but the returned UUID is always in 128-bit format.
+     * Note UUID is little endian in Bluetooth.
+     *
+     * @param uuidBytes Byte representation of uuid.
+     * @return {@link ParcelUuid} parsed from bytes.
+     * @throws IllegalArgumentException If the {@code uuidBytes} cannot be parsed.
+     *
+     * Copied from java/android/bluetooth/BluetoothUuid.java
+     * Copyright (C) 2009 The Android Open Source Project
+     * Licensed under the Apache License, Version 2.0
+     */
+    private static ParcelUuid parseUuidFrom(byte[] uuidBytes) {
+        /** Length of bytes for 16 bit UUID */
+        final int UUID_BYTES_16_BIT = 2;
+        /** Length of bytes for 32 bit UUID */
+        final int UUID_BYTES_32_BIT = 4;
+        /** Length of bytes for 128 bit UUID */
+        final int UUID_BYTES_128_BIT = 16;
+        final ParcelUuid BASE_UUID =
+                ParcelUuid.fromString("00000000-0000-1000-8000-00805F9B34FB");
+        if (uuidBytes == null) {
+            throw new IllegalArgumentException("uuidBytes cannot be null");
+        }
+        int length = uuidBytes.length;
+        if (length != UUID_BYTES_16_BIT && length != UUID_BYTES_32_BIT &&
+                length != UUID_BYTES_128_BIT) {
+            throw new IllegalArgumentException("uuidBytes length invalid - " + length);
+        }
+        // Construct a 128 bit UUID.
+        if (length == UUID_BYTES_128_BIT) {
+            ByteBuffer buf = ByteBuffer.wrap(uuidBytes).order(ByteOrder.LITTLE_ENDIAN);
+            long msb = buf.getLong(8);
+            long lsb = buf.getLong(0);
+            return new ParcelUuid(new UUID(msb, lsb));
+        }
+        // For 16 bit and 32 bit UUID we need to convert them to 128 bit value.
+        // 128_bit_value = uuid * 2^96 + BASE_UUID
+        long shortUuid;
+        if (length == UUID_BYTES_16_BIT) {
+            shortUuid = uuidBytes[0] & 0xFF;
+            shortUuid += (uuidBytes[1] & 0xFF) << 8;
+        } else {
+            shortUuid = uuidBytes[0] & 0xFF ;
+            shortUuid += (uuidBytes[1] & 0xFF) << 8;
+            shortUuid += (uuidBytes[2] & 0xFF) << 16;
+            shortUuid += (uuidBytes[3] & 0xFF) << 24;
+        }
+        long msb = BASE_UUID.getUuid().getMostSignificantBits() + (shortUuid << 32);
+        long lsb = BASE_UUID.getUuid().getLeastSignificantBits();
+        return new ParcelUuid(new UUID(msb, lsb));
     }
 
 }

@@ -23,6 +23,7 @@
  */
 package org.altbeacon.beacon;
 
+import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -126,8 +127,10 @@ public class BeaconManager {
     public static void setDebug(boolean debug) {
         if (debug) {
             LogManager.setLogger(Loggers.verboseLogger());
+            LogManager.setVerboseLoggingEnabled(true);
         } else {
             LogManager.setLogger(Loggers.empty());
+            LogManager.setVerboseLoggingEnabled(false);
         }
     }
 

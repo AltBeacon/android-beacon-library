@@ -35,6 +35,7 @@ public class BeaconParser {
     private static final String TAG = "BeaconParser";
     private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)(l?)");
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
+    private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]?)");
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
@@ -48,6 +49,10 @@ public class BeaconParser {
     protected List<Boolean> mDataLittleEndianFlags;
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
+    protected Integer mServiceUuidStartOffset;
+    protected Integer mServiceUuidEndOffset;
+    protected Long mServiceUuid;
+
     protected Integer mPowerStartOffset;
     protected Integer mPowerEndOffset;
     protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
@@ -76,6 +81,7 @@ public class BeaconParser {
      *
      * <pre>
      *   m - matching byte sequence for this beacon type to parse (exactly one required)
+     *   s - ServiceUuuid for this beacon type to parse (optional, only for Gatt-based becons)
      *   i - identifier (at least one required, multiple allowed)
      *   p - power calibration field (exactly one required)
      *   d - data field (optional, multiple allowed)
@@ -186,6 +192,26 @@ public class BeaconParser {
                     throw new BeaconLayoutException("Cannot parse beacon type code: "+hexString+" in term: " + term);
                 }
             }
+            matcher = S_PATTERN.matcher(term);
+            while (matcher.find()) {
+                found = true;
+                try {
+                    int startOffset = Integer.parseInt(matcher.group(1));
+                    int endOffset = Integer.parseInt(matcher.group(2));
+                    mServiceUuidStartOffset = startOffset;
+                    mServiceUuidEndOffset = endOffset;
+                } catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse integer byte offset in term: " + term);
+                }
+                String hexString = matcher.group(3);
+                try {
+                    mServiceUuid = Long.decode("0x"+hexString);
+                }
+                catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse serviceUuid: "+hexString+" in term: " + term);
+                }
+            }
+
             if (!found) {
                 LogManager.d(TAG, "cannot parse term %s", term);
                 throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
@@ -252,6 +278,32 @@ public class BeaconParser {
         return mMatchingBeaconTypeCodeEndOffset;
     }
 
+
+    /**
+     * @see #mServiceUuid
+     * @return
+     */
+    public Long getServiceUuid() {
+        return mServiceUuid;
+    }
+
+    /**
+     * see #mServiceUuidStartOffset
+     * @return
+     */
+    public int getMServiceUuidStartOffset() {
+        return mServiceUuidStartOffset;
+    }
+
+    /**
+     * see #mServiceUuidEndOffset
+     * @return
+     */
+    public int getServiceUuidEndOffset() {
+        return mServiceUuidEndOffset;
+    }
+
+
     /**
      * Construct a Beacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
      * including the raw bluetooth device info
@@ -269,28 +321,59 @@ public class BeaconParser {
     @TargetApi(5)
     protected Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device, Beacon beacon) {
 
+        int maxByteForMatch = 5; // for manufacturer data-based beacons
+        byte[] serviceUuidBytes = null;
+        byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset-mMatchingBeaconTypeCodeStartOffset+1);
+        if (getServiceUuid() != null) {
+            maxByteForMatch = 11; // for uuid-based beacons
+            serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset-mServiceUuidStartOffset+1);
+        }
         int startByte = 2;
         boolean patternFound = false;
-        byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset-mMatchingBeaconTypeCodeStartOffset+1);
 
-        while (startByte <= 5) {
-            if (byteArraysMatch(scanData, startByte+mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
-                patternFound = true;
-                break;
+        while (startByte <= maxByteForMatch) {
+            if (getServiceUuid() == null) {
+                if (byteArraysMatch(scanData, startByte+mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+                    patternFound = true;
+                    break;
+                }
+            }
+            else {
+                if (byteArraysMatch(scanData, startByte+mServiceUuidStartOffset, serviceUuidBytes, 0) &&
+                    byteArraysMatch(scanData, startByte+mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+                    patternFound = true;
+                    break;
+                }
             }
             startByte++;
         }
 
         if (patternFound == false) {
-            // This is not an beacon
-            LogManager.d(TAG, "This is not a matching Beacon advertisement. (Was expecting %s.  "
-                            + "The bytes I see are: %s", byteArrayToString(typeCodeBytes),
-                    bytesToHex(scanData));
+            // This is not a beacon
+            if (getServiceUuid() == null) {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "This is not a matching Beacon advertisement. (Was expecting %s.  "
+                                    + "The bytes I see are: %s", byteArrayToString(typeCodeBytes),
+                            bytesToHex(scanData));
+
+                }
+            }
+            else {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "This is not a matching Beacon advertisement. (Was expecting %s and %s.  "
+                                    + "The bytes I see are: %s", byteArrayToString(serviceUuidBytes),
+                            byteArrayToString(typeCodeBytes),
+                            bytesToHex(scanData));
+                }
+            }
+
             return null;
         }
         else {
-            LogManager.d(TAG, "This is a recognized beacon advertisement -- %04x seen",
-                    getMatchingBeaconTypeCode());
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
+                        byteArrayToString(typeCodeBytes));
+            }
         }
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
@@ -302,7 +385,6 @@ public class BeaconParser {
         for (int i = 0; i < mDataEndOffsets.size(); i++) {
             String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i)+startByte, mDataEndOffsets.get(i)+startByte, mDataLittleEndianFlags.get(i));
             dataFields.add(Long.parseLong(dataString));
-            LogManager.d(TAG, "parsing found data field %s", i);
             // TODO: error handling needed here on the parse
         }
 
@@ -450,9 +532,6 @@ public class BeaconParser {
             long mask = 0xffl << (length-i-1)*8;
             long shift = (length-i-1)*8;
             long value = ((longValue & mask)  >> shift);
-            //BeaconManager.logDebug(TAG, "masked value is "+String.format("%08x",longValue & mask));
-            //BeaconManager.logDebug(TAG, "masked value shifted is "+String.format("%08x",(longValue & mask) >> shift));
-            //BeaconManager.logDebug(TAG, "for long "+String.format("%08x",longValue)+" at position: "+i+" of "+length+" mask: "+String.format("%08x",mask)+" shift: "+shift+" the value is "+String.format("%02x",value));
             array[i] = (byte) value;
 
         }
@@ -494,15 +573,10 @@ public class BeaconParser {
         // We treat a 1-4 byte number as decimal string
         if (length < 5) {
             long number = 0l;
-            LogManager.d(TAG, "Byte array is size %s", bytes.length);
             for (int i = 0; i < bytes.length; i++)  {
-                LogManager.d(TAG, "index is %s", i);
                 long byteValue = (long) (bytes[bytes.length - i-1] & 0xff);
                 long positionValue = (long) Math.pow(256.0,i*1.0);
                 long calculatedValue =  (byteValue * positionValue);
-                LogManager.d(TAG, "calculatedValue for position %s with positionValue %s and "
-                                + "byteValue %s is %s", i, positionValue, byteValue,
-                        calculatedValue);
                 number += calculatedValue;
             }
             return Long.toString(number);

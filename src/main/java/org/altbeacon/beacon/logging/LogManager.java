@@ -25,6 +25,7 @@ package org.altbeacon.beacon.logging;
  */
 public final class LogManager {
     private static Logger sLogger = Loggers.warningLogger();
+    private static boolean sVerboseLoggingEnabled = false;
 
     /**
      * Set the logger that the Altbeacon library will use to send it's log messages to.
@@ -40,6 +41,35 @@ public final class LogManager {
         }
 
         sLogger = logger;
+    }
+
+    /**
+     * Gets the currently set logger
+     *
+     * @see org.altbeacon.beacon.logging.Logger
+     * @return logger
+     */
+    public static Logger getLogger() {
+        return sLogger;
+    }
+
+    /**
+     * Indicates whether verbose logging is enabled.   If not, expensive calculations to create
+     * log strings should be avoided.
+     * @return
+     */
+    public static boolean isVerboseLoggingEnabled() {
+        return sVerboseLoggingEnabled;
+    }
+
+    /**
+     * Sets whether verbose logging is enabled.  If not, expensive calculations to create
+     * log strings should be avoided.
+     *
+     * @param enabled
+     */
+    public static void setVerboseLoggingEnabled(boolean enabled) {
+        sVerboseLoggingEnabled = enabled;
     }
 
     /**

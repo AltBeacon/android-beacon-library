@@ -113,8 +113,19 @@ public class Beacon implements Parcelable {
      * A two byte code indicating the beacon manufacturer.  A list of registered manufacturer codes
      * may be found here:
      * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
+     *
+     * If the beacon is a GATT-based beacon, this field will be set to -1
      */
     protected int mManufacturer;
+
+    /**
+     * A 32 bit service uuid for the beacon
+     *
+     * This is valid only for GATT-based beacons.   If the beacon is a manufacturer data-based
+     * beacon, this field will be -1
+     */
+
+    protected int mServiceUuid;
 
     /**
      * The bluetooth device name.  This is a field transmitted by the remote beacon device separate
@@ -228,6 +239,13 @@ public class Beacon implements Parcelable {
      */
     public int getManufacturer() {
         return mManufacturer;
+    }
+
+    /**
+     * @see #mServiceUuid
+     */
+    public int getServiceUuid() {
+        return mServiceUuid;
     }
 
     /**

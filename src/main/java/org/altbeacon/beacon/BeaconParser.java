@@ -419,6 +419,13 @@ public class BeaconParser {
         beacon.mTxPower = txPower;
         beacon.mRssi = rssi;
         beacon.mBeaconTypeCode = beaconTypeCode;
+        if (mServiceUuid != null) {
+            beacon.mServiceUuid = (int) mServiceUuid.longValue();
+        }
+        else {
+            beacon.mServiceUuid = -1;
+        }
+
         beacon.mBluetoothAddress = macAddress;
         beacon.mBluetoothName= name;
         beacon.mManufacturer = manufacturer;

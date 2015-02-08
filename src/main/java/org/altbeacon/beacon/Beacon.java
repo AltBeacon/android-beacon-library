@@ -596,6 +596,16 @@ public class Beacon implements Parcelable {
         }
 
         /**
+         * @see Beacon#mServiceUuid
+         * @param serviceUuid
+         * @return builder
+         */
+        public Builder setServiceUuid(int serviceUuid) {
+            mBeacon.mServiceUuid = serviceUuid;
+            return this;
+        }
+
+        /**
          * @see Beacon#mBluetoothAddress
          * @param bluetoothAddress
          * @return builder

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -569,12 +570,14 @@ public class BeaconManager {
 	}
 
 	private ServiceConnection beaconServiceConnection = new ServiceConnection() {
-		// Called when the connection with the service is established
-	    public void onServiceConnected(ComponentName className, IBinder service) {
+      // Called when the connection with the service is established
+      public void onServiceConnected(ComponentName className, IBinder service) {
             LogManager.d(TAG, "we have a connection to the service now");
-	        serviceMessenger = new Messenger(service);
+            serviceMessenger = new Messenger(service);
             synchronized(consumers) {
-                for (BeaconConsumer consumer : consumers.keySet()) {
+                Iterator<BeaconConsumer> consumerIterator = consumers.keySet().iterator();
+                while (consumerIterator.hasNext()) {
+                    BeaconConsumer consumer = consumerIterator.next();
                     Boolean alreadyConnected = consumers.get(consumer).isConnected;
                     if (!alreadyConnected) {
                         consumer.onBeaconServiceConnect();

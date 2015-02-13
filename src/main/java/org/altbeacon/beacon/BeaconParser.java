@@ -514,6 +514,19 @@ public class BeaconParser {
         return mIdentifierEndOffsets.get(identifierNum) - mIdentifierStartOffsets.get(identifierNum) + 1;
     }
 
+    /**
+     * @return the number of identifiers in this beacon format
+     */
+    public int getIdentifierCount() {
+        return mIdentifierStartOffsets.size();
+    }
+
+    /**
+     * @return the number of data fields in this beacon format
+     */
+    public int getDataFieldCount() {
+        return mDataStartOffsets.size();
+    }
 
     protected static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];

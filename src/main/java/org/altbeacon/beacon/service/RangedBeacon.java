@@ -1,23 +1,20 @@
 package org.altbeacon.beacon.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
 import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
 public class RangedBeacon {
-	private static final String TAG = "RangedBeacon";
-	public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
-	private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
+
+    private static final String TAG = "RangedBeacon";
+    public static long DEFAULT_MAX_TRACKING_AGE = 5000; /* 5 Seconds */
+    public static long maxTrackinAge = DEFAULT_MAX_TRACKING_AGE; /* 5 Seconds */
     private boolean mTracked = true;
-    private ArrayList<Measurement> mMeasurements = new ArrayList<Measurement>();
+    protected long lastTracked = 0;
     Beacon mBeacon;
+    protected static RssiFilter filter = null;
 
 	public RangedBeacon(Beacon beacon) {
-		updateBeacon(beacon);
+        updateBeacon(beacon);
 	}
 
     public void updateBeacon(Beacon beacon) {
@@ -39,8 +36,8 @@ public class RangedBeacon {
 
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
-        if (mMeasurements.size() > 0) {
-            double runningAverage = calculateRunningAverage();
+        if (!filter.noMeasurementsAvailable()) {
+            double runningAverage = filter.calculateRunningAverage();
             mBeacon.setRunningAverageRssi(runningAverage);
             LogManager.d(TAG, "calculated new runningAverageRssi: %s", runningAverage);
         }
@@ -49,65 +46,29 @@ public class RangedBeacon {
         }
     }
 
-	public static void setSampleExpirationMilliseconds(long milliseconds) {
-		sampleExpirationMilliseconds = milliseconds;
-	}
 	public void addMeasurement(Integer rssi) {
-            mTracked = true;
-			Measurement measurement = new Measurement();
-			measurement.rssi = rssi;
-			measurement.timestamp = new Date().getTime();
-			mMeasurements.add(measurement);
+        mTracked = true;
+        lastTracked = System.currentTimeMillis();
+        filter.addMeasurement(rssi);
 	}
 
-	public boolean noMeasurementsAvailable() {
-		return mMeasurements.size() == 0;
-	}
+    public static void setMaxTrackinAge(int maxTrackinAge) {
+        RangedBeacon.maxTrackinAge = maxTrackinAge;
+    }
 
-	private class Measurement implements Comparable<Measurement> {
-		Integer rssi;
-		long timestamp;
-		@Override
-		public int compareTo(Measurement arg0) {			
-			return rssi.compareTo(arg0.rssi);
-		}
-	}	
-	
-	private synchronized void refreshMeasurements() {
-		Date now = new Date();
-		ArrayList<Measurement> newMeasurements = new ArrayList<Measurement>();
-		Iterator<Measurement> iterator = mMeasurements.iterator();
-		while (iterator.hasNext()) {
-			Measurement measurement = iterator.next();
-			if (now.getTime() - measurement.timestamp < sampleExpirationMilliseconds ) {
-				newMeasurements.add(measurement);
-			}
-		}
-		mMeasurements = newMeasurements;
-		Collections.sort(mMeasurements);
-	}
-	
-	private double calculateRunningAverage() {
-		refreshMeasurements();
-		int size = mMeasurements.size();
-		int startIndex = 0;
-		int endIndex = size -1;
-		if (size > 2) {
-			startIndex = size/10+1;
-			endIndex = size-size/10-2;
-		}
+    public boolean noMeasurementsAvailable() {
+        return filter.noMeasurementsAvailable();
+    }
 
-		double sum = 0;
-		for (int i = startIndex; i <= endIndex; i++) {
-			sum += mMeasurements.get(i).rssi;
-		}
-		double runningAverage = sum/(endIndex-startIndex+1);
-
-        LogManager.d(TAG, "Running average mRssi based on %s measurements: %s",
-                size, runningAverage);
-		return runningAverage;
-
-	}
+    public long getTrackingAge() {
+        return System.currentTimeMillis() - lastTracked;
+    }
 	
-	
+    public boolean isExpired() {
+        return getTrackingAge() > maxTrackinAge;
+    }
+
+    public static void setRssiFilter(RssiFilter filter) {
+        RangedBeacon.filter = filter;
+    }
 }

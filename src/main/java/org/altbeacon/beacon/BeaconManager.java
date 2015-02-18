@@ -23,21 +23,6 @@
  */
 package org.altbeacon.beacon;
 
-import java.security.acl.LastOwnerException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.logging.Loggers;
-import org.altbeacon.beacon.service.BeaconService;
-import org.altbeacon.beacon.simulator.BeaconSimulator;
-import org.altbeacon.beacon.service.StartRMData;
-
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
@@ -49,6 +34,23 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+
+import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.logging.Loggers;
+import org.altbeacon.beacon.service.BeaconService;
+import org.altbeacon.beacon.service.RangeState;
+import org.altbeacon.beacon.service.RangedBeacon;
+import org.altbeacon.beacon.service.RunningAverageRssiFilter;
+import org.altbeacon.beacon.service.StartRMData;
+import org.altbeacon.beacon.simulator.BeaconSimulator;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
@@ -664,6 +666,36 @@ public class BeaconManager {
 
     public static void setDistanceModelUpdateUrl(String url) {
         distanceModelUpdateUrl = url;
+    }
+
+    /**
+     * Default class for rssi filter/calculation implementation
+     */
+    protected static Class rssiFilterImplClass = RunningAverageRssiFilter.class;
+
+    public static void setRssiFilterImplClass(Class c) {
+        rssiFilterImplClass = c;
+    }
+
+    public static Class getRssiFilterImplClass() {
+        return rssiFilterImplClass;
+    }
+
+    /**
+     * Allow the library to use a tracking cache
+     * @param useTrackingCache
+     */
+    public static void setUseTrackingCache(boolean useTrackingCache) {
+        RangeState.setUseTrackingCache(useTrackingCache);
+    }
+
+    /**
+     * Set the period of time, in which a beacon did not receive new
+     * measurements
+     * @param maxTrackingAge in milliseconds
+     */
+    public void setMaxTrackingAge(int maxTrackingAge) {
+        RangedBeacon.setMaxTrackinAge(maxTrackingAge);
     }
 
     public static void setBeaconSimulator(BeaconSimulator beaconSimulator) {

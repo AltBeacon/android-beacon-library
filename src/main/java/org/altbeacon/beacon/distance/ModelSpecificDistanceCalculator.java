@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -155,6 +156,10 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             while ((line = reader.readLine()) != null) {
                 sb.append(line).append("\n");
             }
+        }
+        catch (FileNotFoundException fnfe){
+            //This occurs on the first time the app is run, no error message necessary.
+            return false;
         }
         catch (IOException e) {
             LogManager.e(e, TAG, "Cannot open distance model file %s", file);

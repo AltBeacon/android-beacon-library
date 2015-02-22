@@ -1,7 +1,10 @@
 package org.altbeacon.beacon.service;
 
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
+
+import java.lang.reflect.Constructor;
 
 public class RangedBeacon {
 
@@ -11,9 +14,16 @@ public class RangedBeacon {
     private boolean mTracked = true;
     protected long lastTracked = 0;
     Beacon mBeacon;
-    protected static RssiFilter filter = null;
+    protected RssiFilter filter = null;
 
 	public RangedBeacon(Beacon beacon) {
+        //set RSSI filter
+        try {
+            Constructor cons = BeaconManager.getRssiFilterImplClass().getConstructors()[0];
+            filter = (RssiFilter)cons.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         updateBeacon(beacon);
 	}
 
@@ -68,7 +78,4 @@ public class RangedBeacon {
         return getTrackingAge() > maxTrackinAge;
     }
 
-    public static void setRssiFilter(RssiFilter filter) {
-        RangedBeacon.filter = filter;
-    }
 }

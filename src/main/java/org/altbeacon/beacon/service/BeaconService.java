@@ -50,7 +50,6 @@ import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -205,13 +204,6 @@ public class BeaconService extends Service {
         beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
-        //set RSSI filter
-        try {
-            Constructor cons = BeaconManager.getRssiFilterImplClass().getConstructors()[0];
-            RangedBeacon.setRssiFilter((RssiFilter)cons.newInstance());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         // Look for simulated scan data
         try {

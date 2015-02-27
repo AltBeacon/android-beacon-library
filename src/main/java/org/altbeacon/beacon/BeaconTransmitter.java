@@ -25,8 +25,12 @@ public class BeaconTransmitter {
     public static final int SUPPORTED = 0;
     public static final int NOT_SUPPORTED_MIN_SDK = 1;
     public static final int NOT_SUPPORTED_BLE = 2;
+    // isMultipleAdvertisementSupported returning false no longer indicates that transmission is not
+    // possible
+    @Deprecated
     public static final int NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS = 3;
     public static final int NOT_SUPPORTED_CANNOT_GET_ADVERTISER = 4;
+    public static final int NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS = 5;
     private static final String TAG = "BeaconTransmitter";
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
@@ -221,13 +225,13 @@ public class BeaconTransmitter {
         if (!context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             return NOT_SUPPORTED_BLE;
         }
-        if (!((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isMultipleAdvertisementSupported()) {
-            return NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS;
-        }
         try {
             // Check to see if the getBluetoothLeAdvertiser is available.  If not, this will throw an exception indicating we are not running Android L
             ((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().getBluetoothLeAdvertiser();
         } catch (Exception e) {
+            if (!((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isMultipleAdvertisementSupported()) {
+                return NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS;
+            }
             return NOT_SUPPORTED_CANNOT_GET_ADVERTISER;
         }
         return SUPPORTED;

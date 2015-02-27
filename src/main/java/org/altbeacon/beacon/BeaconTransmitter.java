@@ -219,22 +219,31 @@ public class BeaconTransmitter {
      *          NOT_SUPPORTED_CANNOT_GET_ADVERTISER
      */
     public static int checkTransmissionSupported(Context context) {
+        int returnCode = SUPPORTED;
+
         if (android.os.Build.VERSION.SDK_INT < 21) {
-            return NOT_SUPPORTED_MIN_SDK;
+            returnCode = NOT_SUPPORTED_MIN_SDK;
         }
-        if (!context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            return NOT_SUPPORTED_BLE;
+        else if (!context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            returnCode = NOT_SUPPORTED_BLE;
         }
-        try {
-            // Check to see if the getBluetoothLeAdvertiser is available.  If not, this will throw an exception indicating we are not running Android L
-            ((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().getBluetoothLeAdvertiser();
-        } catch (Exception e) {
-            if (!((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isMultipleAdvertisementSupported()) {
-                return NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS;
+        else {
+            try {
+                // Check to see if the getBluetoothLeAdvertiser is available.  If not, this will throw an exception indicating we are not running Android L
+                if (((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().getBluetoothLeAdvertiser() == null) {
+                    if (!((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isMultipleAdvertisementSupported()) {
+                        returnCode = NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS;
+                    }
+                    else {
+                        returnCode = NOT_SUPPORTED_CANNOT_GET_ADVERTISER;
+                    }
+                }
+            } catch (Exception e) {
+                returnCode = NOT_SUPPORTED_CANNOT_GET_ADVERTISER;
             }
-            return NOT_SUPPORTED_CANNOT_GET_ADVERTISER;
         }
-        return SUPPORTED;
+
+        return returnCode;
     }
 
     private AdvertiseCallback getAdvertiseCallback() {

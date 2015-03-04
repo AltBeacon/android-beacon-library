@@ -52,8 +52,7 @@ public class RangeState {
             rangedBeacon.updateBeacon(beacon);
         }
         else {
-            //TODO: make the used implementation an option
-            LogManager.d(TAG, "adding %s to new rangedBeacon (ARMA)", beacon);
+            LogManager.d(TAG, "adding %s to new rangedBeacon", beacon);
             mRangedBeacons.put(beacon, new RangedBeacon(beacon));
         }
     }

@@ -10,9 +10,12 @@ public class RangedBeacon {
 
     private static final String TAG = "RangedBeacon";
     public static long DEFAULT_MAX_TRACKING_AGE = 5000; /* 5 Seconds */
-    public static long maxTrackinAge = DEFAULT_MAX_TRACKING_AGE; /* 5 Seconds */
+    public static long maxTrackingAge = DEFAULT_MAX_TRACKING_AGE; /* 5 Seconds */
+    //kept here for backward compatibility
+    public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
+    private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
     private boolean mTracked = true;
-    protected long lastTracked = 0;
+    protected long lastTrackedTimeMillis = 0;
     Beacon mBeacon;
     protected RssiFilter filter = null;
 
@@ -21,8 +24,10 @@ public class RangedBeacon {
         try {
             Constructor cons = BeaconManager.getRssiFilterImplClass().getConstructors()[0];
             filter = (RssiFilter)cons.newInstance();
+            if ((filter != null) && (filter instanceof RunningAverageRssiFilter))
+                ((RunningAverageRssiFilter)filter).setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogManager.e(TAG, "Could not construct RssiFilterImplClass %s", BeaconManager.getRssiFilterImplClass().getName());
         }
         updateBeacon(beacon);
 	}
@@ -47,7 +52,7 @@ public class RangedBeacon {
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
         if (!filter.noMeasurementsAvailable()) {
-            double runningAverage = filter.calculateRunningAverage();
+            double runningAverage = filter.calculateRssi();
             mBeacon.setRunningAverageRssi(runningAverage);
             LogManager.d(TAG, "calculated new runningAverageRssi: %s", runningAverage);
         }
@@ -58,12 +63,17 @@ public class RangedBeacon {
 
 	public void addMeasurement(Integer rssi) {
         mTracked = true;
-        lastTracked = System.currentTimeMillis();
+        lastTrackedTimeMillis = System.currentTimeMillis();
         filter.addMeasurement(rssi);
 	}
 
+    //kept here for backward compatibility
+    public static void setSampleExpirationMilliseconds(long milliseconds) {
+        sampleExpirationMilliseconds = milliseconds;
+    }
+
     public static void setMaxTrackinAge(int maxTrackinAge) {
-        RangedBeacon.maxTrackinAge = maxTrackinAge;
+        RangedBeacon.maxTrackingAge = maxTrackinAge;
     }
 
     public boolean noMeasurementsAvailable() {
@@ -71,11 +81,11 @@ public class RangedBeacon {
     }
 
     public long getTrackingAge() {
-        return System.currentTimeMillis() - lastTracked;
+        return System.currentTimeMillis() - lastTrackedTimeMillis;
     }
 	
     public boolean isExpired() {
-        return getTrackingAge() > maxTrackinAge;
+        return getTrackingAge() > maxTrackingAge;
     }
 
 }

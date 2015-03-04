@@ -8,7 +8,9 @@ import java.util.Date;
 import java.util.Iterator;
 
 /**
- * Created by AS on 17.02.2015.
+ * Calculate a RSSI value on base of an arbitrary list of measured RSSI values
+ * The list is clipped by a certain length at start and end and the average
+ * is calculate by simple arithmetic average
  */
 public class RunningAverageRssiFilter implements RssiFilter {
 
@@ -31,7 +33,7 @@ public class RunningAverageRssiFilter implements RssiFilter {
     }
 
     @Override
-    public double calculateRunningAverage() {
+    public double calculateRssi() {
         refreshMeasurements();
         int size = mMeasurements.size();
         int startIndex = 0;
@@ -73,6 +75,10 @@ public class RunningAverageRssiFilter implements RssiFilter {
         public int compareTo(Measurement arg0) {
             return rssi.compareTo(arg0.rssi);
         }
+    }
+
+    public static void setSampleExpirationMilliseconds(long newSampleExpirationMilliseconds) {
+        sampleExpirationMilliseconds = newSampleExpirationMilliseconds;
     }
 
 }

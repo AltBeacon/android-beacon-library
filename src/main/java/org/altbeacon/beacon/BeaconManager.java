@@ -23,21 +23,6 @@
  */
 package org.altbeacon.beacon;
 
-import java.security.acl.LastOwnerException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.logging.Loggers;
-import org.altbeacon.beacon.service.BeaconService;
-import org.altbeacon.beacon.simulator.BeaconSimulator;
-import org.altbeacon.beacon.service.StartRMData;
-
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
@@ -49,6 +34,22 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+
+import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.logging.Loggers;
+import org.altbeacon.beacon.service.BeaconService;
+import org.altbeacon.beacon.service.StartRMData;
+import org.altbeacon.beacon.simulator.BeaconSimulator;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * An class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
@@ -100,7 +101,7 @@ public class BeaconManager {
 	private static final String TAG = "BeaconManager";
 	private Context mContext;
 	protected static BeaconManager client = null;
-	private final Map<BeaconConsumer, ConsumerInfo> consumers = new HashMap<BeaconConsumer,ConsumerInfo>();
+	private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
 	private Messenger serviceMessenger = null;
 	protected RangeNotifier rangeNotifier = null;
     protected RangeNotifier dataRequestNotifier = null;
@@ -269,12 +270,12 @@ public class BeaconManager {
             return;
         }
         synchronized (consumers) {
-            if (consumers.keySet().contains(consumer)) {
+            ConsumerInfo consumerInfo = consumers.putIfAbsent(consumer, new ConsumerInfo());
+            if (consumerInfo != null) {
                 LogManager.d(TAG, "This consumer is already bound");
             }
             else {
                 LogManager.d(TAG, "This consumer is not bound.  binding: %s", consumer);
-                consumers.put(consumer, new ConsumerInfo());
                 Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                 consumer.bindService(intent, beaconServiceConnection, Context.BIND_AUTO_CREATE);
                 LogManager.d(TAG, "consumer count is now: %s", consumers.size());
@@ -294,7 +295,7 @@ public class BeaconManager {
             return;
         }
         synchronized (consumers) {
-            if (consumers.keySet().contains(consumer)) {
+            if (consumers.containsKey(consumer)) {
                 LogManager.d(TAG, "Unbinding");
                 consumer.unbindService(beaconServiceConnection);
                 consumers.remove(consumer);
@@ -309,7 +310,7 @@ public class BeaconManager {
                 LogManager.d(TAG, "Bound consumers: ");
                 Set<Map.Entry<BeaconConsumer, ConsumerInfo>> consumers = this.consumers.entrySet();
                 for (Map.Entry<BeaconConsumer, ConsumerInfo> consumerEntry : consumers) {
-                    LogManager.i(TAG, String.valueOf(consumerEntry.getValue()));
+                    LogManager.d(TAG, String.valueOf(consumerEntry.getValue()));
                 }
             }
         }
@@ -323,7 +324,7 @@ public class BeaconManager {
      */
     public boolean isBound(BeaconConsumer consumer) {
         synchronized(consumers) {
-            return consumers.get(consumer) != null && (serviceMessenger != null);
+            return consumer != null && consumers.get(consumer) != null && (serviceMessenger != null);
         }
     }
 
@@ -333,7 +334,9 @@ public class BeaconManager {
      * @return
      */
     public boolean isAnyConsumerBound() {
-        return consumers.size() > 0 && (serviceMessenger != null);
+        synchronized(consumers) {
+            return consumers.size() > 0 && (serviceMessenger != null);
+        }
     }
 
     /**
@@ -569,17 +572,18 @@ public class BeaconManager {
 	}
 
 	private ServiceConnection beaconServiceConnection = new ServiceConnection() {
-      // Called when the connection with the service is established
-      public void onServiceConnected(ComponentName className, IBinder service) {
+        // Called when the connection with the service is established
+        public void onServiceConnected(ComponentName className, IBinder service) {
             LogManager.d(TAG, "we have a connection to the service now");
             serviceMessenger = new Messenger(service);
             synchronized(consumers) {
-                for (BeaconConsumer consumer : consumers.keySet()) {
-                    Boolean alreadyConnected = consumers.get(consumer).isConnected;
-                    if (!alreadyConnected) {
-                        consumer.onBeaconServiceConnect();
-                        ConsumerInfo consumerInfo = consumers.get(consumer);
-                        consumerInfo.isConnected = true;
+                Iterator<Map.Entry<BeaconConsumer, ConsumerInfo>> iter = consumers.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry<BeaconConsumer, ConsumerInfo> entry = iter.next();
+
+                    if (!entry.getValue().isConnected) {
+                        entry.getKey().onBeaconServiceConnect();
+                        entry.getValue().isConnected = true;
                     }
                 }
             }

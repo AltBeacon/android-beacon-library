@@ -13,9 +13,8 @@ public class ArmaRssiFilterTest {
 
     @Test
     public void initTest1() {
-        ArmaRssiFilter.setDEFAULT_ARMA_MEASUREMENT(-50);
-        ArmaRssiFilter.setDEFAULT_ARMA_SPEED(1);
         ArmaRssiFilter filter = new ArmaRssiFilter();
+        filter.addMeasurement(-50);
         assertEquals("First measurement should be -50", String.valueOf(filter.calculateRssi()), "-50.0");
     }
 

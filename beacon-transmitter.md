@@ -127,11 +127,12 @@ If the device supports transmission, the method returns BeaconTransmitter.SUPPOR
 ```
 NOT_SUPPORTED_MIN_SDK
 NOT_SUPPORTED_BLE
-NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS
+NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS (deprecated)
+NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS
 NOT_SUPPORTED_CANNOT_GET_ADVERTISER
 ```
 
-The `NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS` return indicates that the device either does not have a compatible chipset, or the manufacturer has not
+The `NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS`, `NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS` and  `NOT_SUPPORTED_CANNOT_GET_ADVERTISER` return typically indicates that the device either does not have a compatible chipset, or the manufacturer has not
 implemented the driver support required by Google to support "multiple advertisements" a requirement to be able to use Android 5.x BLE
 transmission APIs.
 

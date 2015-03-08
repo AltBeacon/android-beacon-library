@@ -101,13 +101,13 @@ transmission.
 <tr><td>samsung</td><td>GT-I9300</td><td>LRX21T</td><td>5.0</td></tr>
 <tr><td>samsung</td><td>GT-I9505</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>samsung</td><td>GT-I9505</td><td>LRX22G</td><td>5.0.2</td></tr>
-<tr><td>samsung;GT-I8190</td><td>LRX22G</td><td>5.0.2</td></tr>
-<tr><td>samsung;GT-I9505G</td><td>LRX21P.S012</td><td>5.0</td></tr>
-<tr><td>samsung;GT-I9505G</td><td>LRX22C.S012.unofficial</td><td>5.0.1</td></tr>
-<tr><td>samsung;GT-I9505</td><td>LRX22C</td><td>5.0.1</td></tr>
-<tr><td>samsung;SM-G900I</td><td>KOT49H</td><td>4.4.2</td></tr>
-<tr><td>samsung;SM-N900</td><td>LRX21V</td><td>5.0</td></tr>
-<tr><td>samsung;SM-T531</td><td>KOT49H</td><td>4.4.2</td></tr>
+<tr><td>samsung</td><td>GT-I8190</td><td>LRX22G</td><td>5.0.2</td></tr>
+<tr><td>samsung</td><td>GT-I9505G</td><td>LRX21P.S012</td><td>5.0</td></tr>
+<tr><td>samsung</td><td>GT-I9505G</td><td>LRX22C.S012.unofficial</td><td>5.0.1</td></tr>
+<tr><td>samsung</td><td>GT-I9505</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>samsung</td><td>SM-G900I</td><td>KOT49H</td><td>4.4.2</td></tr>
+<tr><td>samsung</td><td>SM-N900</td><td>LRX21V</td><td>5.0</td></tr>
+<tr><td>samsung</td><td>SM-T531</td><td>KOT49H</td><td>4.4.2</td></tr>
 <tr><td>Xiaomi</td><td>MI 3W</td><td>LRX21M</td><td>5.0</td></tr>
 </table>
 

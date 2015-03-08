@@ -133,7 +133,7 @@ NOT_SUPPORTED_CANNOT_GET_ADVERTISER
 ```
 
 The `NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS`, `NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS` and  `NOT_SUPPORTED_CANNOT_GET_ADVERTISER` return typically indicates that the device either does not have a compatible chipset, or the manufacturer has not
-implemented the driver support required by Google to support "multiple advertisements" a requirement to be able to use Android 5.x BLE
+implemented the driver support required by Google for the Android 5.x BLE
 transmission APIs.
 
 

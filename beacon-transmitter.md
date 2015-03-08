@@ -28,7 +28,7 @@ beaconTransmitter.startAdvertising(beacon);
 ####Compatible Devices
 
 In order to support beacon transmission, a device must have Android 5.0+, a Bluetooth LE chipset that supports peripheral mode, and
-a compatible hardware driver from the device manufacturer.  Many devices do not have this driver support.  Below is a list of devices (updated January 2015) that are known to support or not support
+a compatible hardware driver from the device manufacturer.  Many devices do not have this driver support.  Below is a list of devices (updated March 2015) that are known to support or not support
 transmission.
 
 #####Supported
@@ -49,15 +49,24 @@ transmission.
 
 </style>
 
+
 <table class="rsum">
 <tr><th>Manufacturer</th><th>Model</th><th>Build number</th><th>OS Version</th></tr>
-<tr><td>htc</td><td>Nexus 9</td><td>LRX21L</td><td>5.0</td></tr> 
-<tr><td>htc</td><td>Nexus 9</td><td>LRX21R</td><td>5.0</td></tr> 
-<tr><td>htc</td><td>Nexus 9</td><td>LRX22C</td><td>5.0.1</td></tr> 
-<tr><td>motorola</td><td>Nexus 6</td><td>LRX21O</td><td>5.0</td></tr> 
-<tr><td>motorola</td><td>Nexus 6</td><td>LRX22C</td><td>5.0.1</td></tr> 
-<tr><td>samsung</td><td>SM-G900F</td><td>LRX21T</td><td>5.0</td></tr> 
-<tr><td>samsung</td><td>SM-G900V</td><td>LRX21V</td><td>5.0</td></tr> 
+<tr><td>htc</td><td>Nexus 9</td><td>LRX21L</td><td>5.0</td></tr>
+<tr><td>htc</td><td>Nexus 9</td><td>LRX21R</td><td>5.0</td></tr>
+<tr><td>htc</td><td>Nexus 9</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LRX21O</td><td>5.0</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>samsung</td><td>SM-G900F</td><td>LRX21T</td><td>5.0</td></tr>
+<tr><td>samsung</td><td>SM-G900V</td><td>LRX21T</td><td>5.0</td></tr>
+<tr><td>samsung</td><td>SM-G900V</td><td>LRX21V</td><td>5.0</td></tr>
+<tr><td>samsung</td><td>SM-N910F</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>samsung</td><td>SM-N910S</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>LGE</td><td>LG-F460S</td><td>LRX21Y</td><td>5.0.1</td></tr>
+<tr><td>Motorola</td><td>MotoE2(4G-LTE)</td><td>LXI22.50-24.1</td><td>5.0.2</td></tr>
+<tr><td>Motorola</td><td>XT1033</td><td>LXB22.46-28</td><td>5.0.2</td></tr>
+<tr><td>Motorola</td><td>XT1095</td><td>LXB22.46-11</td><td>5.0</td></tr>
+<tr><td>Motorola</td><td>XT1097</td><td>LXE23.18</td><td>5.1</td></tr>
 </table>
 
 #####Not Supported
@@ -67,19 +76,23 @@ transmission.
 <tr><td>asus</td><td>Nexus 7</td><td>LRX21P</td><td>5.0</td></tr>
 <tr><td>asus</td><td>Nexus 7</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>asus</td><td>Nexus 7</td><td>LRX22G</td><td>5.0.2</td></tr>
+<tr><td>HTC</td><td>831C</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>HTC</td><td>HTC One</td><td>LRX22C.H3</td><td>5.0.1</td></tr>
+<tr><td>HTC</td><td>HTC6525LVW</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>HTC</td><td>HTC One_M8</td><td>LRX22C.H5</td><td>5.0.1</td></tr>
 <tr><td>HTC</td><td>One</td><td>KTU84L.H4</td><td>5.0.1</td></tr>
+<tr><td>LGE</td><td>LG-D855</td><td>LRX22G</td><td>5.0.2</td></tr>
 <tr><td>LGE</td><td>LG-D855</td><td>LRX21R.A1419207951</td><td>5.0</td></tr>
 <tr><td>LGE</td><td>LG-D855</td><td>LRX21R.A1419313395</td><td>5.0</td></tr>
+<tr><td>LGE</td><td>LG-F240S</td><td>LRX21Y</td><td>5.0.1</td></tr>
+<tr><td>LGE</td><td>LG-F240K</td><td>LRX21Y</td><td>5.0.1</td></tr>
 <tr><td>LGE</td><td>LG-V500</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>LGE</td><td>Nexus 4</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>LGE</td><td>Nexus 5</td><td>LPX13D</td><td>5.0</td></tr>
 <tr><td>LGE</td><td>Nexus 5</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>LGE</td><td>Nexus 5</td><td>LRX22G</td><td>5.0.2</td></tr>
 <tr><td>lge</td><td>LG-D802</td><td>LRX22G</td><td>5.0.2</td></tr>
-<tr><td>motorola</td><td>Moto X</td><td>LRX22G</td><td>5.0.2</td></tr>
-<tr><td>motorola</td><td>XT1033</td><td>LXB22.46-28</td><td>5.0.2</td></tr>
-<tr><td>motorola</td><td>XT1068</td><td>LXB22.46-28</td><td>5.0.2</td></tr>
+<tr><td>MITO</td><td>MITO_A10</td><td>LBY29G</td><td>5.1</td></tr>
 <tr><td>NVIDIA</td><td>SHIELD Tablet</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>OnePlus</td><td>A0001</td><td>LRX21V</td><td>5.0</td></tr>
 <tr><td>OnePlus</td><td>A0001</td><td>LRX22C</td><td>5.0.1</td></tr>
@@ -88,6 +101,13 @@ transmission.
 <tr><td>samsung</td><td>GT-I9300</td><td>LRX21T</td><td>5.0</td></tr>
 <tr><td>samsung</td><td>GT-I9505</td><td>LRX22C</td><td>5.0.1</td></tr>
 <tr><td>samsung</td><td>GT-I9505</td><td>LRX22G</td><td>5.0.2</td></tr>
+<tr><td>samsung;GT-I8190</td><td>LRX22G</td><td>5.0.2</td></tr>
+<tr><td>samsung;GT-I9505G</td><td>LRX21P.S012</td><td>5.0</td></tr>
+<tr><td>samsung;GT-I9505G</td><td>LRX22C.S012.unofficial</td><td>5.0.1</td></tr>
+<tr><td>samsung;GT-I9505</td><td>LRX22C</td><td>5.0.1</td></tr>
+<tr><td>samsung;SM-G900I</td><td>KOT49H</td><td>4.4.2</td></tr>
+<tr><td>samsung;SM-N900</td><td>LRX21V</td><td>5.0</td></tr>
+<tr><td>samsung;SM-T531</td><td>KOT49H</td><td>4.4.2</td></tr>
 <tr><td>Xiaomi</td><td>MI 3W</td><td>LRX21M</td><td>5.0</td></tr>
 </table>
 

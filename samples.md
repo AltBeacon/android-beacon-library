@@ -11,7 +11,7 @@ A minimalist [reference application](https://github.com/AltBeacon/android-beacon
 ```java
 
 public class MonitoringActivity extends Activity implements BeaconConsumer {
-	protected static final String TAG = "RangingActivity";
+	protected static final String TAG = "MonitoringActivity";
 	private BeaconManager beaconManager;
 
 	@Override

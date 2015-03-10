@@ -12,12 +12,13 @@ A minimalist [reference application](https://github.com/AltBeacon/android-beacon
 
 public class MonitoringActivity extends Activity implements BeaconConsumer {
 	protected static final String TAG = "RangingActivity";
-	private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+	private BeaconManager beaconManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ranging);
+                beaconManager = BeaconManager.getInstanceForApplication(this);
 		beaconManager.bind(this);
 	}
 	@Override 
@@ -60,12 +61,13 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
 
 public class RangingActivity extends Activity implements BeaconConsumer {
 	protected static final String TAG = "RangingActivity";
-	private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+	private BeaconManager beaconManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ranging);
+                beaconManger = BeaconManager.getInstanceForApplication(this);
 		beaconManager.bind(this);
 	}
 	@Override 

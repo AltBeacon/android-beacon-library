@@ -100,20 +100,11 @@ The following instructions are for project administrators.
     bintrayUserName=<bintray username>
     bintrayKey=<bintray api key>
 
-1. Run the build and upload
+3. Run the build and upload
 
    git tag <version>
    git push --tags 
    ./gradlew release -Prelease
    ./gradlew bintrayUpload -Prelease
-   ./gradlew bintrayPublishContent -Prelease
-   ./gradlew bintraySign -Prelease
-   ./gradlew bintrayPublishContent -Prelease
-   ./gradlew bintrayToMavenCentral -Prelease
 
-   -or-
-
-   git tag <version>
-   git push --tags
-   ./gradlew release -Prelease
-   ./gradlew bintrayRelease -Prelease
+4. Log in to JCenter, hit the button to publish the release, then select the Maven tab and enter your credentials to Sync to Maven

@@ -370,6 +370,25 @@ public class BeaconService extends Service {
         if (Stats.getInstance().isEnabled()) {
             Stats.getInstance().log(beacon);
         }
+        // Check to see if this is an extra beacon frame that needs to be folded in to an existing beacon
+        // TODO: add a flag to beacon... don't use the size of the identifiers to determine this
+        if (beacon.getIdentifiers().size() == 0) {
+            // TODO: make a more efficient way of finding tracked beacons by mac address
+            for (Beacon trackedBeacon: trackedBeacons) {
+                if (trackedBeacon.getBluetoothAddress().equals(beacon.getBluetoothAddress())) {
+                    // the data fields from this beacon need to be moved to the other beacon.
+                    Beacon.Builder builder = new Beacon.Builder();
+                    builder.copyBeaconFields(trackedBeacon);
+                    builder.setExtraDataFields(beacon.getDataFields());
+                    Beacon mergedBeacon = builder.build();
+                    Log.d(TAG, "Adding extra data fields: "+mergedBeacon.getExtraDataFields().size()+" from beacon with "+beacon.getDataFields()+" data fields ");
+                    trackedBeacons.add(mergedBeacon);
+                }
+            }
+            // TODO: don't return in middle of method
+            return;
+        }
+
         trackedBeaconsPacketCount++;
         if (trackedBeacons.contains(beacon)) {
             LogManager.d(TAG,

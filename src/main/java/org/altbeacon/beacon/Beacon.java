@@ -71,6 +71,12 @@ public class Beacon implements Parcelable {
      * fields are limited to the size of a Java long, or six bytes.
      */
     protected List<Long> mDataFields;
+    /**
+     * A list of generic non-identifying data fields included in a secondary beacon advertisement
+     * and merged into this beacon.  Data fields are limited to the size of a Java long, or six
+     * bytes.
+     */
+    protected List<Long> mExtraDataFields;
 
 	/**
 	 * A double that is an estimate of how far the Beacon is away in meters.   Note that this number
@@ -185,6 +191,11 @@ public class Beacon implements Parcelable {
         for (int i = 0; i < dataSize; i++) {
             mDataFields.add(in.readLong());
         }
+        int extraDataSize = in.readInt();
+        this.mExtraDataFields = new ArrayList<Long>(extraDataSize);
+        for (int i = 0; i < extraDataSize; i++) {
+            mExtraDataFields.add(in.readLong());
+        }
         mManufacturer = in.readInt();
         mBluetoothName = in.readString();
     }
@@ -216,6 +227,7 @@ public class Beacon implements Parcelable {
     protected Beacon() {
         mIdentifiers = new ArrayList<Identifier>(1);
         mDataFields = new ArrayList<Long>(1);
+        mExtraDataFields = new ArrayList<Long>(1);
     }
 
     /**
@@ -292,6 +304,14 @@ public class Beacon implements Parcelable {
     public List<Long> getDataFields() {
         return Collections.unmodifiableList(mDataFields);
     }
+    /**
+     * Returns the list of data fields transmitted with the advertisement
+     * @return dataFields
+     */
+    public List<Long> getExtraDataFields() {
+        return Collections.unmodifiableList(mExtraDataFields);
+    }
+
     /**
      * Returns the list of identifiers transmitted with the advertisement
      * @return identifier
@@ -456,6 +476,10 @@ public class Beacon implements Parcelable {
         for (Long dataField: mDataFields) {
             out.writeLong(dataField);
         }
+        out.writeInt(mExtraDataFields.size());
+        for (Long dataField: mExtraDataFields) {
+            out.writeLong(dataField);
+        }
         out.writeInt(mManufacturer);
         out.writeString(mBluetoothName);
 
@@ -520,6 +544,24 @@ public class Beacon implements Parcelable {
                 }
             }
             return mBeacon;
+        }
+
+        /**
+         * @param beacon the beacon whose fields we should copy to this beacon builder
+         * @return
+         */
+        public Builder copyBeaconFields(Beacon beacon) {
+            setIdentifiers(beacon.getIdentifiers());
+            setBeaconTypeCode(beacon.getBeaconTypeCode());
+            setDataFields(beacon.getDataFields());
+            setBluetoothAddress(beacon.getBluetoothAddress());
+            setBluetoothName(beacon.getBluetoothName());
+            setExtraDataFields(beacon.getExtraDataFields());
+            setManufacturer(beacon.getManufacturer());
+            setTxPower(beacon.getTxPower());
+            setRssi(beacon.getRssi());
+            setServiceUuid(beacon.getServiceUuid());
+            return this;
         }
 
         /**
@@ -625,6 +667,16 @@ public class Beacon implements Parcelable {
          */
         public Builder setDataFields(List<Long> dataFields) {
             mBeacon.mDataFields = dataFields;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mDataFields
+         * @param extraDataFields
+         * @return builder
+         */
+        public Builder setExtraDataFields(List<Long> extraDataFields) {
+            mBeacon.mExtraDataFields = extraDataFields;
             return this;
         }
 

@@ -38,6 +38,7 @@ public class BeaconParser {
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]?)");
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)");
+    private static final Pattern X_PATTERN = Pattern.compile("x");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
     private Long mMatchingBeaconTypeCode;
@@ -52,6 +53,7 @@ public class BeaconParser {
     protected Integer mServiceUuidStartOffset;
     protected Integer mServiceUuidEndOffset;
     protected Long mServiceUuid;
+    protected Boolean mExtraFrame;
 
     protected Integer mPowerStartOffset;
     protected Integer mPowerEndOffset;
@@ -129,6 +131,7 @@ public class BeaconParser {
     public BeaconParser setBeaconLayout(String beaconLayout) {
 
         String[] terms =  beaconLayout.split(",");
+        mExtraFrame = false; // this is not an extra frame by default
 
         for (String term : terms) {
             boolean found = false;
@@ -211,20 +214,28 @@ public class BeaconParser {
                     throw new BeaconLayoutException("Cannot parse serviceUuid: "+hexString+" in term: " + term);
                 }
             }
+            matcher = X_PATTERN.matcher(term);
+            while (matcher.find()) {
+                found = true;
+                mExtraFrame = true;
+            }
 
             if (!found) {
                 LogManager.d(TAG, "cannot parse term %s", term);
                 throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
             }
         }
-        if (mPowerStartOffset == null || mPowerEndOffset == null) {
-            throw new BeaconLayoutException("You must supply a power byte offset with a prefix of 'p'");
+        if (!mExtraFrame) {
+            // extra frames do not have to have identifiers or power fields, but other types do
+            if (mIdentifierStartOffsets.size() == 0 || mIdentifierEndOffsets.size() == 0) {
+                throw new BeaconLayoutException("You must supply at least one identifier offset withh a prefix of 'i'");
+            }
+            if (mPowerStartOffset == null || mPowerEndOffset == null) {
+                throw new BeaconLayoutException("You must supply a power byte offset with a prefix of 'p'");
+            }
         }
         if (mMatchingBeaconTypeCodeStartOffset == null || mMatchingBeaconTypeCodeEndOffset == null) {
             throw new BeaconLayoutException("You must supply a matching beacon type expression with a prefix of 'm'");
-        }
-        if (mIdentifierStartOffsets.size() == 0 || mIdentifierEndOffsets.size() == 0) {
-            throw new BeaconLayoutException("You must supply at least one identifier offset withh a prefix of 'i'");
         }
         return this;
     }
@@ -323,24 +334,23 @@ public class BeaconParser {
 
         int maxByteForMatch = 5; // for manufacturer data-based beacons
         byte[] serviceUuidBytes = null;
-        byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset-mMatchingBeaconTypeCodeStartOffset+1);
+        byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset - mMatchingBeaconTypeCodeStartOffset + 1);
         if (getServiceUuid() != null) {
             maxByteForMatch = 11; // for uuid-based beacons
-            serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset-mServiceUuidStartOffset+1);
+            serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset - mServiceUuidStartOffset + 1);
         }
         int startByte = 2;
         boolean patternFound = false;
 
         while (startByte <= maxByteForMatch) {
             if (getServiceUuid() == null) {
-                if (byteArraysMatch(scanData, startByte+mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+                if (byteArraysMatch(scanData, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
                     patternFound = true;
                     break;
                 }
-            }
-            else {
-                if (byteArraysMatch(scanData, startByte+mServiceUuidStartOffset, serviceUuidBytes, 0) &&
-                    byteArraysMatch(scanData, startByte+mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+            } else {
+                if (byteArraysMatch(scanData, startByte + mServiceUuidStartOffset, serviceUuidBytes, 0) &&
+                        byteArraysMatch(scanData, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
                     patternFound = true;
                     break;
                 }
@@ -357,10 +367,9 @@ public class BeaconParser {
                             bytesToHex(scanData));
 
                 }
-            }
-            else {
+            } else {
                 if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "This is not a matching Beacon advertisement. (Was expecting %s and %s.  "
+                    LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s.  "
                                     + "The bytes I see are: %s", byteArrayToString(serviceUuidBytes),
                             byteArrayToString(typeCodeBytes),
                             bytesToHex(scanData));
@@ -368,8 +377,7 @@ public class BeaconParser {
             }
 
             return null;
-        }
-        else {
+        } else {
             if (LogManager.isVerboseLoggingEnabled()) {
                 LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
                         byteArrayToString(typeCodeBytes));
@@ -378,24 +386,35 @@ public class BeaconParser {
 
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
-            Identifier identifier = Identifier.fromBytes(scanData, mIdentifierStartOffsets.get(i)+startByte, mIdentifierEndOffsets.get(i)+startByte + 1, mIdentifierLittleEndianFlags.get(i));
+            Identifier identifier = Identifier.fromBytes(scanData, mIdentifierStartOffsets.get(i) + startByte, mIdentifierEndOffsets.get(i) + startByte + 1, mIdentifierLittleEndianFlags.get(i));
             identifiers.add(identifier);
         }
         ArrayList<Long> dataFields = new ArrayList<Long>();
         for (int i = 0; i < mDataEndOffsets.size(); i++) {
-            String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i)+startByte, mDataEndOffsets.get(i)+startByte, mDataLittleEndianFlags.get(i));
+            String dataString = byteArrayToFormattedString(scanData, mDataStartOffsets.get(i) + startByte, mDataEndOffsets.get(i) + startByte, mDataLittleEndianFlags.get(i));
             dataFields.add(Long.parseLong(dataString));
             // TODO: error handling needed here on the parse
         }
 
-        int txPower = 0;
-        String powerString = byteArrayToFormattedString(scanData, mPowerStartOffset+startByte, mPowerEndOffset+startByte, false);
-        txPower = Integer.parseInt(powerString);
-        // make sure it is a signed integer
-        if (txPower > 127) {
-            txPower -= 256;
+        if (mPowerStartOffset != null) {
+            int txPower = 0;
+            String powerString = byteArrayToFormattedString(scanData, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);
+            try {
+                txPower = Integer.parseInt(powerString);
+            }
+            catch (NumberFormatException e1) {
+                // keep default value
+            }
+            catch (NullPointerException e2) {
+                // keep default value
+            }
+            // make sure it is a signed integer
+            if (txPower > 127) {
+                txPower -= 256;
+            }
+            // TODO: error handling needed on the parse
+            beacon.mTxPower = txPower;
         }
-        // TODO: error handling needed on the parse
 
 
         int beaconTypeCode = 0;
@@ -416,7 +435,6 @@ public class BeaconParser {
 
         beacon.mIdentifiers = identifiers;
         beacon.mDataFields = dataFields;
-        beacon.mTxPower = txPower;
         beacon.mRssi = rssi;
         beacon.mBeaconTypeCode = beaconTypeCode;
         if (mServiceUuid != null) {

@@ -51,11 +51,28 @@ public class RangeState {
         if (mRangedBeacons.containsKey(beacon)) {
             RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
             LogManager.d(TAG, "adding %s to existing range for: %s", beacon, rangedBeacon);
-            rangedBeacon.updateBeacon(beacon);
+
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "BEM updated 1 ranged beacon, extraDataField count changing to : "+beacon.getExtraDataFields().size()+" from: "+rangedBeacon.getBeacon().getExtraDataFields().size());
+            }
+            if (beacon.getExtraDataFields().size() == 0 && rangedBeacon.getBeacon().getExtraDataFields().size() > 0) {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "BEM refusing to downgrade extra data fields");
+                }
+            }
+            else {
+                rangedBeacon.updateBeacon(beacon);
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "BEM updated 2 ranged beacon, extraDataField count: "+rangedBeacon.getBeacon().getExtraDataFields().size());
+                }
+            }
         }
         else {
             LogManager.d(TAG, "adding %s to new rangedBeacon", beacon);
             mRangedBeacons.put(beacon, new RangedBeacon(beacon));
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "BEM creating ranged beacon, extraDataField count: "+beacon.getExtraDataFields().size());
+            }
         }
     }
 
@@ -68,11 +85,19 @@ public class RangeState {
         synchronized (mRangedBeacons) {
             for (Beacon beacon : mRangedBeacons.keySet()) {
                 RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "BEM committing ranged beacons 1, extraDataField count: "+rangedBeacon.getBeacon().getExtraDataFields().size());
+                }
+
                 if (rangedBeacon.isTracked()) {
                     rangedBeacon.commitMeasurements(); // calculates accuracy
                     if (!rangedBeacon.noMeasurementsAvailable()) {
                         finalizedBeacons.add(rangedBeacon.getBeacon());
                     }
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "BEM committing ranged beacons 2, extraDataField count: "+rangedBeacon.getBeacon().getExtraDataFields().size());
+                    }
+
                 }
                 // If we still have useful measurements, keep it around but mark it as not
                 // tracked anymore so we don't pass it on as visible unless it is seen again

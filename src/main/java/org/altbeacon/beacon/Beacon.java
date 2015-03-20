@@ -192,6 +192,9 @@ public class Beacon implements Parcelable {
             mDataFields.add(in.readLong());
         }
         int extraDataSize = in.readInt();
+        if (LogManager.isVerboseLoggingEnabled()) {
+            LogManager.d(TAG, "reading "+extraDataSize+" extra data fields from parcel");
+        }
         this.mExtraDataFields = new ArrayList<Long>(extraDataSize);
         for (int i = 0; i < extraDataSize; i++) {
             mExtraDataFields.add(in.readLong());
@@ -208,8 +211,15 @@ public class Beacon implements Parcelable {
         super();
         mIdentifiers = new ArrayList<Identifier>(otherBeacon.mIdentifiers.size());
         mDataFields = new ArrayList<Long>(otherBeacon.mDataFields.size());
+        mExtraDataFields = new ArrayList<Long>(otherBeacon.mExtraDataFields.size());
         for (int i = 0; i < otherBeacon.mIdentifiers.size(); i++) {
             mIdentifiers.add(otherBeacon.mIdentifiers.get(i));
+        }
+        for (int i = 0; i < otherBeacon.mDataFields.size(); i++) {
+            mDataFields.add(otherBeacon.mDataFields.get(i));
+        }
+        for (int i = 0; i < otherBeacon.mExtraDataFields.size(); i++) {
+            mExtraDataFields.add(otherBeacon.mExtraDataFields.get(i));
         }
         this.mDistance = otherBeacon.mDistance;
         this.mRunningAverageRssi = otherBeacon.mRunningAverageRssi;
@@ -475,6 +485,9 @@ public class Beacon implements Parcelable {
         out.writeInt(mDataFields.size());
         for (Long dataField: mDataFields) {
             out.writeLong(dataField);
+        }
+        if (LogManager.isVerboseLoggingEnabled()) {
+            LogManager.d(TAG, "writing "+mExtraDataFields.size()+" extra data fields to parcel");
         }
         out.writeInt(mExtraDataFields.size());
         for (Long dataField: mExtraDataFields) {

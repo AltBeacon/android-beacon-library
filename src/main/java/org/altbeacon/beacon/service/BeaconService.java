@@ -68,7 +68,7 @@ public class BeaconService extends Service {
 
     private Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
     private Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
-    private HashSet<Beacon> trackedBeacons;
+    private HashMap<String,Beacon> mTrackedBeacons;
     int trackedBeaconsPacketCount;
     private Handler handler = new Handler();
     private int bindCount = 0;
@@ -364,66 +364,157 @@ public class BeaconService extends Service {
     }
 
     private void processBeaconFromScan(Beacon beacon) {
-        if (trackedBeacons == null){
-            trackedBeacons = new HashSet<>();
+        if (mTrackedBeacons == null){
+            mTrackedBeacons = new HashMap<String,Beacon>();
         }
         if (Stats.getInstance().isEnabled()) {
             Stats.getInstance().log(beacon);
         }
+
+        /*
         // Check to see if this is an extra beacon frame that needs to be folded in to an existing beacon
         // TODO: add a flag to beacon... don't use the size of the identifiers to determine this
         if (beacon.getIdentifiers().size() == 0) {
             // TODO: make a more efficient way of finding tracked beacons by mac address
-            for (Beacon trackedBeacon: trackedBeacons) {
+            for (Beacon trackedBeacon: mTrackedBeacons.values()) {
                 if (trackedBeacon.getBluetoothAddress().equals(beacon.getBluetoothAddress())) {
-                    // the data fields from this beacon need to be moved to the other beacon.
-                    Beacon.Builder builder = new Beacon.Builder();
-                    builder.copyBeaconFields(trackedBeacon);
-                    builder.setExtraDataFields(beacon.getDataFields());
-                    Beacon mergedBeacon = builder.build();
-                    Log.d(TAG, "Adding extra data fields: "+mergedBeacon.getExtraDataFields().size()+" from beacon with "+beacon.getDataFields()+" data fields ");
-                    trackedBeacons.add(mergedBeacon);
+                    Beacon mergedBeacon = mergeBeacon(trackedBeacon, beacon);
+                    mTrackedBeacons.put(mergedBeacon.toString(),mergedBeacon);
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "Adding extra data fields: "+mergedBeacon.getExtraDataFields().size()+" from beacon with "+beacon.getDataFields()+" data fields ");
+                        LogManager.d(TAG, "Adding extra data fields, keying by "+mergedBeacon.toString()+" and "+trackedBeacon.toString());
+                        LogManager.d(TAG, "stored value has extra data field count"+mTrackedBeacons.get(mergedBeacon.toString()).getExtraDataFields().size());
+                    }
                 }
             }
             // TODO: don't return in middle of method
             return;
         }
+        */
+        synchronized(mTrackedBeacons) {
+            trackedBeaconsPacketCount++;
+            Beacon newMergedBeacon = beacon;
+            if (mTrackedBeacons.get(beacon) != null) {
+                LogManager.d(TAG,
+                        "BEM: beacon detected multiple times in scan cycle : %s", beacon.toString());
+                newMergedBeacon = mergeBeacon(mTrackedBeacons.get(beacon.toString()), beacon);
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "BEM: after merge extra data field size is " + newMergedBeacon.getExtraDataFields().size());
+                }
 
-        trackedBeaconsPacketCount++;
-        if (trackedBeacons.contains(beacon)) {
-            LogManager.d(TAG,
-                    "beacon detected multiple times in scan cycle : %s", beacon.toString());
-        }
-        trackedBeacons.add(beacon);
-        LogManager.d(TAG,
-                "beacon detected : %s", beacon.toString());
+            } else {
+                if (beacon.getIdentifiers().size() == 0) {
+                    boolean match = false;
+                    // TODO: make a more efficient way of finding tracked beacons by mac address
 
-        List<Region> matchedRegions = null;
-        synchronized(monitoredRegionState) {
-            matchedRegions = matchingRegions(beacon,
-                    monitoredRegionState.keySet());
-        }
-        Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
-        while (matchedRegionIterator.hasNext()) {
-            Region region = matchedRegionIterator.next();
-            MonitorState state = monitoredRegionState.get(region);
-            if (state.markInside()) {
-                state.getCallback().call(BeaconService.this, "monitoringData",
-                        new MonitoringData(state.isInside(), region));
+                    for (Beacon trackedBeacon : mTrackedBeacons.values()) {
+                        if (trackedBeacon.getServiceUuid() != 0 &&
+                            trackedBeacon.getServiceUuid() == beacon.getServiceUuid() &&
+                            trackedBeacon.getBluetoothAddress().equals(beacon.getBluetoothAddress())) {
+                            LogManager.d(TAG, "BEM: merging beacon with matching mac and zero identifiers");
+                            newMergedBeacon = mergeBeacon(trackedBeacon, beacon);
+                            if (LogManager.isVerboseLoggingEnabled()) {
+                                LogManager.d(TAG, "BEM: after merge extra data field size is " + newMergedBeacon.getExtraDataFields().size());
+                            }
+                            match = true;
+                        }
+                    }
+                    if (!match) {
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "BEM: ignoring beacon object with no identifiers");
+                        }
+                        return;
+                    }
+                }
             }
-        }
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "BEM: past short cirucuit return " + newMergedBeacon.getExtraDataFields().size());
+            }
 
-        LogManager.d(TAG, "looking for ranging region matches for this beacon");
-        synchronized (rangedRegionState) {
-            matchedRegions = matchingRegions(beacon, rangedRegionState.keySet());
-            matchedRegionIterator = matchedRegions.iterator();
+
+            mTrackedBeacons.put(beacon.toString(), newMergedBeacon);
+            LogManager.d(TAG,
+                    "beacon detected : %s", beacon.toString());
+
+            List<Region> matchedRegions = null;
+            synchronized (monitoredRegionState) {
+                matchedRegions = matchingRegions(newMergedBeacon,
+                        monitoredRegionState.keySet());
+            }
+            Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
             while (matchedRegionIterator.hasNext()) {
                 Region region = matchedRegionIterator.next();
-                LogManager.d(TAG, "matches ranging region: %s", region);
-                RangeState rangeState = rangedRegionState.get(region);
-                rangeState.addBeacon(beacon);
+                MonitorState state = monitoredRegionState.get(region);
+                if (state.markInside()) {
+                    state.getCallback().call(BeaconService.this, "monitoringData",
+                            new MonitoringData(state.isInside(), region));
+                }
+            }
+
+
+            LogManager.d(TAG, "looking for ranging region matches for this beacon");
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "BEM: about to do ranging matches extraData size " + newMergedBeacon.getExtraDataFields().size());
+                LogManager.d(TAG, "BEM: about to do ranging matches identifiers size " + newMergedBeacon.getIdentifiers().size());
+            }
+            synchronized (rangedRegionState) {
+                matchedRegions = matchingRegions(newMergedBeacon, rangedRegionState.keySet());
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "BEM: about to do ranging matches 2 " + newMergedBeacon.getExtraDataFields().size());
+                    LogManager.d(TAG, "BEM: matched ranging regions " + matchedRegions.size());
+                }
+
+
+                matchedRegionIterator = matchedRegions.iterator();
+                while (matchedRegionIterator.hasNext()) {
+                    Region region = matchedRegionIterator.next();
+                    LogManager.d(TAG, "matches ranging region: %s", region);
+                    RangeState rangeState = rangedRegionState.get(region);
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "BEM: adding beacon to rangeState with extra data fields " + newMergedBeacon.getExtraDataFields().size());
+                    }
+                    rangeState.addBeacon(newMergedBeacon);
+                }
             }
         }
+
+    }
+
+    private Beacon mergeBeacon(Beacon oldBeacon, Beacon newBeacon) {
+        // the data fields from this beacon need to be moved to the other beacon.
+        // TODO: key this off something else besides identifier size
+        if (LogManager.isVerboseLoggingEnabled()) {
+            LogManager.d(TAG, "BEM: merging extra fields if needed");
+        }
+
+        Beacon.Builder builder = new Beacon.Builder();
+        if (newBeacon.getIdentifiers().size() == 0) {
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "BEM: we have a beacon detected with zero identifiers");
+            }
+
+            builder.copyBeaconFields(oldBeacon);
+            if (newBeacon.getDataFields().size() != 0) {
+                builder.setExtraDataFields(newBeacon.getDataFields());
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "BEM: Adding extra data fields: " + newBeacon.getDataFields().size() + " from beacon with " + newBeacon.getDataFields() + " data fields ");
+                }
+            }
+
+        }
+        else {
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "BEM: we have a beacon detected with identifiers");
+            }
+            builder.copyBeaconFields(newBeacon);
+            if (oldBeacon.getExtraDataFields().size() != 0) {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "BEM: Copying extra data fields from oldBeacon");
+                }
+                builder.setExtraDataFields(oldBeacon.getDataFields());
+            }
+        }
+        return builder.build();
     }
 
 

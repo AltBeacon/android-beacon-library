@@ -27,6 +27,9 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.MonitoringData;
 import org.altbeacon.beacon.service.RangingData;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Intent;

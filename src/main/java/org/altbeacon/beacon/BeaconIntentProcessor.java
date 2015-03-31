@@ -54,7 +54,7 @@ public class BeaconIntentProcessor extends IntentService {
             Runnable myRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    onHandleIntent(intent)
+                    onHandleIntent(intent);
                 }
             };
             mainHandler.post(myRunnable);

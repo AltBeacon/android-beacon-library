@@ -54,9 +54,15 @@ beaconManager.setBackgroundBetweenScanPeriod(3600000l);
 ####How does this affect Android 5.0?
 
 On Android 5.0, new scanning APIs allow for more efficient background scanning that saves provide similar
-power scanning to the technique described above, but with much faster beacon detection times.  Instead of 
-it taking up to five minutes to detect a beacon (with the defaults described above), it detections take place
-within a few seconds.
+power savings to the technique described above, but with much faster beacon detection times.  Instead of 
+it taking up to five minutes to detect a beacon (with the defaults described above), it detections of new beacons
+generally take place within a few seconds.
+
+This technique works by constantly doing a low power scan for beacons when the app is in the background.  This constant
+low power scan will typically deliver a callback within 5 seconds of a new beacon being seen.  If beacons continue to be
+present while the app is in the background, the app will start doing periodic scans like in Android 4.x using the same
+technique described above.  Once all beacons disappear, it will resume doing a constant scan in the background for fastest
+response times.
 
 Starting with version 2.1 of this library, these new Android 5.0 APIs are used automatically on devices that 
 have them, and scanning never stops.  The BetweenScanPeriods are effectively ignored.  For devices without

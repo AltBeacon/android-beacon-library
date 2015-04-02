@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * @author dyoung
@@ -297,8 +298,13 @@ public class BeaconService extends Service {
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            new ScanProcessor().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-                    new ScanData(device, rssi, scanRecord));
+            try {
+                new ScanProcessor().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                        new ScanData(device, rssi, scanRecord));
+            }
+            catch (RejectedExecutionException e) {
+                Log.w(TAG, "Ignoring scan result because we cannot keep up.", e);
+            }
         }
 
         @Override

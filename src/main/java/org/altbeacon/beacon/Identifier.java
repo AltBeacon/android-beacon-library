@@ -1,7 +1,9 @@
 package org.altbeacon.beacon;
 
-import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -14,16 +16,15 @@ import java.util.regex.Pattern;
  */
 public class Identifier implements Comparable<Identifier> {
     private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-Fa-f]*$");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+$");
-    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{12}$");
-    private static final char[] hexArray = "0123456789abcdef".toCharArray();
-    private static final BigInteger maxInteger = BigInteger.valueOf(65535);
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]{1,5}$");
+    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$");
+    private static final int maxInteger = 65535;
 
     private final byte[] mValue;
 
     /**
      * Allowed formats:
-     * <ul><li>UUID: 2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6 (16 bytes Identifier, dashes optional)
+     * <ul><li>UUID: 2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6 (16 bytes Identifier)
      *   <li>HEX: 0x000000000003 (number of bytes is based on String length)
      *   <li>Decimal: 65536 (2 bytes Identifier)</ul>
      * @param stringValue string to parse
@@ -33,29 +34,42 @@ public class Identifier implements Comparable<Identifier> {
      */
     public static Identifier parse(String stringValue) {
         if (stringValue == null) {
-            throw new NullPointerException("stringValue == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"stringValue\" is null.");
         }
+
         if (HEX_PATTERN.matcher(stringValue).matches()) {
             return parseHex(stringValue.substring(2));
-        } else if (UUID_PATTERN.matcher(stringValue).matches()) {
-            return parseHex(stringValue.replace("-", ""));
-        } else if (DECIMAL_PATTERN.matcher(stringValue).matches()) {
-            BigInteger i = new BigInteger(stringValue);
-            if (i.compareTo(BigInteger.ZERO) < 0 || i.compareTo(maxInteger) > 0) {
-                throw new IllegalArgumentException("Decimal formatted integers must be between 0 and 65535. Value: " + stringValue);
-            }
-            return fromInt(i.intValue());
-        } else {
-            throw new IllegalArgumentException("Unable to parse identifier: " + stringValue);
         }
+
+        if (UUID_PATTERN.matcher(stringValue).matches()) {
+            try {
+                return fromUuid(UUID.fromString(stringValue));
+            }
+            catch (Throwable t) {
+                throw new IllegalArgumentException("Unable to parse Identifier in UUID format.", t);
+            }
+        }
+
+        if (DECIMAL_PATTERN.matcher(stringValue).matches()) {
+            int value = -1;
+            try {
+                value = Integer.valueOf(stringValue);
+            }
+            catch (Throwable t) {
+                throw new IllegalArgumentException("Unable to parse Identifier in decimal format.", t);
+            }
+            return fromInt(value);
+        }
+
+        throw new IllegalArgumentException("Unable to parse Identifier.");
     }
 
     private static Identifier parseHex(String identifierString) {
-        String str = (identifierString.length() % 2 == 0) ? identifierString.toLowerCase() : "0" + identifierString.toLowerCase();
+        String str = identifierString.length() % 2 == 0 ? "" : "0";
+        str += identifierString.toUpperCase();
         byte[] result = new byte[str.length() / 2];
         for (int i = 0; i < result.length; i++) {
-            int v = Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16);
-            result[i] = (byte) v;
+            result[i] = (byte)(Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16) & 0xFF);
         }
         return new Identifier(result);
     }
@@ -66,8 +80,8 @@ public class Identifier implements Comparable<Identifier> {
      * @return an Identifier with the specified value
      */
     public static Identifier fromInt(int intValue) {
-        if (intValue < 0 || intValue > 0xFFFF) {
-            throw new IllegalArgumentException("value must be between 0 and 65535");
+        if (intValue < 0 || intValue > maxInteger) {
+            throw new IllegalArgumentException("Identifers can only be constructed from integers between 0 and " + maxInteger + " (inclusive).");
         }
 
         byte[] newValue = new byte[2];
@@ -91,7 +105,7 @@ public class Identifier implements Comparable<Identifier> {
      */
     public static Identifier fromBytes(byte[] bytes, int start, int end, boolean littleEndian) {
         if (bytes == null) {
-            throw new NullPointerException("bytes == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"bytes\" is null.");
         }
         if (start < 0 || start > bytes.length) {
             throw new ArrayIndexOutOfBoundsException("start < 0 || start > bytes.length");
@@ -110,6 +124,13 @@ public class Identifier implements Comparable<Identifier> {
         return new Identifier(byteRange);
     }
 
+    public static Identifier fromUuid(UUID uuid) {
+        ByteBuffer buf = ByteBuffer.allocate(16);
+        buf.putLong(uuid.getMostSignificantBits());
+        buf.putLong(uuid.getLeastSignificantBits());
+        return new Identifier(buf.array());
+    }
+
     /**
      * Creates a new copy of the specified Identifier.
      * @param identifier identifier to copy
@@ -119,7 +140,7 @@ public class Identifier implements Comparable<Identifier> {
     @Deprecated
     public Identifier(Identifier identifier) {
         if (identifier == null) {
-            throw new NullPointerException("identifier == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"identifier\" is null.");
         }
         mValue = identifier.mValue;
     }
@@ -130,7 +151,7 @@ public class Identifier implements Comparable<Identifier> {
      */
     protected Identifier(byte[] value) {
         if (value == null) {
-            throw new NullPointerException("identifier == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"value\" is null.");
         }
         this.mValue = value;
     }
@@ -149,7 +170,7 @@ public class Identifier implements Comparable<Identifier> {
             return Integer.toString(toInt());
         }
         if (mValue.length == 16) {
-            return toUuidString();
+            return toUuid().toString();
         }
         return "0x" + toHexString();
     }
@@ -225,13 +246,11 @@ public class Identifier implements Comparable<Identifier> {
     }
 
     private static String toHexString(byte[] bytes, int start, int length) {
-        char[] hexChars = new char[length * 2];
-        for ( int i = 0; i < length; i++ ) {
-            int v = bytes[start + i] & 0xFF;
-            hexChars[i * 2] = hexArray[v >>> 4];
-            hexChars[i * 2 + 1] = hexArray[v & 0x0F];
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            sb.append(String.format("%02x", bytes[start + i]));
         }
-        return new String(hexChars);
+        return sb.toString();
     }
 
     /**
@@ -243,10 +262,12 @@ public class Identifier implements Comparable<Identifier> {
     }
 
     /**
-     * Returns the value of this Identifier in uuid form. For example 2f234454-cf6d-4a0f-adf2-f4911ba9ffa6
-     * @return value in uuid form
-     * @throws java.lang.UnsupportedOperationException when value length is 16 bytes
+     * Returns the value of this Identifier in UUID format. For example 2f234454-cf6d-4a0f-adf2-f4911ba9ffa6
+     * @deprecated To be replaced by {@link #toUuid()}
+     * @return value in UUID format
+     * @throws java.lang.UnsupportedOperationException when value length is not 16 bytes
      */
+    @Deprecated
     public String toUuidString() {
         if (mValue.length != 16) {
             throw new UnsupportedOperationException("Only available for values with length of 16 bytes");
@@ -254,6 +275,23 @@ public class Identifier implements Comparable<Identifier> {
         return toHexString(mValue, 0, 4) + "-" + toHexString(mValue, 4, 2) + "-" +
                 toHexString(mValue, 6, 2) + "-" + toHexString(mValue, 8, 2) + "-" +
                 toHexString(mValue, 10, 6);
+    }
+
+    /**
+     * Returns the value of this Identifier as UUID. For example 2f234454-cf6d-4a0f-adf2-f4911ba9ffa6
+     * @return value as UUID
+     * @throws java.lang.UnsupportedOperationException when value length is not 16 bytes
+     */
+    public UUID toUuid() {
+        if (mValue.length != 16) {
+            throw new UnsupportedOperationException("Only Identifiers backed by a byte array with length of exactly 16 can be UUIDs.");
+        }
+        LongBuffer buf = ByteBuffer.wrap(mValue).asLongBuffer();
+        return new UUID(buf.get(), buf.get());
+    }
+
+    public byte[] toByteArray() {
+        return mValue.clone();
     }
 
     /**
@@ -276,6 +314,4 @@ public class Identifier implements Comparable<Identifier> {
         }
         return 0;
     }
-
-
 }

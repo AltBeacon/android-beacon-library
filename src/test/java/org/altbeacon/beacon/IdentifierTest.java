@@ -53,6 +53,13 @@ public class IdentifierTest {
     }
 
     @Test
+    public void testToUuidEqualsToUuidString() {
+        Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
+
+        assertEquals("uuidString of Identifier should match", identifier1.toUuid().toString(), identifier1.toUuidString());
+    }
+
+    @Test
     public void testToByteArrayConvertsUuids() {
         Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);

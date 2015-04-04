@@ -394,7 +394,7 @@ public class BeaconService extends Service {
         while (matchedRegionIterator.hasNext()) {
             Region region = matchedRegionIterator.next();
             MonitorState state = monitoredRegionState.get(region);
-            if (state.markInside()) {
+            if (state != null && state.markInside()) {
                 state.getCallback().call(BeaconService.this, "monitoringData",
                         new MonitoringData(state.isInside(), region));
             }
@@ -408,7 +408,9 @@ public class BeaconService extends Service {
                 Region region = matchedRegionIterator.next();
                 LogManager.d(TAG, "matches ranging region: %s", region);
                 RangeState rangeState = rangedRegionState.get(region);
-                rangeState.addBeacon(beacon);
+                if (rangeState != null) {
+                    rangeState.addBeacon(beacon);
+                }
             }
         }
     }

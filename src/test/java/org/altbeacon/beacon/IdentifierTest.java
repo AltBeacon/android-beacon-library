@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
@@ -140,5 +141,41 @@ public class IdentifierTest {
         assertEquals("identifier1 is equal to identifier2", identifier1.compareTo(identifier1), 0);
         assertEquals("identifier1 is larger than identifier2", identifier1.compareTo(identifier2), 1);
         assertEquals("identifier2 is smaller than identifier1", identifier2.compareTo(identifier1), -1);
+    }
+
+    @Test
+    public void testParseIntegerMaxInclusive() {
+        Identifier.parse("65535");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testParseIntegerAboveMax() {
+        Identifier.parse("65536");
+    }
+
+    @Test
+    public void testParseIntegerMinInclusive() {
+        Identifier.parse("0");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testParseIntegerBelowMin() {
+        Identifier.parse("-1");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testParseIntegerWayTooBig() {
+        Identifier.parse("3133742");
+    }
+
+    /*
+     * This is here because Identifier.parse wrongly accepts UUIDs without
+     * dashes, but we want to be backward compatible.
+     */
+    @Test
+    public void testParseInvalidUuid() {
+        UUID ref = UUID.fromString("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6");
+        Identifier id = Identifier.parse("2f234454cf6d4a0fadf2f4911ba9ffa6");
+        assertEquals("Malformed UUID was parsed as expected.", id.toUuid(), ref);
     }
 }

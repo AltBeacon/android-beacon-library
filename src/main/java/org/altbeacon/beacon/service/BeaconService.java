@@ -303,7 +303,7 @@ public class BeaconService extends Service {
                         new ScanData(device, rssi, scanRecord));
             }
             catch (RejectedExecutionException e) {
-                Log.w(TAG, "Ignoring scan result because we cannot keep up.", e);
+                LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");
             }
         }
 

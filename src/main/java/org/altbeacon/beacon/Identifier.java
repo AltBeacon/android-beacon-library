@@ -1,7 +1,9 @@
 package org.altbeacon.beacon;
 
-import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -14,48 +16,68 @@ import java.util.regex.Pattern;
  */
 public class Identifier implements Comparable<Identifier> {
     private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-Fa-f]*$");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]{1,5}$");
+    // BUG: Dashes in UUIDs are not optional!
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{12}$");
-    private static final char[] hexArray = "0123456789abcdef".toCharArray();
-    private static final BigInteger maxInteger = BigInteger.valueOf(65535);
+    private static final int MAX_INTEGER = 65535;
 
     private final byte[] mValue;
 
     /**
+     * Takes the passed string and tries to figure out what format it is in.
+     * Then turns the string into plain bytes and constructs an Identifier.
+     *
+     * Known bug: This method happily parses UUIDs without dashes (normally
+     * invalid). Although the bug is left unfixed for backward compatibility,
+     * please check your UUIDs or even better, use
+     * {@link #fromUuid(java.util.UUID)} directly, which is safe.
+     *
      * Allowed formats:
-     * <ul><li>UUID: 2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6 (16 bytes Identifier, dashes optional)
-     *   <li>HEX: 0x000000000003 (number of bytes is based on String length)
-     *   <li>Decimal: 65536 (2 bytes Identifier)</ul>
-     * @param stringValue string to parse
-     * @return identifier representing the specified value
-     * @throws java.lang.IllegalArgumentException when String cannot be parsed
-     * @throws java.lang.NullPointerException stringValue must not be <code>null</code>
+     * <ul>
+     *   <li>UUID: 2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6 (16 bytes)</li>
+     *   <li>Hexadecimal: 0x000000000003 (variable length)</li>
+     *   <li>Decimal: 1337 (2 bytes)</li>
+     * </ul>
+     *
+     * @param  stringValue string to parse
+     * @return             Identifier representing the specified value
+     * @throws             IllegalArgumentException if the passed string cannot be parsed
+     * @throws             NullPointerException if the passed string is <code>null</code>
+     * @see                <a href="https://www.ietf.org/rfc/rfc4122.txt">RFC 4122 on UUIDs</a>
      */
     public static Identifier parse(String stringValue) {
         if (stringValue == null) {
-            throw new NullPointerException("stringValue == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"stringValue\" is null.");
         }
+
         if (HEX_PATTERN.matcher(stringValue).matches()) {
             return parseHex(stringValue.substring(2));
-        } else if (UUID_PATTERN.matcher(stringValue).matches()) {
-            return parseHex(stringValue.replace("-", ""));
-        } else if (DECIMAL_PATTERN.matcher(stringValue).matches()) {
-            BigInteger i = new BigInteger(stringValue);
-            if (i.compareTo(BigInteger.ZERO) < 0 || i.compareTo(maxInteger) > 0) {
-                throw new IllegalArgumentException("Decimal formatted integers must be between 0 and 65535. Value: " + stringValue);
-            }
-            return fromInt(i.intValue());
-        } else {
-            throw new IllegalArgumentException("Unable to parse identifier: " + stringValue);
         }
+
+        if (UUID_PATTERN.matcher(stringValue).matches()) {
+            return parseHex(stringValue.replace("-", ""));
+        }
+
+        if (DECIMAL_PATTERN.matcher(stringValue).matches()) {
+            int value = -1;
+            try {
+                value = Integer.valueOf(stringValue);
+            }
+            catch (Throwable t) {
+                throw new IllegalArgumentException("Unable to parse Identifier in decimal format.", t);
+            }
+            return fromInt(value);
+        }
+
+        throw new IllegalArgumentException("Unable to parse Identifier.");
     }
 
     private static Identifier parseHex(String identifierString) {
-        String str = (identifierString.length() % 2 == 0) ? identifierString.toLowerCase() : "0" + identifierString.toLowerCase();
+        String str = identifierString.length() % 2 == 0 ? "" : "0";
+        str += identifierString.toUpperCase();
         byte[] result = new byte[str.length() / 2];
         for (int i = 0; i < result.length; i++) {
-            int v = Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16);
-            result[i] = (byte) v;
+            result[i] = (byte)(Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16) & 0xFF);
         }
         return new Identifier(result);
     }
@@ -66,8 +88,8 @@ public class Identifier implements Comparable<Identifier> {
      * @return an Identifier with the specified value
      */
     public static Identifier fromInt(int intValue) {
-        if (intValue < 0 || intValue > 0xFFFF) {
-            throw new IllegalArgumentException("value must be between 0 and 65535");
+        if (intValue < 0 || intValue > MAX_INTEGER) {
+            throw new IllegalArgumentException("Identifers can only be constructed from integers between 0 and " + MAX_INTEGER + " (inclusive).");
         }
 
         byte[] newValue = new byte[2];
@@ -91,7 +113,7 @@ public class Identifier implements Comparable<Identifier> {
      */
     public static Identifier fromBytes(byte[] bytes, int start, int end, boolean littleEndian) {
         if (bytes == null) {
-            throw new NullPointerException("bytes == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"bytes\" is null.");
         }
         if (start < 0 || start > bytes.length) {
             throw new ArrayIndexOutOfBoundsException("start < 0 || start > bytes.length");
@@ -111,6 +133,18 @@ public class Identifier implements Comparable<Identifier> {
     }
 
     /**
+     * Transforms a {@link java.util.UUID} into an Identifier.
+     * No mangling with strings, only the underlying bytes of the
+     * UUID are used so this is fast and stable.
+     */
+    public static Identifier fromUuid(UUID uuid) {
+        ByteBuffer buf = ByteBuffer.allocate(16);
+        buf.putLong(uuid.getMostSignificantBits());
+        buf.putLong(uuid.getLeastSignificantBits());
+        return new Identifier(buf.array());
+    }
+
+    /**
      * Creates a new copy of the specified Identifier.
      * @param identifier identifier to copy
      * @deprecated objects of this class are immutable and therefore don't have to be cloned when
@@ -119,7 +153,7 @@ public class Identifier implements Comparable<Identifier> {
     @Deprecated
     public Identifier(Identifier identifier) {
         if (identifier == null) {
-            throw new NullPointerException("identifier == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"identifier\" is null.");
         }
         mValue = identifier.mValue;
     }
@@ -130,7 +164,7 @@ public class Identifier implements Comparable<Identifier> {
      */
     protected Identifier(byte[] value) {
         if (value == null) {
-            throw new NullPointerException("identifier == null");
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"value\" is null.");
         }
         this.mValue = value;
     }
@@ -149,9 +183,9 @@ public class Identifier implements Comparable<Identifier> {
             return Integer.toString(toInt());
         }
         if (mValue.length == 16) {
-            return toUuidString();
+            return toUuid().toString();
         }
-        return "0x" + toHexString();
+        return toHexString();
     }
 
     /**
@@ -189,10 +223,10 @@ public class Identifier implements Comparable<Identifier> {
 
     private static void reverseArray(byte[] bytes) {
         for (int i = 0; i < bytes.length / 2; i++) {
-            byte a = bytes[i];
-            byte b = bytes[bytes.length - i - 1];
-            bytes[i] = b;
-            bytes[bytes.length - i - 1] = a;
+            int mirroredIndex = bytes.length - i - 1;
+            byte tmp = bytes[i];
+            bytes[i] = bytes[mirroredIndex];
+            bytes[mirroredIndex] = tmp;
         }
     }
 
@@ -224,45 +258,65 @@ public class Identifier implements Comparable<Identifier> {
         return Arrays.equals(mValue, thatIdentifier.mValue);
     }
 
-    private static String toHexString(byte[] bytes, int start, int length) {
-        char[] hexChars = new char[length * 2];
-        for ( int i = 0; i < length; i++ ) {
-            int v = bytes[start + i] & 0xFF;
-            hexChars[i * 2] = hexArray[v >>> 4];
-            hexChars[i * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
     /**
      * Represents the value as a hexadecimal String. The String is prefixed with <code>0x</code>. For example 0x0034ab
      * @return value as hexadecimal String
      */
     public String toHexString() {
-        return toHexString(mValue, 0, mValue.length);
+        StringBuilder sb = new StringBuilder(2 + 2 * mValue.length);
+        sb.append("0x");
+        for (byte item : mValue) {
+            sb.append(String.format("%02x", item));
+        }
+        return sb.toString();
     }
 
     /**
-     * Returns the value of this Identifier in uuid form. For example 2f234454-cf6d-4a0f-adf2-f4911ba9ffa6
-     * @return value in uuid form
-     * @throws java.lang.UnsupportedOperationException when value length is 16 bytes
+     * Returns the value of this Identifier in UUID format. For example 2f234454-cf6d-4a0f-adf2-f4911ba9ffa6
+     * @deprecated Replaced by stronger typed variant.
+     *    This mathod returns a string, therefore does not offer type safety on
+     *    the UUID per se. It was replaced by {@link #toUuid()}.
+     * @return value in UUID format
+     * @throws UnsupportedOperationException when value length is not 16 bytes
      */
+    @Deprecated
     public String toUuidString() {
+        return toUuid().toString();
+    }
+
+    /**
+     * Gives you the Identifier as a UUID if possible.
+     *
+     * @throws UnsupportedOperationException if the byte array backing this Identifier is not exactly
+     *         16 bytes long.
+     */
+    public UUID toUuid() {
         if (mValue.length != 16) {
-            throw new UnsupportedOperationException("Only available for values with length of 16 bytes");
+            throw new UnsupportedOperationException("Only Identifiers backed by a byte array with length of exactly 16 can be UUIDs.");
         }
-        return toHexString(mValue, 0, 4) + "-" + toHexString(mValue, 4, 2) + "-" +
-                toHexString(mValue, 6, 2) + "-" + toHexString(mValue, 8, 2) + "-" +
-                toHexString(mValue, 10, 6);
+        LongBuffer buf = ByteBuffer.wrap(mValue).asLongBuffer();
+        return new UUID(buf.get(), buf.get());
+    }
+
+    /**
+     * Gives you the byte array backing this Identifier. Note that Identifiers are immutable,
+     * so changing the the returned array will not result in a changed Identifier.
+     *
+     * @return a deep copy of the data backing this Identifier.
+     */
+    public byte[] toByteArray() {
+        return mValue.clone();
     }
 
     /**
      * Compares two identifiers.
      * When the Identifiers don't have the same length, the Identifier having the shortest
      * array is considered smaller than the other.
-     * @param that the other identifier
-     * @return 0 if both identifiers are equal.  Otherwise returns -1 or 1 depending on which is
-     * bigger than the other
+     *
+     * @param  that the other identifier
+     * @return      0 if both identifiers are equal.  Otherwise returns -1 or 1 depending
+     *              on which is bigger than the other.
+     * @see         Comparable#compareTo
      */
     @Override
     public int compareTo(Identifier that) {
@@ -276,6 +330,4 @@ public class Identifier implements Comparable<Identifier> {
         }
         return 0;
     }
-
-
 }

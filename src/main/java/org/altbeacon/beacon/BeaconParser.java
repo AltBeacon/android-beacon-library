@@ -37,7 +37,7 @@ public class BeaconParser {
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]?)");
-    private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)");
+    private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)\\:?([\\-\\d]+)?");
     private static final Pattern X_PATTERN = Pattern.compile("x");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
@@ -57,6 +57,7 @@ public class BeaconParser {
 
     protected Integer mPowerStartOffset;
     protected Integer mPowerEndOffset;
+    protected Integer mDBmCorrection;
     protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
 
     /**
@@ -83,10 +84,13 @@ public class BeaconParser {
      *
      * <pre>
      *   m - matching byte sequence for this beacon type to parse (exactly one required)
-     *   s - ServiceUuuid for this beacon type to parse (optional, only for Gatt-based becons)
+     *   s - ServiceUuid for this beacon type to parse (optional, only for Gatt-based beacons)
      *   i - identifier (at least one required, multiple allowed)
      *   p - power calibration field (exactly one required)
      *   d - data field (optional, multiple allowed)
+     *   x - extra layout.  Signifies that the layout is secondary to a primary layout with the same
+     *       matching byte sequence (or ServiceUuid).  Extra layouts do not require power or
+     *       identifier fields.
      * </pre>
      *
      * <p>Each prefix is followed by a colon, then an inclusive decimal byte offset for the field from
@@ -101,7 +105,7 @@ public class BeaconParser {
      *
      * <p>All data field and identifier expressions may be optionally suffixed with the letter l, which
      * indicates the field should be parsed as little endian.  If not present, the field will be presumed
-     * to be big endian.
+     * to be big endian.  Note: serviceUuid fields are always little endian.
      *
      * <p>If the expression cannot be parsed, a <code>BeaconLayoutException</code> is thrown.</p>
      *
@@ -170,6 +174,11 @@ public class BeaconParser {
                 try {
                     int startOffset = Integer.parseInt(matcher.group(1));
                     int endOffset = Integer.parseInt(matcher.group(2));
+                    int dBmCorrection = 0;
+                    if (matcher.group(3) != null) {
+                        dBmCorrection = Integer.parseInt(matcher.group(3));
+                    }
+                    mDBmCorrection=dBmCorrection;
                     mPowerStartOffset=startOffset;
                     mPowerEndOffset=endOffset;
                 } catch (NumberFormatException e) {
@@ -337,7 +346,7 @@ public class BeaconParser {
         byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset - mMatchingBeaconTypeCodeStartOffset + 1);
         if (getServiceUuid() != null) {
             maxByteForMatch = 11; // for uuid-based beacons
-            serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset - mServiceUuidStartOffset + 1);
+            serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset - mServiceUuidStartOffset + 1, false);
         }
         int startByte = 2;
         boolean patternFound = false;
@@ -400,7 +409,7 @@ public class BeaconParser {
             int txPower = 0;
             String powerString = byteArrayToFormattedString(scanData, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);
             try {
-                txPower = Integer.parseInt(powerString);
+                txPower = Integer.parseInt(powerString)+mDBmCorrection;
             }
             catch (NumberFormatException e1) {
                 // keep default value
@@ -564,14 +573,17 @@ public class BeaconParser {
     }
 
     public static byte[] longToByteArray(long longValue, int length) {
+        return longToByteArray(longValue, length, true);
+    }
+
+    public static byte[] longToByteArray(long longValue, int length, boolean bigEndian) {
         byte[] array = new byte[length];
         for (int i = 0; i < length; i++){
-            //long mask = (long) Math.pow(256.0,1.0*(length-i))-1;
-            long mask = 0xffl << (length-i-1)*8;
-            long shift = (length-i-1)*8;
+            int adjustedI = bigEndian ? i : length - i -1;
+            long mask = 0xffl << (length-adjustedI-1)*8;
+            long shift = (length-adjustedI-1)*8;
             long value = ((longValue & mask)  >> shift);
             array[i] = (byte) value;
-
         }
         return array;
     }

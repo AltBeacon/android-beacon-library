@@ -23,20 +23,19 @@
  */
 package org.altbeacon.beacon.service;
 
+import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.logging.LogManager;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-
-import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.logging.LogManager;
-
 public class RangeState {
     private static final String TAG = "RangeState";
 	private Callback mCallback;
     private Map<Beacon,RangedBeacon> mRangedBeacons = new HashMap<Beacon,RangedBeacon>();
+    private static boolean UseTrackingCache = false;
 
 	public RangeState(Callback c) {
 		mCallback = c;
@@ -45,7 +44,6 @@ public class RangeState {
 	public Callback getCallback() {
 		return mCallback;
 	}
-
 
     public void addBeacon(Beacon beacon) {
         if (mRangedBeacons.containsKey(beacon)) {
@@ -77,7 +75,10 @@ public class RangeState {
                 // If we still have useful measurements, keep it around but mark it as not
                 // tracked anymore so we don't pass it on as visible unless it is seen again
                 if (!rangedBeacon.noMeasurementsAvailable() == true) {
-                    rangedBeacon.setTracked(false);
+                    //if TrackingCache is enabled, allow beacon to not receive
+                    //measurements for a certain amount of time
+                    if (!UseTrackingCache || rangedBeacon.isExpired())
+                        rangedBeacon.setTracked(false);
                     newRangedBeacons.put(beacon, rangedBeacon);
                 }
                 else {
@@ -90,7 +91,9 @@ public class RangeState {
         return finalizedBeacons;
     }
 
-
+    public static void setUseTrackingCache(boolean useTrackingCache) {
+        RangeState.UseTrackingCache = useTrackingCache;
+    }
 
 
 }

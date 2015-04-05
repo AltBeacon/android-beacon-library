@@ -36,18 +36,18 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.util.Log;
+
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.BuildConfig;
+import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.distance.DistanceCalculator;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
-import org.altbeacon.beacon.BuildConfig;
-import org.altbeacon.beacon.Region;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

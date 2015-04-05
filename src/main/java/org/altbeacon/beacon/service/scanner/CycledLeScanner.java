@@ -193,7 +193,7 @@ public abstract class CycledLeScanner {
                             }
                             mLastScanCycleStartTime = new Date().getTime();
                         } else {
-                            LogManager.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+                            LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                         }
                     }
                 } catch (Exception e) {
@@ -253,7 +253,7 @@ public abstract class CycledLeScanner {
                     }
                     mLastScanCycleEndTime = new Date().getTime();
                 } else {
-                    LogManager.w(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+                    LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                 }
             }
             mNextScanCycleStartTime = getNextScanStartTime();

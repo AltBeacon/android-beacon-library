@@ -27,6 +27,9 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.MonitoringData;
 import org.altbeacon.beacon.service.RangingData;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Intent;
@@ -44,6 +47,19 @@ public class BeaconIntentProcessor extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
+        //Make sure we always deliver results on the main thread
+        if (Looper.getMainLooper().getThread() != Thread.currentThread()) {
+            Handler mainHandler = new Handler(Looper.getMainLooper());
+        
+            Runnable myRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    onHandleIntent(intent);
+                }
+            };
+            mainHandler.post(myRunnable);
+            return;
+        }
 		LogManager.d(TAG, "got an intent to process");
 		
 		MonitoringData monitoringData = null;

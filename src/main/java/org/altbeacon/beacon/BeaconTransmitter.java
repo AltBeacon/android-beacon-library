@@ -206,7 +206,12 @@ public class BeaconTransmitter {
         }
         LogManager.d(TAG, "Stopping advertising with object %s", mBluetoothLeAdvertiser);
         mAdvertisingClientCallback = null;
-        mBluetoothLeAdvertiser.stopAdvertising(getAdvertiseCallback());
+        try {
+            mBluetoothLeAdvertiser.stopAdvertising(getAdvertiseCallback());
+        }
+        catch (IllegalStateException e) {
+            LogManager.w(TAG, "Bluetooth is turned off. Transmitter stop call failed.");
+        }
         mStarted = false;
     }
 

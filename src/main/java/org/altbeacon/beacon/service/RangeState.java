@@ -56,6 +56,7 @@ public class RangeState {
                 LogManager.d(TAG, "BEM updated 1 ranged beacon, extraDataField count changing to : "+beacon.getExtraDataFields().size()+" from: "+rangedBeacon.getBeacon().getExtraDataFields().size());
             }
             if (beacon.getExtraDataFields().size() == 0 && rangedBeacon.getBeacon().getExtraDataFields().size() > 0) {
+                rangedBeacon.updateRssiMeasurementButNotBeacon(beacon);
                 if (LogManager.isVerboseLoggingEnabled()) {
                     LogManager.d(TAG, "BEM refusing to downgrade extra data fields");
                 }
@@ -93,6 +94,7 @@ public class RangeState {
                     rangedBeacon.commitMeasurements(); // calculates accuracy
                     if (!rangedBeacon.noMeasurementsAvailable()) {
                         finalizedBeacons.add(rangedBeacon.getBeacon());
+                        LogManager.d(TAG, "BEM no measurements available");
                     }
                     if (LogManager.isVerboseLoggingEnabled()) {
                         LogManager.d(TAG, "BEM committing ranged beacons 2, extraDataField count: "+rangedBeacon.getBeacon().getExtraDataFields().size());

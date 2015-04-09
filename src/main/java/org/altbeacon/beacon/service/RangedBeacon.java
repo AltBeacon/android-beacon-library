@@ -25,6 +25,13 @@ public class RangedBeacon {
         addMeasurement(mBeacon.getRssi());
     }
 
+    // TODO: make this not necessary.  This method exists to as to allow rssi ranging updates even
+    // for beacon readings that don't have telemetry
+    public void updateRssiMeasurementButNotBeacon(Beacon beacon) {
+        addMeasurement(mBeacon.getRssi());
+    }
+
+
     public boolean isTracked() {
         return mTracked;
     }

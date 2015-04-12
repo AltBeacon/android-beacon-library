@@ -1,0 +1,134 @@
+---
+layout: android-beacon-library
+---
+
+```
+
+##Device Support For Beacon Transmission with Android 5
+
+The list below identifies the Android device builds that are able to transmit as beacons.  
+The abilty to transmit as a beacon requires Bluetooth LE advertisement capability, which may
+or may not be supported by a device's firmware.  This list 
+was last updated on April 12, 2015 and is based on success/failure reports from the
+[Locate app for Android](https://play.google.com/store/apps/details?id=com.radiusnetworks.locate).
+
+
+<style type="text/css">
+  table.rsum {
+    border-collapse: collapse;
+    border: 1px solid black;
+  }
+  table.rsum td{
+    border: 1px solid black;
+    padding: 5px;
+  }
+  table.rsum th{
+    border: 1px solid black;
+    padding: 5px;
+  }
+
+</style>
+
+
+<table class="rsum">
+<tr><th>Manufacturer</th><th>Model</th><th>Build number</th><th>OS Version</th><th>Supported?</th></tr>
+<tr><td></td></tr>
+<tr><td>Actions</td><td>Demo_86v</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>asus</td><td>ASUS ZenFone 2</td><td>LRX22C</td><td>5.0</td><td>No</td></tr>
+<tr><td>asus</td><td>ASUS_Z00ED</td><td>LRX22G</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>asus</td><td>Nexus 7</td><td>LMY47D</td><td>5.1</td><td>No</td></tr>
+<tr><td>asus</td><td>Nexus 7</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>HTC</td><td>831C</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC One 801e</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC One_M8</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC One_M8</td><td>LRX22C.H5</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC One</td><td>LRX22C.H3</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC One</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC_M8x</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC_M8x</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTC6525LVW</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>HTC</td><td>HTCONE</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>htc</td><td>Nexus 9</td><td>LRX21R</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>htc</td><td>Nexus 9</td><td>LRX22C</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>lge</td><td>LG-D800</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D838</td><td>LRX21Y</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D850</td><td>LRX21Y</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D855</td><td>LRX21R.A1417604035</td><td>5.0</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D855</td><td>LRX21R.A1421650137</td><td>5.0</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D855</td><td>LRX21R.A1422018487</td><td>5.0</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D855</td><td>LRX21R.A1424924479</td><td>5.0</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D855</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-D857</td><td>LRX22G</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>LGE</td><td>LG-F240S</td><td>LRX21Y</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-F320K</td><td>LRX21Y</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>LG-F460K</td><td>LRX21Y</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>LGE</td><td>LG-F460S</td><td>LRX21Y</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>LGE</td><td>LGLS990</td><td>LRX21Y</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>LGLS990</td><td>LRX21Y</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>LGE</td><td>Nexus 4</td><td>LRX21T</td><td>5.0</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 4</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 4</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 5</td><td>LMY47D</td><td>5.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 5</td><td>LMY47I</td><td>5.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 5</td><td>LPX13D</td><td>5.0</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 5</td><td>LRX21O</td><td>5.0</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 5</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>LGE</td><td>Nexus 5</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>Micromax</td><td>Micromax A107</td><td>LRX21M</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>MITO</td><td>MITO_A10</td><td>LBY29G</td><td>5.1</td><td>No</td></tr>
+<tr><td>motorola</td><td>MotoE2</td><td>LXC22.99-13</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LMX69C</td><td>5.1</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LMY47D</td><td>5.1</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LMY47I</td><td>5.1</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LRX21M</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LRX21O</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>Nexus 6</td><td>LRX22C</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1032</td><td>LXB22.46-28.1</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1032</td><td>LXB22.46-32</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1033</td><td>LXB22.46-28</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1068</td><td>LXB22.46-28</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1068</td><td>LXB22.46-28.1</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1068</td><td>LXB22.99-16</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1068/69</td><td>2015-02-14</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1069</td><td>LXB22.46-28</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1092</td><td>LXE22.46-19</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1095</td><td>LXE22.46-11</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1097</td><td>LXE22.46-17</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1097</td><td>LXE23.18</td><td>5.1</td><td>Yes</td></tr>
+<tr><td>motorola</td><td>XT1528</td><td>LXI22.50-28</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>NVIDIA</td><td>SHIELD Tablet</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>OnePlus</td><td>A0001</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>Samsung</td><td>AOSP on Galaxy Nexus</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I8190</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I9082</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I9195</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I9300</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I9500</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I9505</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I9505G</td><td>LRX21P.S012</td><td>5.0</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-I9505G</td><td>LRX22C.S012.unofficial</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>samsung</td><td>GT-N7100</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>Nexus 10</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>SAMSUNG-SGH-I747</td><td>LMY47I</td><td>5.1</td><td>No</td></tr>
+<tr><td>samsung</td><td>SM-G900F</td><td>LRX21T</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G900F</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>SM-G900H</td><td>LRX21T</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G900I</td><td>LRX21T</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G900M</td><td>LRX21T</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G900P</td><td>LRX21T</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G900T</td><td>LRX21T</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G900V</td><td>LRX21T</td><td>5.0</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G901F</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>samsung</td><td>SM-G906S</td><td>LRX22C</td><td>5.0.1</td><td>No</td></tr>
+<tr><td>samsung</td><td>SM-G920L</td><td>LRX22G</td><td>5.0.2</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-G925F</td><td>LMY47I</td><td>5.1</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-N900</td><td>LRX21V</td><td>5.0</td><td>No</td></tr>
+<tr><td>samsung</td><td>SM-N9005</td><td>LRX21V</td><td>5.0</td><td>No</td></tr>
+<tr><td>samsung</td><td>SM-N900T</td><td>LRX21V</td><td>5.0</td><td>No</td></tr>
+<tr><td>samsung</td><td>SM-N910F</td><td>LRX22C</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-N910L</td><td>LRX22C</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SM-N910V</td><td>LRX22C</td><td>5.0.1</td><td>Yes</td></tr>
+<tr><td>samsung</td><td>SPH-L720</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>Sony</td><td>D5803</td><td>23.1.A.0.690</td><td>5.0.2</td><td>No</td></tr>
+<tr><td>Sony</td><td>D6603</td><td>23.1.A.0.690</td><td>5.0.2</td><td>No</td></tr>
+<tr><td></td></tr></table>

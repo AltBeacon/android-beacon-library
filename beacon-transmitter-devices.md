@@ -31,7 +31,6 @@ was last updated on April 12, 2015 and is based on success/failure reports from 
 
 <table class="rsum">
 <tr><th>Manufacturer</th><th>Model</th><th>Build number</th><th>OS Version</th><th>Supported?</th></tr>
-<tr><td></td></tr>
 <tr><td>Actions</td><td>Demo_86v</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
 <tr><td>asus</td><td>ASUS ZenFone 2</td><td>LRX22C</td><td>5.0</td><td>No</td></tr>
 <tr><td>asus</td><td>ASUS_Z00ED</td><td>LRX22G</td><td>5.0.2</td><td>Yes</td></tr>
@@ -130,4 +129,4 @@ was last updated on April 12, 2015 and is based on success/failure reports from 
 <tr><td>samsung</td><td>SPH-L720</td><td>LRX22G</td><td>5.0.2</td><td>No</td></tr>
 <tr><td>Sony</td><td>D5803</td><td>23.1.A.0.690</td><td>5.0.2</td><td>No</td></tr>
 <tr><td>Sony</td><td>D6603</td><td>23.1.A.0.690</td><td>5.0.2</td><td>No</td></tr>
-<tr><td></td></tr></table>
+</table>

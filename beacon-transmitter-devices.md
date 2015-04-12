@@ -2,7 +2,6 @@
 layout: android-beacon-library
 ---
 
-```
 
 ##Device Support For Beacon Transmission with Android 5
 

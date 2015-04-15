@@ -27,6 +27,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -47,7 +48,7 @@ import java.util.List;
  *
  */
 public class Region implements Parcelable {
-	private static final String TAG = "Region";
+    private static final String TAG = "Region";
 
     /**
      * Required to make class Parcelable
@@ -63,25 +64,21 @@ public class Region implements Parcelable {
         }
     };
     protected final List<Identifier> mIdentifiers;
-	protected final String mUniqueId;
+    protected final String mUniqueId;
 
-	/**
-	 * Constructs a new Region object to be used for Ranging or Monitoring
-	 * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
-	 * @param id1 - most significant identifier (can be null)
-	 * @param id2 - second most significant identifier (can be null)
-	 * @param id3 - third most significant identifier (can be null)
-	 */
-	public Region(String uniqueId, Identifier id1, Identifier id2, Identifier id3) {
-        this.mIdentifiers = new ArrayList<Identifier>(3);
-		this.mIdentifiers.add(id1);
-        this.mIdentifiers.add(id2);
-        this.mIdentifiers.add(id3);
-		this.mUniqueId = uniqueId;
+    /**
+     * Constructs a new Region object to be used for Ranging or Monitoring
+     *
+     * @param uniqueId    A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
+     * @param identifiers Identifiers that define this Region, ordered by significance.
+     */
+    public Region(String uniqueId, Identifier... identifiers) {
+        this.mIdentifiers = Arrays.asList(identifiers);
+        this.mUniqueId = uniqueId;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
-	}
+    }
 
     /**
      * Constructs a new Region object to be used for Ranging or Monitoring
@@ -97,37 +94,11 @@ public class Region implements Parcelable {
     }
 
     /**
-     * Convenience method to get the first identifier
-     * @return
-     */
-    public Identifier getId1() {
-        return getIdentifier(0);
-    }
-
-    /**
-     * Convenience method to get the second identifier
-     * @return
-     */
-    public Identifier getId2() {
-        return getIdentifier(1);
-    }
-
-    /**
-     * Convenience method to get the third identifier
-     * @return
-     */
-    public Identifier getId3() {
-        return getIdentifier(2);
-    }
-
-    /**
-     * Returns the 0-indexed identifier
-     * Note:  IMPORTANT:  to get id1, you would call getIdentifier(0);
      * @param i
      * @return
      */
     public Identifier getIdentifier(int i) {
-        return mIdentifiers.size() > i ? mIdentifiers.get(i) : null;
+        return mIdentifiers.get(i);
     }
 
     /**
@@ -135,16 +106,16 @@ public class Region implements Parcelable {
      * the <code>BeaconManager</code> methods.
      * @return
      */
-	public String getUniqueId() {
-		return mUniqueId;
-	}
-	
-	/**
-	 * Checks to see if an Beacon object is included in the matching criteria of this Region
-	 * @param beacon the beacon to check to see if it is in the Region
-	 * @return true if is covered
-	 */
-	public boolean matchesBeacon(Beacon beacon) {
+    public String getUniqueId() {
+        return mUniqueId;
+    }
+
+    /**
+     * Checks to see if an Beacon object is included in the matching criteria of this Region
+     * @param beacon the beacon to check to see if it is in the Region
+     * @return true if is covered
+     */
+    public boolean matchesBeacon(Beacon beacon) {
         // all identifiers must match, or the region identifier must be null
         for (int i = 0; i < this.mIdentifiers.size(); i++) {
             if (beacon.getIdentifiers().size() <= i && mIdentifiers.get(i) == null) {
@@ -158,7 +129,7 @@ public class Region implements Parcelable {
             }
         }
         return true;
-	}
+    }
 
     @Override
     public int hashCode() {
@@ -187,7 +158,7 @@ public class Region implements Parcelable {
             i++;
         }
         return sb.toString();
-	}
+    }
 
     public int describeContents() {
         return 0;

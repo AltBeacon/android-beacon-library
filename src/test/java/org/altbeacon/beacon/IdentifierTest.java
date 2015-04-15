@@ -168,14 +168,8 @@ public class IdentifierTest {
         Identifier.parse("3133742");
     }
 
-    /*
-     * This is here because Identifier.parse wrongly accepts UUIDs without
-     * dashes, but we want to be backward compatible.
-     */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testParseInvalidUuid() {
-        UUID ref = UUID.fromString("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6");
         Identifier id = Identifier.parse("2f234454cf6d4a0fadf2f4911ba9ffa6");
-        assertEquals("Malformed UUID was parsed as expected.", id.toUuid(), ref);
     }
 }

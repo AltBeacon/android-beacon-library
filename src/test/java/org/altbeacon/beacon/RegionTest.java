@@ -92,14 +92,4 @@ public class RegionTest {
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
         assertEquals("id1: 1 id2: 2 id3: null", region.toString());
     }
-
-    @Test
-    public void testConvenienceIdentifierAccessors() {
-        Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), Identifier.parse("3"));
-        assertEquals("1", region.getId1().toString());
-        assertEquals("2", region.getId2().toString());
-        assertEquals("3", region.getId3().toString());
-    }
-
-
 }

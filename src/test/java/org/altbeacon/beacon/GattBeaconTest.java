@@ -37,8 +37,8 @@ public class GattBeaconTest {
         assertNotNull("Service uuid parsed should not be null", parser.getServiceUuid());
         Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
-        assertEquals("id1 should be parsed", "0x454452e29735323d81c0", gattBeacon.getId1().toString());
-        assertEquals("id2 should be parsed", "0x060504030201", gattBeacon.getId2().toString());
+        assertEquals("id1 should be parsed", "0x454452e29735323d81c0", gattBeacon.getIdentifier(0).toString());
+        assertEquals("id2 should be parsed", "0x060504030201", gattBeacon.getIdentifier(1).toString());
         assertEquals("serviceUuid should be parsed", 0x0123, gattBeacon.getServiceUuid());
         assertEquals("txPower should be parsed", -59, gattBeacon.getTxPower());
     }

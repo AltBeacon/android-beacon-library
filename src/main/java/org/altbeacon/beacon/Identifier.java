@@ -17,8 +17,7 @@ import java.util.regex.Pattern;
 public class Identifier implements Comparable<Identifier> {
     private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-Fa-f]*$");
     private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]{1,5}$");
-    // BUG: Dashes in UUIDs are not optional!
-    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{12}$");
+    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$");
     private static final int MAX_INTEGER = 65535;
 
     private final byte[] mValue;
@@ -55,7 +54,13 @@ public class Identifier implements Comparable<Identifier> {
         }
 
         if (UUID_PATTERN.matcher(stringValue).matches()) {
-            return parseHex(stringValue.replace("-", ""));
+            UUID uuid = null;
+            try {
+                uuid = UUID.fromString(stringValue);
+            } catch (Throwable t) {
+                throw new IllegalArgumentException("Unable to parse Identifier in UUID format.", t);
+            }
+            return fromUuid(uuid);
         }
 
         if (DECIMAL_PATTERN.matcher(stringValue).matches()) {

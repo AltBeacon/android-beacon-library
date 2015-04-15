@@ -162,10 +162,9 @@ public class BeaconTransmitter {
             byteString += String.format("%02X", advertisingBytes[i]);
             byteString += " ";
         }
-        LogManager.d(TAG, "Starting advertising with ID1: %s ID2: %s ID3: %s and data: %s of size "
-                        + "%s", mBeacon.getId1(),
-                        mBeacon.getIdentifiers().size() > 1 ? mBeacon.getId2() : "",
-                        mBeacon.getIdentifiers().size() > 2 ? mBeacon.getId3() : "", byteString,
+        LogManager.d(TAG, "Starting advertising with %s and data: %s of size %d",
+                mBeacon,
+                byteString,
                 advertisingBytes.length);
 
         try{

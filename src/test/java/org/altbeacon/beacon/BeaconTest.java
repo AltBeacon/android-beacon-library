@@ -38,10 +38,9 @@ public class BeaconTest {
         assertEquals("First beacon id should be 1", beacon.getIdentifier(0).toString(), "1");
         assertEquals("Second beacon id should be 1", beacon.getIdentifier(1).toString(), "2");
         assertEquals("Third beacon id should be 1", beacon.getIdentifier(2).toString(), "3");
-        assertEquals("First beacon id should be 1", beacon.getId1().toString(), "1");
-        assertEquals("Second beacon id should be 1", beacon.getId2().toString(), "2");
-        assertEquals("Third beacon id should be 1", beacon.getId3().toString(), "3");
-
+        assertEquals("First beacon id should be 1", beacon.getIdentifier(0).toString(), "1");
+        assertEquals("Second beacon id should be 1", beacon.getIdentifier(1).toString(), "2");
+        assertEquals("Third beacon id should be 1", beacon.getIdentifier(2).toString(), "3");
     }
 
     @Test
@@ -89,7 +88,6 @@ public class BeaconTest {
         assertTrue("Beacons with different id3 are not equal", !beacon1.equals(beacon2));
     }
 
-
     @Test
     public void testCalculateAccuracyWithRssiEqualsPower() {
         Beacon.setDistanceCalculator(new ModelSpecificDistanceCalculator(null, null));
@@ -126,7 +124,6 @@ public class BeaconTest {
         double distance = beacon.getDistance();
         assertEquals("Distance should be one meter if mRssi is the same as power", 1.0, distance, 0.1);
     }
-
 
     @Test
     public void testCanSerializeParcelable() {

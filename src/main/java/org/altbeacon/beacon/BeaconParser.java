@@ -541,7 +541,7 @@ public class BeaconParser {
 
     public static class BeaconLayoutException extends RuntimeException {
         public BeaconLayoutException(String s) {
-	    super(s);
+        super(s);
         }
     }
 

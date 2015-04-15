@@ -13,7 +13,7 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
 {
     private static final String TAG = "StartupBroadcastReceiver";
 
-	@Override
+    @Override
     public void onReceive(Context context, Intent intent) {
         LogManager.d(TAG, "onReceive called in startup broadcast receiver");
         if (android.os.Build.VERSION.SDK_INT < 18) {

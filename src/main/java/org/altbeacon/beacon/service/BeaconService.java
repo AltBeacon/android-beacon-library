@@ -84,22 +84,22 @@ public class BeaconService extends Service {
      * The scan period is how long we wait between restarting the BLE advertisement scans
      * Each time we restart we only see the unique advertisements once (e.g. unique beacons)
      * So if we want updates, we have to restart.  For updates at 1Hz, ideally we
-     * would restart scanning that often to get the same update rate.  The trouble is that when you 
+     * would restart scanning that often to get the same update rate.  The trouble is that when you
      * restart scanning, it is not instantaneous, and you lose any beacon packets that were in the
      * air during the restart.  So the more frequently you restart, the more packets you lose.  The
      * frequency is therefore a tradeoff.  Testing with 14 beacons, transmitting once per second,
      * here are the counts I got for various values of the SCAN_PERIOD:
-     * 
+     *
      * Scan period     Avg beacons      % missed
      *    1s               6                 57
      *    2s               10                29
      *    3s               12                14
      *    5s               14                0
-     *    
+     *
      * Also, because beacons transmit once per second, the scan period should not be an even multiple
      * of seconds, because then it may always miss a beacon that is synchronized with when it is stopping
      * scanning.
-     * 
+     *
      */
 
     private List<Beacon> simulatedScanData = null;

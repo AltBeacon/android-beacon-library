@@ -32,21 +32,21 @@ import java.util.List;
  * RegionBootstrap.
  */
 public class RegionBootstrap {
-		
-	protected static final String TAG = "AppStarter";
-	private BeaconManager beaconManager;
-	private BootstrapNotifier application;
-	private List<Region> regions;
-	private boolean disabled = false;
-	private BeaconConsumer beaconConsumer;
 
-	/**
-	 * Constructor to bootstrap your Application on an entry/exit from a single region.
+    protected static final String TAG = "AppStarter";
+    private BeaconManager beaconManager;
+    private BootstrapNotifier application;
+    private List<Region> regions;
+    private boolean disabled = false;
+    private BeaconConsumer beaconConsumer;
+
+    /**
+     * Constructor to bootstrap your Application on an entry/exit from a single region.
      *
-	 * @param application
-	 * @param region
-	 */
-	public RegionBootstrap(BootstrapNotifier application, Region region) {
+     * @param application
+     * @param region
+     */
+    public RegionBootstrap(BootstrapNotifier application, Region region) {
         if (application.getApplicationContext() == null) {
             throw new NullPointerException("The BootstrapNotifier instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
         }
@@ -54,17 +54,17 @@ public class RegionBootstrap {
         this.application = application;
         regions = new ArrayList<Region>();
         regions.add(region);
-		beaconConsumer = new InternalBeaconConsumer();
+        beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
         LogManager.d(TAG, "Waiting for BeaconService connection");
-	}
+    }
 
-	/**
-	 * Constructor to bootstrap your Application on an entry/exit from multiple regions
-	 * @param application
-	 * @param regions
-	 */	
-	public RegionBootstrap(BootstrapNotifier application, List<Region> regions) {
+    /**
+     * Constructor to bootstrap your Application on an entry/exit from multiple regions
+     * @param application
+     * @param regions
+     */
+    public RegionBootstrap(BootstrapNotifier application, List<Region> regions) {
         if (application.getApplicationContext() == null) {
             throw new NullPointerException("The BootstrapNotifier instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
         }
@@ -76,72 +76,72 @@ public class RegionBootstrap {
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
         LogManager.d(TAG, "Waiting for BeaconService connection");
-	}
-	
-	/**
-	 * Used to disable additional bootstrap callbacks after the first is received.  Unless this is called,
-	 * your application will be get additional calls as the supplied regions are entered or exited.
-	 */
-	public void disable() {
-		if (disabled) {
-			return;
-		}
-		disabled = true;
+    }
+
+    /**
+     * Used to disable additional bootstrap callbacks after the first is received.  Unless this is called,
+     * your application will be get additional calls as the supplied regions are entered or exited.
+     */
+    public void disable() {
+        if (disabled) {
+            return;
+        }
+        disabled = true;
         try {
-        	for (Region region : regions) {
-                beaconManager.stopMonitoringBeaconsInRegion(region);        		
-        	}
+            for (Region region : regions) {
+                beaconManager.stopMonitoringBeaconsInRegion(region);
+            }
         } catch (RemoteException e) {
             LogManager.e(e, TAG, "Can't stop bootstrap regions");
-        }	
-		beaconManager.unbind(beaconConsumer);
-	}
-	
-	private class InternalBeaconConsumer implements BeaconConsumer {
-		
-		/**
-		 * Method reserved for system use
-		 */
-	    @Override
-	    public void onBeaconServiceConnect() {
+        }
+        beaconManager.unbind(beaconConsumer);
+    }
+
+    private class InternalBeaconConsumer implements BeaconConsumer {
+
+        /**
+         * Method reserved for system use
+         */
+        @Override
+        public void onBeaconServiceConnect() {
             LogManager.d(TAG, "Activating background region monitoring");
-	        beaconManager.setMonitorNotifier(application);
-	        try {
-	        	for (Region region : regions) {
+            beaconManager.setMonitorNotifier(application);
+            try {
+                for (Region region : regions) {
                     LogManager.d(TAG, "Background region monitoring activated for region %s", region);
-	                beaconManager.startMonitoringBeaconsInRegion(region);
+                    beaconManager.startMonitoringBeaconsInRegion(region);
                         if (beaconManager.isBackgroundModeUninitialized()) {
                             beaconManager.setBackgroundMode(true);
                         }
-	        	}
-	        } catch (RemoteException e) {   
-	        	LogManager.e(e, TAG, "Can't set up bootstrap regions");
-	        }
-	    }
-	
-		/**
-		 * Method reserved for system use
-		 */
-	    @Override
-		public boolean bindService(Intent intent, ServiceConnection conn, int arg2) {
-			return application.getApplicationContext().bindService(intent, conn, arg2);
-		}
-	
-		/**
-		 * Method reserved for system use
-		 */
-		@Override
-		public Context getApplicationContext() {
-			return application.getApplicationContext();
-		}
-	
-		/**
-		 * Method reserved for system use
-		 */
-		@Override
-		public void unbindService(ServiceConnection conn) {
-			application.getApplicationContext().unbindService(conn);		
-		}
-	}
+                }
+            } catch (RemoteException e) {
+                LogManager.e(e, TAG, "Can't set up bootstrap regions");
+            }
+        }
+
+        /**
+         * Method reserved for system use
+         */
+        @Override
+        public boolean bindService(Intent intent, ServiceConnection conn, int arg2) {
+            return application.getApplicationContext().bindService(intent, conn, arg2);
+        }
+
+        /**
+         * Method reserved for system use
+         */
+        @Override
+        public Context getApplicationContext() {
+            return application.getApplicationContext();
+        }
+
+        /**
+         * Method reserved for system use
+         */
+        @Override
+        public void unbindService(ServiceConnection conn) {
+            application.getApplicationContext().unbindService(conn);
+        }
+    }
 
 }

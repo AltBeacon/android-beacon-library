@@ -29,7 +29,7 @@ public class ArmaRssiFilter implements RssiFilter {
         this.armaSpeed = DEFAULT_ARMA_SPEED;
     }
 
-	public void addMeasurement(Integer rssi) {
+    public void addMeasurement(Integer rssi) {
         LogManager.d(TAG, "adding rssi: %s", rssi);
         //use first measurement as initialization
         if (!isInitialized) {
@@ -38,19 +38,19 @@ public class ArmaRssiFilter implements RssiFilter {
         };
         armaMeasurement = Double.valueOf(armaMeasurement - armaSpeed * (armaMeasurement - rssi)).intValue();
         LogManager.d(TAG, "armaMeasurement: %s", armaMeasurement);
-	}
+    }
 
-	public boolean noMeasurementsAvailable() {
+    public boolean noMeasurementsAvailable() {
         return false;
-	}
+    }
 
-	public double calculateRssi() {
-		return armaMeasurement;
+    public double calculateRssi() {
+        return armaMeasurement;
 
-	}
+    }
 
     public static void setDEFAULT_ARMA_SPEED(double default_arma_speed) {
         DEFAULT_ARMA_SPEED = default_arma_speed;
     }
-	
+
 }

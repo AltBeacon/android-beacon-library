@@ -143,7 +143,7 @@ public class BluetoothCrashResolver {
     public void enableDebug() {
 
     }
-    
+
     /**
      * Disable debug logging.
      * @deprecated Since the default logger used by the android-beacon-library only logs warnings and

@@ -19,7 +19,7 @@ public class RangedBeacon {
     Beacon mBeacon;
     protected RssiFilter filter = null;
 
-	public RangedBeacon(Beacon beacon) {
+    public RangedBeacon(Beacon beacon) {
         //set RSSI filter
         try {
             Constructor cons = BeaconManager.getRssiFilterImplClass().getConstructors()[0];
@@ -30,7 +30,7 @@ public class RangedBeacon {
             LogManager.e(TAG, "Could not construct RssiFilterImplClass %s", BeaconManager.getRssiFilterImplClass().getName());
         }
         updateBeacon(beacon);
-	}
+    }
 
     public void updateBeacon(Beacon beacon) {
         mBeacon = beacon;
@@ -61,11 +61,11 @@ public class RangedBeacon {
         }
     }
 
-	public void addMeasurement(Integer rssi) {
+    public void addMeasurement(Integer rssi) {
         mTracked = true;
         lastTrackedTimeMillis = System.currentTimeMillis();
         filter.addMeasurement(rssi);
-	}
+    }
 
     //kept here for backward compatibility
     public static void setSampleExpirationMilliseconds(long milliseconds) {
@@ -83,7 +83,7 @@ public class RangedBeacon {
     public long getTrackingAge() {
         return System.currentTimeMillis() - lastTrackedTimeMillis;
     }
-	
+
     public boolean isExpired() {
         return getTrackingAge() > maxTrackingAge;
     }

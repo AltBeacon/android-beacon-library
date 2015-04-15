@@ -65,34 +65,36 @@ import java.util.concurrent.ConcurrentMap;
  *
  * <pre><code>
  *  public class RangingActivity extends Activity implements BeaconConsumer {
- *  	protected static final String TAG = "RangingActivity";
- *  	private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
- *     {@literal @}Override
- *  	protected void onCreate(Bundle savedInstanceState) {
- *  		super.onCreate(savedInstanceState);
- *  		setContentView(R.layout.activity_ranging);
- *  		beaconManager.bind(this);
- *    }
- *     {@literal @}Override
- *  	protected void onDestroy() {
- *  		super.onDestroy();
- *  		beaconManager.unbind(this);
- *    }
- *     {@literal @}Override
- *  	public void onBeaconServiceConnect() {
- *  		beaconManager.setRangeNotifier(new RangeNotifier() {
- *             {@literal @}Override
- *        	public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
- *     			if (beacons.size() > 0) {
- * 	      			Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");
- *                }
- *            }
- *        });
+ *      protected static final String TAG = "RangingActivity";
+ *      private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+ *      {@literal @}Override
+ *      protected void onCreate(Bundle savedInstanceState) {
+ *          super.onCreate(savedInstanceState);
+ *          setContentView(R.layout.activity_ranging);
+ *          beaconManager.bind(this);
+ *      }
+ *      {@literal @}Override
+ *      protected void onDestroy() {
+ *          super.onDestroy();
+ *          beaconManager.unbind(this);
+ *      }
+ *      {@literal @}Override
+ *      public void onBeaconServiceConnect() {
+ *          beaconManager.setRangeNotifier(new RangeNotifier() {
+ *              {@literal @}Override
+ *              public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+ *                  if (beacons.size() > 0) {
+ *                      Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");
+ *                  }
+ *              }
+ *          });
  *
- *  		try {
- *  			beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
- *        } catch (RemoteException e) {    }
- *    }
+ *          try {
+ *              beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+ *          } catch (RemoteException e) {
+ *              e.printStackTrace();
+ *          }
+ *      }
  *  }
  *  </code></pre>
  *
@@ -101,12 +103,12 @@ import java.util.concurrent.ConcurrentMap;
  */
 @TargetApi(4)
 public class BeaconManager {
-	private static final String TAG = "BeaconManager";
-	private Context mContext;
-	protected static BeaconManager client = null;
-	private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
-	private Messenger serviceMessenger = null;
-	protected RangeNotifier rangeNotifier = null;
+    private static final String TAG = "BeaconManager";
+    private Context mContext;
+    protected static BeaconManager client = null;
+    private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
+    private Messenger serviceMessenger = null;
+    protected RangeNotifier rangeNotifier = null;
     protected RangeNotifier dataRequestNotifier = null;
     protected MonitorNotifier monitorNotifier = null;
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
@@ -205,17 +207,17 @@ public class BeaconManager {
         backgroundBetweenScanPeriod = p;
     }
 
-	/**
-	 * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
-	 * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
-	 */
-	public static BeaconManager getInstanceForApplication(Context context) {
-		if (client == null) {
+    /**
+     * An accessor for the singleton instance of this class.  A context must be provided, but if you need to use it from a non-Activity
+     * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
+     */
+    public static BeaconManager getInstanceForApplication(Context context) {
+        if (client == null) {
             LogManager.d(TAG, "BeaconManager instance creation");
-			client = new BeaconManager(context);
-		}
-		return client;
-	}
+            client = new BeaconManager(context);
+        }
+        return client;
+    }
 
     /**
      * Gets a list of the active beaconParsers.  This list may only be modified before any consumers
@@ -568,13 +570,13 @@ public class BeaconManager {
         serviceMessenger.send(msg);
     }
 
-	private String callbackPackageName() {
-		String packageName = mContext.getPackageName();
+    private String callbackPackageName() {
+        String packageName = mContext.getPackageName();
         LogManager.d(TAG, "callback packageName: %s", packageName);
-		return packageName;
-	}
+        return packageName;
+    }
 
-	private ServiceConnection beaconServiceConnection = new ServiceConnection() {
+    private ServiceConnection beaconServiceConnection = new ServiceConnection() {
         // Called when the connection with the service is established
         public void onServiceConnected(ComponentName className, IBinder service) {
             LogManager.d(TAG, "we have a connection to the service now");
@@ -592,8 +594,8 @@ public class BeaconManager {
             }
         }
 
-	    // Called when the connection with the service disconnects
-	    public void onServiceDisconnected(ComponentName className) {
+        // Called when the connection with the service disconnects
+        public void onServiceDisconnected(ComponentName className) {
             LogManager.e(TAG, "onServiceDisconnected");
             serviceMessenger = null;
         }

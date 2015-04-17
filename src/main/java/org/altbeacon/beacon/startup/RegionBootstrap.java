@@ -105,7 +105,7 @@ public class RegionBootstrap {
         @Override
         public void onBeaconServiceConnect() {
             LogManager.d(TAG, "Activating background region monitoring");
-            beaconManager.setMonitorNotifier(application);
+            beaconManager.addMonitorNotifier(application);
             try {
                 for (Region region : regions) {
                     LogManager.d(TAG, "Background region monitoring activated for region %s", region);

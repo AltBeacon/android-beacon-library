@@ -108,9 +108,9 @@ public class BeaconManager {
     protected static BeaconManager client = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
-    protected RangeNotifier rangeNotifier = null;
     protected RangeNotifier dataRequestNotifier = null;
-    protected MonitorNotifier monitorNotifier = null;
+    private final ArrayList<RangeNotifier> rangeNotifiers = new ArrayList<RangeNotifier>();
+    private final ArrayList<MonitorNotifier> monitorNotifiers = new ArrayList<MonitorNotifier>();
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
@@ -387,35 +387,93 @@ public class BeaconManager {
     }
 
     /**
-     * Specifies a class that should be called each time the <code>BeaconService</code> gets ranging
-     * data, which is nominally once per second when beacons are detected.
-     * <p/>
-     * IMPORTANT:  Only one RangeNotifier may be active for a given application.  If two different
-     * activities or services set different RangeNotifier instances, the last one set will receive
-     * all the notifications.
-     *
+     * allow to set Range Notifier
+     * Backward compatibility
      * @param notifier
-     * @see RangeNotifier
      */
-    public void setRangeNotifier(RangeNotifier notifier) {
-        rangeNotifier = notifier;
+    public void setRangeNotifier( RangeNotifier notifier )
+    {
+        addRangeNotifier( notifier );
     }
 
     /**
-     * Specifies a class that should be called each time the <code>BeaconService</code> sees
-     * or stops seeing a Region of beacons.
-     * <p/>
-     * IMPORTANT:  Only one MonitorNotifier may be active for a given application.  If two different
-     * activities or services set different MonitorNotifier instances, the last one set will receive
-     * all the notifications.
-     *
+     * Add Range Notifier
      * @param notifier
-     * @see MonitorNotifier
-     * @see #startMonitoringBeaconsInRegion(Region region)
-     * @see Region
      */
-    public void setMonitorNotifier(MonitorNotifier notifier) {
-        monitorNotifier = notifier;
+    public void addRangeNotifier(RangeNotifier notifier)
+    {
+        synchronized ( rangeNotifiers )
+        {
+            rangeNotifiers.add( notifier ) ;
+        }
+    }
+
+    /**
+     * Remove Range Notifier
+     * @param notifier
+     */
+    public void removeRangeNotifier( RangeNotifier notifier )
+    {
+        synchronized ( rangeNotifiers )
+        {
+            rangeNotifiers.remove( notifier ) ;
+        }
+    }
+
+    /**
+     * Remove All Range Notifiers
+     */
+    public void removeAllRangeNotifiers()
+    {
+        synchronized ( rangeNotifiers )
+        {
+            rangeNotifiers.clear();
+        }
+    }
+
+    /**
+     * allow to set Range Notifier
+     * Backward compatibility
+     * @param notifier
+     */
+    public void setMonitorNotifier( MonitorNotifier notifier )
+    {
+        addMonitorNotifier( notifier );
+    }
+
+    /**
+     * Add Monitor Notifier
+     * @param notifier
+     */
+    public void addMonitorNotifier(MonitorNotifier notifier)
+    {
+        synchronized ( monitorNotifiers )
+        {
+            monitorNotifiers.add( notifier );
+        }
+    }
+
+    /**
+     * Remove Monitor Notifier
+     * @param notifier
+     */
+    public void removeMonitorNotifier( MonitorNotifier notifier )
+    {
+        synchronized ( monitorNotifiers )
+        {
+            monitorNotifiers.remove( notifier );
+        }
+    }
+
+    /**
+     * Remove All Monitor Notifiers
+     */
+    public void removeAllMonitorNotifiers()
+    {
+        synchronized ( monitorNotifiers )
+        {
+            monitorNotifiers.clear();
+        }
     }
 
     /**
@@ -425,7 +483,6 @@ public class BeaconManager {
      * later call the stopRangingBeaconsInRegion method.
      *
      * @param region
-     * @see BeaconManager#setRangeNotifier(RangeNotifier)
      * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
      * @see RangeNotifier
      * @see Region
@@ -453,7 +510,6 @@ public class BeaconManager {
      * <code>Region</code> object and providing mDistance information for them.
      *
      * @param region
-     * @see #setMonitorNotifier(MonitorNotifier notifier)
      * @see #startMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
      * @see Region
@@ -488,7 +544,6 @@ public class BeaconManager {
      * later call the stopMonitoringBeaconsInRegion method.
      *
      * @param region
-     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
      * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
      * @see Region
@@ -517,7 +572,6 @@ public class BeaconManager {
      * an existing monitored Region.
      *
      * @param region
-     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
      * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
      * @see Region
@@ -602,19 +656,19 @@ public class BeaconManager {
     };
 
     /**
-     * @return monitorNotifier
-     * @see #monitorNotifier
+     *
+     * @return
      */
-    public MonitorNotifier getMonitoringNotifier() {
-        return this.monitorNotifier;
+    public List<MonitorNotifier> getMonitoringNotifiers() {
+        return this.monitorNotifiers;
     }
 
     /**
-     * @return rangeNotifier
-     * @see #rangeNotifier
+     *
+     * @return
      */
-    public RangeNotifier getRangingNotifier() {
-        return this.rangeNotifier;
+    public List<RangeNotifier> getRangingNotifiers() {
+        return this.rangeNotifiers;
     }
 
     /**

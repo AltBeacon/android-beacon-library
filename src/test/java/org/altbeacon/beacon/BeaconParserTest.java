@@ -180,6 +180,37 @@ public class BeaconParserTest {
         assertEquals("id should be parsed and truncated", "0x02676f6f676c6500" ,beacon.getId1().toString());
     }
 
+    @Test
+    public void testCanParseLocationBeacon() {
+        double latitude = 38.93;
+        double longitude = -77.23;
+        Beacon beacon = new Beacon.Builder()
+                .setManufacturer(0x0118) // Radius Networks
+                .setId1("1") // device sequence number
+                .setId2(String.format("0x%X", (long)((latitude+90)*10000.0)))
+                .setId3(String.format("0x%X", (long)((longitude+180)*10000.0)))
+                .setTxPower(-59) // The measured transmitter power at one meter in dBm
+                .build();
+        // TODO: make this pass if data fields are little endian or > 4 bytes (or even > 2 bytes)
+        BeaconParser p = new BeaconParser().
+                setBeaconLayout("m:2-3=10ca,i:4-9,i:10-13,i:14-17,p:18-18");
+        byte[] bytes = p.getBeaconAdvertisementData(beacon);
+        byte[] headerBytes = hexStringToByteArray("02011a1bff1801");
+        byte[] advBytes = new byte[bytes.length+headerBytes.length];
+        System.arraycopy(headerBytes, 0, advBytes, 0, headerBytes.length);
+        System.arraycopy(bytes, 0, advBytes, headerBytes.length, bytes.length);
 
+        Beacon parsedBeacon = p.fromScanData(advBytes, -59, null);
+        assertNotNull(String.format("Parsed beacon from %s should not be null", byteArrayToHexString(advBytes)), parsedBeacon);
+        double parsedLatitude = Long.parseLong(parsedBeacon.getId2().toString().substring(2), 16) / 10000.0 - 90.0;
+        double parsedLongitude = Long.parseLong(parsedBeacon.getId3().toString().substring(2), 16) / 10000.0 - 180.0;
+
+        long encodedLatitude = (long)((latitude+90)*10000.0);
+        assertEquals("encoded latitude hex should match", String.format("0x%08x", encodedLatitude), parsedBeacon.getId2().toString());
+        assertEquals("device sequence num should be same", "0x000000000001", parsedBeacon.getId1().toString());
+        assertEquals("latitude should be about right", latitude, parsedLatitude, 0.0001);
+        assertEquals("longitude should be about right", longitude, parsedLongitude, 0.0001);
+
+    }
 
 }

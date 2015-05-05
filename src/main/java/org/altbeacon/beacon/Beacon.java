@@ -323,6 +323,14 @@ public class Beacon implements Parcelable {
     }
 
     /**
+     * Sets extra data fields
+     * @param fields
+     */
+    public void setExtraDataFields(List<Long> fields) {
+        mExtraDataFields = fields;
+    }
+
+    /**
      * Returns the list of identifiers transmitted with the advertisement
      * @return identifier
      */
@@ -405,11 +413,13 @@ public class Beacon implements Parcelable {
             sb.append(" ");
             i++;
         }
+        sb.append(mBluetoothAddress);
         return sb.toString().hashCode();
     }
 
     /**
-     * Two detected beacons are considered equal if they share the same three identifiers, regardless of their mDistance or RSSI.
+     * Two detected beacons are considered equal if they share the same three identifiers,
+     * regardless of their mDistance, mBluetoothAddress or RSSI.
      */
     @Override
     public boolean equals(Object that) {
@@ -426,7 +436,7 @@ public class Beacon implements Parcelable {
                 return false;
             }
         }
-        return true;
+        return this.getBluetoothAddress().equals(thatBeacon.getBluetoothAddress());
     }
 
     /**
@@ -496,6 +506,15 @@ public class Beacon implements Parcelable {
         out.writeInt(mManufacturer);
         out.writeString(mBluetoothName);
 
+    }
+
+    /**
+     * Indicates whether this beacon is an "Extra data beacon," meaning one that has no identifiers
+     * but has data fields.
+     * @return
+     */
+    public boolean isExtraBeaconData() {
+        return mIdentifiers.size() == 0 && mDataFields.size() != 0;
     }
 
     /**

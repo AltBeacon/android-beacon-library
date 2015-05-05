@@ -92,7 +92,7 @@ public class BeaconParser {
      *   d - data field (optional, multiple allowed)
      *   x - extra layout.  Signifies that the layout is secondary to a primary layout with the same
      *       matching byte sequence (or ServiceUuid).  Extra layouts do not require power or
-     *       identifier fields.
+     *       identifier fields and create Beacon objects without identifiers.
      * </pre>
      *
      * <p>Each prefix is followed by a colon, then an inclusive decimal byte offset for the field from

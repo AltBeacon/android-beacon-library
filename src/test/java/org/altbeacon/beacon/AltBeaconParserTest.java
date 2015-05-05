@@ -13,7 +13,6 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 /*
 HOW TO SEE DEBUG LINES FROM YOUR UNIT TESTS:
-
 1. set a line like this at the start of your test:
            org.robolectric.shadows.ShadowLog.stream = System.err;
 2. run the tests from the command line
@@ -35,7 +34,8 @@ public class AltBeaconParserTest {
 
     @Test
     public void testRecognizeBeacon() {
-        byte[] bytes = hexStringToByteArray("02011a1aff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        BeaconManager.setDebug(true);
+        byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c50900");
         AltBeaconParser parser = new AltBeaconParser();
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         assertEquals ("Beacon should have one data field", 1, beacon.getDataFields().size());
@@ -53,7 +53,7 @@ public class AltBeaconParserTest {
     @Test
     public void testDetectsAlternateBeconType() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        byte[] bytes = hexStringToByteArray("02011a1aff1801aabb2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        byte[] bytes = hexStringToByteArray("02011a1bff1801aabb2f234454cf6d4a0fadf2f4911ba9ffa600010002c50900");
         AltBeaconParser parser = new AltBeaconParser();
         parser.setMatchingBeaconTypeCode(0xaabbl);
         Beacon beacon = parser.fromScanData(bytes, -55, null);

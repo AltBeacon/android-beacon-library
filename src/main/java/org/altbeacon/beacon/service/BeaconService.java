@@ -69,7 +69,6 @@ public class BeaconService extends Service {
 
     private Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
     private Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
-    private HashSet<Beacon> trackedBeacons;
     int trackedBeaconsPacketCount;
     private Handler handler = new Handler();
     private int bindCount = 0;
@@ -79,6 +78,7 @@ public class BeaconService extends Service {
     private List<BeaconParser> beaconParsers;
     private CycledLeScanner mCycledScanner;
     private boolean mBackgroundFlag = false;
+    private GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -370,46 +370,51 @@ public class BeaconService extends Service {
     }
 
     private void processBeaconFromScan(Beacon beacon) {
-        if (trackedBeacons == null){
-            trackedBeacons = new HashSet<>();
-        }
         if (Stats.getInstance().isEnabled()) {
             Stats.getInstance().log(beacon);
         }
         trackedBeaconsPacketCount++;
-        if (trackedBeacons.contains(beacon)) {
+        if (LogManager.isVerboseLoggingEnabled()) {
             LogManager.d(TAG,
-                    "beacon detected multiple times in scan cycle : %s", beacon.toString());
+                    "beacon detected : %s", beacon.toString());
         }
-        trackedBeacons.add(beacon);
-        LogManager.d(TAG,
-                "beacon detected : %s", beacon.toString());
 
-        List<Region> matchedRegions = null;
-        synchronized(monitoredRegionState) {
-            matchedRegions = matchingRegions(beacon,
-                    monitoredRegionState.keySet());
-        }
-        Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
-        while (matchedRegionIterator.hasNext()) {
-            Region region = matchedRegionIterator.next();
-            MonitorState state = monitoredRegionState.get(region);
-            if (state != null && state.markInside()) {
-                state.getCallback().call(BeaconService.this, "monitoringData",
-                        new MonitoringData(state.isInside(), region));
+        beacon = mGattBeaconTracker.track(beacon);
+        // If this is a Gatt beacon that should be ignored, it will be set to null as a result of
+        // the above
+        if (beacon == null) {
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG,
+                        "not processing detections for GATT extra data beacon");
             }
         }
-
-        LogManager.d(TAG, "looking for ranging region matches for this beacon");
-        synchronized (rangedRegionState) {
-            matchedRegions = matchingRegions(beacon, rangedRegionState.keySet());
-            matchedRegionIterator = matchedRegions.iterator();
+        else {
+            List<Region> matchedRegions = null;
+            synchronized(monitoredRegionState) {
+                matchedRegions = matchingRegions(beacon,
+                        monitoredRegionState.keySet());
+            }
+            Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
             while (matchedRegionIterator.hasNext()) {
                 Region region = matchedRegionIterator.next();
-                LogManager.d(TAG, "matches ranging region: %s", region);
-                RangeState rangeState = rangedRegionState.get(region);
-                if (rangeState != null) {
-                    rangeState.addBeacon(beacon);
+                MonitorState state = monitoredRegionState.get(region);
+                if (state != null && state.markInside()) {
+                    state.getCallback().call(BeaconService.this, "monitoringData",
+                            new MonitoringData(state.isInside(), region));
+                }
+            }
+
+            LogManager.d(TAG, "looking for ranging region matches for this beacon");
+            synchronized (rangedRegionState) {
+                matchedRegions = matchingRegions(beacon, rangedRegionState.keySet());
+                matchedRegionIterator = matchedRegions.iterator();
+                while (matchedRegionIterator.hasNext()) {
+                    Region region = matchedRegionIterator.next();
+                    LogManager.d(TAG, "matches ranging region: %s", region);
+                    RangeState rangeState = rangedRegionState.get(region);
+                    if (rangeState != null) {
+                        rangeState.addBeacon(beacon);
+                    }
                 }
             }
         }

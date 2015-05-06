@@ -30,6 +30,9 @@ public class GattBeaconTracker {
         if (beacon.getServiceUuid() != -1) {
             trackedBeacon = trackGattBeacon(beacon);
         }
+        else {
+            trackedBeacon = beacon;
+        }
         return trackedBeacon;
     }
 

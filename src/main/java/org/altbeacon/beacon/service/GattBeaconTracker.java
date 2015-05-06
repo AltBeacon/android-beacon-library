@@ -1,17 +1,18 @@
 package org.altbeacon.beacon.service;
 
+import android.util.Log;
+
 import org.altbeacon.beacon.Beacon;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Keeps track of beacons that have ever been seen and
  * merges them together in the case of Gatt beacons
  * Created by dyoung on 5/5/15.
  */
-public class TrackedBeacons {
+public class GattBeaconTracker {
+    private static final String TAG = "BeaconTracker";
     // We use a HashMap keyed by hash here so we can update the value
     private HashMap<Integer,Beacon> mBeacons = new HashMap<Integer,Beacon>();
     // This is a lookup table to find tracked beacons by a combo of service UUID and mac address
@@ -26,10 +27,7 @@ public class TrackedBeacons {
      */
     public synchronized Beacon track(Beacon beacon) {
         Beacon trackedBeacon = null;
-        if (beacon.getServiceUuid() == -1) {
-            trackedBeacon = mBeacons.put(beacon.hashCode(), beacon);
-        }
-        else {
+        if (beacon.getServiceUuid() != -1) {
             trackedBeacon = trackGattBeacon(beacon);
         }
         return trackedBeacon;
@@ -42,18 +40,23 @@ public class TrackedBeacons {
         // service UUID based beacons can have multiple frames
         Beacon trackedBeacon = null;
         HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByServiceUuidAndMac.get(serviceUuidAndMac(beacon));
-        for (Beacon matchingTrackedBeacon: matchingTrackedBeacons.values()) {
-            if (beacon.isExtraBeaconData()) {
-                matchingTrackedBeacon.setRssi(beacon.getRssi());
-                matchingTrackedBeacon.setExtraDataFields(beacon.getDataFields());
-            }
-            else {
-                beacon.setExtraDataFields(matchingTrackedBeacon.getExtraDataFields());
-                // replace the tracked beacon instance with this one so it has updated values
-                updateTrackingHashes(beacon, matchingTrackedBeacons);
-                trackedBeacon = beacon;
+        if (matchingTrackedBeacons != null) {
+            for (Beacon matchingTrackedBeacon: matchingTrackedBeacons.values()) {
+                if (beacon.isExtraBeaconData()) {
+                    matchingTrackedBeacon.setRssi(beacon.getRssi());
+                    matchingTrackedBeacon.setExtraDataFields(beacon.getDataFields());
+                }
+                else {
+                    beacon.setExtraDataFields(matchingTrackedBeacon.getExtraDataFields());
+                    // replace the tracked beacon instance with this one so it has updated values
+                    trackedBeacon = beacon;
+                }
             }
         }
+        if (!beacon.isExtraBeaconData()) {
+            updateTrackingHashes(beacon, matchingTrackedBeacons);
+        }
+
         if (trackedBeacon == null && !beacon.isExtraBeaconData()) {
             trackedBeacon = beacon;
         }
@@ -61,6 +64,10 @@ public class TrackedBeacons {
     }
 
     private void updateTrackingHashes(Beacon trackedBeacon, HashMap<Integer,Beacon> matchingTrackedBeacons) {
+        if (matchingTrackedBeacons == null) {
+            matchingTrackedBeacons = new HashMap<Integer,Beacon>();
+            mBeaconsByServiceUuidAndMac.put(serviceUuidAndMac(trackedBeacon), matchingTrackedBeacons);
+        }
         mBeacons.put(trackedBeacon.hashCode(), trackedBeacon);
         matchingTrackedBeacons.put(trackedBeacon.hashCode(), trackedBeacon);
     }

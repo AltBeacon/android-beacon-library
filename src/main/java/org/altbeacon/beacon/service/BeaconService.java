@@ -73,7 +73,6 @@ public class BeaconService extends Service {
     private Handler handler = new Handler();
     private int bindCount = 0;
     private BluetoothCrashResolver bluetoothCrashResolver;
-    private boolean scanningEnabled = false;
     private DistanceCalculator defaultDistanceCalculator = null;
     private List<BeaconParser> beaconParsers;
     private CycledLeScanner mCycledScanner;
@@ -244,9 +243,7 @@ public class BeaconService extends Service {
             rangedRegionState.put(region, new RangeState(callback));
             LogManager.d(TAG, "Currently ranging %s regions.", rangedRegionState.size());
         }
-        if (!scanningEnabled) {
-            mCycledScanner.start();
-        }
+        mCycledScanner.start();
     }
 
     public void stopRangingBeaconsInRegion(Region region) {
@@ -257,7 +254,7 @@ public class BeaconService extends Service {
             LogManager.d(TAG, "Currently ranging %s regions.", rangedRegionState.size());
         }
 
-        if (scanningEnabled && rangedRegionCount == 0 && monitoredRegionState.size() == 0) {
+        if (rangedRegionCount == 0 && monitoredRegionState.size() == 0) {
             mCycledScanner.stop();
         }
     }
@@ -272,9 +269,7 @@ public class BeaconService extends Service {
             monitoredRegionState.put(region, new MonitorState(callback));
         }
         LogManager.d(TAG, "Currently monitoring %s regions.", monitoredRegionState.size());
-        if (!scanningEnabled) {
-            mCycledScanner.start();
-        }
+        mCycledScanner.start();
     }
 
     public void stopMonitoringBeaconsInRegion(Region region) {
@@ -285,7 +280,7 @@ public class BeaconService extends Service {
             monitoredRegionCount = monitoredRegionState.size();
         }
         LogManager.d(TAG, "Currently monitoring %s regions.", monitoredRegionState.size());
-        if (scanningEnabled && monitoredRegionCount == 0 && monitoredRegionState.size() == 0) {
+        if (monitoredRegionCount == 0 && rangedRegionState.size() == 0) {
             mCycledScanner.stop();
         }
     }

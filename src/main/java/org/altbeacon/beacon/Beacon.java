@@ -57,6 +57,12 @@ import java.util.List;
 public class Beacon implements Parcelable {
     private static final String TAG = "Beacon";
 
+    /**
+     * Determines whether a the bluetoothAddress (mac address) must be the same for two Beacons
+     * to be configured equal.
+     */
+    protected static boolean sHardwareEqualityEnforced = false;
+
     protected static DistanceCalculator sDistanceCalculator = null;
 
     /**
@@ -167,6 +173,17 @@ public class Beacon implements Parcelable {
      */
     public static DistanceCalculator getDistanceCalculator() {
         return sDistanceCalculator;
+    }
+
+    /**
+     * Configures whether a the bluetoothAddress (mac address) must be the same for two Beacons
+     * to be configured equal.  This setting applies to all beacon instances in the same process.
+     * Defaults to false for backward compatibility.
+     *
+     * @param e
+     */
+    public static void setHardwareEqualityEnforced(boolean e) {
+        sHardwareEqualityEnforced = e;
     }
 
     /**
@@ -413,7 +430,9 @@ public class Beacon implements Parcelable {
             sb.append(" ");
             i++;
         }
-        sb.append(mBluetoothAddress);
+        if (sHardwareEqualityEnforced) {
+            sb.append(mBluetoothAddress);
+        }
         return sb.toString().hashCode();
     }
 
@@ -436,7 +455,9 @@ public class Beacon implements Parcelable {
                 return false;
             }
         }
-        return this.getBluetoothAddress().equals(thatBeacon.getBluetoothAddress());
+        return sHardwareEqualityEnforced ?
+                this.getBluetoothAddress().equals(thatBeacon.getBluetoothAddress()) :
+                true;
     }
 
     /**

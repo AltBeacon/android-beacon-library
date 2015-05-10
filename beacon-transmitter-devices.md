@@ -141,8 +141,7 @@ was last updated on May 10, 2015 and is based on success/failure reports from th
 <tr><td>samsung</td><td>SAMSUNG-SM-G920A</td><td>LRX22G</td><td>5.0.2</td><td>yes</td></tr>
 <tr><td>samsung</td><td>SAMSUNG-SM-N915A</td><td>LRX22C</td><td>5.0.1</td><td>yes</td></tr>
 <tr><td>samsung</td><td>SCH-I545</td><td>LRX22C</td><td>5.0.1</td><td>no</td></tr>
-<tr><td>samsung</td><td>SM-G900F</td><td>LRX21T</td><td>5.0</td><td>no</td></tr>
-<tr><td>samsung</td><td>SM-G900F</td><td>LRX21T</td><td>5.0</td><td>yes</td></tr>
+\<tr><td>samsung</td><td>SM-G900F</td><td>LRX21T</td><td>5.0</td><td>yes</td></tr>
 <tr><td>samsung</td><td>SM-G900F</td><td>LRX22G</td><td>5.0.2</td><td>no</td></tr>
 <tr><td>samsung</td><td>SM-G900FQ</td><td>LRX21T</td><td>5.0</td><td>yes</td></tr>
 <tr><td>samsung</td><td>SM-G900H</td><td>LRX21T</td><td>5.0</td><td>no</td></tr>

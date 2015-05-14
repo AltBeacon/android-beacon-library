@@ -62,9 +62,13 @@ public class RangedBeacon {
     }
 
     public void addMeasurement(Integer rssi) {
-        mTracked = true;
-        lastTrackedTimeMillis = System.currentTimeMillis();
-        filter.addMeasurement(rssi);
+        // Filter out unreasonable values per
+        // http://stackoverflow.com/questions/30118991/rssi-returned-by-altbeacon-library-127-messes-up-distance
+        if (rssi != 127) {
+            mTracked = true;
+            lastTrackedTimeMillis = System.currentTimeMillis();
+            filter.addMeasurement(rssi);
+        }
     }
 
     //kept here for backward compatibility

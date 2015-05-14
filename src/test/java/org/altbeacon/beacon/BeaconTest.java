@@ -3,6 +3,7 @@ package org.altbeacon.beacon;
 import android.os.Parcel;
 
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -30,6 +31,11 @@ HOW TO SEE DEBUG LINES FROM YOUR UNIT TESTS:
 4. Expand the System.err section
  */
 public class BeaconTest {
+
+    @Before
+    public void before() {
+        Beacon.setHardwareEqualityEnforced(false);
+    }
     @Test
     public void testAccessBeaconIdentifiers() {
         Beacon beacon = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
@@ -87,6 +93,31 @@ public class BeaconTest {
                 .setBeaconTypeCode(5).setTxPower(6)
                 .setBluetoothAddress("1:2:3:4:5:6").build();
         assertTrue("Beacons with different id3 are not equal", !beacon1.equals(beacon2));
+    }
+
+
+    @Test
+    public void testBeaconsWithSameMacsAreEqual() {
+        Beacon.setHardwareEqualityEnforced(true);
+        Beacon beacon1 = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6)
+                .setBluetoothAddress("1:2:3:4:5:6").build();
+        Beacon beacon2 = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6)
+                .setBluetoothAddress("1:2:3:4:5:6").build();
+        assertTrue("Beacons with same same macs are equal", beacon1.equals(beacon2));
+    }
+
+    @Test
+    public void testBeaconsWithDifferentMacsAreNotEqual() {
+        Beacon.setHardwareEqualityEnforced(true);
+        Beacon beacon1 = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6)
+                .setBluetoothAddress("1:2:3:4:5:6").build();
+        Beacon beacon2 = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6)
+                .setBluetoothAddress("1:2:3:4:5:666666").build();
+        assertTrue("Beacons with different same macs are not equal", !beacon1.equals(beacon2));
     }
 
 

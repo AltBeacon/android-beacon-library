@@ -36,26 +36,32 @@ import java.util.Collections;
 import java.util.List;
 
 /**
-* The <code>Beacon</code> class represents a single hardware Beacon detected by
-* an Android device.
-*
-* <pre>A Beacon is identified by a unique multi-part identifier, with the first of the ordered
-* identifiers being more significant for the purposes of grouping beacons.
-*
-* An Beacon sends a Bluetooth Low Energy (BLE) advertisement that contains these
-* three identifiers, along with the calibrated tx power (in RSSI) of the
-* Beacon's Bluetooth transmitter.
-*
-* This class may only be instantiated from a BLE packet, and an RSSI measurement for
-* the packet.  The class parses out the identifier, along with the calibrated
-* tx power.  It then uses the measured RSSI and calibrated tx power to do a rough
-* distance measurement (the mDistance field)
-*
-* @author  David G. Young
-* @see     Region#matchesBeacon(Beacon Beacon)
-*/
+ * The <code>Beacon</code> class represents a single hardware Beacon detected by
+ * an Android device.
+ *
+ * <pre>A Beacon is identified by a unique multi-part identifier, with the first of the ordered
+ * identifiers being more significant for the purposes of grouping beacons.
+ *
+ * An Beacon sends a Bluetooth Low Energy (BLE) advertisement that contains these
+ * three identifiers, along with the calibrated tx power (in RSSI) of the
+ * Beacon's Bluetooth transmitter.
+ *
+ * This class may only be instantiated from a BLE packet, and an RSSI measurement for
+ * the packet.  The class parses out the identifier, along with the calibrated
+ * tx power.  It then uses the measured RSSI and calibrated tx power to do a rough
+ * distance measurement (the mDistance field)
+ *
+ * @author  David G. Young
+ * @see     Region#matchesBeacon(Beacon Beacon)
+ */
 public class Beacon implements Parcelable {
     private static final String TAG = "Beacon";
+
+    /**
+     * Determines whether a the bluetoothAddress (mac address) must be the same for two Beacons
+     * to be configured equal.
+     */
+    protected static boolean sHardwareEqualityEnforced = false;
 
     protected static DistanceCalculator sDistanceCalculator = null;
 
@@ -71,18 +77,22 @@ public class Beacon implements Parcelable {
      * fields are limited to the size of a Java long, or six bytes.
      */
     protected List<Long> mDataFields;
+    /**
+     * A list of generic non-identifying data fields included in a secondary beacon advertisement
+     * and merged into this beacon.  Data fields are limited to the size of a Java long, or six
+     * bytes.
+     */
+    protected List<Long> mExtraDataFields;
 
     /**
      * A double that is an estimate of how far the Beacon is away in meters.   Note that this number
      * fluctuates quite a bit with RSSI, so despite the name, it is not super accurate.
      */
     protected Double mDistance;
-
     /**
      * The measured signal strength of the Bluetooth packet that led do this Beacon detection.
      */
     protected int mRssi;
-
     /**
      * The calibrated measured Tx power of the Beacon in RSSI
      * This value is baked into an Beacon when it is manufactured, and
@@ -166,6 +176,17 @@ public class Beacon implements Parcelable {
     }
 
     /**
+     * Configures whether a the bluetoothAddress (mac address) must be the same for two Beacons
+     * to be configured equal.  This setting applies to all beacon instances in the same process.
+     * Defaults to false for backward compatibility.
+     *
+     * @param e
+     */
+    public static void setHardwareEqualityEnforced(boolean e) {
+        sHardwareEqualityEnforced = e;
+    }
+
+    /**
      * Required for making Beacon parcelable
      * @param in parcel
      */
@@ -187,6 +208,14 @@ public class Beacon implements Parcelable {
         for (int i = 0; i < dataSize; i++) {
             mDataFields.add(in.readLong());
         }
+        int extraDataSize = in.readInt();
+        if (LogManager.isVerboseLoggingEnabled()) {
+            LogManager.d(TAG, "reading "+extraDataSize+" extra data fields from parcel");
+        }
+        this.mExtraDataFields = new ArrayList<Long>(extraDataSize);
+        for (int i = 0; i < extraDataSize; i++) {
+            mExtraDataFields.add(in.readLong());
+        }
         mManufacturer = in.readInt();
         mBluetoothName = in.readString();
     }
@@ -199,8 +228,15 @@ public class Beacon implements Parcelable {
         super();
         mIdentifiers = new ArrayList<Identifier>(otherBeacon.mIdentifiers.size());
         mDataFields = new ArrayList<Long>(otherBeacon.mDataFields.size());
+        mExtraDataFields = new ArrayList<Long>(otherBeacon.mExtraDataFields.size());
         for (int i = 0; i < otherBeacon.mIdentifiers.size(); i++) {
             mIdentifiers.add(otherBeacon.mIdentifiers.get(i));
+        }
+        for (int i = 0; i < otherBeacon.mDataFields.size(); i++) {
+            mDataFields.add(otherBeacon.mDataFields.get(i));
+        }
+        for (int i = 0; i < otherBeacon.mExtraDataFields.size(); i++) {
+            mExtraDataFields.add(otherBeacon.mExtraDataFields.get(i));
         }
         this.mDistance = otherBeacon.mDistance;
         this.mRunningAverageRssi = otherBeacon.mRunningAverageRssi;
@@ -218,6 +254,7 @@ public class Beacon implements Parcelable {
     protected Beacon() {
         mIdentifiers = new ArrayList<Identifier>(1);
         mDataFields = new ArrayList<Long>(1);
+        mExtraDataFields = new ArrayList<Long>(1);
     }
 
     /**
@@ -296,6 +333,22 @@ public class Beacon implements Parcelable {
     }
 
     /**
+     * Returns the list of data fields transmitted with the advertisement
+     * @return dataFields
+     */
+    public List<Long> getExtraDataFields() {
+        return Collections.unmodifiableList(mExtraDataFields);
+    }
+
+    /**
+     * Sets extra data fields
+     * @param fields
+     */
+    public void setExtraDataFields(List<Long> fields) {
+        mExtraDataFields = fields;
+    }
+
+    /**
      * Returns the list of identifiers transmitted with the advertisement
      * @return identifier
      */
@@ -325,7 +378,6 @@ public class Beacon implements Parcelable {
         }
         return mDistance;
     }
-
     /**
      * @see #mRssi
      * @return mRssi
@@ -333,7 +385,6 @@ public class Beacon implements Parcelable {
     public int getRssi() {
         return mRssi;
     }
-
     /**
      * @see #mTxPower
      * @return txPowwer
@@ -380,6 +431,9 @@ public class Beacon implements Parcelable {
             sb.append(" ");
             i++;
         }
+        if (sHardwareEqualityEnforced) {
+            sb.append(mBluetoothAddress);
+        }
         return sb.toString().hashCode();
     }
 
@@ -401,7 +455,9 @@ public class Beacon implements Parcelable {
                 return false;
             }
         }
-        return true;
+        return sHardwareEqualityEnforced ?
+                this.getBluetoothAddress().equals(thatBeacon.getBluetoothAddress()) :
+                true;
     }
 
     /**
@@ -461,9 +517,25 @@ public class Beacon implements Parcelable {
         for (Long dataField: mDataFields) {
             out.writeLong(dataField);
         }
+        if (LogManager.isVerboseLoggingEnabled()) {
+            LogManager.d(TAG, "writing "+mExtraDataFields.size()+" extra data fields to parcel");
+        }
+        out.writeInt(mExtraDataFields.size());
+        for (Long dataField: mExtraDataFields) {
+            out.writeLong(dataField);
+        }
         out.writeInt(mManufacturer);
         out.writeString(mBluetoothName);
 
+    }
+
+    /**
+     * Indicates whether this beacon is an "Extra data beacon," meaning one that has no identifiers
+     * but has data fields.
+     * @return
+     */
+    public boolean isExtraBeaconData() {
+        return mIdentifiers.size() == 0 && mDataFields.size() != 0;
     }
 
     /**
@@ -525,6 +597,24 @@ public class Beacon implements Parcelable {
                 }
             }
             return mBeacon;
+        }
+
+        /**
+         * @param beacon the beacon whose fields we should copy to this beacon builder
+         * @return
+         */
+        public Builder copyBeaconFields(Beacon beacon) {
+            setIdentifiers(beacon.getIdentifiers());
+            setBeaconTypeCode(beacon.getBeaconTypeCode());
+            setDataFields(beacon.getDataFields());
+            setBluetoothAddress(beacon.getBluetoothAddress());
+            setBluetoothName(beacon.getBluetoothName());
+            setExtraDataFields(beacon.getExtraDataFields());
+            setManufacturer(beacon.getManufacturer());
+            setTxPower(beacon.getTxPower());
+            setRssi(beacon.getRssi());
+            setServiceUuid(beacon.getServiceUuid());
+            return this;
         }
 
         /**
@@ -630,6 +720,16 @@ public class Beacon implements Parcelable {
          */
         public Builder setDataFields(List<Long> dataFields) {
             mBeacon.mDataFields = dataFields;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mDataFields
+         * @param extraDataFields
+         * @return builder
+         */
+        public Builder setExtraDataFields(List<Long> extraDataFields) {
+            mBeacon.mExtraDataFields = extraDataFields;
             return this;
         }
 

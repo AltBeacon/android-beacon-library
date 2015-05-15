@@ -8,6 +8,7 @@ bintray {
     user = bintrayUsername
     key = bintrayKey
     publications = ['dist']
+    publish = true
     filesSpec {
         from "${project.buildDir}/outputs/aar/${project.name}-${project.version}.tar.gz"
         into "."

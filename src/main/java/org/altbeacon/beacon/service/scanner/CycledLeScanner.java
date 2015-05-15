@@ -259,11 +259,12 @@ public abstract class CycledLeScanner {
             mNextScanCycleStartTime = getNextScanStartTime();
             if (mScanningEnabled) {
                 scanLeDevice(true);
-            } else {
-                LogManager.d(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
-                mScanCyclerStarted = false;
-                cancelWakeUpAlarm();
             }
+        }
+        if (!mScanningEnabled) {
+            LogManager.d(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
+            mScanCyclerStarted = false;
+            cancelWakeUpAlarm();
         }
     }
 

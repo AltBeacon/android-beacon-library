@@ -32,15 +32,19 @@ public class GattBeaconTest {
     public void testDetectsGattBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         LogManager.setLogger(Loggers.verboseLogger());
+        LogManager.setVerboseLoggingEnabled(true);
+        System.err.println("verbose logging:"+LogManager.isVerboseLoggingEnabled());
         byte[] bytes = hexStringToByteArray("0201060303f4fe161601230025c5454452e29735323d81c0060504030201");
-        BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=0123,m:2-2=00,d:3-3,p:4-4,i:5-14,i:15-20");
+        BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=2301,m:2-2=00,d:3-3,p:4-4:41,i:5-14,i:15-20");
         assertNotNull("Service uuid parsed should not be null", parser.getServiceUuid());
         Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        LogManager.d("xxx", "where is my debug");
+        LogManager.e("xxx", "where is my debug");
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
         assertEquals("id1 should be parsed", "0x454452e29735323d81c0", gattBeacon.getId1().toString());
         assertEquals("id2 should be parsed", "0x060504030201", gattBeacon.getId2().toString());
-        assertEquals("serviceUuid should be parsed", 0x0123, gattBeacon.getServiceUuid());
-        assertEquals("txPower should be parsed", -59, gattBeacon.getTxPower());
+        assertEquals("serviceUuid should be parsed", 0x2301, gattBeacon.getServiceUuid());
+        assertEquals("txPower should be parsed", -18, gattBeacon.getTxPower());
     }
 
     @Test

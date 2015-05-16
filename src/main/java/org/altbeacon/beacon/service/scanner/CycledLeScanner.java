@@ -302,7 +302,7 @@ public abstract class CycledLeScanner {
         intent.putExtra("wakeup", true);
         cancelWakeUpAlarm();
         mWakeUpOperation = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis() + milliseconds, mWakeUpOperation);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + milliseconds, mWakeUpOperation);
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, mWakeUpOperation);
     }
 

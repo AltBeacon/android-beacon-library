@@ -36,11 +36,11 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
     protected boolean deferScanIfNeeded() {
         long millisecondsUntilStart = mNextScanCycleStartTime - (new Date().getTime());
         if (millisecondsUntilStart > 0) {
-            LogManager.d(TAG, "Waiting to start next bluetooth scan for another %s milliseconds",
+            LogManager.d(TAG, "Waiting to start next Bluetooth scan for another %s milliseconds",
                     millisecondsUntilStart);
-            // Don't actually wait until the next scan time -- only wait up to 1 second.  this
+            // Don't actually wait until the next scan time -- only wait up to 1 second.  This
             // allows us to start scanning sooner if a consumer enters the foreground and expects
-            // results more quickly
+            // results more quickly.
             if (mBackgroundFlag) {
                 setWakeUpAlarm();
             }

@@ -35,8 +35,8 @@ import java.util.ArrayList;
  * access to the #mfgReserved field.</p>
  *
  * <p>An <code>AltBeacon</code> is identified by a unique three part identifier.  The first
- * identifier Id1 is normally used across an organization, the second identifer Id2 is used to
- * group beacons and the third identifer Id3 is used to uniquely identify a specific beacon (in
+ * identifier Id1 is normally used across an organization, the second identifier Id2 is used to
+ * group beacons and the third identifier Id3 is used to uniquely identify a specific beacon (in
  * combination with the other two identifiers.)
  *
  * @author  David G. Young

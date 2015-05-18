@@ -69,7 +69,7 @@ public class AndroidModel {
 
     /**
      * Calculates a qualitative match score between two different Android device models for the
-     * purposes of how likely they are to have similar bluetooth signal level responses
+     * purposes of how likely they are to have similar Bluetooth signal level responses
      * @param otherModel
      * @return match quality, higher numbers are a better match
      */

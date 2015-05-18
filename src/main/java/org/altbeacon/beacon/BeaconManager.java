@@ -55,7 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * An class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
+ * A class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
  * This class is used in conjunction with <code>BeaconConsumer</code> interface, which provides a callback
  * when the <code>BeaconService</code> is ready to use.  Until this callback is made, ranging and monitoring
  * of beacons is not possible.
@@ -141,19 +141,19 @@ public class BeaconManager {
     }
 
     /**
-     * The default duration in milliseconds of the bluetooth scan cycle
+     * The default duration in milliseconds of the Bluetooth scan cycle
      */
     public static final long DEFAULT_FOREGROUND_SCAN_PERIOD = 1100;
     /**
-     * The default duration in milliseconds spent not scanning between each bluetooth scan cycle
+     * The default duration in milliseconds spent not scanning between each Bluetooth scan cycle
      */
     public static final long DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
     /**
-     * The default duration in milliseconds of the bluetooth scan cycle when no ranging/monitoring clients are in the foreground
+     * The default duration in milliseconds of the Bluetooth scan cycle when no ranging/monitoring clients are in the foreground
      */
     public static final long DEFAULT_BACKGROUND_SCAN_PERIOD = 10000;
     /**
-     * The default duration in milliseconds spent not scanning between each bluetooth scan cycle when no ranging/monitoring clients are in the foreground
+     * The default duration in milliseconds spent not scanning between each Bluetooth scan cycle when no ranging/monitoring clients are in the foreground
      */
     public static final long DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD = 5 * 60 * 1000;
 
@@ -164,7 +164,7 @@ public class BeaconManager {
 
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.
-     * This function is used to setup the period before calling {@link #bind}  or when switching
+     * This function is used to setup the period before calling {@link #bind} or when switching
      * between background/foreground. To have it effect on an already running scan (when the next
      * cycle starts), call {@link #updateScanPeriods}
      *
@@ -176,7 +176,7 @@ public class BeaconManager {
 
     /**
      * Sets the duration in milliseconds between each Bluetooth LE scan cycle to look for beacons.
-     * This function is used to setup the period before calling {@link #bind}  or when switching
+     * This function is used to setup the period before calling {@link #bind} or when switching
      * between background/foreground. To have it effect on an already running scan (when the next
      * cycle starts), call {@link #updateScanPeriods}
      *
@@ -188,7 +188,7 @@ public class BeaconManager {
 
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.
-     * This function is used to setup the period before calling {@link #bind}  or when switching
+     * This function is used to setup the period before calling {@link #bind} or when switching
      * between background/foreground. To have it effect on an already running scan (when the next
      * cycle starts), call {@link #updateScanPeriods}
      *
@@ -264,14 +264,14 @@ public class BeaconManager {
 
     /**
      * Binds an Android <code>Activity</code> or <code>Service</code> to the <code>BeaconService</code>.  The
-     * <code>Activity</code> or <code>Service</code> must implement the <code>beaconConsuemr</code> interface so
+     * <code>Activity</code> or <code>Service</code> must implement the <code>beaconConsumer</code> interface so
      * that it can get a callback when the service is ready to use.
      *
      * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
      */
     public void bind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         synchronized (consumers) {
@@ -296,7 +296,7 @@ public class BeaconManager {
      */
     public void unbind(BeaconConsumer consumer) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         synchronized (consumers) {
@@ -365,7 +365,7 @@ public class BeaconManager {
      */
     public void setBackgroundMode(boolean backgroundMode) {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
         }
         mBackgroundModeUninitialized = false;
         if (backgroundMode != mBackgroundMode) {
@@ -433,7 +433,7 @@ public class BeaconManager {
     @TargetApi(18)
     public void startRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {
@@ -461,7 +461,7 @@ public class BeaconManager {
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to SDK 18.  Method invocation will be ignored");
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
         if (serviceMessenger == null) {

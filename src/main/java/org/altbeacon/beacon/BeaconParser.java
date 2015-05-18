@@ -239,7 +239,7 @@ public class BeaconParser {
         if (!mExtraFrame) {
             // extra frames do not have to have identifiers or power fields, but other types do
             if (mIdentifierStartOffsets.size() == 0 || mIdentifierEndOffsets.size() == 0) {
-                throw new BeaconLayoutException("You must supply at least one identifier offset withh a prefix of 'i'");
+                throw new BeaconLayoutException("You must supply at least one identifier offset with a prefix of 'i'");
             }
             if (mPowerStartOffset == null || mPowerEndOffset == null) {
                 throw new BeaconLayoutException("You must supply a power byte offset with a prefix of 'p'");
@@ -252,10 +252,10 @@ public class BeaconParser {
     }
 
     /**
-     * Returns a list of bluetooth manufactuer codes which will be used for hardware-assisted
+     * Returns a list of Bluetooth manufacturer codes which will be used for hardware-assisted
      * accelerated looking for this beacon type
      *
-     * The possible codes are defined onthis list:
+     * The possible codes are defined on this list:
      * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
      *
      * @return manufacturers
@@ -265,10 +265,10 @@ public class BeaconParser {
     }
 
     /**
-     * Sets a list of bluetooth manufactuer codes which will be used for hardware-assisted
+     * Sets a list of Bluetooth manufacturer codes which will be used for hardware-assisted
      * accelerated looking for this beacon type
      *
-     * The possible codes are defined onthis list:
+     * The possible codes are defined on this list:
      * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
      *
      */
@@ -328,11 +328,11 @@ public class BeaconParser {
 
     /**
      * Construct a Beacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
-     * including the raw bluetooth device info
+     * including the raw Bluetooth device info
      *
      * @param scanData The actual packet bytes
      * @param rssi The measured signal strength of the packet
-     * @param device The bluetooth device that was detected
+     * @param device The Bluetooth device that was detected
      * @return An instance of a <code>Beacon</code>
      */
     @TargetApi(5)

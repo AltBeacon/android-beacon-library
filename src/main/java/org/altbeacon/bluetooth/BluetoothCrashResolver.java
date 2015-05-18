@@ -44,7 +44,7 @@ public class BluetoothCrashResolver {
     private static final String TAG = "BluetoothCrashResolver";
     private static final boolean PREEMPTIVE_ACTION_ENABLED = true;
     /**
-     * This is not the same file that bluedroid uses.  This is just to maintain state of this module
+     * This is not the same file that Bluedroid uses.  This is just to maintain state of this module
      */
     private static final String DISTINCT_BLUETOOTH_ADDRESSES_FILE = "BluetoothCrashResolverState.txt";
     private boolean recoveryInProgress = false;
@@ -72,7 +72,7 @@ public class BluetoothCrashResolver {
      //  84.7% (3060) < 500 ms
      // So we will assume any power off sequence of < 600ms to be a crash
      //
-     // While it is possible to manually turn bluetooth off then back on in
+     // While it is possible to manually turn Bluetooth off then back on in
      // about 600ms, but it is pretty hard to do.
      //
      */
@@ -158,7 +158,7 @@ public class BluetoothCrashResolver {
     /**
      * Call this method from your BluetoothAdapter.LeScanCallback method.
      * Doing so is optional, but if you do, this class will be able to count the number of
-     * disctinct bluetooth devices scanned, and prevent crashes before they happen.
+     * distinct Bluetooth devices scanned, and prevent crashes before they happen.
      *
      * This works very well if the app containing this class is the only one running bluetooth
      * LE scans on the device, or it is constantly doing scans (e.g. is in the foreground for
@@ -185,11 +185,11 @@ public class BluetoothCrashResolver {
 
         newSize = distinctBluetoothAddresses.size();
         if (oldSize != newSize && newSize % 100 == 0) {
-            LogManager.d(TAG, "Distinct bluetooth devices seen: %s", distinctBluetoothAddresses.size());
+            LogManager.d(TAG, "Distinct Bluetooth devices seen: %s", distinctBluetoothAddresses.size());
         }
         if (distinctBluetoothAddresses.size()  > getCrashRiskDeviceCount()) {
             if (PREEMPTIVE_ACTION_ENABLED && !recoveryInProgress) {
-                LogManager.w(TAG, "Large number of bluetooth devices detected: %s Proactively "
+                LogManager.w(TAG, "Large number of Bluetooth devices detected: %s Proactively "
                         + "attempting to clear out address list to prevent a crash",
                         distinctBluetoothAddresses.size());
                 LogManager.w(TAG, "Stopping LE Scan");
@@ -202,12 +202,12 @@ public class BluetoothCrashResolver {
 
     public void crashDetected() {
         if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.d(TAG, "Ignoring crashes before SDK 18, because BLE is unsupported.");
+            LogManager.d(TAG, "Ignoring crashes before API 18, because BLE is unsupported.");
             return;
         }
         LogManager.w(TAG, "BluetoothService crash detected");
         if (distinctBluetoothAddresses.size() > 0) {
-            LogManager.d(TAG, "Distinct bluetooth devices seen at crash: %s",
+            LogManager.d(TAG, "Distinct Bluetooth devices seen at crash: %s",
                     distinctBluetoothAddresses.size());
         }
         long nowTimestamp = new Date().getTime();
@@ -215,7 +215,7 @@ public class BluetoothCrashResolver {
         detectedCrashCount++;
 
         if (recoveryInProgress) {
-            LogManager.d(TAG, "Ignoring bluetooth crash because recovery is already in progress.");
+            LogManager.d(TAG, "Ignoring Bluetooth crash because recovery is already in progress.");
         }
         else {
             startRecovery();
@@ -256,9 +256,9 @@ public class BluetoothCrashResolver {
 
     private int getCrashRiskDeviceCount() {
         // 1990 distinct devices tracked by Bluedroid will cause a crash.  But we don't know how many
-        // devices bluedroid is tracking, we only know how many we have seen, which will be smaller
-        // than the number tracked by bluedroid because the number we track does not include its
-        // initial state.  We therefore assume that there are some devices being tracked by bluedroid
+        // devices Bluedroid is tracking, we only know how many we have seen, which will be smaller
+        // than the number tracked by Bluedroid because the number we track does not include its
+        // initial state.  We therefore assume that there are some devices being tracked by Bluedroid
         // after a recovery operation or on startup
         return BLUEDROID_MAX_BLUETOOTH_MAC_COUNT-BLUEDROID_POST_DISCOVERY_ESTIMATED_BLUETOOTH_MAC_COUNT;
     }
@@ -274,7 +274,7 @@ public class BluetoothCrashResolver {
 
     @TargetApi(17)
     private void startRecovery() {
-        // The discovery operation will start by clearing out the bluetooth mac list to only the 256
+        // The discovery operation will start by clearing out the Bluetooth mac list to only the 256
         // most recently seen BLE mac addresses.
         recoveryAttemptCount++;
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -285,7 +285,7 @@ public class BluetoothCrashResolver {
             discoveryStartConfirmed = false;
             LogManager.d(TAG, "about to command discovery");
             if (!adapter.startDiscovery()) {
-                LogManager.w(TAG, "Can't start discovery.  Is bluetooth turned on?");
+                LogManager.w(TAG, "Can't start discovery.  Is Bluetooth turned on?");
             }
             LogManager.d(TAG, "startDiscovery commanded.  isDiscovering()=%s", adapter.isDiscovering());
             // We don't actually need to do a discovery -- we just need to kick one off so the
@@ -394,7 +394,7 @@ public class BluetoothCrashResolver {
                 } catch (IOException e1) { }
             }
         }
-        LogManager.d(TAG, "Wrote %s bluetooth addresses", distinctBluetoothAddresses.size());
+        LogManager.d(TAG, "Wrote %s Bluetooth addresses", distinctBluetoothAddresses.size());
 
     }
 
@@ -443,7 +443,7 @@ public class BluetoothCrashResolver {
                 } catch (IOException e1) { }
             }
         }
-        LogManager.d(TAG, "Read %s bluetooth addresses", distinctBluetoothAddresses.size());
+        LogManager.d(TAG, "Read %s Bluetooth addresses", distinctBluetoothAddresses.size());
     }
 
     private void cancelDiscovery() {

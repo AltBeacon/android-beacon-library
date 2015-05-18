@@ -5,7 +5,7 @@ layout: android-beacon-library
 
 ###Open Source Binary Distributions
 
-Binary distributions are provided in two formats.  The aar format is recommended for users of gradle and Android Studio.  The .tar.gz format is recommended for Eclipse developers.
+Binary distributions are provided in two formats.  The aar format is recommended for users of Gradle and Android Studio.  The .tar.gz format is recommended for Eclipse developers.
 See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
 

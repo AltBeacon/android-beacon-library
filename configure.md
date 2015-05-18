@@ -40,7 +40,7 @@ Step 2. Configure your Eclipse project
 
 Go to Project -> Properties -> Android -> Library -> Add, then select the imported project from step 1.
 
-Add the follwoing sdk and permission declarations to your AndroidManifest.xml
+Add the following sdk and permission declarations to your AndroidManifest.xml
 
    ```
    <uses-sdk

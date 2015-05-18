@@ -101,7 +101,7 @@ public class Beacon implements Parcelable {
     protected int mTxPower;
 
     /**
-     * The bluetooth mac address
+     * The Bluetooth mac address
      */
     protected String mBluetoothAddress;
 
@@ -140,7 +140,7 @@ public class Beacon implements Parcelable {
     protected int mServiceUuid;
 
     /**
-     * The bluetooth device name.  This is a field transmitted by the remote beacon device separate
+     * The Bluetooth device name.  This is a field transmitted by the remote beacon device separate
      * from the advertisement data
      */
     protected String mBluetoothName;
@@ -358,7 +358,7 @@ public class Beacon implements Parcelable {
 
 
     /**
-     * Provides a calcualted estimate of the distance to the beacon based on a running average of
+     * Provides a calculated estimate of the distance to the beacon based on a running average of
      * the RSSI and the transmitted power calibration value included in the beacon advertisement.
      * This value is specific to the type of Android device receiving the transmission.
      *

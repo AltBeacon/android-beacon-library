@@ -51,7 +51,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
          Otherwise:
            - create hardware masks for any beacon regardless of identifiers
            - look for these hardware masks, and if you get one, report the detection
-      when calculating the time to the next scan cycle, male it be on the seconds modulus of the between scan period plus the scan period
+      when calculating the time to the next scan cycle, make it be on the seconds modulus of the between scan period plus the scan period
       This is an improvement over the current state, but the disadvantages are:
          - If a somebody else's beacon is present and yours is not yet visible when the app is in
            the background, you won't get the accelerated discovery.  You only get the accelerated
@@ -141,11 +141,11 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     }
                 }
             }
-            LogManager.d(TAG, "Waiting to start full bluetooth scan for another %s milliseconds",
+            LogManager.d(TAG, "Waiting to start full Bluetooth scan for another %s milliseconds",
                     millisecondsUntilStart);
-            // Don't actually wait until the next scan time -- only wait up to 1 second.  this
+            // Don't actually wait until the next scan time -- only wait up to 1 second.  This
             // allows us to start scanning sooner if a consumer enters the foreground and expects
-            // results more quickly
+            // results more quickly.
             if (mScanDeferredBefore == false && mBackgroundFlag) {
                 setWakeUpAlarm();
             }

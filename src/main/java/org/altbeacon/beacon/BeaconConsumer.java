@@ -80,10 +80,10 @@ import android.content.ServiceConnection;
  *
  */
 public interface BeaconConsumer {
+
     /**
      * Called when the beacon service is running and ready to accept your commands through the BeaconManager
      */
-
     public void onBeaconServiceConnect();
 
     /**

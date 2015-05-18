@@ -159,7 +159,7 @@ public abstract class CycledLeScanner {
     protected void scanLeDevice(final Boolean enable) {
         mScanCyclerStarted = true;
         if (getBluetoothAdapter() == null) {
-            LogManager.e(TAG, "No bluetooth adapter.  beaconService cannot scan.");
+            LogManager.e(TAG, "No Bluetooth adapter.  beaconService cannot scan.");
         }
         if (enable) {
             if (deferScanIfNeeded()) {
@@ -197,7 +197,7 @@ public abstract class CycledLeScanner {
                         }
                     }
                 } catch (Exception e) {
-                    LogManager.e(e, TAG, "Exception starting bluetooth scan.  Perhaps bluetooth is disabled or unavailable?");
+                    LogManager.e(e, TAG, "Exception starting Bluetooth scan.  Perhaps Bluetooth is disabled or unavailable?");
                 }
             } else {
                 LogManager.d(TAG, "We are already scanning");
@@ -315,7 +315,7 @@ public abstract class CycledLeScanner {
     }
 
     private long getNextScanStartTime() {
-        // Because many apps may use this library on the same device, we want to try to synchonize
+        // Because many apps may use this library on the same device, we want to try to synchronize
         // scanning as much as possible in order to save battery.  Therefore, we will set the scan
         // intervals to be on a predictable interval using a modulus of the system time.  This may
         // cause scans to start a little earlier than otherwise, but it should be acceptable.

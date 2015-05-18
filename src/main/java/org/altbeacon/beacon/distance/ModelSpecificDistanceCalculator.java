@@ -25,7 +25,7 @@ import java.util.Map;
 
 /**
  * Obtains a <code>DistanceCalculator</code> appropriate for a specific Android model.  Each model
- * may have a different bluetooth chipset, radio and antenna and sees a different signal level
+ * may have a different Bluetooth chipset, radio and antenna and sees a different signal level
  * at the same distance, therefore requiring a different equation coefficients for each model.
  *
  * This class uses a configuration table to look for a matching Android device model for which

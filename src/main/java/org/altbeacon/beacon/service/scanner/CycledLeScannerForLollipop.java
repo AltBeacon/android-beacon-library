@@ -1,6 +1,7 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -216,7 +217,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private BluetoothLeScanner getScanner() {
         if (mScanner == null) {
             LogManager.d(TAG, "Making new Android L scanner");
-            mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+            if (bluetoothAdapter != null) {
+                mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+            }
             if (mScanner == null) {
                 LogManager.w(TAG, "Failed to make new Android L scanner");
             }

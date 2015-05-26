@@ -1,3 +1,7 @@
+---
+layout: android-beacon-library
+---
+
 #Beacons at Google I/O 2015
 
 Attending Google I/O 2015?  The Android Beacon Library's lead developer David G. Young and Radius Networks CEO Marc Wallace will be on site.  If you're there, too, we'd love to get together to hear your ideas and experiences using the library and beacons in general on the Android platform.

@@ -9,9 +9,8 @@ layout: android-beacon-library
 </span>
 
 <hr/>
-#promo {
-  border: 1px solid #0000;
-}
+
+<style>
 #main_content_wrap {
     border-bottom: 0px;
 }

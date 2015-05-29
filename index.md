@@ -17,10 +17,9 @@ The library may be configured to detect a wide variety of beacons.  By default, 
 
 ### What devices can detect beacons?
 
-Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of December 2014, this is approximately 40 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html) and growing quickly.
+Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of May 2015, this is approximately 55 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html) and growing quickly.
 
-To transmit as a beacon, Android 5.0+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.  As of December 2014, only
-Nexus 6 and Nexus 9 devices are known to have firmware that supports Bluetooth Low Energy Peripheral Mode.
+To transmit as a beacon, Android 5.0+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.  As of May 2015, only a few dozen devices are known to have firmware that supports Bluetooth Low Energy Peripheral Mode.
 
 ### Changes from the 0.x Library
 

@@ -6,15 +6,6 @@ layout: android-beacon-library
 
 An Android library providing APIs to interact with beacons
 
-<hr/>
-<h1>Beacons at Google I/O 2015</h1>
-
-<p>Attending Google I/O 2015?  The Android Beacon Library's lead developer David G. Young and Radius Networks CEO Marc Wallace will be on site.  If you're there, too, we'd love to get together to hear your ideas and experiences using the library and beacons in general on the Android platform. Please send us a note at googleio@radiusnetworks.com or via Twitter @RadiusNetworks.</p>
-</span>
-
-<hr/>
-
-
 ### What Does This Library Do?
 
 It allows Android devices to use beacons much like iOS devices do. An app can request to get notifications when one or more beacons appear or disappear. An app can also request to get a ranging update from one or more beacons at a frequency of approximately 1Hz.  It also allows Android 5.0 devices to send beacon transmissions, even in the background.

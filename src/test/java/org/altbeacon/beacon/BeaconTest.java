@@ -15,6 +15,8 @@ import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Config(emulateSdk = 18)
 
@@ -183,5 +185,16 @@ public class BeaconTest {
         assertEquals("data field 0 is the same after deserialization", beacon.getDataFields().get(0), beacon2.getDataFields().get(0));
         assertEquals("data field 0 is the right value", beacon.getDataFields().get(0), (Long) 100l);
     }
+    @Test
+    public void noDoubleWrappingOfExtraDataFields() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothName("xx")
+                .setBluetoothAddress("1:2:3:4:5:6").setDataFields(Arrays.asList(100l)).build();
+        List<Long> list = beacon.getExtraDataFields();
+        beacon.setExtraDataFields(list);
+        assertTrue("getter should return same object after first wrap ", beacon.getExtraDataFields() == list);
+    }
+
 
 }

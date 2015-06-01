@@ -25,6 +25,7 @@ package org.altbeacon.beacon;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import org.altbeacon.beacon.client.BeaconDataFactory;
 import org.altbeacon.beacon.client.NullBeaconDataFactory;
@@ -56,6 +57,11 @@ import java.util.List;
  */
 public class Beacon implements Parcelable {
     private static final String TAG = "Beacon";
+
+    private static final List<Long> UNMODIFIABLE_LIST_OF_LONG =
+            Collections.unmodifiableList(new ArrayList<Long>());
+    private static final List<Identifier> UNMODIFIABLE_LIST_OF_IDENTIFIER =
+            Collections.unmodifiableList(new ArrayList<Identifier>());
 
     /**
      * Determines whether a the bluetoothAddress (mac address) must be the same for two Beacons
@@ -137,7 +143,7 @@ public class Beacon implements Parcelable {
      * beacon, this field will be -1
      */
 
-    protected int mServiceUuid;
+    protected int mServiceUuid = -1;
 
     /**
      * The Bluetooth device name.  This is a field transmitted by the remote beacon device separate
@@ -329,7 +335,12 @@ public class Beacon implements Parcelable {
      * @return dataFields
      */
     public List<Long> getDataFields() {
-        return Collections.unmodifiableList(mDataFields);
+        if (mDataFields.getClass().isInstance(UNMODIFIABLE_LIST_OF_LONG)) {
+            return mDataFields;
+        }
+        else {
+            return Collections.unmodifiableList(mDataFields);
+        }
     }
 
     /**
@@ -337,7 +348,12 @@ public class Beacon implements Parcelable {
      * @return dataFields
      */
     public List<Long> getExtraDataFields() {
-        return Collections.unmodifiableList(mExtraDataFields);
+        if (mExtraDataFields.getClass().isInstance(UNMODIFIABLE_LIST_OF_LONG)) {
+            return mExtraDataFields;
+        }
+        else {
+            return Collections.unmodifiableList(mExtraDataFields);
+        }
     }
 
     /**
@@ -353,7 +369,12 @@ public class Beacon implements Parcelable {
      * @return identifier
      */
     public List<Identifier> getIdentifiers() {
-        return Collections.unmodifiableList(mIdentifiers);
+        if (mIdentifiers.getClass().isInstance(UNMODIFIABLE_LIST_OF_IDENTIFIER)) {
+            return mIdentifiers;
+        }
+        else {
+            return Collections.unmodifiableList(mIdentifiers);
+        }
     }
 
 
@@ -754,4 +775,6 @@ public class Beacon implements Parcelable {
         }
 
     }
+
+
 }

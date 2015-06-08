@@ -21,7 +21,18 @@ Beacon beacon = new Beacon.Builder()
 BeaconParser beaconParser = new BeaconParser()
         .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
 BeaconTransmitter beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);	
-beaconTransmitter.startAdvertising(beacon);
+beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
+
+            @Override
+            public void onStartFailure(int errorCode) {
+                Log.e(TAG, "Advertisement start failed with code: "+errorCode);
+            }
+
+            @Override
+            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                Log.i(TAG, "Advertisement start succeeded.");
+            }
+        });
 
 ```
 

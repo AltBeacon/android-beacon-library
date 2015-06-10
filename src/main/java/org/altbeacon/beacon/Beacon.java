@@ -43,7 +43,7 @@ import java.util.List;
  * <pre>A Beacon is identified by a unique multi-part identifier, with the first of the ordered
  * identifiers being more significant for the purposes of grouping beacons.
  *
- * An Beacon sends a Bluetooth Low Energy (BLE) advertisement that contains these
+ * A Beacon sends a Bluetooth Low Energy (BLE) advertisement that contains these
  * three identifiers, along with the calibrated tx power (in RSSI) of the
  * Beacon's Bluetooth transmitter.
  *

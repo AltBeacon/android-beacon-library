@@ -28,7 +28,7 @@ import java.util.Set;
  * Bluetooth LE devices in the background (e.g. beacon-enabled apps), especially when these users
  * are around Bluetooth LE devices that randomize their mac address like Gimbal beacons.
  *
- * This class can both recover from crashes and prevent crashes from happening in the first place
+ * This class can both recover from crashes and prevent crashes from happening in the first place.
  *
  * More details on the bug can be found at the following URLs:
  *
@@ -44,7 +44,7 @@ public class BluetoothCrashResolver {
     private static final String TAG = "BluetoothCrashResolver";
     private static final boolean PREEMPTIVE_ACTION_ENABLED = true;
     /**
-     * This is not the same file that Bluedroid uses.  This is just to maintain state of this module
+     * This is not the same file that Bluedroid uses.  This is just to maintain state of this module.
      */
     private static final String DISTINCT_BLUETOOTH_ADDRESSES_FILE = "BluetoothCrashResolverState.txt";
     private boolean recoveryInProgress = false;

@@ -62,6 +62,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     public ModelSpecificDistanceCalculator(Context context, String remoteUpdateUrlString) {
         this(context, remoteUpdateUrlString, AndroidModel.forThisDevice());
     }
+
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device passed
      * as an argument
@@ -80,6 +81,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     public AndroidModel getModel() {
         return mModel;
     }
+
     /**
      * @return the Android device model requested to be used for distance calculations
      */
@@ -130,10 +132,10 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private void loadModelMap() {
         boolean mapLoaded = false;
         if (mRemoteUpdateUrlString != null) {
-            mapLoaded= loadModelMapFromFile();
+            mapLoaded = loadModelMapFromFile();
             // We only want to try to download an update from the server the first time the app is
             // run.  If we successfully download an update it gets saved to a file, so if the file
-            // is present that means should not download again
+            // is present that means should not download again.
             if (!mapLoaded) {
                 requestModelMapFromWeb();
             }
@@ -224,7 +226,6 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                 else if (code != 200) {
                     LogManager.w(TAG, "Cannot updated distance models from online database at %s "
                             + "due to HTTP status code %s", mRemoteUpdateUrlString, code);
-
                 }
                 else {
                     LogManager.d(TAG,
@@ -272,6 +273,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
         }
     }
+
     private void loadDefaultModelMap() {
         mModelMap = new HashMap<AndroidModel, DistanceCalculator>();
         try {
@@ -287,13 +289,13 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         BufferedReader bufferedReader = null;
         StringBuilder inputStringBuilder = new StringBuilder();
         try {
-            stream = ModelSpecificDistanceCalculator.class.getResourceAsStream("/"+path);
+            stream = ModelSpecificDistanceCalculator.class.getResourceAsStream("/" + path);
             if (stream == null) {
-                stream = this.getClass().getClassLoader().getResourceAsStream("/"+path);
+                stream = this.getClass().getClassLoader().getResourceAsStream("/" + path);
             }
 
             if (stream == null) {
-                throw new RuntimeException("Cannot load resource at "+path);
+                throw new RuntimeException("Cannot load resource at " + path);
             }
             bufferedReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
             String line = bufferedReader.readLine();
@@ -301,7 +303,6 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                 inputStringBuilder.append(line);inputStringBuilder.append('\n');
                 line = bufferedReader.readLine();
             }
-
         }
         finally {
             if (bufferedReader != null) {

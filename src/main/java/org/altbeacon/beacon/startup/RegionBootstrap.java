@@ -25,10 +25,10 @@ import java.util.List;
  * is connected or disconnected from a device if the user has force terminated the app.
  *
  * IMPORTANT NOTE:  The RegionBootstrap class registers an internal MonitorNotifier with the
- * BeaconManager.   If you use the RegionBootstrap, your application must not manually register
+ * BeaconManager.  If you use the RegionBootstrap, your application must not manually register
  * a second MonitorNotifier, otherwise it will unregister the one configured by the RegionBootstrap,
- * effectively disabling it.  When using the RegionBootstrap, any custom monitoring code must must
- * therefore be placed in the callback methods in the BootsrapNotifier implementation passed to the
+ * effectively disabling it.  When using the RegionBootstrap, any custom monitoring code must
+ * therefore be placed in the callback methods in the BootstrapNotifier implementation passed to the
  * RegionBootstrap.
  */
 public class RegionBootstrap {

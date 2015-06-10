@@ -219,26 +219,25 @@ public class BeaconManager {
         return client;
     }
 
-    /**
+   protected BeaconManager(Context context) {
+      mContext = context;
+      if (!sManifestCheckingDisabled) {
+         verifyServiceDeclaration();
+      }
+      this.beaconParsers.add(new AltBeaconParser());
+   }
+
+   /**
      * Gets a list of the active beaconParsers.  This list may only be modified before any consumers
      * are bound to the beacon service
      *
      * @return list of active BeaconParsers
      */
-
     public List<BeaconParser> getBeaconParsers() {
         if (isAnyConsumerBound()) {
             return Collections.unmodifiableList(beaconParsers);
         }
         return beaconParsers;
-    }
-
-    protected BeaconManager(Context context) {
-        mContext = context;
-        if (!sManifestCheckingDisabled) {
-            verifyServiceDeclaration();
-        }
-        this.beaconParsers.add(new AltBeaconParser());
     }
 
     /**

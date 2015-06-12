@@ -19,6 +19,10 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ranging);
                 beaconManager = BeaconManager.getInstanceForApplication(this);
+        // To detect proprietary beacons, you must add a line like below corresponding to your beacon
+        // type.  Do a web search for "setBeaconLayout" to get the proper expression.
+        // beaconManager.getBeaconParsers().add(new BeaconParser().
+        //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
         beaconManager.bind(this);
     }
     @Override 
@@ -68,6 +72,10 @@ public class RangingActivity extends Activity implements BeaconConsumer {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ranging);
         beaconManager = BeaconManager.getInstanceForApplication(this);
+        // To detect proprietary beacons, you must add a line like below corresponding to your beacon
+        // type.  Do a web search for "setBeaconLayout" to get the proper expression.
+        // beaconManager.getBeaconParsers().add(new BeaconParser().
+        //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
         beaconManager.bind(this);
     }
     @Override 
@@ -129,14 +137,6 @@ And here is an example Application class.  This will launch the MainActivity as 
 
 ```java
 
-import android.app.Application;
-import android.content.Intent;
-import android.util.Log;
-
-import org.altbeacon.beacon.startup.BootstrapNotifier;
-import org.altbeacon.beacon.startup.RegionBootstrap;
-import org.altbeacon.beacon.Region;
-
 public class MyApplicationName extends Application implements BootstrapNotifier {
     private static final String TAG = ".MyApplicationName";
     private RegionBootstrap regionBootstrap;
@@ -145,6 +145,12 @@ public class MyApplicationName extends Application implements BootstrapNotifier 
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "App started up");
+        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+        // To detect proprietary beacons, you must add a line like below corresponding to your beacon
+        // type.  Do a web search for "setBeaconLayout" to get the proper expression.
+        // beaconManager.getBeaconParsers().add(new BeaconParser().
+        //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+
         // wake up the app when any beacon is seen (you can specify specific id filers in the parameters below)
         Region region = new Region("com.example.myapp.boostrapRegion", null, null, null);
         regionBootstrap = new RegionBootstrap(this, region);

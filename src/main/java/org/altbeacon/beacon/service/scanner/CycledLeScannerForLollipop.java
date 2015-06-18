@@ -98,8 +98,15 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
                         try {
                             if (getScanner() != null) {
-                                getScanner().startScan(new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                                        mBeaconManager.getBeaconParsers()), settings, getNewLeScanCallback());
+                                List scanFilters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                                        mBeaconManager.getBeaconParsers());
+                                ScanCallback callback = getNewLeScanCallback();
+                                try {
+                                    getScanner().startScan(scanFilters, settings, callback);
+                                }
+                                catch (NullPointerException npe) {
+                                    LogManager.w(TAG, "Cannot start scan.  Unexpected NPE.", npe);
+                                }
                             }
                         }
                         catch (IllegalStateException e) {
@@ -192,7 +199,13 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         }
         try {
             if (getScanner() != null) {
-                getScanner().startScan(filters, settings, getNewLeScanCallback());
+                ScanCallback callback = getNewLeScanCallback();
+                try {
+                    getScanner().startScan(filters, settings, callback);
+                }
+                catch (NullPointerException npe) {
+                    LogManager.w(TAG, "Cannot start scan.  Unexpected NPE.", npe);
+                }
             }
         }
         catch (IllegalStateException e) {

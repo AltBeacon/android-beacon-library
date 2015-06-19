@@ -307,6 +307,10 @@ public class BeaconManager {
                     // If this is the last consumer to disconnect, the service will exit
                     // release the serviceMessenger.
                     serviceMessenger = null;
+                    // Reset the mBackgroundMode to false, which is the default value
+                    // This way when we restart ranging or monitoring it will always be in
+                    // foreground mode
+                    mBackgroundMode = false;
                 }
             }
             else {

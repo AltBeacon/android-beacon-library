@@ -57,6 +57,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
@@ -78,6 +80,7 @@ public class BeaconService extends Service {
     private CycledLeScanner mCycledScanner;
     private boolean mBackgroundFlag = false;
     private GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
+    private ExecutorService mExecutor;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -192,12 +195,15 @@ public class BeaconService extends Service {
         return false;
     }
 
-
     @Override
     public void onCreate() {
         LogManager.i(TAG, "beaconService version %s is starting up", BuildConfig.VERSION_NAME );
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
+
+        // Create a private executor so we don't compete with threads used by AsyncTask
+        mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()*2+1);
+
         mCycledScanner = CycledLeScanner.createScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag,  mCycledLeScanCallback,  bluetoothCrashResolver);
 
@@ -294,7 +300,7 @@ public class BeaconService extends Service {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             try {
-                new ScanProcessor().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                new ScanProcessor().executeOnExecutor(mExecutor,
                         new ScanData(device, rssi, scanRecord));
             }
             catch (RejectedExecutionException e) {

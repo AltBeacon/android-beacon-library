@@ -85,9 +85,17 @@ Genesis BBQ
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=ws.hanzo.cupcakeito.loyalty'>
-  <img src='./images/apps/cupcakeito.png' class="app-icon"/>
-Cupcake.ito
+<a href='https://play.google.com/store/apps/details?id=com.repeatrewards.marascafe'>
+  <img src='./images/apps/marascafe.png' class="app-icon"/>
+Mara's Cafe
+</a>
+</div>
+
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.repeatrewards.thecrabshack'>
+  <img src='./images/apps/thecrabshack.png' class="app-icon"/>
+The Crab Shack
 </a>
 </div>
 

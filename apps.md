@@ -15,7 +15,7 @@ h2 {
   clear: both;
 }
 </style>
-<h1>Apps using the Android Beacon Library</h1>
+<h1>Android Beacon Library Apps</h1>
 
 <p>Over 4000 mobile applications worldwide use the Android Beacon Library, running on the phones of many millions of users.  Below is just a sample of these
 apps.</p>

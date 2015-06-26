@@ -43,12 +43,14 @@ Mango
 </a>
 </div>
 
+<!--
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.rtmart'>
   <img src='./images/apps/rtmart.png' class="app-icon"/>
 RTMart 
 </a>
 </div>
+-->
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.emart.today'>
@@ -406,6 +408,10 @@ Rockbot
 </a>
 </div>
 
+
+<div class="app-block">
+&nbsp;
+</div>
 
 
 

@@ -179,6 +179,15 @@ Boro Connect
 </a>
 </div>
 
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.fanmaker.camelrewards'>
+  <img src='./images/apps/camelrewards.png' class="app-icon"/>
+Camel Rewards
+</a>
+</div>
+
+
+
 
 <h2>Finance</h2>
 

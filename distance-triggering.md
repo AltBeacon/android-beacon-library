@@ -46,7 +46,7 @@ It is important to note that the accuracy of distance estimates are rough.  In g
 of variation at larger distances.  When the library reports a beacon is 5 meters away, it may actually be anywhere between 2 meters and 10 meters away.  At great
 distances, an estimate of 30 meters might really be anywhere from 20-40 meters.  
 
-It is also important to understand that different Android device models may overestimate or underestimate distances because of bluetooth antennas that have higher or lower gain than average devices.  The library is tuned for Nexus 4 and Nexus 5 devices, results with other devices may vary.
+It is also important to understand that different Android device models may overestimate or underestimate distances because of Bluetooth antennas that have higher or lower gain than average devices.  The library is tuned for Nexus 4 and Nexus 5 devices, results with other devices may vary.
 
 For more information on distance estimates and conditions that affect their accuracy, see the [Distance Calculations](./distance-calculations.html) of the docs.
 

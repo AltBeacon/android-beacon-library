@@ -21,7 +21,7 @@ In order to reduce noise on the estimate, the library averages signal measuremen
 ####Device variations
 
 A big challenge in providing accurate distance estimates with Android devices is that every device model receives signals differently.  Each model may have a different
-bluetooth chipset and antenna, and therefore may receive a different signal level when in the same position relative to a beacon.  In order to address this, the
+Bluetooth chipset and antenna, and therefore may receive a different signal level when in the same position relative to a beacon.  In order to address this, the
 library uses a different formula for calculating distance for different Android device models.  Because not all devices have custom formulas built into the library,
 the library will fall back to the default device calculation for the Nexus 5 if no matching formula is found.
 
@@ -46,4 +46,4 @@ Finally, you will need to measure the average RSSI seen by the iPhone 5 at a dis
 
 You can see an example of the information collected for a Nexus 5 <a href='./distance-calcs/nexus5.html'>here.</a>
 
-Once you collect this information, please paste it into a new Github issue <a href='https://github.com/AltBeacon/android-beacon-library/issues/new'>here.</a>
+Once you collect this information, please paste it into a new GitHub issue <a href='https://github.com/AltBeacon/android-beacon-library/issues/new'>here.</a>

@@ -21,7 +21,18 @@ Beacon beacon = new Beacon.Builder()
 BeaconParser beaconParser = new BeaconParser()
         .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
 BeaconTransmitter beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);	
-beaconTransmitter.startAdvertising(beacon);
+beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
+
+            @Override
+            public void onStartFailure(int errorCode) {
+                Log.e(TAG, "Advertisement start failed with code: "+errorCode);
+            }
+
+            @Override
+            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                Log.i(TAG, "Advertisement start succeeded.");
+            }
+        });
 
 ```
 
@@ -34,7 +45,7 @@ are known to support or not support transmission.
 The easiest way to see if another device is compatible is to download the [Locate app for Android](https://play.google.com/store/apps/details?id=com.radiusnetworks.locate), and attempt to use it to transmit.  If the device
 is not compatible, the app will tell you.
 
-#### Checking for support programatically
+#### Checking for support programmatically
 
 Using the library, you can check if a device supports transmission by calling:
 

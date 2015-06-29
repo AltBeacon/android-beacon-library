@@ -312,7 +312,7 @@ National Aquarium
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.appworksinc.keywestappe'>
-  <img src='./images/apps/key_west.png' class="app-icon"/>
+  <img src='./images/apps/keywest.png' class="app-icon"/>
 Key West Guide
 </a>
 </div>

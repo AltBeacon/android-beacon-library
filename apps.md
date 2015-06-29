@@ -17,7 +17,7 @@ h2 {
 </style>
 <h1>Android Beacon Library Apps</h1>
 
-<p>Over 4000 mobile applications worldwide use the Android Beacon Library, running on the phones of many millions of users.  Below is just a sample of these
+<p>Over 4000 mobile applications use the Android Beacon Library<sup>1</sup>, including some of the world's biggest brands.  These apps run on over 130 million mobile devices.<sup>2</sup>  Below is just a sample of these
 apps.</p>
 
 <h2>Retail</h2>
@@ -37,11 +37,18 @@ CVS
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.dylvian.mango.activities'>
-  <img src='./images/apps/mango.png' class="app-icon"/>
-Mango 
+<a href='https://play.google.com/store/apps/details?id=com.auchan.android'>
+  <img src='./images/apps/auchan.png' class="app-icon"/>
+MyAuchan
+</a>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.perryellis'>
+  <img src='./images/apps/perryellis.png' class="app-icon"/>
+Perry Ellis
 </a>
 </div>
+
 
 <!--
 <div class="app-block">
@@ -52,12 +59,14 @@ RTMart
 </div>
 -->
 
+<!--
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.emart.today'>
   <img src='./images/apps/emart.png' class="app-icon"/>
 Emart 
 </a>
 </div>
+-->
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=ro.ropardo.coresi.experiente'>
@@ -78,19 +87,29 @@ McDonalds
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.bbq.android'>
-  <img src='./images/apps/bbq.png' class="app-icon"/>
-Genesis BBQ 
+<a href='https://play.google.com/store/apps/details?id=com.cce.subprise'>
+  <img src='./images/apps/subway.png' class="app-icon"/>
+Subway 
 </a>
 </div>
 
+
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.paywith.partner.carlsjr'>
+  <img src='./images/apps/carlsjr.png' class="app-icon"/>
+Carl's Jr
+</a>
+</div>
+
+<!--
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.repeatrewards.marascafe'>
   <img src='./images/apps/marascafe.png' class="app-icon"/>
 Mara's Cafe
 </a>
 </div>
-
+-->
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.repeatrewards.thecrabshack'>
@@ -180,9 +199,9 @@ Boro Connect
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.fanmaker.camelrewards'>
-  <img src='./images/apps/camelrewards.png' class="app-icon"/>
-Camel Rewards
+<a href='https://play.google.com/store/apps/details?id=com.nhl.gc1314.van'>
+  <img src='./images/apps/canucks.png' class="app-icon"/>
+Vancouver Canucks
 </a>
 </div>
 
@@ -268,11 +287,35 @@ Edmonton Journal
 </div>
 
 <div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=dk.redia.visitcarlsberg'>
+  <img src='./images/apps/carlsberg.png' class="app-icon"/>
+Visit Carlsberg
+</a>
+</div>
+
+<!--
+<div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.proxiot.horti'>
   <img src='./images/apps/hortibeacon.png' class="app-icon"/>
 HortiBeacon
 </a>
 </div>
+-->
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.aqua.visitorguide'>
+  <img src='./images/apps/national_aquarium.png' class="app-icon"/>
+National Aquarium
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.appworksinc.keywestappe'>
+  <img src='./images/apps/key_west.png' class="app-icon"/>
+Key West Guide
+</a>
+</div>
+
 
 <h2>Hotels</h2>
 
@@ -284,11 +327,21 @@ AccorHotels Hotel booking
 </div>
 
 <div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=intermaps.hotelpost'>
+  <img src='./images/apps/hotelpostischgl.png' class="app-icon"/>
+Hotel Post Ischgl 
+</a>
+</div>
+
+<div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.runtriz.radissonblu'>
   <img src='./images/apps/radissonbleu.png' class="app-icon"/>
 Raddisson Blu 
 </a>
 </div>
+
+
+
 
 
 <h2>Conventions and Festivals</h2>
@@ -307,12 +360,23 @@ WhiskeyFest
 </a>
 </div>
 
+<!--
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=me.doubledutch.academyofgeneraldentistry'>
   <img src='./images/apps/academyofgeneraldentestry.png' class="app-icon"/>
 Academy of General Dentistry 
 </a>
 </div>
+-->
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.litum.beaconapp'>
+  <img src='./images/apps/ge.png' class="app-icon"/>
+GE Hospitalar 2015 
+</a>
+</div>
+
+
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=ru.geekpicnic'>
@@ -321,6 +385,53 @@ Geek Picnic
 </a>
 </div>
 
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=me.doubledutch.hellokittyanniversary'>
+  <img src='./images/apps/hellokitty.png' class="app-icon"/>
+Hello Kitty Events
+</a>
+</div>
+
+
+<h2>Shopping</h2>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.coupgon.coupgon'>
+  <img src='./images/apps/coupgon.png' class="app-icon"/>
+Coupgon
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.dylvian.mango.activities'>
+  <img src='./images/apps/mango.png' class="app-icon"/>
+Mango 
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.rover.rovertown'>
+  <img src='./images/apps/rovertown.png' class="app-icon"/>
+Rovertown
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=networld.price.app'>
+  <img src='./images/apps/networld.png' class="app-icon"/>
+Networld Price App 
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.sourcenetworkapp.groupbuyer.activities'>
+  <img src='./images/apps/groupbuyer.png' class="app-icon"/>
+Group Buyer 
+</a>
+</div>
+
+<!--
 <h2>Games</h2>
 
 <div class="app-block">
@@ -336,6 +447,7 @@ AntSmasher
 Road Smash 
 </a>
 </div>
+-->
 
 <h2>Home and Lifestyle</h2>
 
@@ -367,44 +479,12 @@ DocAppointment
 </a>
 </div>
 
-
-<h2>Shopping</h2>
-
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.coupgon.coupgon'>
-  <img src='./images/apps/coupgon.png' class="app-icon"/>
-Coupgon
+<a href='https://play.google.com/store/apps/details?id=com.mubiquo.nestlecocina'>
+  <img src='./images/apps/nestle.png' class="app-icon"/>
+Nestle Cocina 
 </a>
 </div>
-
-<div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.auchan.android'>
-  <img src='./images/apps/auchan.png' class="app-icon"/>
-MyAuchan
-</a>
-</div>
-
-<div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.rover.rovertown'>
-  <img src='./images/apps/rovertown.png' class="app-icon"/>
-Rovertown
-</a>
-</div>
-
-<div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=networld.price.app'>
-  <img src='./images/apps/networld.png' class="app-icon"/>
-Networld Price App 
-</a>
-</div>
-
-<div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.sourcenetworkapp.groupbuyer.activities'>
-  <img src='./images/apps/groupbuyer.png' class="app-icon"/>
-Group Buyer 
-</a>
-</div>
-
 
 
 
@@ -419,10 +499,23 @@ QMusic
 </div>
 
 <div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.hollyhook.midiHook'>
+  <img src='./images/apps/midihook.png' class="app-icon"/>
+midiHook
+</a>
+</div>
+
+
+
+<div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.roqbot.client'>
   <img src='./images/apps/rockbot.jpg' class="app-icon"/>
 Rockbot
 </a>
 </div>
+
+<p>Sources:</p>
+<p>1. Based on unique app package identifiers, June 26, 2015</p>
+<p>2. Based on Google Play Store minimum downloads for each package identifier, June 28, 2015</p>
 
 <h2></h2>

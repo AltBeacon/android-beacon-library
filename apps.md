@@ -41,6 +41,7 @@ CVS
   <img src='./images/apps/auchan.png' class="app-icon"/>
 MyAuchan
 </a>
+</div>
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.perryellis'>
@@ -504,8 +505,6 @@ QMusic
 midiHook
 </a>
 </div>
-
-
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.roqbot.client'>

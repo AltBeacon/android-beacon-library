@@ -31,40 +31,37 @@ The library may be configured to detect a wide variety of beacons.  By default, 
 
 ### Who uses this library?
 
-[Over 4000 mobile applications](/android-beacon-library/apps.html) use the Android Beacon Library, including some of the world's biggest brands.  These apps run on over 130 million mobile devices.
+[Over 4,000 mobile applications](/android-beacon-library/apps.html) use the Android Beacon Library, including some of the world's biggest brands.  These apps have over 150 million installations.
+
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.myorder.app.kfc'>
-  <img src='./images/apps/kfc.png' class="app-icon"/>
-KFC 
+<a href='https://play.google.com/store/apps/details?id=com.MundoMo.happyshopmate'>
+  <img src='./images/apps/cocacola.png' class="app-icon"/>
 </a>
 </div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=jp.co.mcdonalds.android'>
+  <img src='./images/apps/mcdonalds.png' class="app-icon"/>
+</a>
+</div>
+
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=me.doubledutch.hellokittyanniversary'>
   <img src='./images/apps/hellokitty.png' class="app-icon"/>
-Hello Kitty Events
 </a>
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.merlin.madame.tussauds.london'>
-  <img src='./images/apps/madametussauds.png' class="app-icon"/>
-  Madame Tussauds
-</a>
-</div>
-
-<div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.munrodev.crfmobile'>
-  <img src='./images/apps/carrefour.png' class="app-icon"/>
-Carrefour 
+<a href='https://play.google.com/store/apps/details?id=com.myorder.app.kfc'>
+  <img src='./images/apps/kfc.png' class="app-icon"/>
 </a>
 </div>
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.airfrance.android.dinamoprd'>
   <img src='./images/apps/airfrance.png' class="app-icon"/>
-Air France
 </a>
 </div>
 

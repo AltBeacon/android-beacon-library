@@ -17,7 +17,7 @@ h2 {
 </style>
 <h1>Android Beacon Library Apps</h1>
 
-<p>Over 4000 mobile applications use the Android Beacon Library<sup>1</sup>, including some of the world's biggest brands.  These apps run on over 130 million mobile devices.<sup>2</sup>  Below is just a sample of these
+<p>Over 4000 mobile applications use the Android Beacon Library<sup>1</sup>, including some of the world's biggest brands.  These apps have over 150 million installations.<sup>2</sup>  Below is just a sample of these
 apps.</p>
 
 <h2>Retail</h2>
@@ -81,7 +81,7 @@ Coresi
 <h2>Restaurants</h2>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=be.mcdonalds.mcdo'>
+<a href='https://play.google.com/store/apps/details?id=jp.co.mcdonalds.android'>
   <img src='./images/apps/mcdonalds.png' class="app-icon"/>
 McDonalds 
 </a>
@@ -474,11 +474,25 @@ SmartThings
 </div>
 
 <div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.MundoMo.happyshopmate'>
+  <img src='./images/apps/cocacola.png' class="app-icon"/>
+Coca-Cola Happy Shopmate
+</a>
+</div>
+
+
+
+
+
+<!--
+<div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.mediarare.docappointment'>
   <img src='./images/apps/docappointment.png' class="app-icon"/>
 DocAppointment 
 </a>
 </div>
+
+-->
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.mubiquo.nestlecocina'>
@@ -512,6 +526,21 @@ midiHook
 Rockbot
 </a>
 </div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=ca.evenko.heavymtl'>
+  <img src='./images/apps/heavymontreal.png' class="app-icon"/>
+Heavy Montreal
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.avenches.avenchesopera'>
+  <img src='./images/apps/avenchesopera.png' class="app-icon"/>
+Avenches Opera
+</a>
+</div>
+
 
 <h3>Sources:</h3>
 <p>1. Based on unique app package identifiers, June 26, 2015</p>

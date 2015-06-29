@@ -513,7 +513,7 @@ Rockbot
 </a>
 </div>
 
-<p>Sources:</p>
+<h3>Sources:</h3>
 <p>1. Based on unique app package identifiers, June 26, 2015</p>
 <p>2. Based on Google Play Store minimum downloads for each package identifier, June 28, 2015</p>
 

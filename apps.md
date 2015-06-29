@@ -289,6 +289,28 @@ Edmonton Journal
 </a>
 </div>
 
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.indusblue.windsorstar'>
+  <img src='./images/apps/windsorstar.png' class="app-icon"/>
+Windsor Star
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.indusblue.theprovince'>
+  <img src='./images/apps/theprovince.png' class="app-icon"/>
+The Province
+</a>
+</div>
+
+
+
+
+
+
+
+
+
 
 <h2>Tourism</h2>
 

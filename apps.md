@@ -14,6 +14,25 @@ layout: android-beacon-library
 h2 {
   clear: both;
 }
+sub {
+  /* Specified in % so that the sup/sup is the
+     right size relative to the surrounding text */
+  font-size: 75%;
+ 
+  /* Zero out the line-height so that it doesn't
+     interfere with the positioning that follows */
+  line-height: 0;
+ 
+  /* Where the magic happens: makes all browsers position
+     the sup/sup properly, relative to the surrounding text */
+  position: relative;
+ 
+  /* Note that if you're using Eric Meyer's reset.css, this
+     is already set and you can remove this rule */
+  vertical-align: baseline;
+  /* Move the superscripted text up */
+  top: -0.5em;
+}
 </style>
 <h1>Android Beacon Library Apps</h1>
 

@@ -8,6 +8,7 @@ import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.altbeacon.beacon.logging.LogManager;
@@ -176,7 +177,22 @@ public class BeaconParserTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
-        assertEquals("id should be parsed and truncated", "0x02676f6f676c6500" ,beacon.getId1().toString());
+        assertNull("beacon should not be parsed", beacon);
+
+    }
+
+    @Test
+    public void testParseIdentifierThatRunsUnderPduLength() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+
+        // Note that the length field below is 0x16 instead of 0x1b, indicating that the packet ends
+        // one byte before the second identifier field starts
+        byte[] bytes = hexStringToByteArray("02011a16ff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertNull("beacon should not be parsed", beacon);
     }
 
     @Test

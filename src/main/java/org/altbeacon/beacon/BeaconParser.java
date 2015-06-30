@@ -420,6 +420,9 @@ public class BeaconParser {
                 int endIndex = mIdentifierEndOffsets.get(i) + startByte;
                 if (endIndex > pduToParse.getEndIndex()) {
                     parseFailed = true;
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                    }
                 }
                 else {
                     Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex+1, mIdentifierLittleEndianFlags.get(i));
@@ -430,6 +433,9 @@ public class BeaconParser {
                 int endIndex = mDataEndOffsets.get(i) + startByte;
                 if (endIndex > pduToParse.getEndIndex()) {
                     parseFailed = true;
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "Cannot parse data field "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                    }
                 }
                 else {
                     String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
@@ -443,6 +449,9 @@ public class BeaconParser {
                 try {
                     if (endIndex > pduToParse.getEndIndex()) {
                         parseFailed = true;
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "Cannot parse power field because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                        }
                     }
                     else {
                         String powerString = byteArrayToFormattedString(bytesToProcess, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);

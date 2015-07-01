@@ -195,7 +195,6 @@ public class BeaconService extends Service {
         return false;
     }
 
-
     @Override
     public void onCreate() {
         LogManager.i(TAG, "beaconService version %s is starting up", BuildConfig.VERSION_NAME );

@@ -51,7 +51,6 @@ public class BeaconServiceTest {
         int activeThreadCountBeforeScan = executor.getActiveCount();
 
         byte[] scanRecord = new byte[1];
-        android.bluetooth.BluetoothDevice device = getTestBluetoothDevice();
         callback.onLeScan(null, -59, scanRecord);
 
         int activeThreadCountAfterScan = executor.getActiveCount();
@@ -62,15 +61,5 @@ public class BeaconServiceTest {
         // Need to sleep here until the thread in the above method completes, otherwise an exception
         // is thrown.  Maybe we don't care about this exception, so we could remove this.
         Thread.sleep(100);
-    }
-
-    private android.bluetooth.BluetoothDevice getTestBluetoothDevice() throws Exception {
-        // Use reflection to make a BluetoothDevice for testing, working around the private
-        // constructor
-        Constructor<android.bluetooth.BluetoothDevice> c =
-                android.bluetooth.BluetoothDevice.class.getDeclaredConstructor();
-        c.setAccessible(true);
-        android.bluetooth.BluetoothDevice device =  c.newInstance();
-        return device;
     }
 }

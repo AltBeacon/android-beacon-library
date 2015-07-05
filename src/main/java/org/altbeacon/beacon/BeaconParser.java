@@ -342,9 +342,13 @@ public class BeaconParser {
 
     @TargetApi(5)
     protected Beacon fromScanData(byte[] bytesToProcess, int rssi, BluetoothDevice device, Beacon beacon) {
-
         BleAdvertisement advert = new BleAdvertisement(bytesToProcess);
+        boolean parseFailed = false;
         Pdu pduToParse = null;
+        int startByte = 0;
+        ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
+        ArrayList<Long> dataFields = new ArrayList<Long>();
+
         for (Pdu pdu: advert.getPdus()) {
             if (pdu.getType() == Pdu.GATT_SERVICE_UUID_PDU_TYPE ||
                     pdu.getType() == Pdu.MANUFACTURER_DATA_PDU_TYPE) {
@@ -364,125 +368,146 @@ public class BeaconParser {
             if (LogManager.isVerboseLoggingEnabled()) {
                 LogManager.d(TAG, "No PDUs to process in this packet.");
             }
-            return null;
-        }
-
-        byte[] serviceUuidBytes = null;
-        byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset - mMatchingBeaconTypeCodeStartOffset + 1);
-        if (getServiceUuid() != null) {
-            serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset - mServiceUuidStartOffset + 1, false);
-        }
-        int startByte = pduToParse.getStartIndex();
-        boolean patternFound = false;
-
-        if (getServiceUuid() == null) {
-            if (byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
-                patternFound = true;
-            }
-        } else {
-            if (byteArraysMatch(bytesToProcess, startByte + mServiceUuidStartOffset, serviceUuidBytes, 0) &&
-                    byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
-                patternFound = true;
-            }
-        }
-
-        if (patternFound == false) {
-            // This is not a beacon
-            if (getServiceUuid() == null) {
-                if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "This is not a matching Beacon advertisement. (Was expecting %s.  "
-                                    + "The bytes I see are: %s", byteArrayToString(typeCodeBytes),
-                            bytesToHex(bytesToProcess));
-
-                }
-            } else {
-                if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s.  "
-                                    + "The bytes I see are: %s", byteArrayToString(serviceUuidBytes),
-                            byteArrayToString(typeCodeBytes),
-                            bytesToHex(bytesToProcess));
-                }
-            }
-
-            return null;
-        } else {
-            if (LogManager.isVerboseLoggingEnabled()) {
-                LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
-                        byteArrayToString(typeCodeBytes));
-            }
-        }
-
-        ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
-        for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
-            int endIndex = mIdentifierEndOffsets.get(i) + startByte + 1;
-            if (endIndex > pduToParse.getEndIndex()+1) {
-                endIndex = pduToParse.getEndIndex()+1; // truncate identifier if it goes over the end of the pdu
-            }
-            Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex, mIdentifierLittleEndianFlags.get(i));
-            identifiers.add(identifier);
-        }
-        ArrayList<Long> dataFields = new ArrayList<Long>();
-        for (int i = 0; i < mDataEndOffsets.size(); i++) {
-            int endIndex = mDataEndOffsets.get(i) + startByte;
-            if (endIndex > pduToParse.getEndIndex()) {
-                endIndex = pduToParse.getEndIndex(); // truncate  if it goes over the end of the pdu
-            }
-            String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
-            dataFields.add(Long.parseLong(dataString));
-            // TODO: error handling needed here on the parse
-        }
-
-        if (mPowerStartOffset != null) {
-            int txPower = 0;
-            String powerString = byteArrayToFormattedString(bytesToProcess, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);
-            try {
-                txPower = Integer.parseInt(powerString)+mDBmCorrection;
-            }
-            catch (NumberFormatException e1) {
-                // keep default value
-            }
-            catch (NullPointerException e2) {
-                // keep default value
-            }
-            // make sure it is a signed integer
-            if (txPower > 127) {
-                txPower -= 256;
-            }
-            // TODO: error handling needed on the parse
-            beacon.mTxPower = txPower;
-        }
-
-
-        int beaconTypeCode = 0;
-        String beaconTypeString = byteArrayToFormattedString(bytesToProcess, mMatchingBeaconTypeCodeStartOffset+startByte, mMatchingBeaconTypeCodeEndOffset+startByte, false);
-        beaconTypeCode = Integer.parseInt(beaconTypeString);
-        // TODO: error handling needed on the parse
-
-        int manufacturer = 0;
-        String manufacturerString = byteArrayToFormattedString(bytesToProcess, startByte, startByte+1, true);
-        manufacturer = Integer.parseInt(manufacturerString);
-
-        String macAddress = null;
-        String name = null;
-        if (device != null) {
-            macAddress = device.getAddress();
-            name = device.getName();
-        }
-
-        beacon.mIdentifiers = identifiers;
-        beacon.mDataFields = dataFields;
-        beacon.mRssi = rssi;
-        beacon.mBeaconTypeCode = beaconTypeCode;
-        if (mServiceUuid != null) {
-            beacon.mServiceUuid = (int) mServiceUuid.longValue();
+            parseFailed = true;
         }
         else {
-            beacon.mServiceUuid = -1;
+            byte[] serviceUuidBytes = null;
+            byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset - mMatchingBeaconTypeCodeStartOffset + 1);
+            if (getServiceUuid() != null) {
+                serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset - mServiceUuidStartOffset + 1, false);
+            }
+            startByte = pduToParse.getStartIndex();
+            boolean patternFound = false;
+
+            if (getServiceUuid() == null) {
+                if (byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+                    patternFound = true;
+                }
+            } else {
+                if (byteArraysMatch(bytesToProcess, startByte + mServiceUuidStartOffset, serviceUuidBytes, 0) &&
+                        byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+                    patternFound = true;
+                }
+            }
+
+            if (patternFound == false) {
+                // This is not a beacon
+                if (getServiceUuid() == null) {
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "This is not a matching Beacon advertisement. (Was expecting %s.  "
+                                        + "The bytes I see are: %s", byteArrayToString(typeCodeBytes),
+                                bytesToHex(bytesToProcess));
+
+                    }
+                } else {
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s.  "
+                                        + "The bytes I see are: %s", byteArrayToString(serviceUuidBytes),
+                                byteArrayToString(typeCodeBytes),
+                                bytesToHex(bytesToProcess));
+                    }
+                }
+
+                beacon =  null;
+            } else {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
+                            byteArrayToString(typeCodeBytes));
+                }
+            }
+
+            for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
+                int endIndex = mIdentifierEndOffsets.get(i) + startByte;
+                if (endIndex > pduToParse.getEndIndex()) {
+                    parseFailed = true;
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                    }
+                }
+                else {
+                    Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex+1, mIdentifierLittleEndianFlags.get(i));
+                    identifiers.add(identifier);
+                }
+            }
+            for (int i = 0; i < mDataEndOffsets.size(); i++) {
+                int endIndex = mDataEndOffsets.get(i) + startByte;
+                if (endIndex > pduToParse.getEndIndex()) {
+                    parseFailed = true;
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "Cannot parse data field "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                    }
+                }
+                else {
+                    String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
+                    dataFields.add(Long.parseLong(dataString));
+                }
+            }
+
+            if (mPowerStartOffset != null) {
+                int endIndex = mPowerEndOffset + startByte;
+                int txPower = 0;
+                try {
+                    if (endIndex > pduToParse.getEndIndex()) {
+                        parseFailed = true;
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "Cannot parse power field because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                        }
+                    }
+                    else {
+                        String powerString = byteArrayToFormattedString(bytesToProcess, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);
+                        txPower = Integer.parseInt(powerString)+mDBmCorrection;
+                        // make sure it is a signed integer
+                        if (txPower > 127) {
+                            txPower -= 256;
+                        }
+                        beacon.mTxPower = txPower;
+                    }
+                }
+                catch (NumberFormatException e1) {
+                    // keep default value
+                }
+                catch (NullPointerException e2) {
+                    // keep default value
+                }
+            }
         }
 
-        beacon.mBluetoothAddress = macAddress;
-        beacon.mBluetoothName= name;
-        beacon.mManufacturer = manufacturer;
+
+        if (parseFailed) {
+            beacon = null;
+        }
+        else {
+            int beaconTypeCode = 0;
+            String beaconTypeString = byteArrayToFormattedString(bytesToProcess, mMatchingBeaconTypeCodeStartOffset+startByte, mMatchingBeaconTypeCodeEndOffset+startByte, false);
+            beaconTypeCode = Integer.parseInt(beaconTypeString);
+            // TODO: error handling needed on the parse
+
+            int manufacturer = 0;
+            String manufacturerString = byteArrayToFormattedString(bytesToProcess, startByte, startByte+1, true);
+            manufacturer = Integer.parseInt(manufacturerString);
+
+            String macAddress = null;
+            String name = null;
+            if (device != null) {
+                macAddress = device.getAddress();
+                name = device.getName();
+            }
+
+            beacon.mIdentifiers = identifiers;
+            beacon.mDataFields = dataFields;
+            beacon.mRssi = rssi;
+            beacon.mBeaconTypeCode = beaconTypeCode;
+            if (mServiceUuid != null) {
+                beacon.mServiceUuid = (int) mServiceUuid.longValue();
+            }
+            else {
+                beacon.mServiceUuid = -1;
+            }
+
+            beacon.mBluetoothAddress = macAddress;
+            beacon.mBluetoothName= name;
+            beacon.mManufacturer = manufacturer;
+        }
         return beacon;
     }
 

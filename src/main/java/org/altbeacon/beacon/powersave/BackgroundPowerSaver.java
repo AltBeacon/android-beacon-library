@@ -26,6 +26,7 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
      * Constructs a new BackgroundPowerSaver
      *
      * @param context
+     * @deprecated the countActiveActivityStrategy flag is no longer used.
      *
      */
     public BackgroundPowerSaver(Context context, boolean countActiveActivityStrategy) {

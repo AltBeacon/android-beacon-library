@@ -475,12 +475,15 @@ public class BeaconService extends Service {
             Iterator<Region> regionIterator = regions.iterator();
             while (regionIterator.hasNext()) {
                 Region region = regionIterator.next();
-                if (region.matchesBeacon(beacon)) {
-                    matched.add(region);
-                } else {
-                    LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
+                // Need to check if region is null in case it was removed from the collection by
+                // another thread during iteration
+                if (region != null) {
+                    if (region.matchesBeacon(beacon)) {
+                        matched.add(region);
+                    } else {
+                        LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
+                    }
                 }
-
             }
 
         return matched;

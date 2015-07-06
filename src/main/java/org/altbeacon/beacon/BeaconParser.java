@@ -407,7 +407,7 @@ public class BeaconParser {
                                 bytesToHex(bytesToProcess));
                     }
                 }
-
+                parseFailed = true;
                 beacon =  null;
             } else {
                 if (LogManager.isVerboseLoggingEnabled()) {
@@ -416,62 +416,63 @@ public class BeaconParser {
                 }
             }
 
-            for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
-                int endIndex = mIdentifierEndOffsets.get(i) + startByte;
-                if (endIndex > pduToParse.getEndIndex()) {
-                    parseFailed = true;
-                    if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
-                    }
-                }
-                else {
-                    Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex+1, mIdentifierLittleEndianFlags.get(i));
-                    identifiers.add(identifier);
-                }
-            }
-            for (int i = 0; i < mDataEndOffsets.size(); i++) {
-                int endIndex = mDataEndOffsets.get(i) + startByte;
-                if (endIndex > pduToParse.getEndIndex()) {
-                    parseFailed = true;
-                    if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "Cannot parse data field "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
-                    }
-                }
-                else {
-                    String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
-                    dataFields.add(Long.parseLong(dataString));
-                }
-            }
-
-            if (mPowerStartOffset != null) {
-                int endIndex = mPowerEndOffset + startByte;
-                int txPower = 0;
-                try {
+            if (patternFound) {
+                for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
+                    int endIndex = mIdentifierEndOffsets.get(i) + startByte;
                     if (endIndex > pduToParse.getEndIndex()) {
                         parseFailed = true;
                         if (LogManager.isVerboseLoggingEnabled()) {
-                            LogManager.d(TAG, "Cannot parse power field because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                            LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
                         }
                     }
                     else {
-                        String powerString = byteArrayToFormattedString(bytesToProcess, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);
-                        txPower = Integer.parseInt(powerString)+mDBmCorrection;
-                        // make sure it is a signed integer
-                        if (txPower > 127) {
-                            txPower -= 256;
-                        }
-                        beacon.mTxPower = txPower;
+                        Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex+1, mIdentifierLittleEndianFlags.get(i));
+                        identifiers.add(identifier);
                     }
                 }
-                catch (NumberFormatException e1) {
-                    // keep default value
+                for (int i = 0; i < mDataEndOffsets.size(); i++) {
+                    int endIndex = mDataEndOffsets.get(i) + startByte;
+                    if (endIndex > pduToParse.getEndIndex()) {
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "Cannot parse data field "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex()+".  Setting value to 0");
+                        }
+                        dataFields.add(new Long(0l));
+                    }
+                    else {
+                        String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
+                        dataFields.add(Long.parseLong(dataString));
+                    }
                 }
-                catch (NullPointerException e2) {
-                    // keep default value
+
+                if (mPowerStartOffset != null) {
+                    int endIndex = mPowerEndOffset + startByte;
+                    int txPower = 0;
+                    try {
+                        if (endIndex > pduToParse.getEndIndex()) {
+                            parseFailed = true;
+                            if (LogManager.isVerboseLoggingEnabled()) {
+                                LogManager.d(TAG, "Cannot parse power field because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                            }
+                        }
+                        else {
+                            String powerString = byteArrayToFormattedString(bytesToProcess, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);
+                            txPower = Integer.parseInt(powerString)+mDBmCorrection;
+                            // make sure it is a signed integer
+                            if (txPower > 127) {
+                                txPower -= 256;
+                            }
+                            beacon.mTxPower = txPower;
+                        }
+                    }
+                    catch (NumberFormatException e1) {
+                        // keep default value
+                    }
+                    catch (NullPointerException e2) {
+                        // keep default value
+                    }
                 }
             }
         }
-
 
         if (parseFailed) {
             beacon = null;

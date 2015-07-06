@@ -99,6 +99,25 @@ public class BeaconParserTest {
     }
 
     @Test
+    public void testParsesBeaconMissingDataField() {
+        LogManager.setLogger(Loggers.verboseLogger());
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02011a1aff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c5");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
+        assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(0).toString());
+        assertEquals("id2 should be parsed", "1", beacon.getIdentifier(1).toString());
+        assertEquals("id3 should be parsed", "2", beacon.getIdentifier(2).toString());
+        assertEquals("txPower should be parsed", -59, beacon.getTxPower());
+        assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
+        assertEquals("missing data field zero should be zero", new Long(0l), beacon.getDataFields().get(0));
+
+    }
+
+
+    @Test
     public void testRecognizeBeaconWithFormatSpecifyingManufacturer() {
         LogManager.setLogger(Loggers.verboseLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;

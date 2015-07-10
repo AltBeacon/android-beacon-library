@@ -81,10 +81,6 @@ See [configuring your project](configure.html) for more information on how to us
 
 [Release Notes](releasenotes_2_0.html)
 
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta7.aar](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta7.aar)
-
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.0-beta7.tar.gz](https://s3.amazonaws.com/android-beacon-library.radiusnetworks.com/android-beacon-library-2.0-beta7.tar.gz)
-
 <style>
   .close {
     margin-top: 0px;

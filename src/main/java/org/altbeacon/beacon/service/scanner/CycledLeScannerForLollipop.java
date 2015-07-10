@@ -166,6 +166,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         if (mBackgroundFlag) {
             LogManager.d(TAG, "starting scan in SCAN_MODE_LOW_POWER");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+            filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                    mBeaconManager.getBeaconParsers());
+
         } else {
             LogManager.d(TAG, "starting scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
@@ -174,11 +177,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
         try {
             if (getScanner() != null) {
-                List scanFilters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                        mBeaconManager.getBeaconParsers());
                 ScanCallback callback = getNewLeScanCallback();
                 try {
-                    getScanner().startScan(scanFilters, settings, callback);
+                    getScanner().startScan(filters, settings, callback);
                 }
                 catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503

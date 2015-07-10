@@ -41,7 +41,16 @@ public class AltBeaconParser extends BeaconParser {
      */
     public AltBeaconParser() {
         super();
-        mHardwareAssistManufacturers = new int[]{0x0118}; // Radius networks
+        // Radius networks and other manufacturers seen in AltBeacons
+        // Note: Other manufacturer codes that have been seen in the wild with AltBeacons are:
+        // 0x004c, 0x00e0
+        // We are not adding these here because there is no indication they are widely used
+        // for production purposes.  We need to keep the hardware assist list short in order to
+        // save slots.  If you are a manufacturer of AltBeacons and want you company code added to
+        // this list, please open an issue on the Github project for this library.  If a beacon
+        // manufacturer code not in this list is used for AltBeacons, phones using Andoroid 5.x+
+        // detection APIs will not be able to detect the beacon in the background.
+        mHardwareAssistManufacturers = new int[]{0x0118};
         this.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
     }
     /**

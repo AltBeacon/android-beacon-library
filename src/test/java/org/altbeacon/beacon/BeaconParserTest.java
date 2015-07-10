@@ -215,6 +215,22 @@ public class BeaconParserTest {
     }
 
     @Test
+    public void testParseProblematicBeaconFromIssue229() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+
+        // Note that the length field below is 0x16 instead of 0x1b, indicating that the packet ends
+        // one byte before the second identifier field starts
+
+        byte[] bytes = hexStringToByteArray("0201061bffe000beac7777772e626c756b692e636f6d000100010001abaa000000");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertNotNull("beacon should be parsed", beacon);
+    }
+
+
+    @Test
     public void testCanParseLocationBeacon() {
         double latitude = 38.93;
         double longitude = -77.23;

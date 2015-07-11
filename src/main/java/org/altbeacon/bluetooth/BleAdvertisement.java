@@ -19,7 +19,6 @@ public class BleAdvertisement {
         mBytes = bytes;
         mPdus = parsePdus();
     }
-
     private List<Pdu> parsePdus() {
         ArrayList<Pdu> pdus = new ArrayList<Pdu>();
         Pdu pdu = null;

@@ -394,11 +394,6 @@ public class BeaconParser {
                 serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset - mServiceUuidStartOffset + 1, false);
             }
             startByte = pduToParse.getStartIndex();
-            LogManager.d(TAG, "actual length: "+pduToParse.getActualLength());
-            LogManager.d(TAG, "declared length: "+pduToParse.getDeclaredLength());
-            LogManager.d(TAG, "start Index: "+pduToParse.getStartIndex());
-            LogManager.d(TAG, "end Index: "+pduToParse.getEndIndex());
-            LogManager.d(TAG, "end-start+1: "+(pduToParse.getEndIndex()-pduToParse.getStartIndex()+1));
             boolean patternFound = false;
 
             if (getServiceUuid() == null) {
@@ -470,8 +465,6 @@ public class BeaconParser {
                         dataFields.add(new Long(0l));
                     }
                     else {
-
-                        LogManager.d(TAG, "Getting data field starting at byte "+(mDataStartOffsets.get(i) + startByte)+" and going to byte "+endIndex );
                         String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
                         dataFields.add(Long.parseLong(dataString));
                     }

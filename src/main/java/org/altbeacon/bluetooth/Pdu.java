@@ -2,12 +2,6 @@ package org.altbeacon.bluetooth;
 
 import android.annotation.TargetApi;
 import android.os.Build;
-import android.util.Log;
-
-import org.altbeacon.beacon.logging.LogManager;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Converts a byte string from a Bluetooth LE scan into a Payload Data Unit (PDU)

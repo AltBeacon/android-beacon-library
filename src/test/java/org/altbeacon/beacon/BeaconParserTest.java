@@ -55,7 +55,7 @@ public class BeaconParserTest {
 
     @Test
     public void testSetBeaconLayout() {
-        byte[] bytes = hexStringToByteArray("02011a1bffbeac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        byte[] bytes = hexStringToByteArray("02011a1bffbeac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
 
@@ -86,9 +86,9 @@ public class BeaconParserTest {
     public void testRecognizeBeacon() {
         LogManager.setLogger(Loggers.verboseLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        byte[] bytes = hexStringToByteArray("02011a1aff180112342f234454cf6d4a0fadf2f4911ba9ffa600010002c5");
         BeaconParser parser = new BeaconParser();
-        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+        parser.setBeaconLayout("m:2-3=1234,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
         assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(0).toString());
@@ -102,7 +102,7 @@ public class BeaconParserTest {
     public void testParsesBeaconMissingDataField() {
         LogManager.setLogger(Loggers.verboseLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        byte[] bytes = hexStringToByteArray("02011a1aff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c5");
+        byte[] bytes = hexStringToByteArray("02011a1aff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c5000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
@@ -121,7 +121,7 @@ public class BeaconParserTest {
     public void testRecognizeBeaconWithFormatSpecifyingManufacturer() {
         LogManager.setLogger(Loggers.verboseLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:0-3=1801beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
@@ -150,7 +150,7 @@ public class BeaconParserTest {
     @Test
     public void testLittleEndianIdentifierParsing() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        byte[] bytes = hexStringToByteArray("02011a1bff1801beac0102030405060708090a0b0c0d0e0f1011121314c509");
+        byte[] bytes = hexStringToByteArray("02011a1bff1801beac0102030405060708090a0b0c0d0e0f1011121314c50900000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-9,i:10-15l,i:16-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
@@ -190,24 +190,25 @@ public class BeaconParserTest {
 
 
     @Test
-    public void testParseIdentifierThatRunsOverPduLength() {
+    public void testParseGattIdentifierThatRunsOverPduLength() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("0201060303aafe0d16aafe10e702676f6f676c65000c09526164426561636f6e204700000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser();
+        parser.setAllowPduOverflow(false);
         parser.setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         assertNull("beacon should not be parsed", beacon);
-
     }
 
     @Test
-    public void testParseIdentifierThatRunsUnderPduLength() {
+    public void testParseManufacturerIdentifierThatRunsOverPduLength() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
 
         // Note that the length field below is 0x16 instead of 0x1b, indicating that the packet ends
         // one byte before the second identifier field starts
-        byte[] bytes = hexStringToByteArray("02011a16ff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
+        byte[] bytes = hexStringToByteArray("02011a16ff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509000000");
         BeaconParser parser = new BeaconParser();
+        parser.setAllowPduOverflow(false);
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
 
         Beacon beacon = parser.fromScanData(bytes, -55, null);

@@ -35,7 +35,10 @@ public class Pdu {
                 int firstIndex = startIndex + 2;
                 if (firstIndex < bytes.length) {
                     pdu = new Pdu();
-                    pdu.mEndIndex = firstIndex + length - 1;
+                    // The End index is the startIndex + the length, because the first byte is the
+                    // length field and the length field does not include the length field itself in
+                    // the count
+                    pdu.mEndIndex = startIndex + length;
                     if (pdu.mEndIndex >= bytes.length) {
                         pdu.mEndIndex = bytes.length - 1;
                     }
@@ -75,6 +78,8 @@ public class Pdu {
 
     /**
      * Start index within byte buffer of PDU
+     * This is the start of the payload data that starts after the length and the type, so the PDU
+     * actually starts two bytes earlier
      * @return
      */
     public int getStartIndex() {

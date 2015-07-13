@@ -455,9 +455,10 @@ public class BeaconParser {
                 }
                 for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
                     int endIndex = mIdentifierEndOffsets.get(i) + startByte;
+
                     if (endIndex > pduToParse.getEndIndex() && mIdentifierVariableLengthFlags.get(i)) {
                         if (LogManager.isVerboseLoggingEnabled()) {
-                            LogManager.d(TAG, "Truncating variable length identifier.");
+                            LogManager.d(TAG, "Need to truncate identifier by "+(endIndex-pduToParse.getEndIndex()));
                         }
                         // If this is a variable length identifier, we truncate it to the size that
                         // is available in the packet

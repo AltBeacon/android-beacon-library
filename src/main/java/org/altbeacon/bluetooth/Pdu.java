@@ -2,10 +2,6 @@ package org.altbeacon.bluetooth;
 
 import android.annotation.TargetApi;
 import android.os.Build;
-import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Converts a byte string from a Bluetooth LE scan into a Payload Data Unit (PDU)
@@ -39,7 +35,7 @@ public class Pdu {
                 int firstIndex = startIndex + 2;
                 if (firstIndex < bytes.length) {
                     pdu = new Pdu();
-                    pdu.mEndIndex = firstIndex + length - 2;
+                    pdu.mEndIndex = firstIndex + length - 1;
                     if (pdu.mEndIndex >= bytes.length) {
                         pdu.mEndIndex = bytes.length - 1;
                     }

@@ -2,12 +2,15 @@ package org.altbeacon.beacon;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
+import android.os.Build;
+import android.util.Log;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.bluetooth.BleAdvertisement;
 import org.altbeacon.bluetooth.Pdu;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,13 +38,15 @@ import java.util.regex.Pattern;
  */
 public class BeaconParser {
     private static final String TAG = "BeaconParser";
-    private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)(l?)");
+    private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)([blv]*)?");
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
-    private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]?)");
+    private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]*)?");
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)\\:?([\\-\\d]+)?");
     private static final Pattern X_PATTERN = Pattern.compile("x");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    private static String LITTLE_ENDIAN_SUFFIX = "l";
+    private static String VARIABLE_LENGTH_SUFFIX = "v";
 
     private Long mMatchingBeaconTypeCode;
     protected List<Integer> mIdentifierStartOffsets;
@@ -50,6 +55,7 @@ public class BeaconParser {
     protected List<Integer> mDataStartOffsets;
     protected List<Integer> mDataEndOffsets;
     protected List<Boolean> mDataLittleEndianFlags;
+    protected List<Boolean> mIdentifierVariableLengthFlags;
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mServiceUuidStartOffset;
@@ -60,6 +66,8 @@ public class BeaconParser {
     protected Integer mPowerStartOffset;
     protected Integer mPowerEndOffset;
     protected Integer mDBmCorrection;
+    protected Integer mLayoutSize;
+    protected Boolean mAllowPduOverflow;
     protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
 
     /**
@@ -72,6 +80,8 @@ public class BeaconParser {
         mDataEndOffsets = new ArrayList<Integer>();
         mDataLittleEndianFlags = new ArrayList<Boolean>();
         mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
+        mIdentifierVariableLengthFlags = new ArrayList<Boolean>();
+        mAllowPduOverflow = true;
     }
 
     /**
@@ -108,6 +118,10 @@ public class BeaconParser {
      * <p>All data field and identifier expressions may be optionally suffixed with the letter l, which
      * indicates the field should be parsed as little endian.  If not present, the field will be presumed
      * to be big endian.  Note: serviceUuid fields are always little endian.
+     *
+     * <p>Identifier fields may be optionally suffixed with the letter v, which
+     * indicates the field is variable length, and may be shorter than the declared length if the
+     * parsed PDU for the advertisement is shorter than needed to parse the full identifier.
      *
      * <p>If the expression cannot be parsed, a <code>BeaconLayoutException</code> is thrown.</p>
      *
@@ -148,8 +162,10 @@ public class BeaconParser {
                 try {
                     int startOffset = Integer.parseInt(matcher.group(1));
                     int endOffset = Integer.parseInt(matcher.group(2));
-                    Boolean littleEndian = matcher.group(3).equals("l");
+                    Boolean littleEndian = matcher.group(3).contains(LITTLE_ENDIAN_SUFFIX);
                     mIdentifierLittleEndianFlags.add(littleEndian);
+                    Boolean variableLength = matcher.group(3).contains(VARIABLE_LENGTH_SUFFIX);
+                    mIdentifierVariableLengthFlags.add(variableLength);
                     mIdentifierStartOffsets.add(startOffset);
                     mIdentifierEndOffsets.add(endOffset);
                 } catch (NumberFormatException e) {
@@ -162,7 +178,7 @@ public class BeaconParser {
                 try {
                     int startOffset = Integer.parseInt(matcher.group(1));
                     int endOffset = Integer.parseInt(matcher.group(2));
-                    Boolean littleEndian = matcher.group(3).equals("l");
+                    Boolean littleEndian = matcher.group(3).contains("l");
                     mDataLittleEndianFlags.add(littleEndian);
                     mDataStartOffsets.add(startOffset);
                     mDataEndOffsets.add(endOffset);
@@ -248,6 +264,7 @@ public class BeaconParser {
         if (mMatchingBeaconTypeCodeStartOffset == null || mMatchingBeaconTypeCodeEndOffset == null) {
             throw new BeaconLayoutException("You must supply a matching beacon type expression with a prefix of 'm'");
         }
+        mLayoutSize = calculateLayoutSize();
         return this;
     }
 
@@ -274,6 +291,16 @@ public class BeaconParser {
      */
     public void setHardwareAssistManufacturerCodes(int[] manufacturers) {
         mHardwareAssistManufacturers = manufacturers;
+    }
+
+    /**
+     * Setting to true indicates that packets should be rejected if the PDU length is too short for
+     * the fields.  Some beacons transmit malformed PDU packets that understate their length, so
+     * this defaults to false.
+     * @param enabled
+     */
+    public void setAllowPduOverflow(Boolean enabled) {
+        mAllowPduOverflow = enabled;
     }
 
     /**
@@ -417,9 +444,27 @@ public class BeaconParser {
             }
 
             if (patternFound) {
+                if (bytesToProcess.length <= startByte+mLayoutSize && mAllowPduOverflow) {
+                    // If the layout size is bigger than this PDU, and we allow overflow.  Make sure
+                    // the byte buffer is big enough by zero padding the end so we don't try to read
+                    // outside the byte array of the advertisement
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "Expanding buffer because it is too short to parse: "+bytesToProcess.length+", needed: "+(startByte+mLayoutSize));
+                    }
+                    bytesToProcess = ensureMaxSize(bytesToProcess, startByte+mLayoutSize);
+                }
                 for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
                     int endIndex = mIdentifierEndOffsets.get(i) + startByte;
-                    if (endIndex > pduToParse.getEndIndex()) {
+                    if (endIndex > pduToParse.getEndIndex() && mIdentifierVariableLengthFlags.get(i)) {
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "Truncating variable length identifier.");
+                        }
+                        // If this is a variable length identifier, we truncate it to the size that
+                        // is available in the packet
+                        Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, pduToParse.getEndIndex()+1, mIdentifierLittleEndianFlags.get(i));
+                        identifiers.add(identifier);
+                    }
+                    else if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
                         parseFailed = true;
                         if (LogManager.isVerboseLoggingEnabled()) {
                             LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
@@ -432,7 +477,7 @@ public class BeaconParser {
                 }
                 for (int i = 0; i < mDataEndOffsets.size(); i++) {
                     int endIndex = mDataEndOffsets.get(i) + startByte;
-                    if (endIndex > pduToParse.getEndIndex()) {
+                    if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
                         if (LogManager.isVerboseLoggingEnabled()) {
                             LogManager.d(TAG, "Cannot parse data field "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex()+".  Setting value to 0");
                         }
@@ -448,7 +493,7 @@ public class BeaconParser {
                     int endIndex = mPowerEndOffset + startByte;
                     int txPower = 0;
                     try {
-                        if (endIndex > pduToParse.getEndIndex()) {
+                        if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
                             parseFailed = true;
                             if (LogManager.isVerboseLoggingEnabled()) {
                                 LogManager.d(TAG, "Cannot parse power field because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
@@ -640,6 +685,31 @@ public class BeaconParser {
         }
         return array;
     }
+    private int calculateLayoutSize() {
+        int lastEndOffset = 0;
+        if (mIdentifierEndOffsets != null) {
+            for (int endOffset : mIdentifierEndOffsets) {
+                if (endOffset > lastEndOffset) {
+                    lastEndOffset = endOffset;
+                }
+            }
+        }
+        if (mDataEndOffsets != null) {
+            for (int endOffset : mDataEndOffsets) {
+                if (endOffset > lastEndOffset) {
+                    lastEndOffset = endOffset;
+                }
+            }
+        }
+        if (mPowerEndOffset != null && mPowerEndOffset > lastEndOffset ) {
+            lastEndOffset = mPowerEndOffset;
+        }
+        if (mServiceUuidEndOffset != null && mServiceUuidEndOffset > lastEndOffset) {
+            lastEndOffset = mServiceUuidEndOffset;
+        }
+        return lastEndOffset+1;
+    }
+
     private boolean byteArraysMatch(byte[] array1, int offset1, byte[] array2, int offset2) {
         int minSize = array1.length > array2.length ? array2.length : array1.length;
         for (int i = 0; i <  minSize; i++) {
@@ -704,5 +774,14 @@ public class BeaconParser {
         }
         return "0x"+hexString;
     }
+
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    private byte[] ensureMaxSize(byte[] array, int requiredLength) {
+        if (array.length >= requiredLength) {
+            return array;
+        }
+        return Arrays.copyOf(array, requiredLength);
+    }
+
 
 }

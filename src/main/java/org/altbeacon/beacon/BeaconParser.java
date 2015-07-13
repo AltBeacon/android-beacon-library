@@ -38,13 +38,15 @@ import java.util.regex.Pattern;
  */
 public class BeaconParser {
     private static final String TAG = "BeaconParser";
-    private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)(l?)");
+    private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)([blv]*)?");
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
-    private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]?)");
+    private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]*)?");
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)\\:?([\\-\\d]+)?");
     private static final Pattern X_PATTERN = Pattern.compile("x");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    private static String LITTLE_ENDIAN_SUFFIX = "l";
+    private static String VARIABLE_LENGTH_SUFFIX = "v";
 
     private Long mMatchingBeaconTypeCode;
     protected List<Integer> mIdentifierStartOffsets;
@@ -53,6 +55,7 @@ public class BeaconParser {
     protected List<Integer> mDataStartOffsets;
     protected List<Integer> mDataEndOffsets;
     protected List<Boolean> mDataLittleEndianFlags;
+    protected List<Boolean> mIdentifierVariableLengthFlags;
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mServiceUuidStartOffset;
@@ -77,6 +80,7 @@ public class BeaconParser {
         mDataEndOffsets = new ArrayList<Integer>();
         mDataLittleEndianFlags = new ArrayList<Boolean>();
         mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
+        mIdentifierVariableLengthFlags = new ArrayList<Boolean>();
         mAllowPduOverflow = true;
     }
 
@@ -114,6 +118,10 @@ public class BeaconParser {
      * <p>All data field and identifier expressions may be optionally suffixed with the letter l, which
      * indicates the field should be parsed as little endian.  If not present, the field will be presumed
      * to be big endian.  Note: serviceUuid fields are always little endian.
+     *
+     * <p>Identifier fields may be optionally suffixed with the letter v, which
+     * indicates the field is variable length, and may be shorter than the declared length if the
+     * parsed PDU for the advertisement is shorter than needed to parse the full identifier.
      *
      * <p>If the expression cannot be parsed, a <code>BeaconLayoutException</code> is thrown.</p>
      *
@@ -154,8 +162,10 @@ public class BeaconParser {
                 try {
                     int startOffset = Integer.parseInt(matcher.group(1));
                     int endOffset = Integer.parseInt(matcher.group(2));
-                    Boolean littleEndian = matcher.group(3).equals("l");
+                    Boolean littleEndian = matcher.group(3).contains(LITTLE_ENDIAN_SUFFIX);
                     mIdentifierLittleEndianFlags.add(littleEndian);
+                    Boolean variableLength = matcher.group(3).contains(VARIABLE_LENGTH_SUFFIX);
+                    mIdentifierVariableLengthFlags.add(variableLength);
                     mIdentifierStartOffsets.add(startOffset);
                     mIdentifierEndOffsets.add(endOffset);
                 } catch (NumberFormatException e) {
@@ -168,7 +178,7 @@ public class BeaconParser {
                 try {
                     int startOffset = Integer.parseInt(matcher.group(1));
                     int endOffset = Integer.parseInt(matcher.group(2));
-                    Boolean littleEndian = matcher.group(3).equals("l");
+                    Boolean littleEndian = matcher.group(3).contains("l");
                     mDataLittleEndianFlags.add(littleEndian);
                     mDataStartOffsets.add(startOffset);
                     mDataEndOffsets.add(endOffset);
@@ -445,7 +455,16 @@ public class BeaconParser {
                 }
                 for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
                     int endIndex = mIdentifierEndOffsets.get(i) + startByte;
-                    if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
+                    if (endIndex > pduToParse.getEndIndex() && mIdentifierVariableLengthFlags.get(i)) {
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "Truncating variable length identifier.");
+                        }
+                        // If this is a variable length identifier, we truncate it to the size that
+                        // is available in the packet
+                        Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, pduToParse.getEndIndex()+1, mIdentifierLittleEndianFlags.get(i));
+                        identifiers.add(identifier);
+                    }
+                    else if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
                         parseFailed = true;
                         if (LogManager.isVerboseLoggingEnabled()) {
                             LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());

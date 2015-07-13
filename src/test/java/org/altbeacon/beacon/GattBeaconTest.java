@@ -41,8 +41,6 @@ public class GattBeaconTest {
         BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=00,p:3-3:-41,i:4-13,i:14-19");
         assertNotNull("Service uuid parsed should not be null", parser.getServiceUuid());
         Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
-        LogManager.d("xxx", "where is my debug");
-        LogManager.e("xxx", "where is my debug");
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
         assertEquals("id1 should be parsed", "0x2f234454f4911ba9ffa6", gattBeacon.getId1().toString());
         assertEquals("id2 should be parsed", "0x000000000001", gattBeacon.getId2().toString());
@@ -56,10 +54,41 @@ public class GattBeaconTest {
         LogManager.setLogger(Loggers.verboseLogger());
         LogManager.setVerboseLoggingEnabled(true);
         byte[] bytes = hexStringToByteArray("020106030334121516341210ec007261646975736e6574776f726b7307000000000000000000000000000000000000000000000000000000000000000000");
-        BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=10,p:3-3:-41,i:4-20");
+        BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=10,p:3-3:-41,i:4-20v");
         Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
+        assertEquals("GattBeacon identifier length should be proper length",
+                17,
+                gattBeacon.getId1().toByteArray().length);
+
     }
+
+    @Test
+    public void testDetectsGattBeacon2WithShortIdentifier() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        LogManager.setLogger(Loggers.verboseLogger());
+        LogManager.setVerboseLoggingEnabled(true);
+        LogManager.d("GattBeaconTest", "Parsing short packet");
+        byte[] bytes = hexStringToByteArray("020106030334121416341210ec007261646975736e6574776f726b7307000000000000000000000000000000000000000000000000000000000000000000");
+        BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=10,p:3-3:-41,i:4-20v");
+        Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
+        assertEquals("GattBeacon identifier length should be adjusted smaller if packet is short",
+                     16,
+                     gattBeacon.getId1().toByteArray().length);
+        assertEquals("GattBeacon identifier should have proper first byte",
+                (byte)0x00,
+                gattBeacon.getId1().toByteArray()[0]);
+        assertEquals("GattBeacon identifier should have proper second to last byte",
+                (byte)0x73,
+                gattBeacon.getId1().toByteArray()[14]);
+        assertEquals("GattBeacon identifier should have proper last byte",
+                (byte)0x07,
+                gattBeacon.getId1().toByteArray()[15]);
+
+    }
+
+
 
     @Test
     public void testBeaconAdvertisingBytes() {

@@ -26,8 +26,15 @@ It allows Android devices to use beacons much like iOS devices do. An app can re
 
 ### What kinds of beacons does it detect?
 
-The library may be configured to detect a wide variety of beacons.  By default, it will only detect beacons meeting the open [AltBeacon standard](http://altbeacon.org).  If you wish to configure the library to work with different types of beacons, see the documentation for the
-[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class.
+The library may be configured to detect a wide variety of beacons.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org), but it can be easily configured to work with the most popular beacon types on the market.  See the documentation for the
+[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for more info.
+
+### Eddystone Support
+
+Library versions 2.3.5 and higher provide full support for Eddystone&trade;, the new beacon format from Google.  
+The library will wake up your app when it detects Eddystone-compatible beacons in the background and provides regular
+ranging updates while they are in the vicinity.  Eddystone-UID (identifier frame), Eddystone-TLM (telemetry frame) and 
+Eddystone-URL (URL frame) are all detected and decoded.  [Details are here.](eddystone-support.html)
 
 ### Who uses this library?
 

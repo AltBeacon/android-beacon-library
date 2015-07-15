@@ -1,5 +1,8 @@
 package org.altbeacon.beacon;
 
+import android.annotation.TargetApi;
+import android.os.Build;
+
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
@@ -16,7 +19,8 @@ import java.util.regex.Pattern;
  */
 public class Identifier implements Comparable<Identifier> {
     private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-Fa-f]*$");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]{1,5}$");
+    private static final Pattern HEX_PATTERN_NO_PREFIX = Pattern.compile("^[0-9A-Fa-f]*$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[1-9][0-9]*$");
     // BUG: Dashes in UUIDs are not optional!
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{12}$");
     private static final int MAX_INTEGER = 65535;
@@ -46,16 +50,27 @@ public class Identifier implements Comparable<Identifier> {
      * @see                <a href="https://www.ietf.org/rfc/rfc4122.txt">RFC 4122 on UUIDs</a>
      */
     public static Identifier parse(String stringValue) {
+       return parse(stringValue, -1);
+    }
+
+    /**
+     * Variant of the parse method that allows specifying the byte length of the identifier.
+     * @see #parse(String)
+     * @param stringValue
+     * @param desiredByteLength
+     * @return
+     */
+    public static Identifier parse(String stringValue, int desiredByteLength) {
         if (stringValue == null) {
             throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"stringValue\" is null.");
         }
 
         if (HEX_PATTERN.matcher(stringValue).matches()) {
-            return parseHex(stringValue.substring(2));
+            return parseHex(stringValue.substring(2), desiredByteLength);
         }
 
         if (UUID_PATTERN.matcher(stringValue).matches()) {
-            return parseHex(stringValue.replace("-", ""));
+            return parseHex(stringValue.replace("-", ""), desiredByteLength);
         }
 
         if (DECIMAL_PATTERN.matcher(stringValue).matches()) {
@@ -66,20 +81,59 @@ public class Identifier implements Comparable<Identifier> {
             catch (Throwable t) {
                 throw new IllegalArgumentException("Unable to parse Identifier in decimal format.", t);
             }
-            return fromInt(value);
+            if (desiredByteLength <= 0 || desiredByteLength == 2) {
+                return fromInt(value);
+            }
+            else {
+                return fromLong(value, desiredByteLength);
+            }
+        }
+
+        if (HEX_PATTERN_NO_PREFIX.matcher(stringValue).matches()) {
+            return parseHex(stringValue, desiredByteLength);
         }
 
         throw new IllegalArgumentException("Unable to parse Identifier.");
     }
 
-    private static Identifier parseHex(String identifierString) {
+    private static Identifier parseHex(String identifierString, int desiredByteLength) {
         String str = identifierString.length() % 2 == 0 ? "" : "0";
         str += identifierString.toUpperCase();
+        if (desiredByteLength > 0 && desiredByteLength < str.length()/2) {
+            str = str.substring(str.length() - desiredByteLength * 2);
+        }
+        if (desiredByteLength > 0 && desiredByteLength > str.length()/2) {
+            int extraCharsToAdd = desiredByteLength*2 - str.length();
+            StringBuilder sb = new StringBuilder();
+            while (sb.length() < extraCharsToAdd) {
+                sb.append("0");
+            }
+            str = sb.toString()+str;
+        }
+
         byte[] result = new byte[str.length() / 2];
         for (int i = 0; i < result.length; i++) {
             result[i] = (byte)(Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16) & 0xFF);
         }
         return new Identifier(result);
+    }
+
+    /**
+     * Creates an Identifer backed by an array of length desiredByteLength
+     * @param longValue a long to put into the identifier
+     * @param desiredByteLength how many bytes to make the identifier
+     * @return
+     */
+    public static Identifier fromLong(long longValue, int desiredByteLength) {
+        if (desiredByteLength < 0) {
+            throw new IllegalArgumentException("Identifier length must be > 0.");
+        }
+        byte[] newValue = new byte[desiredByteLength];
+        for (int i = desiredByteLength-1; i >= 0; i--) {
+            newValue[i] = (byte) (longValue & 0xff);
+            longValue = longValue >> 8;
+        }
+        return new Identifier(newValue);
     }
 
     /**
@@ -89,7 +143,7 @@ public class Identifier implements Comparable<Identifier> {
      */
     public static Identifier fromInt(int intValue) {
         if (intValue < 0 || intValue > MAX_INTEGER) {
-            throw new IllegalArgumentException("Identifers can only be constructed from integers between 0 and " + MAX_INTEGER + " (inclusive).");
+            throw new IllegalArgumentException("Identifiers can only be constructed from integers between 0 and " + MAX_INTEGER + " (inclusive).");
         }
 
         byte[] newValue = new byte[2];
@@ -111,6 +165,7 @@ public class Identifier implements Comparable<Identifier> {
      * @throws java.lang.ArrayIndexOutOfBoundsException start or end are outside the bounds of the array
      * @throws java.lang.IllegalArgumentException start is larger than end
      */
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public static Identifier fromBytes(byte[] bytes, int start, int end, boolean littleEndian) {
         if (bytes == null) {
             throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"bytes\" is null.");
@@ -211,6 +266,7 @@ public class Identifier implements Comparable<Identifier> {
      * @param bigEndian true if bytes are MSB first
      * @return a new byte array with a copy of the value
      */
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public byte[] toByteArrayOfSpecifiedEndianness(boolean bigEndian) {
         byte[] copy = Arrays.copyOf(mValue, mValue.length);
 

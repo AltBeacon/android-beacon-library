@@ -654,6 +654,12 @@ public class BeaconParser {
         return mDataStartOffsets.size();
     }
 
+    /**
+     * @return the correction value in dBm to apply to the calibrated txPower to get a 1m calibrated value.
+     * Some formats like Eddystone use a 0m calibrated value, which requires this correction
+     */
+    public int getPowerCorrection() { return mDBmCorrection; }
+
     protected static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         int v;

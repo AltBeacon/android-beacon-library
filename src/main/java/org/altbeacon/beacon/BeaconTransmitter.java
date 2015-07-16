@@ -150,7 +150,7 @@ public class BeaconTransmitter {
             throw new NullPointerException("Beacon cannot be null.  Set beacon before starting advertising");
         }
         int manufacturerCode = mBeacon.getManufacturer();
-        int serviceUuid = mBeacon.getServiceUuid();
+        int serviceUuid = mBeaconParser.getServiceUuid().intValue();
 
         if (mBeaconParser == null) {
             throw new NullPointerException("You must supply a BeaconParser instance to BeaconTransmitter.");
@@ -172,8 +172,8 @@ public class BeaconTransmitter {
             AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
             if (serviceUuid > 0) {
                 byte[] serviceUuidBytes = new byte[] {
-                        (byte) ((serviceUuid >> 8) & 0xff),
-                        (byte) (serviceUuid & 0xff)};
+                        (byte) (serviceUuid & 0xff),
+                        (byte) ((serviceUuid >> 8) & 0xff)};
                 ParcelUuid parcelUuid = parseUuidFrom(serviceUuidBytes);
                 dataBuilder.addServiceData(parcelUuid, advertisingBytes);
             }

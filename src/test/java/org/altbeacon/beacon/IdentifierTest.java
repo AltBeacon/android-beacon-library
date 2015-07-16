@@ -178,4 +178,45 @@ public class IdentifierTest {
         Identifier id = Identifier.parse("2f234454cf6d4a0fadf2f4911ba9ffa6");
         assertEquals("Malformed UUID was parsed as expected.", id.toUuid(), ref);
     }
+
+    @Test
+    public void testParseHexWithNoPrefix() {
+        Identifier id = Identifier.parse("abcd");
+        assertEquals("Should parse and get back equivalent decimal value for small numbers", "43981", id.toString());
+    }
+
+    @Test
+    public void testParseBigHexWithNoPrefix() {
+        Identifier id = Identifier.parse("123456789abcdef");
+        assertEquals("Should parse and get prefixed hex value for big numbers", "0x0123456789abcdef", id.toString());
+    }
+    @Test
+    public void testParseZeroPrefixedDecimalNumberAsHex() {
+        Identifier id = Identifier.parse("0010");
+        assertEquals("Should be treated as hex in parse, but converted back to decimal because it is small", "16", id.toString());
+    }
+    @Test
+    public void testParseNonZeroPrefixedDecimalNumberAsDecimal() {
+        Identifier id = Identifier.parse("10");
+        assertEquals("Should be treated as decimal", "10", id.toString());
+    }
+    @Test
+    public void testParseDecimalNumberWithSpecifiedLength() {
+        Identifier id = Identifier.parse("10", 8);
+        assertEquals("Should be treated as hex because it is long", "0x000000000000000a", id.toString());
+        assertEquals("Byte count should be as specified", 8, id.getByteCount());
+    }
+    @Test
+    public void testParseDecimalNumberWithSpecifiedShortLength() {
+        Identifier id = Identifier.parse("10", 2);
+        assertEquals("Should be treated as decimal because it is short", "10", id.toString());
+        assertEquals("Byte count should be as specified", 2, id.getByteCount());
+    }
+    @Test
+    public void testParseHexNumberWithSpecifiedLength() {
+        Identifier id = Identifier.parse("2fffffffffffffffffff", 10);
+        assertEquals("Should be treated as hex because it is long", "0x2fffffffffffffffffff", id.toString());
+        assertEquals("Byte count should be as specified", 10, id.getByteCount());
+    }
+
 }

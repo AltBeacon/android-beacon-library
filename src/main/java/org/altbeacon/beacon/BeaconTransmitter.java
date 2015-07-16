@@ -150,7 +150,10 @@ public class BeaconTransmitter {
             throw new NullPointerException("Beacon cannot be null.  Set beacon before starting advertising");
         }
         int manufacturerCode = mBeacon.getManufacturer();
-        int serviceUuid = mBeaconParser.getServiceUuid().intValue();
+        int serviceUuid = -1;
+        if (mBeaconParser.getServiceUuid() != null) {
+            serviceUuid = mBeaconParser.getServiceUuid().intValue();
+        }
 
         if (mBeaconParser == null) {
             throw new NullPointerException("You must supply a BeaconParser instance to BeaconTransmitter.");

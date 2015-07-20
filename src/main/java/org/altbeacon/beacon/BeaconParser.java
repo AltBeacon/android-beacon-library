@@ -584,6 +584,16 @@ public class BeaconParser {
             }
         }
 
+        // we must adjust the lastIndex to account for variable length identifiers, if there are any.
+        int adjustedIdentifiersLength = 0;
+        for (int identifierNum = 0; identifierNum < this.mIdentifierStartOffsets.size(); identifierNum++) {
+            int declaredIdentifierLength = (this.mIdentifierEndOffsets.get(identifierNum) - this.mIdentifierStartOffsets.get(identifierNum)+1);
+            int actualIdentifierLength = beacon.getIdentifier(identifierNum).getByteCount();
+            adjustedIdentifiersLength += actualIdentifierLength;
+            adjustedIdentifiersLength -= declaredIdentifierLength;
+        }
+        lastIndex += adjustedIdentifiersLength;
+
         advertisingBytes = new byte[lastIndex+1-2];
         long beaconTypeCode = this.getMatchingBeaconTypeCode();
 
@@ -596,7 +606,7 @@ public class BeaconParser {
         // set identifiers
         for (int identifierNum = 0; identifierNum < this.mIdentifierStartOffsets.size(); identifierNum++) {
             byte[] identifierBytes = beacon.getIdentifier(identifierNum).toByteArrayOfSpecifiedEndianness(this.mIdentifierLittleEndianFlags.get(identifierNum));
-            for (int index = this.mIdentifierStartOffsets.get(identifierNum); index <= this.mIdentifierEndOffsets.get(identifierNum); index ++) {
+            for (int index = this.mIdentifierStartOffsets.get(identifierNum); index <= this.mIdentifierStartOffsets.get(identifierNum)+identifierBytes.length-1; index ++) {
                 int identifierByteIndex = this.mIdentifierEndOffsets.get(identifierNum)-index;
                 if (identifierByteIndex < identifierBytes.length) {
                     advertisingBytes[index-2] = (byte) identifierBytes[this.mIdentifierEndOffsets.get(identifierNum)-index];

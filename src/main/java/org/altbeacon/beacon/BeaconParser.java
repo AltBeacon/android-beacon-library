@@ -569,6 +569,10 @@ public class BeaconParser {
     public byte[] getBeaconAdvertisementData(Beacon beacon) {
         byte[] advertisingBytes;
 
+        if (beacon.getIdentifiers().size() != getIdentifierCount()) {
+            throw new IllegalArgumentException("Beacon has "+beacon.getIdentifiers().size()+" identifiers but format requires "+getIdentifierCount());
+        }
+
         int lastIndex = -1;
         if (mMatchingBeaconTypeCodeEndOffset != null && mMatchingBeaconTypeCodeEndOffset > lastIndex) {
             lastIndex = mMatchingBeaconTypeCodeEndOffset;
@@ -615,16 +619,18 @@ public class BeaconParser {
             // If the identifier we are trying to stuff into the space is different than the space available
             // adjust it
             if (identifierBytes.length < getIdentifierByteCount(identifierNum)) {
-                // Pad it
-                if (mIdentifierLittleEndianFlags.get(identifierNum)) {
-                    // this is little endian.  Pad at the end of the array
-                    identifierBytes = Arrays.copyOf(identifierBytes,getIdentifierByteCount(identifierNum));
-                }
-                else {
-                    // this is big endian.  Pad at the beginning of the array
-                    byte[] newIdentifierBytes = new byte[getIdentifierByteCount(identifierNum)];
-                    System.arraycopy(identifierBytes, 0, newIdentifierBytes, getIdentifierByteCount(identifierNum)-identifierBytes.length, identifierBytes.length);
-                    identifierBytes = newIdentifierBytes;
+                if (!mIdentifierVariableLengthFlags.get(identifierNum)) {
+                    // Pad it, but only if this is not a variable length identifier
+                    if (mIdentifierLittleEndianFlags.get(identifierNum)) {
+                        // this is little endian.  Pad at the end of the array
+                        identifierBytes = Arrays.copyOf(identifierBytes,getIdentifierByteCount(identifierNum));
+                    }
+                    else {
+                        // this is big endian.  Pad at the beginning of the array
+                        byte[] newIdentifierBytes = new byte[getIdentifierByteCount(identifierNum)];
+                        System.arraycopy(identifierBytes, 0, newIdentifierBytes, getIdentifierByteCount(identifierNum)-identifierBytes.length, identifierBytes.length);
+                        identifierBytes = newIdentifierBytes;
+                    }
                 }
                 LogManager.d(TAG, "Expanded identifier because it is too short.  It is now: "+byteArrayToString(identifierBytes));
             }

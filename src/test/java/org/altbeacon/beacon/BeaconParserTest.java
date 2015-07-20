@@ -266,5 +266,19 @@ public class BeaconParserTest {
         assertEquals("longitude should be about right", longitude, parsedLongitude, 0.0001);
 
     }
+    @Test
+    public void testCanGetAdvertisementDataForUrlBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        BeaconManager.setDebug(true);
+        Beacon beacon = new Beacon.Builder()
+                .setManufacturer(0x0118)
+                .setId1("02646576656c6f7065722e636f6d") // http://developer.com
+                .setTxPower(-59) // The measured transmitter power at one meter in dBm
+                .build();
+        BeaconParser p = new BeaconParser().
+                setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v");
+        byte[] bytes = p.getBeaconAdvertisementData(beacon);
+        assertEquals("First byte of url should be in position 3", 0x02, bytes[2]);
+    }
 
 }

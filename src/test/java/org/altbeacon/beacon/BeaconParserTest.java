@@ -233,13 +233,16 @@ public class BeaconParserTest {
 
     @Test
     public void testCanParseLocationBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        BeaconManager.setDebug(true);
+
         double latitude = 38.93;
         double longitude = -77.23;
         Beacon beacon = new Beacon.Builder()
                 .setManufacturer(0x0118) // Radius Networks
                 .setId1("1") // device sequence number
-                .setId2(String.format("0x%X", (long)((latitude+90)*10000.0)))
-                .setId3(String.format("0x%X", (long)((longitude+180)*10000.0)))
+                .setId2(String.format("0x%08X", (long)((latitude+90)*10000.0)))
+                .setId3(String.format("0x%08X", (long)((longitude+180)*10000.0)))
                 .setTxPower(-59) // The measured transmitter power at one meter in dBm
                 .build();
         // TODO: make this pass if data fields are little endian or > 4 bytes (or even > 2 bytes)

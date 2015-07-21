@@ -22,7 +22,7 @@ import java.util.List;
 import dalvik.annotation.TestTarget;
 import org.robolectric.annotation.Config;
 
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
 public class BeaconSimulatorTest {

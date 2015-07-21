@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config;
 import java.util.Arrays;
 import java.util.UUID;
 
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 @RunWith(RobolectricTestRunner.class)
 
 /*

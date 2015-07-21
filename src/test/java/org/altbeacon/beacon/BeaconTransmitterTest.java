@@ -5,15 +5,15 @@ import android.util.Log;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowApplication;
 
 import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
 
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 
 /**
  * Created by dyoung on 7/22/14.
@@ -25,7 +25,7 @@ public class BeaconTransmitterTest {
     @Test
     public void testBeaconAdvertisingBytes() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
+        Context context = ShadowApplication.getInstance().getApplicationContext();
 
         Beacon beacon = new Beacon.Builder()
                 .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
@@ -53,7 +53,7 @@ public class BeaconTransmitterTest {
     @Test
     public void testBeaconAdvertisingBytesForEddystone() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
+        Context context = ShadowApplication.getInstance().getApplicationContext();
 
         Beacon beacon = new Beacon.Builder()
                 .setId1("0x2f234454f4911ba9ffa6")

@@ -1,7 +1,6 @@
 package org.altbeacon.beacon.service;
 
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothDevice;
 import android.os.AsyncTask;
 import android.os.Build;
 
@@ -12,10 +11,11 @@ import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ServiceController;
 
-import java.lang.reflect.Constructor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals;
  * Created by dyoung on 7/1/15.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 public class BeaconServiceTest {
 
     @Before
@@ -43,7 +43,10 @@ public class BeaconServiceTest {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void beaconScanCallbackTest() throws Exception {
-        BeaconService beaconService = new BeaconService();
+        final ServiceController<BeaconService> beaconServiceServiceController =
+                Robolectric.buildService(BeaconService.class);
+        beaconServiceServiceController.attach();
+        BeaconService beaconService = beaconServiceServiceController.get();
         beaconService.onCreate();
         CycledLeScanCallback callback = beaconService.mCycledLeScanCallback;
 

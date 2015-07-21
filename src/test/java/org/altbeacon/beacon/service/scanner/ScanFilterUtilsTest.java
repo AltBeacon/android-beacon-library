@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
 public class ScanFilterUtilsTest {

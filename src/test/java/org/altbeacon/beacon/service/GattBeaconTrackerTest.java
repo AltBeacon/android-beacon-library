@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 public class GattBeaconTrackerTest {
     Beacon getManufacturerBeacon() {
         return new Beacon.Builder().setId1("1")

@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 
 @RunWith(RobolectricTestRunner.class)
 

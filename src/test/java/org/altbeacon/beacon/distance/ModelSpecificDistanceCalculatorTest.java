@@ -1,20 +1,14 @@
 package org.altbeacon.beacon.distance;
 
-import android.os.Parcel;
+import android.content.Context;
 
-import static android.test.MoreAsserts.assertNotEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.altbeacon.beacon.AltBeacon;
-import org.altbeacon.beacon.AltBeaconParser;
-import org.altbeacon.beacon.Beacon;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowApplication;
+
+import static org.junit.Assert.assertEquals;
 
 
 @Config(sdk = 18)
@@ -58,4 +52,43 @@ public class ModelSpecificDistanceCalculatorTest {
         assertEquals("should be Nexus 4", "Nexus 4", distanceCalculator.getModel().getModel());
     }
 
+	@Test
+	public void testConcurrentModificationException() {
+		org.robolectric.shadows.ShadowLog.stream = System.err;
+
+		final Context applicationContext = ShadowApplication.getInstance().getApplicationContext();
+
+		final AndroidModel model = new AndroidModel("4.4.2", "KOT49H", "Nexus 4", "LGE");
+		final String modelMapJson =
+				"{\"models\":[ \"coefficient1\": 0.89976,\"coefficient2\": 7.7095,\"coefficient3\": 0.111," +
+				"\"version\":\"4.4.2\",\"build_number\":\"KOT49H\",\"model\":\"Nexus 4\"," +
+				"\"manufacturer\":\"LGE\"},{\"coefficient1\": 0.42093,\"coefficient2\": 6.9476," +
+				"\"coefficient3\": 0.54992,\"version\":\"4.4.2\",\"build_number\":\"LPV79\"," +
+				"\"model\":\"Nexus 5\",\"manufacturer\":\"LGE\",\"default\": true}]}";
+		final ModelSpecificDistanceCalculator distanceCalculator =
+				new ModelSpecificDistanceCalculator(applicationContext, null, model);
+
+		Runnable runnable2 = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						distanceCalculator.buildModelMapWithLock(modelMapJson);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		};
+
+		Thread thread2 = new Thread(runnable2);
+		thread2.start();
+
+		int i = 0;
+		while (++i < 1000 && thread2.getState() != Thread.State.TERMINATED) {
+			distanceCalculator.findCalculatorForModelWithLock(model);
+		}
+
+		thread2.interrupt();
+	}
 }

@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 
-import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Obtains a <code>DistanceCalculator</code> appropriate for a specific Android model.  Each model
@@ -54,6 +54,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private AndroidModel mRequestedModel;
     private String mRemoteUpdateUrlString = null;
     private Context mContext;
+    private ReentrantLock mLock = new ReentrantLock();
 
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device calling
@@ -72,7 +73,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         mRemoteUpdateUrlString = remoteUpdateUrlString;
         mContext = context;
         loadModelMap();
-        mDistanceCalculator = findCalculatorForModel(model);
+        mDistanceCalculator = findCalculatorForModelWithLock(model);
     }
 
     /**
@@ -96,6 +97,19 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             return -1.0;
         }
         return mDistanceCalculator.calculateDistance(txPower, rssi);
+    }
+
+    DistanceCalculator _findCalculatorForModelTest(AndroidModel model) {
+        return findCalculatorForModelWithLock(model);
+    }
+
+    private DistanceCalculator findCalculatorForModelWithLock(AndroidModel model) {
+        mLock.lock();
+        try {
+            return findCalculatorForModel(model);
+        } finally {
+            mLock.unlock();
+        }
     }
 
     private DistanceCalculator findCalculatorForModel(AndroidModel model) {
@@ -143,7 +157,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         if (!mapLoaded) {
             loadDefaultModelMap();
         }
-        mDistanceCalculator = findCalculatorForModel(mRequestedModel);
+        mDistanceCalculator = findCalculatorForModelWithLock(mRequestedModel);
     }
 
     private boolean loadModelMapFromFile() {
@@ -176,7 +190,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
         }
         try {
-            buildModelMap(sb.toString());
+            buildModelMapWithLock(sb.toString());
             return true;
         } catch (JSONException e) {
             LogManager.e(TAG, "Cannot update distance models from online database at %s with JSON",
@@ -231,10 +245,10 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                     LogManager.d(TAG,
                             "Successfully downloaded distance models from online database");
                     try {
-                        buildModelMap(body);
+                        buildModelMapWithLock(body);
                         if (saveJson(body)) {
                             loadModelMapFromFile();
-                            mDistanceCalculator = findCalculatorForModel(mRequestedModel);
+                            mDistanceCalculator = findCalculatorForModelWithLock(mRequestedModel);
                             LogManager.i(TAG, "Successfully updated distance model with latest from online database");
                         }
                     } catch (JSONException e) {
@@ -243,6 +257,19 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                 }
             }
         }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    void _buildModelMapTest(String jsonString) throws JSONException{
+        buildModelMapWithLock(jsonString);
+    }
+
+    private void buildModelMapWithLock(String jsonString) throws JSONException {
+        mLock.lock();
+        try {
+            buildModelMap(jsonString);
+        } finally {
+            mLock.unlock();
+        }
     }
 
     private void buildModelMap(String jsonString) throws JSONException {

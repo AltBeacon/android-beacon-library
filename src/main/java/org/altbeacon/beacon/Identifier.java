@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 public class Identifier implements Comparable<Identifier> {
     private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-Fa-f]*$");
     private static final Pattern HEX_PATTERN_NO_PREFIX = Pattern.compile("^[0-9A-Fa-f]*$");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[1-9][0-9]*$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^0|[1-9][0-9]*$");
     // BUG: Dashes in UUIDs are not optional!
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{12}$");
     private static final int MAX_INTEGER = 65535;

@@ -233,13 +233,16 @@ public class BeaconParserTest {
 
     @Test
     public void testCanParseLocationBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        BeaconManager.setDebug(true);
+
         double latitude = 38.93;
         double longitude = -77.23;
         Beacon beacon = new Beacon.Builder()
                 .setManufacturer(0x0118) // Radius Networks
                 .setId1("1") // device sequence number
-                .setId2(String.format("0x%X", (long)((latitude+90)*10000.0)))
-                .setId3(String.format("0x%X", (long)((longitude+180)*10000.0)))
+                .setId2(String.format("0x%08X", (long)((latitude+90)*10000.0)))
+                .setId3(String.format("0x%08X", (long)((longitude+180)*10000.0)))
                 .setTxPower(-59) // The measured transmitter power at one meter in dBm
                 .build();
         // TODO: make this pass if data fields are little endian or > 4 bytes (or even > 2 bytes)
@@ -262,6 +265,20 @@ public class BeaconParserTest {
         assertEquals("latitude should be about right", latitude, parsedLatitude, 0.0001);
         assertEquals("longitude should be about right", longitude, parsedLongitude, 0.0001);
 
+    }
+    @Test
+    public void testCanGetAdvertisementDataForUrlBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        BeaconManager.setDebug(true);
+        Beacon beacon = new Beacon.Builder()
+                .setManufacturer(0x0118)
+                .setId1("02646576656c6f7065722e636f6d") // http://developer.com
+                .setTxPower(-59) // The measured transmitter power at one meter in dBm
+                .build();
+        BeaconParser p = new BeaconParser().
+                setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v");
+        byte[] bytes = p.getBeaconAdvertisementData(beacon);
+        assertEquals("First byte of url should be in position 3", 0x02, bytes[2]);
     }
 
 }

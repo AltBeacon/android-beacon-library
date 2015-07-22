@@ -218,5 +218,11 @@ public class IdentifierTest {
         assertEquals("Should be treated as hex because it is long", "0x2fffffffffffffffffff", id.toString());
         assertEquals("Byte count should be as specified", 10, id.getByteCount());
     }
+    @Test
+    public void testParseZeroAsInteger() {
+        Identifier id = Identifier.parse("0");
+        assertEquals("Should be treated as int because it is a common integer", "0", id.toString());
+        assertEquals("Byte count should be 2 for integers", 2, id.getByteCount());
+    }
 
 }

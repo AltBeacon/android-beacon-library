@@ -8,15 +8,27 @@ layout: android-beacon-library
 Binary distributions are provided in two formats.  The aar format is recommended for users of Gradle and Android Studio.  The .tar.gz format is recommended for Eclipse developers.
 See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
-####Latest Stable Release 2.3.3
+####Latest Stable Release 2.5.1
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.5.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.5.1/android-beacon-library-2.5.1.aar)
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.5.1.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.5.1/android-beacon-library-2.5.1.tar.gz)
+
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.5.1)
+
+####Archived Releases
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.4.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.4.1/android-beacon-library-2.4.1.aar)
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.4.1.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.4.1/android-beacon-library-2.4.1.tar.gz)
+
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.4.1)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.3.3.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.3.3/android-beacon-library-2.3.3.aar)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.3.3.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.3.3/android-beacon-library-2.3.3.tar.gz)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.3.3)
-
-####Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.3.2.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.3.2/android-beacon-library-2.3.2.aar)
 

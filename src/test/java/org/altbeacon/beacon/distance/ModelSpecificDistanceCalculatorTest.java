@@ -59,6 +59,12 @@ public class ModelSpecificDistanceCalculatorTest {
 		final Context applicationContext = ShadowApplication.getInstance().getApplicationContext();
 
 		final AndroidModel model = new AndroidModel("4.4.2", "KOT49H", "Nexus 4", "LGE");
+		final String modelMapJson =
+				"{\"models\":[ \"coefficient1\": 0.89976,\"coefficient2\": 7.7095,\"coefficient3\": 0.111," +
+				"\"version\":\"4.4.2\",\"build_number\":\"KOT49H\",\"model\":\"Nexus 4\"," +
+				"\"manufacturer\":\"LGE\"},{\"coefficient1\": 0.42093,\"coefficient2\": 6.9476," +
+				"\"coefficient3\": 0.54992,\"version\":\"4.4.2\",\"build_number\":\"LPV79\"," +
+				"\"model\":\"Nexus 5\",\"manufacturer\":\"LGE\",\"default\": true}]}";
 		final ModelSpecificDistanceCalculator distanceCalculator =
 				new ModelSpecificDistanceCalculator(applicationContext, null, model);
 
@@ -67,30 +73,7 @@ public class ModelSpecificDistanceCalculatorTest {
 			public void run() {
 				try {
 					while (true) {
-						distanceCalculator._buildModelMapTest("{\n" +
-															  "  \"models\":\n" +
-															  "  [\n" +
-															  "    {\n" +
-															  "      \"coefficient1\": 0.42093,\n" +
-															  "      \"coefficient2\": 6.9476,\n" +
-															  "      \"coefficient3\": 0.54992,\n" +
-															  "      \"version\":\"4.4.2\",\n" +
-															  "      \"build_number\":\"KOT49H\",\n" +
-															  "      \"model\":\"Nexus 4\",\n" +
-															  "      \"manufacturer\":\"LGE\"\n" +
-															  "    },\n" +
-															  "    {\n" +
-															  "      \"coefficient1\": 0.42093,\n" +
-															  "      \"coefficient2\": 6.9476,\n" +
-															  "      \"coefficient3\": 0.54992,\n" +
-															  "      \"version\":\"4.4.2\",\n" +
-															  "      \"build_number\":\"LPV79\",\n" +
-															  "      \"model\":\"Nexus 5\",\n" +
-															  "      \"manufacturer\":\"LGE\",\n" +
-															  "      \"default\": true\n" +
-															  "    }\n" +
-															  "  ]\n" +
-															  "}");
+						distanceCalculator.buildModelMapWithLock(modelMapJson);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -103,7 +86,7 @@ public class ModelSpecificDistanceCalculatorTest {
 
 		int i = 0;
 		while (++i < 1000 && thread2.getState() != Thread.State.TERMINATED) {
-			distanceCalculator._findCalculatorForModelTest(model);
+			distanceCalculator.findCalculatorForModelWithLock(model);
 		}
 
 		thread2.interrupt();

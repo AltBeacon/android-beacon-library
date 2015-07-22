@@ -99,11 +99,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         return mDistanceCalculator.calculateDistance(txPower, rssi);
     }
 
-    DistanceCalculator _findCalculatorForModelTest(AndroidModel model) {
-        return findCalculatorForModelWithLock(model);
-    }
-
-    private DistanceCalculator findCalculatorForModelWithLock(AndroidModel model) {
+    DistanceCalculator findCalculatorForModelWithLock(AndroidModel model) {
         mLock.lock();
         try {
             return findCalculatorForModel(model);
@@ -259,11 +255,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    void _buildModelMapTest(String jsonString) throws JSONException{
-        buildModelMapWithLock(jsonString);
-    }
-
-    private void buildModelMapWithLock(String jsonString) throws JSONException {
+    void buildModelMapWithLock(String jsonString) throws JSONException {
         mLock.lock();
         try {
             buildModelMap(jsonString);

@@ -7,7 +7,7 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 
 public class RunningAverageRssiFilterTest {
 

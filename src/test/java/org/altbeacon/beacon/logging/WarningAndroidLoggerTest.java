@@ -40,7 +40,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author Andrew Reitz
  */
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class WarningAndroidLoggerTest {
     private String tag = getClass().getName();

@@ -1,29 +1,21 @@
 package org.altbeacon.beacon;
 
-import android.annotation.TargetApi;
-import android.bluetooth.BluetoothDevice;
-import android.os.Build;
-import android.os.Parcel;
 import android.content.Context;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowApplication;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 
-import org.robolectric.annotation.Config;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
-import org.junit.runner.RunWith;
-
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 
 /**
  * Created by dyoung on 2/6/15.
@@ -107,7 +99,7 @@ public class GattBeaconTest {
     @Test
     public void testBeaconAdvertisingBytes() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = Robolectric.getShadowApplication().getApplicationContext();
+        Context context = ShadowApplication.getInstance().getApplicationContext();
 
 
         Beacon beacon = new Beacon.Builder()

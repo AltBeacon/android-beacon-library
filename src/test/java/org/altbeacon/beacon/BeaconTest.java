@@ -13,9 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.robolectric.annotation.Config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @Config(sdk = 18)
@@ -134,7 +132,7 @@ public class BeaconTest {
     public void testCalculateAccuracyWithRssiGreaterThanPower() {
         Beacon.setDistanceCalculator(new ModelSpecificDistanceCalculator(null, null));
         double accuracy = Beacon.calculateDistance(-55, -50);
-        assertTrue("Distance should be under one meter if mRssi is less negative than power.  Accuracy was "+accuracy, accuracy < 1.0);
+        assertTrue("Distance should be under one meter if mRssi is less negative than power.  Accuracy was " + accuracy, accuracy < 1.0);
     }
 
     @Test
@@ -185,6 +183,7 @@ public class BeaconTest {
         assertEquals("data field 0 is the same after deserialization", beacon.getDataFields().get(0), beacon2.getDataFields().get(0));
         assertEquals("data field 0 is the right value", beacon.getDataFields().get(0), (Long) 100l);
     }
+
     @Test
     public void noDoubleWrappingOfExtraDataFields() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -196,5 +195,13 @@ public class BeaconTest {
         assertTrue("getter should return same object after first wrap ", beacon.getExtraDataFields() == list);
     }
 
-
+    @Test
+    public void testHashCodeWithNullIdentifier() {
+        Beacon beacon = new AltBeacon.Builder()
+                .setIdentifiers(Arrays.asList(
+                        Identifier.parse("0x1234"),
+                        null))
+                .build();
+        assertTrue("hashCode() should not throw exception", beacon.hashCode() >= Integer.MIN_VALUE);
+    }
 }

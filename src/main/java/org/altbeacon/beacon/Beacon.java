@@ -25,7 +25,6 @@ package org.altbeacon.beacon;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import org.altbeacon.beacon.client.BeaconDataFactory;
 import org.altbeacon.beacon.client.NullBeaconDataFactory;
@@ -232,18 +231,9 @@ public class Beacon implements Parcelable {
      */
     protected Beacon(Beacon otherBeacon) {
         super();
-        mIdentifiers = new ArrayList<Identifier>(otherBeacon.mIdentifiers.size());
-        mDataFields = new ArrayList<Long>(otherBeacon.mDataFields.size());
-        mExtraDataFields = new ArrayList<Long>(otherBeacon.mExtraDataFields.size());
-        for (int i = 0; i < otherBeacon.mIdentifiers.size(); i++) {
-            mIdentifiers.add(otherBeacon.mIdentifiers.get(i));
-        }
-        for (int i = 0; i < otherBeacon.mDataFields.size(); i++) {
-            mDataFields.add(otherBeacon.mDataFields.get(i));
-        }
-        for (int i = 0; i < otherBeacon.mExtraDataFields.size(); i++) {
-            mExtraDataFields.add(otherBeacon.mExtraDataFields.get(i));
-        }
+        mIdentifiers = new ArrayList<>(otherBeacon.mIdentifiers);
+        mDataFields = new ArrayList<>(otherBeacon.mDataFields);
+        mExtraDataFields = new ArrayList<>(otherBeacon.mExtraDataFields);
         this.mDistance = otherBeacon.mDistance;
         this.mRunningAverageRssi = otherBeacon.mRunningAverageRssi;
         this.mRssi = otherBeacon.mRssi;
@@ -442,16 +432,7 @@ public class Beacon implements Parcelable {
      */
     @Override
     public int hashCode() {
-        StringBuilder sb = new StringBuilder();
-        int i = 1;
-        for (Identifier identifier: mIdentifiers) {
-            sb.append("id");
-            sb.append(i);
-            sb.append(": ");
-            sb.append(identifier.toString());
-            sb.append(" ");
-            i++;
-        }
+        StringBuilder sb = toStringBuilder();
         if (sHardwareEqualityEnforced) {
             sb.append(mBluetoothAddress);
         }
@@ -467,14 +448,8 @@ public class Beacon implements Parcelable {
             return false;
         }
         Beacon thatBeacon = (Beacon) that;
-        if (this.mIdentifiers.size() != thatBeacon.mIdentifiers.size()) {
+        if (!this.mIdentifiers.equals(thatBeacon.mIdentifiers)) {
             return false;
-        }
-        // all identifiers must match
-        for (int i = 0; i < this.mIdentifiers.size(); i++) {
-            if (!this.mIdentifiers.get(i).equals(thatBeacon.mIdentifiers.get(i))) {
-                return false;
-            }
         }
         return sHardwareEqualityEnforced ?
                 this.getBluetoothAddress().equals(thatBeacon.getBluetoothAddress()) :
@@ -496,7 +471,11 @@ public class Beacon implements Parcelable {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        return toStringBuilder().toString();
+    }
+
+    private StringBuilder toStringBuilder() {
+        final StringBuilder sb = new StringBuilder();
         int i = 1;
         for (Identifier identifier: mIdentifiers) {
             if (i > 1) {
@@ -508,7 +487,7 @@ public class Beacon implements Parcelable {
             sb.append(identifier == null ? "null" : identifier.toString());
             i++;
         }
-        return sb.toString();
+        return sb;
     }
 
     /**
@@ -775,6 +754,5 @@ public class Beacon implements Parcelable {
         }
 
     }
-
 
 }

@@ -145,16 +145,11 @@ public class Region implements Parcelable {
      * @return true if is covered
      */
     public boolean matchesBeacon(Beacon beacon) {
-        // all identifiers must match, or the region identifier must be null
-        for (int i = 0; i < this.mIdentifiers.size(); i++) {
-            if (beacon.getIdentifiers().size() <= i && mIdentifiers.get(i) == null) {
-                // If the beacon has fewer identifiers than the region, but the region's
-                // corresponding identifier is null, consider it a match
-            }
-            else {
-                if (mIdentifiers.get(i) != null && !mIdentifiers.get(i).equals(beacon.mIdentifiers.get(i))) {
-                    return false;
-                }
+        // All identifiers must match, or the corresponding region identifier must be null.
+        for (int i = mIdentifiers.size(); --i >= 0; ) {
+            final Identifier ident = mIdentifiers.get(i);
+            if (ident != null && !ident.equals(beacon.mIdentifiers.get(i))) {
+                return false;
             }
         }
         return true;

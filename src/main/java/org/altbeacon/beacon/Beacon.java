@@ -432,7 +432,7 @@ public class Beacon implements Parcelable {
      */
     @Override
     public int hashCode() {
-        StringBuilder sb = toStringBuilder(new StringBuilder());
+        StringBuilder sb = toStringBuilder();
         if (sHardwareEqualityEnforced) {
             sb.append(mBluetoothAddress);
         }
@@ -471,10 +471,11 @@ public class Beacon implements Parcelable {
      */
     @Override
     public String toString() {
-        return toStringBuilder(new StringBuilder()).toString();
+        return toStringBuilder().toString();
     }
 
-    private StringBuilder toStringBuilder(StringBuilder sb) {
+    private StringBuilder toStringBuilder() {
+        final StringBuilder sb = new StringBuilder();
         int i = 1;
         for (Identifier identifier: mIdentifiers) {
             if (i > 1) {

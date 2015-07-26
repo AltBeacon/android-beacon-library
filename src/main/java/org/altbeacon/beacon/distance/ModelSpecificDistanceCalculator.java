@@ -55,6 +55,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private String mRemoteUpdateUrlString = null;
     private Context mContext;
     private ReentrantLock mLock = new ReentrantLock();
+    private static String sCalculatorClassName = CurveFittedDistanceCalculator.class.getName();
 
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device calling
@@ -62,6 +63,14 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
      */
     public ModelSpecificDistanceCalculator(Context context, String remoteUpdateUrlString) {
         this(context, remoteUpdateUrlString, AndroidModel.forThisDevice());
+    }
+
+    /**
+     * Configures the distnace calculator to be used
+     * @param className
+     */
+    public static void setDistanceCalculatorClassName(String className) {
+        sCalculatorClassName = className;
     }
 
     /**
@@ -118,11 +127,11 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             return null;
         }
 
-        int highestScore = 0;
+        double highestScore = 0;
         AndroidModel bestMatchingModel = null;
         for (AndroidModel candidateModel : mModelMap.keySet()) {
-            if (candidateModel.matchScore(model) > highestScore) {
-                highestScore = candidateModel.matchScore(model);
+            if (candidateModel.matchScoreWithPartialModel(model) > highestScore) {
+                highestScore = candidateModel.matchScoreWithPartialModel(model);
                 bestMatchingModel = candidateModel;
             }
         }
@@ -274,21 +283,41 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             if (modelObject.has("default")) {
                 defaultFlag = modelObject.getBoolean("default");
             }
-            Double coefficient1 = modelObject.getDouble("coefficient1");
-            Double coefficient2 = modelObject.getDouble("coefficient2");
-            Double coefficient3 = modelObject.getDouble("coefficient3");
+
             String version = modelObject.getString("version");
             String buildNumber = modelObject.getString("build_number");
             String model = modelObject.getString("model");
             String manufacturer = modelObject.getString("manufacturer");
-
-            CurveFittedDistanceCalculator distanceCalculator =
-                    new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
-
             AndroidModel androidModel = new AndroidModel(version, buildNumber, model, manufacturer);
-            mModelMap.put(androidModel, distanceCalculator);
-            if (defaultFlag) {
-                mDefaultModel = androidModel;
+
+            DistanceCalculator distanceCalculator = null;
+            if (sCalculatorClassName.equals(CurveFittedDistanceCalculator.class.getName())) {
+                Double coefficient1 = modelObject.optDouble("coefficient1");
+                Double coefficient2 = modelObject.optDouble("coefficient2");
+                Double coefficient3 = modelObject.optDouble("coefficient3");
+
+                if (!coefficient1.isNaN() && !coefficient2.isNaN() && !coefficient3.isNaN()) {
+                    distanceCalculator =
+                            new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
+                }
+            }
+            else if (sCalculatorClassName.equals(PathLossDistanceCalculator.class.getName())) {
+                Double receiverRssiOffset = modelObject.optDouble("receiver_rssi_offset");
+                if (!receiverRssiOffset.isNaN()) {
+                    distanceCalculator =
+                            new PathLossDistanceCalculator(receiverRssiOffset);
+                }
+            }
+
+            if (distanceCalculator != null) {
+                mModelMap.put(androidModel, distanceCalculator);
+                if (defaultFlag) {
+                    mDefaultModel = androidModel;
+                }
+            }
+            else {
+                LogManager.w(TAG, "No distance calculator may be constructed for model "+androidModel+
+                                  " because data are missing for configured calculator "+sCalculatorClassName);
             }
         }
     }

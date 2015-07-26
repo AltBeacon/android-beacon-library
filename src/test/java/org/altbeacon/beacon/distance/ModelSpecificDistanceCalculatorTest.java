@@ -30,10 +30,34 @@ public class ModelSpecificDistanceCalculatorTest {
     public void testCalculatesDistance() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
 
+        ModelSpecificDistanceCalculator.setDistanceCalculatorClassName(CurveFittedDistanceCalculator.class.getName());
         ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null);
         Double distance = distanceCalculator.calculateDistance(-59, -59);
         assertEquals("Distance should be 1.0 for same power and rssi", 1.0, distance, 0.1);
     }
+
+    @Test
+    public void testCalculatesDistanceAt10MetersOnANexus5() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        AndroidModel model = new AndroidModel("5.0.0", "LPV79","Nexus 5","LGE");
+
+        ModelSpecificDistanceCalculator.setDistanceCalculatorClassName(CurveFittedDistanceCalculator.class.getName());
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
+        Double distance = distanceCalculator.calculateDistance(-45,-71);
+        assertEquals("Distance should be 10.0 ", 10.0, distance, 1.0);
+    }
+
+    @Test
+    public void testCalculatesDistanceAt10MetersOnANexus5WithPathLossFormula() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        AndroidModel model = new AndroidModel("5.0.0", "LPV79","Nexus 5","LGE");
+        ModelSpecificDistanceCalculator.setDistanceCalculatorClassName(PathLossDistanceCalculator.class.getName());
+
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
+        Double distance = distanceCalculator.calculateDistance(-45,-71);
+        assertEquals("Distance should be 10.0 ", 10.0, distance, 1.0);
+    }
+
 
     @Test
     public void testSelectsDefaultModel() {
@@ -51,6 +75,16 @@ public class ModelSpecificDistanceCalculatorTest {
         ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
         assertEquals("should be Nexus 4", "Nexus 4", distanceCalculator.getModel().getModel());
     }
+
+    @Test
+    public void testSelectsSamsungS3OnEPartialMatch() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        AndroidModel model = new AndroidModel("4.4.4.4.4", "nonsense","SCH-I536","samsung");
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
+        assertEquals("should be S3 SCH-I535", "SCH-I535", distanceCalculator.getModel().getModel());
+    }
+
+
 
 	@Test
 	public void testConcurrentModificationException() {

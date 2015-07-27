@@ -46,7 +46,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     Map<AndroidModel,DistanceCalculator> mModelMap;
-    private static final String CONFIG_FILE = "model-distance-calculations.json";
+    private static final String CONFIG_FILE = "model-distance-calculations-r2.json";
     private static final String TAG = "ModelSpecificDistanceCalculator";
     private AndroidModel mDefaultModel;
     private DistanceCalculator mDistanceCalculator;
@@ -55,7 +55,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private String mRemoteUpdateUrlString = null;
     private Context mContext;
     private ReentrantLock mLock = new ReentrantLock();
-    private static String sCalculatorClassName = CurveFittedDistanceCalculator.class.getName();
+    private static Class sCalculatorClass = CurveFittedDistanceCalculator.class;
 
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device calling
@@ -66,11 +66,11 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     }
 
     /**
-     * Configures the distnace calculator to be used
-     * @param className
+     * Configures the distance calculator to be used
+     * @param klass
      */
-    public static void setDistanceCalculatorClassName(String className) {
-        sCalculatorClassName = className;
+    public static void setDistanceCalculatorClass(Class klass) {
+        sCalculatorClass = klass;
     }
 
     /**
@@ -291,7 +291,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             AndroidModel androidModel = new AndroidModel(version, buildNumber, model, manufacturer);
 
             DistanceCalculator distanceCalculator = null;
-            if (sCalculatorClassName.equals(CurveFittedDistanceCalculator.class.getName())) {
+            if (sCalculatorClass.equals(CurveFittedDistanceCalculator.class)) {
                 Double coefficient1 = modelObject.optDouble("coefficient1");
                 Double coefficient2 = modelObject.optDouble("coefficient2");
                 Double coefficient3 = modelObject.optDouble("coefficient3");
@@ -301,7 +301,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                             new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
                 }
             }
-            else if (sCalculatorClassName.equals(PathLossDistanceCalculator.class.getName())) {
+            else if (sCalculatorClass.equals(PathLossDistanceCalculator.class)) {
                 Double receiverRssiOffset = modelObject.optDouble("receiver_rssi_offset");
                 if (!receiverRssiOffset.isNaN()) {
                     distanceCalculator =
@@ -317,7 +317,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
             else {
                 LogManager.w(TAG, "No distance calculator may be constructed for model "+androidModel+
-                                  " because data are missing for configured calculator "+sCalculatorClassName);
+                                  " because data are missing for configured calculator "+sCalculatorClass.getName());
             }
         }
     }

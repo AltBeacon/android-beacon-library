@@ -17,7 +17,7 @@ signal reflections and obstructions.
 ####Variations in time
 
 In order to reduce noise on the estimate, the library averages signal measurements over 20 seconds, throws out the top 10% and bottom 10% of measurements, and averages the rest.  It is important to understand that the distance estimates are based on the previous 20 seconds in time, so when a mobile device moves, the distance estimate will lag until the device has been stationary for 20 seconds, at which time the distance estimate will stabilize.
-The [variation in time is adjustable](distance_vs_time.md).
+The [variation in time is adjustable](distance_vs_time.html).
 
 ####Device variations
 

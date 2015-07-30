@@ -6,6 +6,7 @@ import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import org.robolectric.RobolectricTestRunner;
 
@@ -72,6 +73,35 @@ public class RegionTest {
     }
 
     @Test
+    public void testBeaconMatchesRegionWithSameBluetoothMac() {
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
+        Region region = new Region("myRegion", "1:2:3:4:5:6");
+        assertTrue("Beacon should match region with mac the same", region.matchesBeacon(beacon));
+    }
+
+    @Test
+    public void testBeaconDoesNotMatchRegionWithDiffrentBluetoothMac() {
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
+        Region region = new Region("myRegion", "1:2:3:4:5:99999");
+        assertFalse("Beacon should match region with mac the same", region.matchesBeacon(beacon));
+    }
+
+    @Test
+    public void testBeaconMatchesRegionWithSameBluetoothMacAndIdentifiers() {
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
+        ArrayList identifiers = new ArrayList<Identifier>();
+        identifiers.add(Identifier.parse("1"));
+        identifiers.add(Identifier.parse("2"));
+        identifiers.add(Identifier.parse("3"));
+        Region region = new Region("myRegion", identifiers , "1:2:3:4:5:6");
+        assertTrue("Beacon should match region with mac the same", region.matchesBeacon(beacon));
+    }
+
+
+    @Test
     public void testCanSerializeParcelable() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         Parcel parcel = Parcel.obtain();
@@ -86,6 +116,19 @@ public class RegionTest {
         assertNull("id3 is null before deserialization", region.getIdentifier(2));
         assertNull("id3 is null after deserialization", region2.getIdentifier(2));
     }
+
+    @Test
+    public void testCanSerializeParcelableWithMac() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        Parcel parcel = Parcel.obtain();
+        Region region = new Region("myRegion", "01:02:03:04:05:06");
+        region.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+        Region region2 = new Region(parcel);
+        assertEquals("Right number of identifiers after deserialization", 0, region2.mIdentifiers.size());
+        assertEquals("ac is same after deserialization", region.getBluetoothAddress(), region2.getBluetoothAddress());
+    }
+
 
     @Test
     public void testToString() {

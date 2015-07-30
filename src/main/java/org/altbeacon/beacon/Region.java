@@ -63,6 +63,7 @@ public class Region implements Parcelable {
         }
     };
     protected final List<Identifier> mIdentifiers;
+    protected final String mBluetoothAddress;
     protected final String mUniqueId;
 
     /**
@@ -78,6 +79,7 @@ public class Region implements Parcelable {
         this.mIdentifiers.add(id2);
         this.mIdentifiers.add(id3);
         this.mUniqueId = uniqueId;
+        this.mBluetoothAddress = null;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
@@ -89,8 +91,33 @@ public class Region implements Parcelable {
      * @param identifiers - list of identifiers for this region
      */
     public Region(String uniqueId, List<Identifier> identifiers) {
+       this(uniqueId, identifiers, null);
+    }
+
+    /**
+     * Constructs a new Region object to be used for Ranging or Monitoring
+     * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
+     * @param identifiers - list of identifiers for this region
+     * @param bluetoothAddress - mac address
+     */
+    public Region(String uniqueId, List<Identifier> identifiers, String bluetoothAddress) {
         this.mIdentifiers = new ArrayList<Identifier>(identifiers);
         this.mUniqueId = uniqueId;
+        this.mBluetoothAddress = normalizeMac(bluetoothAddress);
+        if (uniqueId == null) {
+            throw new NullPointerException("uniqueId may not be null");
+        }
+    }
+
+    /**
+     * Constructs a new Region object to be used for Ranging or Monitoring
+     * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
+     * @param bluetoothAddress - mac address used to match beacons
+     */
+    public Region(String uniqueId, String bluetoothAddress) {
+        this.mBluetoothAddress = normalizeMac(bluetoothAddress);
+        this.mUniqueId = uniqueId;
+        this.mIdentifiers = new ArrayList<Identifier>();
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
@@ -140,6 +167,11 @@ public class Region implements Parcelable {
     }
 
     /**
+     * Returns the mac address used to filter for beacons
+     */
+    public String getBluetoothAddress() { return mBluetoothAddress; }
+
+    /**
      * Checks to see if an Beacon object is included in the matching criteria of this Region
      * @param beacon the beacon to check to see if it is in the Region
      * @return true if is covered
@@ -151,6 +183,9 @@ public class Region implements Parcelable {
             if (ident != null && !ident.equals(beacon.mIdentifiers.get(i))) {
                 return false;
             }
+        }
+        if (mBluetoothAddress != null && !mBluetoothAddress.equals(beacon.mBluetoothAddress)) {
+            return false;
         }
         return true;
     }
@@ -190,6 +225,7 @@ public class Region implements Parcelable {
 
     public void writeToParcel(Parcel out, int flags) {
         out.writeString(mUniqueId);
+        out.writeString(mBluetoothAddress);
         out.writeInt(mIdentifiers.size());
 
         for (Identifier identifier: mIdentifiers) {
@@ -205,6 +241,7 @@ public class Region implements Parcelable {
 
     protected Region(Parcel in) {
         mUniqueId = in.readString();
+        mBluetoothAddress = in.readString();
         int size = in.readInt();
         mIdentifiers = new ArrayList<Identifier>(size);
         for (int i = 0; i < size; i++) {
@@ -218,6 +255,15 @@ public class Region implements Parcelable {
         }
     }
 
+    private String normalizeMac(String mac) {
+        if (mac == null) {
+            return null;
+        }
+        else {
+            return mac.toUpperCase();
+        }
+    }
+
     /**
      * Returns a clone of this instance.
      * @deprecated instances of this class are immutable and therefore don't have to be cloned when
@@ -227,6 +273,6 @@ public class Region implements Parcelable {
     @Override
     @Deprecated
     public Region clone() {
-        return new Region(mUniqueId, mIdentifiers);
+        return new Region(mUniqueId, mIdentifiers, mBluetoothAddress);
     }
 }

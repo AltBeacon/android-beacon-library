@@ -28,6 +28,7 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * This class represents a criteria of fields used to match beacons.
@@ -48,6 +49,7 @@ import java.util.List;
  */
 public class Region implements Parcelable {
     private static final String TAG = "Region";
+    private static final Pattern MAC_PATTERN = Pattern.compile("^[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}$");
 
     /**
      * Required to make class Parcelable
@@ -101,9 +103,10 @@ public class Region implements Parcelable {
      * @param bluetoothAddress - mac address
      */
     public Region(String uniqueId, List<Identifier> identifiers, String bluetoothAddress) {
+        validateMac(bluetoothAddress);
         this.mIdentifiers = new ArrayList<Identifier>(identifiers);
         this.mUniqueId = uniqueId;
-        this.mBluetoothAddress = normalizeMac(bluetoothAddress);
+        this.mBluetoothAddress = bluetoothAddress;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
@@ -115,7 +118,8 @@ public class Region implements Parcelable {
      * @param bluetoothAddress - mac address used to match beacons
      */
     public Region(String uniqueId, String bluetoothAddress) {
-        this.mBluetoothAddress = normalizeMac(bluetoothAddress);
+        validateMac(bluetoothAddress);
+        this.mBluetoothAddress = bluetoothAddress;
         this.mUniqueId = uniqueId;
         this.mIdentifiers = new ArrayList<Identifier>();
         if (uniqueId == null) {
@@ -184,7 +188,7 @@ public class Region implements Parcelable {
                 return false;
             }
         }
-        if (mBluetoothAddress != null && !mBluetoothAddress.equals(beacon.mBluetoothAddress)) {
+        if (mBluetoothAddress != null && !mBluetoothAddress.equalsIgnoreCase(beacon.mBluetoothAddress)) {
             return false;
         }
         return true;
@@ -255,12 +259,11 @@ public class Region implements Parcelable {
         }
     }
 
-    private String normalizeMac(String mac) {
-        if (mac == null) {
-            return null;
-        }
-        else {
-            return mac.toUpperCase();
+    private void validateMac(String mac) throws IllegalArgumentException {
+        if (mac != null) {
+            if(!MAC_PATTERN.matcher(mac).matches()) {
+                throw new IllegalArgumentException("Invalid mac address: '"+mac+"' Must be 6 hex bytes separated by colons.");
+            }
         }
     }
 

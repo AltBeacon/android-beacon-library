@@ -47,6 +47,7 @@ import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
+import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.lang.ref.WeakReference;
@@ -67,10 +68,6 @@ import java.util.concurrent.RejectedExecutionException;
 @TargetApi(5)
 public class BeaconService extends Service {
     public static final String TAG = "BeaconService";
-
-    public interface NonBeaconScannedCallbacks {
-        void onNonBeaconScanned(BluetoothDevice device, int rssi, byte[] scanRecord);
-    }
 
     private Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
     private Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
@@ -306,11 +303,11 @@ public class BeaconService extends Service {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
 
-            NonBeaconScannedCallbacks nonBeaconScannedCallbacks = beaconManager.getNonBeaconScannedCallbacks();
+            NonBeaconLeScanCallback nonBeaconLeScanCallback = beaconManager.getNonBeaconLeScanCallback();
 
             try {
-                new ScanProcessor(nonBeaconScannedCallbacks).executeOnExecutor(mExecutor,
-                                new ScanData(device, rssi, scanRecord));
+                new ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(mExecutor,
+                        new ScanData(device, rssi, scanRecord));
             }
             catch (RejectedExecutionException e) {
                 LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");
@@ -445,10 +442,10 @@ public class BeaconService extends Service {
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
         DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
 
-        private final NonBeaconScannedCallbacks mBeaconServiceRawScanCallbacks;
+        private final NonBeaconLeScanCallback mNonBeaconLeScanCallback;
 
-        public ScanProcessor(NonBeaconScannedCallbacks beaconServiceRawScanCallbacks) {
-            mBeaconServiceRawScanCallbacks = beaconServiceRawScanCallbacks;
+        public ScanProcessor(NonBeaconLeScanCallback nonBeaconLeScanCallback) {
+            mNonBeaconLeScanCallback = nonBeaconLeScanCallback;
         }
 
         @Override
@@ -468,8 +465,8 @@ public class BeaconService extends Service {
                 mDetectionTracker.recordDetection();
                 processBeaconFromScan(beacon);
             } else {
-                if (mBeaconServiceRawScanCallbacks != null) {
-                    mBeaconServiceRawScanCallbacks.onNonBeaconScanned(scanData.device, scanData.rssi, scanData.scanRecord);
+                if (mNonBeaconLeScanCallback != null) {
+                    mNonBeaconLeScanCallback.onNonBeaconLeScan(scanData.device, scanData.rssi, scanData.scanRecord);
                 }
             }
             return null;

@@ -38,6 +38,7 @@ import android.os.RemoteException;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
+import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
@@ -114,7 +115,7 @@ public class BeaconManager {
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
-    private BeaconService.NonBeaconScannedCallbacks mNonBeaconScannedCallbacks;
+    private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
 
@@ -726,12 +727,12 @@ public class BeaconManager {
         return this.dataRequestNotifier;
     }
 
-    public BeaconService.NonBeaconScannedCallbacks getNonBeaconScannedCallbacks() {
-        return mNonBeaconScannedCallbacks;
+    public NonBeaconLeScanCallback getNonBeaconLeScanCallback() {
+        return mNonBeaconLeScanCallback;
     }
 
-    public void setNonBeaconScannedCallbacks(BeaconService.NonBeaconScannedCallbacks callbacks) {
-        mNonBeaconScannedCallbacks = callbacks;
+    public void setNonBeaconLeScanCallback(NonBeaconLeScanCallback callback) {
+        mNonBeaconLeScanCallback = callback;
     }
 
     private class ConsumerInfo {

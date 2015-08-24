@@ -114,6 +114,7 @@ public class BeaconManager {
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
+    private BeaconService.NonBeaconScannedCallbacks mNonBeaconScannedCallbacks;
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
 
@@ -723,6 +724,14 @@ public class BeaconManager {
 
     protected RangeNotifier getDataRequestNotifier() {
         return this.dataRequestNotifier;
+    }
+
+    public BeaconService.NonBeaconScannedCallbacks getNonBeaconScannedCallbacks() {
+        return mNonBeaconScannedCallbacks;
+    }
+
+    public void setNonBeaconScannedCallbacks(BeaconService.NonBeaconScannedCallbacks callbacks) {
+        mNonBeaconScannedCallbacks = callbacks;
     }
 
     private class ConsumerInfo {

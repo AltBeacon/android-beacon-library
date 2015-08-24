@@ -180,6 +180,7 @@ was last updated on May 10, 2015 and is based on success/failure reports from th
 <tr><td>Sony</td><td>D5503</td><td>14.5.A.0.242</td><td>5.0.2</td><td>no</td></tr>
 <tr><td>Sony</td><td>D5803</td><td>23.1.A.0.690</td><td>5.0.2</td><td>no</td></tr>
 <tr><td>Sony</td><td>D5803</td><td>23.1.A.1.28</td><td>5.0.2</td><td>no</td></tr>
+<tr><td>Sony</td><td>D5803</td><td>23.4.A.0.546</td><td>5.1.1</td><td>no</td></tr>
 <tr><td>Sony</td><td>D6503</td><td>23.1.A.0.690</td><td>5.0.2</td><td>no</td></tr>
 <tr><td>Sony</td><td>D6563</td><td>23.1.A.0.726</td><td>5.0.2</td><td>no</td></tr>
 <tr><td>Sony</td><td>D6603</td><td>23.1.A.0.726</td><td>5.0.2</td><td>no</td></tr>

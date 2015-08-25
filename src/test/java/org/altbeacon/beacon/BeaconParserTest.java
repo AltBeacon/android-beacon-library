@@ -2,24 +2,20 @@ package org.altbeacon.beacon;
 
 import android.annotation.TargetApi;
 import android.os.Build;
-import android.os.Parcel;
 
-import static android.test.MoreAsserts.assertNotEqual;
+import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.logging.Loggers;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.logging.Loggers;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
-import org.junit.Test;
-import org.robolectric.annotation.Config;
-
-import java.util.Arrays;
 
 @Config(sdk = 18)
 
@@ -159,7 +155,7 @@ public class BeaconParserTest {
         assertEquals("id2 should be little endian", "0x0c0b0a090807", beacon.getIdentifier(1).toString());
         assertEquals("id3 should be big endian", "0x0d0e0f1011121314", beacon.getIdentifier(2).toString());
         assertEquals("txPower should be parsed", -59, beacon.getTxPower());
-        assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
+        assertEquals("manufacturer should be parsed", 0x118, beacon.getManufacturer());
     }
 
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
@@ -185,7 +181,7 @@ public class BeaconParserTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
-        assertEquals("manufacturer should be parsed", "bbaa" ,String.format("%04x", beacon.getManufacturer()));
+        assertEquals("manufacturer should be parsed", "bbaa", String.format("%04x", beacon.getManufacturer()));
     }
 
 
@@ -230,7 +226,6 @@ public class BeaconParserTest {
         assertNotNull("beacon should be parsed", beacon);
     }
 
-
     @Test
     public void testCanParseLocationBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -266,6 +261,7 @@ public class BeaconParserTest {
         assertEquals("longitude should be about right", longitude, parsedLongitude, 0.0001);
 
     }
+
     @Test
     public void testCanGetAdvertisementDataForUrlBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -281,4 +277,16 @@ public class BeaconParserTest {
         assertEquals("First byte of url should be in position 3", 0x02, bytes[2]);
     }
 
+    @Test
+    public void testCanParseLargeLongValues() {
+        LogManager.setLogger(Loggers.verboseLogger());
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02010609030318021804180f1803190002020a0609ff0e0aa000598f0001");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("x,m:0-1=0e0a,d:0-5,d:6-6,d:7-7");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
+        assertEquals("manufacturer should be parsed", 0x0a0e ,beacon.getManufacturer());
+        assertEquals("data should be parsed", Long.parseLong("0e0aa000598f", 16), (long) beacon.getDataFields().get(0));
+    }
 }

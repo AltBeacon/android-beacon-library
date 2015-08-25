@@ -797,8 +797,8 @@ public class BeaconParser {
 
 
         int length = endIndex-startIndex +1;
-        // We treat a 1-4 byte number as decimal string
-        if (length < 5) {
+        // We treat a 1-8 byte number as decimal string
+        if (length < 9) {
             long number = 0l;
             for (int i = 0; i < bytes.length; i++)  {
                 long byteValue = (long) (bytes[bytes.length - i-1] & 0xff);
@@ -809,7 +809,7 @@ public class BeaconParser {
             return Long.toString(number);
         }
 
-        // We treat a 7+ byte number as a hex string
+        // We treat a 9+ byte number as a hex string
         String hexString = bytesToHex(bytes);
 
         // And if it is a 12 byte number we add dashes to it to make it look like a standard UUID

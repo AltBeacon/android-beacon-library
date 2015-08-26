@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  */
 public class UrlBeaconUrlCompressor  {
 
-    private static final String EDDYSTONE_URL_REGEX = "^(http|https):\\/\\/(www\\.)?((?:[0-9a-z_-]+\\.?)+)(/?)([./0-9a-z_-]*)"; // Break into components
+    private static final String EDDYSTONE_URL_REGEX = "^((?i)http|https):\\/\\/((?i)www\\.)?((?:[0-9a-zA-Z_-]+\\.?)+)(/?)([./0-9a-zA-Z_-]*)"; // Break into components
     private static final int EDDYSTONE_URL_PROTOCOL_GROUP = 1;
     private static final int EDDYSTONE_URL_WWW_GROUP      = 2;
     private static final int EDDYSTONE_URL_FQDN_GROUP     = 3;
@@ -180,7 +180,8 @@ public class UrlBeaconUrlCompressor  {
                 boolean haswww = (wwwdot != null);
 
                 // Protocol.
-                String protocol = urlMatcher.group(EDDYSTONE_URL_PROTOCOL_GROUP);
+                String rawProtocol = urlMatcher.group(EDDYSTONE_URL_PROTOCOL_GROUP);
+                String protocol = rawProtocol.toLowerCase();
                 if (protocol.equalsIgnoreCase(URL_PROTOCOL_HTTP)) {
                     byteBuffer[byteBufferIndex] = (haswww ? EDDYSTONE_URL_PROTOCOL_HTTP_WWW : EDDYSTONE_URL_PROTOCOL_HTTP);
                 }
@@ -192,7 +193,8 @@ public class UrlBeaconUrlCompressor  {
                 // Fully-qualified domain name (FQDN).  This includes the hostname and any other components after the dots
                 // but BEFORE the first single slash in the URL.
                 byte[] hostnameBytes = urlMatcher.group(EDDYSTONE_URL_FQDN_GROUP).getBytes();
-                String hostname = new String(hostnameBytes);
+                String rawHostname = new String(hostnameBytes);
+                String hostname = rawHostname.toLowerCase();
                 String[] domains = hostname.split(Pattern.quote("."));
 
                 boolean consumedSlash = false;

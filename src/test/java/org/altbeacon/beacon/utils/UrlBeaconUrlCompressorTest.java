@@ -116,6 +116,51 @@ public class UrlBeaconUrlCompressorTest {
     }
 
     @Test
+    public void testCompressWithShortenedURLContainingCaps() throws MalformedURLException {
+        String testURL = "http://goo.gl/C2HC48";
+        byte[] expectedBytes = {0x02, 'g', 'o', 'o', '.', 'g', 'l', '/', 'C', '2', 'H', 'C', '4', '8'};
+        String hexBytes = bytesToHex(UrlBeaconUrlCompressor.compress(testURL));
+        assertTrue(Arrays.equals(expectedBytes, UrlBeaconUrlCompressor.compress(testURL)));
+    }
+
+    @Test
+    public void testCompressWithSchemeInCaps() throws MalformedURLException {
+        String testURL = "HTTP://goo.gl/C2HC48";
+        byte[] expectedBytes = {0x02, 'g', 'o', 'o', '.', 'g', 'l', '/', 'C', '2', 'H', 'C', '4', '8'};
+        String hexBytes = bytesToHex(UrlBeaconUrlCompressor.compress(testURL));
+        assertTrue(Arrays.equals(expectedBytes, UrlBeaconUrlCompressor.compress(testURL)));
+    }
+
+    @Test
+    public void testCompressWithDomainInCaps() throws MalformedURLException {
+        String testURL = "http://GOO.GL/C2HC48";
+        byte[] expectedBytes = {0x02, 'g', 'o', 'o', '.', 'g', 'l', '/', 'C', '2', 'H', 'C', '4', '8'};
+        String hexBytes = bytesToHex(UrlBeaconUrlCompressor.compress(testURL));
+        assertTrue(Arrays.equals(expectedBytes, UrlBeaconUrlCompressor.compress(testURL)));
+    }
+
+    @Test
+    public void testCompressHttpsAndWWWInCaps() throws MalformedURLException {
+        String testURL = "HTTPS://WWW.radiusnetworks.com";
+        byte[] expectedBytes = {0x01, 'r', 'a', 'd', 'i', 'u', 's', 'n', 'e', 't', 'w', 'o', 'r', 'k', 's', 0x07};
+        assertTrue(Arrays.equals(expectedBytes, UrlBeaconUrlCompressor.compress(testURL)));
+    }
+
+    @Test
+    public void testCompressEntireURLInCaps() throws MalformedURLException {
+        String testURL = "HTTPS://WWW.RADIUSNETWORKS.COM";
+        byte[] expectedBytes = {0x01, 'r', 'a', 'd', 'i', 'u', 's', 'n', 'e', 't', 'w', 'o', 'r', 'k', 's', 0x07};
+        assertTrue(Arrays.equals(expectedBytes, UrlBeaconUrlCompressor.compress(testURL)));
+    }
+
+    @Test
+    public void testCompressEntireURLInCapsWithPath() throws MalformedURLException {
+        String testURL = "HTTPS://WWW.RADIUSNETWORKS.COM/C2HC48";
+        byte[] expectedBytes = {0x01, 'r', 'a', 'd', 'i', 'u', 's', 'n', 'e', 't', 'w', 'o', 'r', 'k', 's', 0x00, 'C', '2', 'H', 'C', '4', '8'};
+        assertTrue(Arrays.equals(expectedBytes, UrlBeaconUrlCompressor.compress(testURL)));
+    }
+
+    @Test
     public void testDecompressWithDotCoTLD() {
         String testURL = "http://google.co";
         byte[] testBytes = {0x02, 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o'};

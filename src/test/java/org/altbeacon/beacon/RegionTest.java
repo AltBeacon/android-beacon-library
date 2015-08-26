@@ -81,6 +81,35 @@ public class RegionTest {
     }
 
     @Test
+    public void testBeaconMatchesRegionWithSameBluetoothMac() {
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("01:02:03:04:05:06").build();
+        Region region = new Region("myRegion", "01:02:03:04:05:06");
+        assertTrue("Beacon should match region with mac the same", region.matchesBeacon(beacon));
+    }
+
+    @Test
+    public void testBeaconDoesNotMatchRegionWithDiffrentBluetoothMac() {
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("01:02:03:04:05:06").build();
+        Region region = new Region("myRegion", "01:02:03:04:05:99");
+        assertFalse("Beacon should match region with mac the same", region.matchesBeacon(beacon));
+    }
+
+    @Test
+    public void testBeaconMatchesRegionWithSameBluetoothMacAndIdentifiers() {
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("01:02:03:04:05:06").build();
+        ArrayList identifiers = new ArrayList<Identifier>();
+        identifiers.add(Identifier.parse("1"));
+        identifiers.add(Identifier.parse("2"));
+        identifiers.add(Identifier.parse("3"));
+        Region region = new Region("myRegion", identifiers , "01:02:03:04:05:06");
+        assertTrue("Beacon should match region with mac the same", region.matchesBeacon(beacon));
+    }
+
+
+    @Test
     public void testCanSerializeParcelable() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         Parcel parcel = Parcel.obtain();
@@ -95,6 +124,34 @@ public class RegionTest {
         assertNull("id3 is null before deserialization", region.getIdentifier(2));
         assertNull("id3 is null after deserialization", region2.getIdentifier(2));
     }
+
+    @Test
+    public void testCanSerializeParcelableWithMac() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        Parcel parcel = Parcel.obtain();
+        Region region = new Region("myRegion", "1B:2a:03:4C:6E:9F");
+        region.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+        Region region2 = new Region(parcel);
+        assertEquals("Right number of identifiers after deserialization", 0, region2.mIdentifiers.size());
+        assertEquals("ac is same after deserialization", region.getBluetoothAddress(), region2.getBluetoothAddress());
+    }
+
+    @Test
+    public void rejectsInvalidMac() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        Parcel parcel = Parcel.obtain();
+        try {
+            Region region = new Region("myRegion", "this string is not a valid mac address!");
+            assertTrue("IllegalArgumentException should have been thrown", false);
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Error message should be as expected",
+                    "Invalid mac address: 'this string is not a valid mac address!' Must be 6 hex bytes separated by colons.",
+                    e.getMessage());
+        }
+    }
+
 
     @Test
     public void testToString() {

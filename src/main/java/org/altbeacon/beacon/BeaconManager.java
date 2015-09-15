@@ -161,12 +161,12 @@ public class BeaconManager {
      */
     public static final long DEFAULT_EXIT_PERIOD = 10000L;
 
+    private static long sExitRegionPeriod = DEFAULT_EXIT_PERIOD;
+
     private long foregroundScanPeriod = DEFAULT_FOREGROUND_SCAN_PERIOD;
     private long foregroundBetweenScanPeriod = DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
     private long backgroundScanPeriod = DEFAULT_BACKGROUND_SCAN_PERIOD;
     private long backgroundBetweenScanPeriod = DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
-
-    private static long exitRegionPeriod = DEFAULT_EXIT_PERIOD;
 
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.
@@ -219,7 +219,7 @@ public class BeaconManager {
      * @param regionExitPeriod
      */
     public static void setRegionExitPeriod(long regionExitPeriod){
-        exitRegionPeriod = regionExitPeriod;
+        sExitRegionPeriod = regionExitPeriod;
     }
     
     /**
@@ -228,7 +228,7 @@ public class BeaconManager {
      * @return exit region period in milliseconds
      */
     public static long getRegionExitPeriod(){
-        return exitRegionPeriod;
+        return sExitRegionPeriod;
     }
 
     /**

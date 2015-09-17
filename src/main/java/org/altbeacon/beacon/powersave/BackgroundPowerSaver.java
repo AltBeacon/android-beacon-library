@@ -40,7 +40,7 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
         else {
             LogManager.e(TAG, "Context is not an application instance, so we cannot use the BackgroundPowerSaver");
         }
-        beaconManager = beaconManager.getInstanceForApplication(context);
+        beaconManager = BeaconManager.getInstanceForApplication(context);
     }
 
     /**

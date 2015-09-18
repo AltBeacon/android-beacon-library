@@ -45,17 +45,17 @@ public class BeaconParser {
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)\\:?([\\-\\d]+)?");
     private static final Pattern X_PATTERN = Pattern.compile("x");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-    private static String LITTLE_ENDIAN_SUFFIX = "l";
-    private static String VARIABLE_LENGTH_SUFFIX = "v";
+    private static final String LITTLE_ENDIAN_SUFFIX = "l";
+    private static final String VARIABLE_LENGTH_SUFFIX = "v";
 
     private Long mMatchingBeaconTypeCode;
-    protected List<Integer> mIdentifierStartOffsets;
-    protected List<Integer> mIdentifierEndOffsets;
-    protected List<Boolean> mIdentifierLittleEndianFlags;
-    protected List<Integer> mDataStartOffsets;
-    protected List<Integer> mDataEndOffsets;
-    protected List<Boolean> mDataLittleEndianFlags;
-    protected List<Boolean> mIdentifierVariableLengthFlags;
+    protected final List<Integer> mIdentifierStartOffsets;
+    protected final List<Integer> mIdentifierEndOffsets;
+    protected final List<Boolean> mIdentifierLittleEndianFlags;
+    protected final List<Integer> mDataStartOffsets;
+    protected final List<Integer> mDataEndOffsets;
+    protected final List<Boolean> mDataLittleEndianFlags;
+    protected final List<Boolean> mIdentifierVariableLengthFlags;
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mServiceUuidStartOffset;

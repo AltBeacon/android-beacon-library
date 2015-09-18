@@ -9,10 +9,10 @@ import java.lang.reflect.Constructor;
 public class RangedBeacon {
 
     private static final String TAG = "RangedBeacon";
-    public static long DEFAULT_MAX_TRACKING_AGE = 5000; /* 5 Seconds */
+    public static final long DEFAULT_MAX_TRACKING_AGE = 5000; /* 5 Seconds */
     public static long maxTrackingAge = DEFAULT_MAX_TRACKING_AGE; /* 5 Seconds */
     //kept here for backward compatibility
-    public static long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
+    public static final long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
     private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
     private boolean mTracked = true;
     protected long lastTrackedTimeMillis = 0;

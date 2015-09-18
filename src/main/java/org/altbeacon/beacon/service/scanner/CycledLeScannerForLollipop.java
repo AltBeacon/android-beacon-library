@@ -26,7 +26,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private long mBackgroundLScanStartTime = 0l;
     private long mBackgroundLScanFirstDetectionTime = 0l;
     private boolean mScanDeferredBefore = false;
-    private BeaconManager mBeaconManager;
+    private final BeaconManager mBeaconManager;
 
     public CycledLeScannerForLollipop(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);

@@ -30,7 +30,7 @@ public class MonitorState {
     private static final String TAG = "MonitorState";
     private boolean inside = false;
     private long lastSeenTime = 0l;
-    private Callback callback;
+    private final Callback callback;
 
     public MonitorState(Callback c) {
         callback = c;

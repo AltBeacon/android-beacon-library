@@ -54,7 +54,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private AndroidModel mRequestedModel;
     private String mRemoteUpdateUrlString = null;
     private Context mContext;
-    private ReentrantLock mLock = new ReentrantLock();
+    private final ReentrantLock mLock = new ReentrantLock();
 
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device calling

@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
@@ -113,7 +114,7 @@ public class BeaconManager {
     protected MonitorNotifier monitorNotifier = null;
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
-    private final ArrayList<BeaconParser> beaconParsers = new ArrayList<BeaconParser>();
+    private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
 
@@ -252,15 +253,11 @@ public class BeaconManager {
    }
 
    /**
-     * Gets a list of the active beaconParsers.  This list may only be modified before any consumers
-     * are bound to the beacon service
+     * Gets a list of the active beaconParsers.
      *
      * @return list of active BeaconParsers
      */
     public List<BeaconParser> getBeaconParsers() {
-        if (isAnyConsumerBound()) {
-            return Collections.unmodifiableList(beaconParsers);
-        }
         return beaconParsers;
     }
 

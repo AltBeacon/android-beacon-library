@@ -33,7 +33,7 @@ import java.util.Map;
 
 public class RangeState {
     private static final String TAG = "RangeState";
-    private Callback mCallback;
+    private final Callback mCallback;
     private Map<Beacon,RangedBeacon> mRangedBeacons = new HashMap<Beacon,RangedBeacon>();
     private static boolean UseTrackingCache = false;
 

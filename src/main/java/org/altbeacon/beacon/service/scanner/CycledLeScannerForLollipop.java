@@ -1,6 +1,7 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
+import android.app.usage.UsageStatsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
@@ -8,6 +9,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.os.Build;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -85,6 +87,17 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
            operating system versions.
      */
     protected boolean deferScanIfNeeded() {
+        try {
+            @SuppressWarnings("ResourceType") final UsageStatsManager usageStatsManager=(UsageStatsManager)mContext.getSystemService("usagestats");// Context.USAGE_STATS_SERVICE);
+            if (Build.VERSION.SDK_INT >=  23) {
+                LogManager.d(TAG, "isAppInactive: "+usageStatsManager.isAppInactive("org.altbeacon.beaconreference"));
+
+            }
+        }
+        catch (Exception e) {
+            LogManager.d(TAG, "Can't get UsageStatsManager", e);
+        }
+
         // This method is called to see if it is time to start a scan
         long millisecondsUntilStart = mNextScanCycleStartTime - System.currentTimeMillis();
         if (millisecondsUntilStart > 0) {
@@ -105,6 +118,8 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                         // if we see one of those beacons, we need to deliver the results
                         startScan();
                     } else {
+                        // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
+                        // This API is now available in Android M
                         LogManager.d(TAG, "This is Android L, but we last saw a beacon only %s "
                                 + "ago, so we will not keep scanning in background.",
                                 secsSinceLastDetection);

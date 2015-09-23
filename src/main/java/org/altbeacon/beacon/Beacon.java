@@ -572,7 +572,7 @@ public class Beacon implements Parcelable {
      * </pre>
      */
     public static class Builder {
-        protected Beacon mBeacon;
+        protected final Beacon mBeacon;
         private Identifier mId1, mId2, mId3;
 
         /**

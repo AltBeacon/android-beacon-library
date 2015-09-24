@@ -31,7 +31,7 @@ beaconManager.getBeaconParsers().add(new BeaconParser().
     setBeaconLayout("x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15"));
 // Detect the URL frame:
 beaconManager.getBeaconParsers().add(new BeaconParser().
-    setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20"));
+    setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v"));
 ```
 
 ### Getting Notified When Beacons Appear in the Area
@@ -173,7 +173,7 @@ public class MyActivity extends Activity implements BeaconConsumer, RangeNotifie
         mBeaconManager = BeaconManager.getInstanceForApplication(this.getApplicationContext());
         // Detect the URL frame:
         mBeaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20"));
+                setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v"));
         mBeaconManager.bind(this);
     }
 

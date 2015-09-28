@@ -69,17 +69,17 @@ import java.util.concurrent.RejectedExecutionException;
 public class BeaconService extends Service {
     public static final String TAG = "BeaconService";
 
-    private Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
-    private Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
+    private final Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
+    private final Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
     int trackedBeaconsPacketCount;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private int bindCount = 0;
     private BluetoothCrashResolver bluetoothCrashResolver;
     private DistanceCalculator defaultDistanceCalculator = null;
     private List<BeaconParser> beaconParsers;
     private CycledLeScanner mCycledScanner;
     private boolean mBackgroundFlag = false;
-    private GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
+    private final GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
     private ExecutorService mExecutor;
 
     /*
@@ -296,7 +296,7 @@ public class BeaconService extends Service {
         mCycledScanner.setScanPeriods(scanPeriod, betweenScanPeriod, backgroundFlag);
     }
 
-    protected CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+    protected final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -435,7 +435,7 @@ public class BeaconService extends Service {
     }
 
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
-        DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
+        final DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
 
         @Override
         protected Void doInBackground(ScanData... params) {

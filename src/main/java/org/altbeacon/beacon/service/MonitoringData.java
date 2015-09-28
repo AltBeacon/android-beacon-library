@@ -31,8 +31,8 @@ import android.os.Parcelable;
 public class MonitoringData implements Parcelable {
     @SuppressWarnings("unused")
     private static final String TAG = "MonitoringData";
-    private boolean inside;
-    private Region region;
+    private final boolean inside;
+    private final Region region;
 
     public MonitoringData (boolean inside, Region region) {
         this.inside = inside;

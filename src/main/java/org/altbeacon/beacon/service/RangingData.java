@@ -36,8 +36,8 @@ import android.os.Parcelable;
 
 public class RangingData implements Parcelable {
     private static final String TAG = "RangingData";
-    private Collection<Beacon> beacons;
-    private Region region;
+    private final Collection<Beacon> beacons;
+    private final Region region;
 
     public RangingData (Collection<Beacon> beacons, Region region) {
         synchronized (beacons) {

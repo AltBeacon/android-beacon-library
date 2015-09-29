@@ -6,6 +6,11 @@ layout: android-beacon-library
 
 A minimalist [reference application](https://github.com/AltBeacon/android-beacon-library-reference) for the Open Source Library is available on GitHub that demonstrates basic ranging and monitoring.  It is based on the examples below.
 
+## Requesting Permission
+
+If targeting Android SDK 23+ (Marshmallow) tour app must also [request permission](/requesting_permission.html) from the user to get location access.  Follow
+the link to see the code you need to add to your activity to get this permission.
+
 ## Monitoring Example Code
 
 ```java
@@ -219,4 +224,7 @@ public class MyApplication extends Application implements BootstrapNotifier {
     }
 }
 
+## Eddystone Examples
+
+You can see examples of using Eddystone beacons [here](/eddystone-how-to.html).
 ```

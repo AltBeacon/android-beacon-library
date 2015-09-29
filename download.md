@@ -8,15 +8,21 @@ layout: android-beacon-library
 Binary distributions are provided in two formats.  The aar format is recommended for users of Gradle and Android Studio.  The .tar.gz format is recommended for Eclipse developers.
 See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
-####Latest Stable Release 2.5.1
+####Latest Stable Release 2.6
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.6.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.6/android-beacon-library-2.6.aar)
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.6.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.6/android-beacon-library-2.6.tar.gz)
+
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.6)
+
+####Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.5.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.5.1/android-beacon-library-2.5.1.aar)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.5.1.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.5.1/android-beacon-library-2.5.1.tar.gz)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.5.1)
-
-####Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.4.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.4.1/android-beacon-library-2.4.1.aar)
 

@@ -8,7 +8,7 @@ A minimalist [reference application](https://github.com/AltBeacon/android-beacon
 
 ## Requesting Permission
 
-If targeting Android SDK 23+ (Marshmallow) tour app must also [request permission](/requesting_permission.html) from the user to get location access.  Follow
+**IMPORTANT:**  If targeting Android SDK 23+ (Marshmallow) your app must also [request permission](/android-beacon-library/requesting_permission.html) from the user to get location access.  Follow
 the link to see the code you need to add to your activity to get this permission.
 
 ## Monitoring Example Code
@@ -223,8 +223,8 @@ public class MyApplication extends Application implements BootstrapNotifier {
         backgroundPowerSaver = new BackgroundPowerSaver(this);
     }
 }
+```
 
 ## Eddystone Examples
 
-You can see examples of using Eddystone beacons [here](/eddystone-how-to.html).
-```
+You can see examples of using Eddystone beacons [here](/android-beacon-library/eddystone-how-to.html).

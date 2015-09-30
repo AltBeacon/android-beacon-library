@@ -72,13 +72,26 @@ public class GattBeaconTest {
                 (byte)0x00,
                 gattBeacon.getId1().toByteArray()[0]);
         assertEquals("GattBeacon identifier should have proper second to last byte",
-                (byte)0x73,
+                (byte) 0x73,
                 gattBeacon.getId1().toByteArray()[14]);
         assertEquals("GattBeacon identifier should have proper last byte",
                 (byte)0x07,
                 gattBeacon.getId1().toByteArray()[15]);
 
     }
+
+
+    @Test
+    public void testDetectsEddystoneUID() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        LogManager.setLogger(Loggers.verboseLogger());
+        LogManager.setVerboseLoggingEnabled(true);
+        byte[] bytes = hexStringToByteArray("0201060303aafe1516aafe00e700010203040506070809010203040506000000000000000000000000000000000000000000000000000000000000000000");
+        BeaconParser parser = new BeaconParser().setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT);
+        Beacon eddystoneUidBeacon = parser.fromScanData(bytes, -55, null);
+        assertNotNull("Eddystone-UID should be not null if parsed successfully", eddystoneUidBeacon);
+    }
+
 
     @Test
     public void testDetectsGattBeaconWithCnn() {

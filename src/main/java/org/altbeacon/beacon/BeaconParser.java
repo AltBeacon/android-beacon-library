@@ -434,9 +434,12 @@ public class BeaconParser {
                     }
                 } else {
                     if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s.  "
-                                        + "The bytes I see are: %s", byteArrayToString(serviceUuidBytes),
+                        LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s at offset %d and %s at offset %d.  "
+                                        + "The bytes I see are: %s",
+                                byteArrayToString(serviceUuidBytes),
+                                startByte + mServiceUuidStartOffset,
                                 byteArrayToString(typeCodeBytes),
+                                startByte + mMatchingBeaconTypeCodeStartOffset,
                                 bytesToHex(bytesToProcess));
                     }
                 }

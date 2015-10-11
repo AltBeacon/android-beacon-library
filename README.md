@@ -92,19 +92,19 @@ The following instructions are for project administrators.
 
 2. Configure your  ~/.gradle/gradle.properties with:
 
-    signing.keyId=<my key id>
-    signing.password=<my passphrase>
-    signing.secretKeyRingFile=~/.gnupg/secring.gpg
-    signingPassword=<my passphrase>
-
-    bintrayUserName=<bintray username>
-    bintrayKey=<bintray api key>
+        signing.keyId=<my key id>
+        signing.password=<my passphrase>
+        signing.secretKeyRingFile=~/.gnupg/secring.gpg
+        signingPassword=<my passphrase>
+        
+        bintrayUserName=<bintray username>
+        bintrayKey=<bintray api key>
 
 3. Run the build and upload
 
-   git tag <version>
-   git push --tags 
-   ./gradlew release -Prelease
-   ./gradlew bintrayUpload -Prelease
+        git tag <version>
+        git push --tags 
+        ./gradlew release -Prelease
+        ./gradlew bintrayUpload -Prelease
 
 4. Log in to JCenter, hit the button to publish the release, then select the Maven tab and enter your credentials to Sync to Maven

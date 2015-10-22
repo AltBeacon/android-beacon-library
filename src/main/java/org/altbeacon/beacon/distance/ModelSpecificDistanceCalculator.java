@@ -78,6 +78,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
      * as an argument
      */
     public ModelSpecificDistanceCalculator(Context context, String remoteUpdateUrlString, AndroidModel model) {
+        LogManager.i(TAG, "Constructing model distance database");
         mRequestedModel = model;
         mRemoteUpdateUrlString = remoteUpdateUrlString;
         mContext = context;
@@ -118,12 +119,12 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     }
 
     private DistanceCalculator findCalculatorForModel(AndroidModel model) {
-        LogManager.d(TAG, "Finding best distance calculator for %s, %s, %s, %s",
+        LogManager.i(TAG, "Finding best distance calculator for %s, %s, %s, %s",
                 model.getVersion(), model.getBuildNumber(), model.getModel(),
                 model.getManufacturer());
 
         if (mModelMap == null) {
-            LogManager.d(TAG, "Cannot get distance calculator because modelMap was never initialized");
+            LogManager.e(TAG, "Cannot get distance calculator because modelMap was never initialized");
             return null;
         }
 
@@ -137,7 +138,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         }
         if (bestMatchingModel != null) {
             LogManager.d(TAG, "found a match with score %s", highestScore);
-            LogManager.d(TAG, "Finding best distance calculator for %s, %s, %s, %s",
+            LogManager.i(TAG, "Using best match distance calculator for %s, %s, %s, %s",
                     bestMatchingModel.getVersion(), bestMatchingModel.getBuildNumber(),
                     bestMatchingModel.getModel(), bestMatchingModel.getManufacturer());
             mModel = bestMatchingModel;

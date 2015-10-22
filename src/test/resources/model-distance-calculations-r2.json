@@ -23,7 +23,7 @@
       "default": true
     },
     {
-      "receiver_rssi_offset": -17.25,
+      "receiver_rssi_offset": -10,
       "version":"5.1.1",
       "build_number":"LVY48C",
       "model":"Moto G",
@@ -37,10 +37,17 @@
       "manufacturer":"samsung"
     },
     {
-      "receiver_rssi_offset": -0.25,
+      "receiver_rssi_offset": -4,
       "version":"4.4.2",
       "build_number":"KOT49H",
       "model":"SCH-I535",
+      "manufacturer":"samsung"
+    },
+    {
+      "receiver_rssi_offset": -0.5,
+      "version":"5.1.1",
+      "build_number":"LMY47X.G928TUVU2COI5",
+      "model":"SM-G928T",
       "manufacturer":"samsung"
     }
 

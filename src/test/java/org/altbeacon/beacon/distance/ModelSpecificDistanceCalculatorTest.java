@@ -63,6 +63,16 @@ public class ModelSpecificDistanceCalculatorTest {
         assertEquals("Distance should be 10.0 ", 10.0, distance, 1.0);
     }
 
+    @Test
+    public void testCalculatesDistanceAt10MetersOnAGalaxyS6EdgePlusWithPathLossFormula() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        AndroidModel model = new AndroidModel("5.1.1", "LMY47X.G928TUVU2COI5","SM-G928T","samsung");
+        ModelSpecificDistanceCalculator.setDistanceCalculatorClass(PathLossDistanceCalculator.class);
+
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
+        Double distance = distanceCalculator.calculateDistance(-50,-75);
+        assertEquals("Distance should be 10.0 ", 10.0, distance, 1.0);
+    }
 
     @Test
     public void testSelectsDefaultModel() {

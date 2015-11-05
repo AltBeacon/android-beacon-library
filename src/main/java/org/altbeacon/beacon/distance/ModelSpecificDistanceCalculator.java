@@ -304,9 +304,10 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
             else if (sCalculatorClass.equals(PathLossDistanceCalculator.class)) {
                 Double receiverRssiOffset = modelObject.optDouble("receiver_rssi_offset");
-                if (!receiverRssiOffset.isNaN()) {
+                Double receiverRssiSlope = modelObject.optDouble("receiver_rssi_slope");
+                if (!receiverRssiOffset.isNaN() && !receiverRssiSlope.isNaN()) {
                     distanceCalculator =
-                            new PathLossDistanceCalculator(receiverRssiOffset);
+                            new PathLossDistanceCalculator(receiverRssiSlope, receiverRssiOffset);
                 }
             }
 

@@ -7,15 +7,16 @@ import org.altbeacon.beacon.logging.LogManager;
  * RSSI and a txPower calibration value that represents the expected RSSI for an iPhone 5 receiving
  * the signal when it is 1 meter away.
  * <p/>
- * This class uses a path loss equation with a receiverRssiOffset parameter.  The offset must
- * be supplied by the caller and is specific to the Android device being used.  See the
- * <code>ModelSpecificDistanceCalculator</code> for more information on the offset.
+ * This class uses a path loss equation with receiverRssiSlope and receiverRssiOffset parameter.
+ * The offset must be supplied by the caller and is specific to the Android device being used.
+ * See the <code>ModelSpecificDistanceCalculator</code> for more information on the offset.
  * <p/>
  * Created by dyoung on 7/26/15.
  */
 public class PathLossDistanceCalculator implements DistanceCalculator {
 
     public static final String TAG = "PathLossDistanceCalculator";
+    private double mReceiverRssiSlope;
     private double mReceiverRssiOffset;
 
     /**
@@ -23,7 +24,8 @@ public class PathLossDistanceCalculator implements DistanceCalculator {
      *
      * @param receiverRssiOffset
      */
-    public PathLossDistanceCalculator(double receiverRssiOffset) {
+    public PathLossDistanceCalculator(double receiverRssiSlope, double receiverRssiOffset) {
+        mReceiverRssiSlope = receiverRssiSlope;
         mReceiverRssiOffset = receiverRssiOffset;
     }
 
@@ -49,8 +51,11 @@ public class PathLossDistanceCalculator implements DistanceCalculator {
         if (ratio < 1.0) {
             distance = Math.pow(ratio, 10);
         } else {
-            distance = Math.pow(10.0, ((-rssi+mReceiverRssiOffset+txPower)/10*0.41));
-
+            double adjustment = +mReceiverRssiSlope*rssi+mReceiverRssiOffset;
+            double adjustedRssi = rssi-adjustment;
+            System.out.println("Adjusting rssi by "+adjustment+" when rssi is "+rssi);
+            System.out.println("Adjusted rssi is now "+adjustedRssi);
+            distance = Math.pow(10.0, ((-adjustedRssi+txPower)/10*0.35));
         }
         LogManager.d(TAG, "avg mRssi: %s distance: %s", rssi, distance);
         return distance;

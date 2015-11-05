@@ -52,16 +52,18 @@ public class ModelSpecificDistanceCalculatorTest {
         assertEquals("Distance should be 10.0 ", 10.0, distance, 1.0);
     }
 
+    /*
     @Test
-    public void testCalculatesDistanceAt10MetersOnANexus5WithPathLossFormula() {
+    public void testCalculatesDistanceAt5MetersOnANexus5WithPathLossFormula() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         AndroidModel model = new AndroidModel("5.0.0", "LPV79","Nexus 5","LGE");
         ModelSpecificDistanceCalculator.setDistanceCalculatorClass(PathLossDistanceCalculator.class);
 
         ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
-        Double distance = distanceCalculator.calculateDistance(-45,-71);
-        assertEquals("Distance should be 10.0 ", 10.0, distance, 1.0);
+        Double distance = distanceCalculator.calculateDistance(-53,-64);
+        assertEquals("Distance should be 5.0 ", 5.0, distance, 1.0);
     }
+    */
 
     @Test
     public void testCalculatesDistanceAt10MetersOnAGalaxyS6EdgePlusWithPathLossFormula() {
@@ -70,8 +72,19 @@ public class ModelSpecificDistanceCalculatorTest {
         ModelSpecificDistanceCalculator.setDistanceCalculatorClass(PathLossDistanceCalculator.class);
 
         ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
-        Double distance = distanceCalculator.calculateDistance(-50,-75);
-        assertEquals("Distance should be 10.0 ", 10.0, distance, 1.0);
+        Double distance = distanceCalculator.calculateDistance(-48,-81);
+        assertEquals("Distance should be 10.0 ", 5.0, distance, 1.0);
+    }
+
+    @Test
+    public void testCalculatesDistanceAt10MetersOnAGalaxyS6EdgePlusWithPathLossFormulaAndLowPowerDot() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        AndroidModel model = new AndroidModel("5.1.1", "LMY47X.G928TUVU2COI5","SM-G928T","samsung");
+        ModelSpecificDistanceCalculator.setDistanceCalculatorClass(PathLossDistanceCalculator.class);
+
+        ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(null, null, model);
+        Double distance = distanceCalculator.calculateDistance(-56,-74);
+        assertEquals("Distance should be 2.0 ", 2.0, distance, 1.0);
     }
 
     @Test

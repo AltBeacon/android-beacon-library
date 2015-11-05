@@ -166,6 +166,7 @@ public class BeaconTest {
         Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
                 .setBeaconTypeCode(5).setTxPower(6).setBluetoothName("xx")
                 .setBluetoothAddress("1:2:3:4:5:6").setDataFields(Arrays.asList(100l)).build();
+        beacon.setRunningAverageRssi(-15.0);
         beacon.writeToParcel(parcel, 0);
         parcel.setDataPosition(0);
         Beacon beacon2 = new Beacon(parcel);
@@ -182,6 +183,7 @@ public class BeaconTest {
         assertEquals("manufacturer is same after deserialization", beacon.getManufacturer(), beacon2.getManufacturer());
         assertEquals("data field 0 is the same after deserialization", beacon.getDataFields().get(0), beacon2.getDataFields().get(0));
         assertEquals("data field 0 is the right value", beacon.getDataFields().get(0), (Long) 100l);
+        assertEquals("running average rssi is the right value", beacon2.getRunningAverageRssi(), -15.0, 0.001);
     }
 
     @Test

@@ -4,11 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.RemoteException;
-import android.util.Log;
 
 import org.altbeacon.beacon.BeaconConsumer;
-import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
@@ -99,6 +98,8 @@ public class RegionBootstrap {
 
     private class InternalBeaconConsumer implements BeaconConsumer {
 
+        private Intent serviceIntent;
+
         /**
          * Method reserved for system use
          */
@@ -124,6 +125,8 @@ public class RegionBootstrap {
          */
         @Override
         public boolean bindService(Intent intent, ServiceConnection conn, int arg2) {
+            this.serviceIntent = intent;
+            application.getApplicationContext().startService(intent);
             return application.getApplicationContext().bindService(intent, conn, arg2);
         }
 
@@ -141,6 +144,7 @@ public class RegionBootstrap {
         @Override
         public void unbindService(ServiceConnection conn) {
             application.getApplicationContext().unbindService(conn);
+            application.getApplicationContext().stopService(serviceIntent);
         }
     }
 

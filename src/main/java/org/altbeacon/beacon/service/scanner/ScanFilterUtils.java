@@ -1,9 +1,14 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
+import android.bluetooth.le.ScanResult;
+import android.os.ParcelUuid;
 
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +18,9 @@ import java.util.List;
  */
 @TargetApi(21)
 public class ScanFilterUtils {
+    public static final String TAG = "ScanFilterUtils";
     class ScanFilterData {
+        public Long serviceUuid = null;
         public int manufacturer;
         public byte[] filter;
         public byte[] mask;
@@ -22,6 +29,7 @@ public class ScanFilterUtils {
     public List<ScanFilterData> createScanFilterDataForBeaconParser(BeaconParser beaconParser) {
         ArrayList<ScanFilterData> scanFilters = new ArrayList<ScanFilterData>();
         for (int manufacturer : beaconParser.getHardwareAssistManufacturers()) {
+            Long serviceUuid = beaconParser.getServiceUuid();
             long typeCode = beaconParser.getMatchingBeaconTypeCode();
             int startOffset = beaconParser.getMatchingBeaconTypeCodeStartOffset();
             int endOffset = beaconParser.getMatchingBeaconTypeCodeEndOffset();
@@ -46,6 +54,7 @@ public class ScanFilterUtils {
             sfd.manufacturer = manufacturer;
             sfd.filter = filter;
             sfd.mask = mask;
+            sfd.serviceUuid = serviceUuid;
             scanFilters.add(sfd);
 
         }
@@ -60,11 +69,30 @@ public class ScanFilterUtils {
             List<ScanFilterData> sfds = createScanFilterDataForBeaconParser(beaconParser);
             for (ScanFilterData sfd: sfds) {
                 ScanFilter.Builder builder = new ScanFilter.Builder();
-                builder.setManufacturerData((int) sfd.manufacturer, sfd.filter, sfd.mask);
+                if (sfd.serviceUuid != null) {
+                    // Use a 16 bit service UUID in a 128 bit form
+                    String serviceUuidString = String.format("0000%04X-0000-1000-8000-00805f9b34fb", sfd.serviceUuid);
+                    String serviceUuidMaskString = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF";
+                    ParcelUuid parcelUuid = ParcelUuid.fromString(serviceUuidString);
+                    ParcelUuid parcelUuidMask = ParcelUuid.fromString(serviceUuidMaskString);
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "making scan filter for service: "+serviceUuidString+" "+parcelUuid);
+                        LogManager.d(TAG, "making scan filter with service mask: "+serviceUuidMaskString+" "+parcelUuidMask);
+                    }
+                    builder.setServiceUuid(parcelUuid, parcelUuidMask);
+                }
+                else {
+                    builder.setServiceUuid(null);
+                    builder.setManufacturerData((int) sfd.manufacturer, sfd.filter, sfd.mask);
+                }
                 ScanFilter scanFilter = builder.build();
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "Set up a scan filter: "+scanFilter);
+                }
                 scanFilters.add(scanFilter);
             }
         }
         return scanFilters;
     }
+
 }

@@ -3,7 +3,7 @@
  * http://www.radiusnetworks.com
  *
  * @author David G. Young
- *
+ * <p/>
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -11,9 +11,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,8 +25,11 @@ package org.altbeacon.beacon.service;
 
 
 import android.annotation.TargetApi;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
@@ -36,6 +39,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -48,6 +52,8 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
+import org.altbeacon.beacon.service.scanner.MonitoringStatus;
+import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.lang.ref.WeakReference;
@@ -61,6 +67,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
+import static android.app.PendingIntent.FLAG_ONE_SHOT;
+import static android.app.PendingIntent.getBroadcast;
+
 /**
  * @author dyoung
  */
@@ -70,10 +79,10 @@ public class BeaconService extends Service {
     public static final String TAG = "BeaconService";
 
     private final Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
-    private final Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
+    private MonitoringStatus monitoringStatus;
+
     int trackedBeaconsPacketCount;
     private final Handler handler = new Handler();
-    private int bindCount = 0;
     private BluetoothCrashResolver bluetoothCrashResolver;
     private DistanceCalculator defaultDistanceCalculator = null;
     private BeaconManager beaconManager;
@@ -178,27 +187,10 @@ public class BeaconService extends Service {
      */
     final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
-    /**
-     * When binding to the service, we return an interface to our messenger
-     * for sending messages to the service.
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
-        LogManager.i(TAG, "binding");
-        bindCount++;
-        return mMessenger.getBinder();
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        LogManager.i(TAG, "unbinding");
-        bindCount--;
-        return false;
-    }
 
     @Override
     public void onCreate() {
-        LogManager.i(TAG, "beaconService version %s is starting up", BuildConfig.VERSION_NAME );
+        LogManager.i(TAG, "beaconService version %s is starting up", BuildConfig.VERSION_NAME);
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
 
@@ -214,6 +206,7 @@ public class BeaconService extends Service {
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
+        monitoringStatus = MonitoringStatus.getInstanceForApplication(getApplicationContext());
         // Look for simulated scan data
         try {
             Class klass = Class.forName("org.altbeacon.beacon.SimulatedScanData");
@@ -226,9 +219,37 @@ public class BeaconService extends Service {
         }
     }
 
+
     @Override
-    @TargetApi(18)
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG,
+                intent == null ?
+                        "starting with null intent"
+                        :
+                        "starting with intent " + intent.toString()
+        );
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    /**
+     * When binding to the service, we return an interface to our messenger
+     * for sending messages to the service.
+     */
+    @Override
+    public IBinder onBind(Intent intent) {
+        LogManager.i(TAG, "binding");
+        return mMessenger.getBinder();
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        LogManager.i(TAG, "unbinding");
+        return false;
+    }
+
+    @Override
     public void onDestroy() {
+        LogManager.e(TAG, "onDestroy()");
         if (android.os.Build.VERSION.SDK_INT < 18) {
             LogManager.w(TAG, "Not supported prior to API 18.");
             return;
@@ -237,17 +258,37 @@ public class BeaconService extends Service {
         LogManager.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         mCycledScanner.stop();
+        monitoringStatus.stopStatusPreservationOnProcessDestruction();
+        monitoringStatus.clear();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        LogManager.d(TAG, "task removed");
+        if (Build.VERSION.RELEASE.contains("4.4.1") ||
+                Build.VERSION.RELEASE.contains("4.4.2") ||
+                Build.VERSION.RELEASE.contains("4.4.3")) {
+            AlarmManager alarmManager = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+            alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, getRestartIntent());
+            LogManager.d(TAG, "Setting a wakeup alarm to go off due to Android 4.4.2 service restarting bug.");
+        }
+    }
+
+    private PendingIntent getRestartIntent() {
+        Intent restartIntent = new Intent();
+        restartIntent.setClassName(getApplicationContext(), StartupBroadcastReceiver.class.getName());
+        return getBroadcast(getApplicationContext(), 1, restartIntent, FLAG_ONE_SHOT);
     }
 
     /**
      * methods for clients
      */
-
     public void startRangingBeaconsInRegion(Region region, Callback callback) {
         synchronized (rangedRegionState) {
             if (rangedRegionState.containsKey(region)) {
                 LogManager.i(TAG, "Already ranging that region -- will replace existing region.");
-                rangedRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
+                rangedRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal //FIXME That is not true
             }
             rangedRegionState.put(region, new RangeState(callback));
             LogManager.d(TAG, "Currently ranging %s regions.", rangedRegionState.size());
@@ -263,33 +304,23 @@ public class BeaconService extends Service {
             LogManager.d(TAG, "Currently ranging %s regions.", rangedRegionState.size());
         }
 
-        if (rangedRegionCount == 0 && monitoredRegionState.size() == 0) {
+        if (rangedRegionCount == 0 && monitoringStatus.regionsCount() == 0) {
             mCycledScanner.stop();
         }
     }
 
     public void startMonitoringBeaconsInRegion(Region region, Callback callback) {
         LogManager.d(TAG, "startMonitoring called");
-        synchronized (monitoredRegionState) {
-            if (monitoredRegionState.containsKey(region)) {
-                LogManager.i(TAG, "Already monitoring that region -- will replace existing region monitor.");
-                monitoredRegionState.remove(region); // need to remove it, otherwise the old object will be retained because they are .equal
-            }
-            monitoredRegionState.put(region, new MonitorState(callback));
-        }
-        LogManager.d(TAG, "Currently monitoring %s regions.", monitoredRegionState.size());
+        monitoringStatus.addRegion(region);
+        LogManager.d(TAG, "Currently monitoring %s regions.", monitoringStatus.regionsCount());
         mCycledScanner.start();
     }
 
     public void stopMonitoringBeaconsInRegion(Region region) {
-        int monitoredRegionCount;
         LogManager.d(TAG, "stopMonitoring called");
-        synchronized (monitoredRegionState) {
-            monitoredRegionState.remove(region);
-            monitoredRegionCount = monitoredRegionState.size();
-        }
-        LogManager.d(TAG, "Currently monitoring %s regions.", monitoredRegionState.size());
-        if (monitoredRegionCount == 0 && rangedRegionState.size() == 0) {
+        monitoringStatus.removeRegion(region);
+        LogManager.d(TAG, "Currently monitoring %s regions.", monitoringStatus.regionsCount());
+        if (monitoringStatus.regionsCount() == 0 && rangedRegionState.size() == 0) {
             mCycledScanner.stop();
         }
     }
@@ -308,15 +339,14 @@ public class BeaconService extends Service {
             try {
                 new ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(mExecutor,
                         new ScanData(device, rssi, scanRecord));
-            }
-            catch (RejectedExecutionException e) {
+            } catch (RejectedExecutionException e) {
                 LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");
             }
         }
 
         @Override
         public void onCycleEnd() {
-            processExpiredMonitors();
+            monitoringStatus.updateNewlyOutside();
             processRangeData();
             // If we want to use simulated scanning data, do it here.  This is used for testing in an emulator
             if (simulatedScanData != null) {
@@ -351,27 +381,11 @@ public class BeaconService extends Service {
     };
 
     private void processRangeData() {
-        synchronized(rangedRegionState) {
-            Iterator<Region> regionIterator = rangedRegionState.keySet().iterator();
-            while (regionIterator.hasNext()) {
-                Region region = regionIterator.next();
+        synchronized (rangedRegionState) {
+            for (Region region : rangedRegionState.keySet()) {
                 RangeState rangeState = rangedRegionState.get(region);
                 LogManager.d(TAG, "Calling ranging callback");
                 rangeState.getCallback().call(BeaconService.this, "rangingData", new RangingData(rangeState.finalizeBeacons(), region));
-            }
-        }
-    }
-
-    private void processExpiredMonitors() {
-        synchronized (monitoredRegionState) {
-            Iterator<Region> monitoredRegionIterator = monitoredRegionState.keySet().iterator();
-            while (monitoredRegionIterator.hasNext()) {
-                Region region = monitoredRegionIterator.next();
-                MonitorState state = monitoredRegionState.get(region);
-                if (state.isNewlyOutside()) {
-                    LogManager.d(TAG, "found a monitor that expired: %s", region);
-                    state.getCallback().call(BeaconService.this, "monitoringData", new MonitoringData(state.isInside(), region));
-                }
             }
         }
     }
@@ -380,7 +394,6 @@ public class BeaconService extends Service {
         if (Stats.getInstance().isEnabled()) {
             Stats.getInstance().log(beacon);
         }
-        trackedBeaconsPacketCount++;
         if (LogManager.isVerboseLoggingEnabled()) {
             LogManager.d(TAG,
                     "beacon detected : %s", beacon.toString());
@@ -394,23 +407,12 @@ public class BeaconService extends Service {
                 LogManager.d(TAG,
                         "not processing detections for GATT extra data beacon");
             }
-        }
-        else {
-            List<Region> matchedRegions = null;
-            synchronized(monitoredRegionState) {
-                matchedRegions = matchingRegions(beacon,
-                        monitoredRegionState.keySet());
-            }
-            Iterator<Region> matchedRegionIterator = matchedRegions.iterator();
-            while (matchedRegionIterator.hasNext()) {
-                Region region = matchedRegionIterator.next();
-                MonitorState state = monitoredRegionState.get(region);
-                if (state != null && state.markInside()) {
-                    state.getCallback().call(BeaconService.this, "monitoringData",
-                            new MonitoringData(state.isInside(), region));
-                }
-            }
+        } else {
 
+            monitoringStatus.updateNewlyInsideInRegionsContaining(beacon);
+
+            List<Region> matchedRegions = null;
+            Iterator<Region> matchedRegionIterator;
             LogManager.d(TAG, "looking for ranging region matches for this beacon");
             synchronized (rangedRegionState) {
                 matchedRegions = matchingRegions(beacon, rangedRegionState.keySet());
@@ -434,6 +436,7 @@ public class BeaconService extends Service {
             this.rssi = rssi;
             this.scanRecord = scanRecord;
         }
+
         int rssi;
         BluetoothDevice device;
         byte[] scanRecord;
@@ -463,6 +466,7 @@ public class BeaconService extends Service {
             }
             if (beacon != null) {
                 mDetectionTracker.recordDetection();
+                trackedBeaconsPacketCount++;
                 processBeaconFromScan(beacon);
             } else {
                 if (mNonBeaconLeScanCallback != null) {
@@ -487,20 +491,17 @@ public class BeaconService extends Service {
 
     private List<Region> matchingRegions(Beacon beacon, Collection<Region> regions) {
         List<Region> matched = new ArrayList<Region>();
-            Iterator<Region> regionIterator = regions.iterator();
-            while (regionIterator.hasNext()) {
-                Region region = regionIterator.next();
-                // Need to check if region is null in case it was removed from the collection by
-                // another thread during iteration
-                if (region != null) {
-                    if (region.matchesBeacon(beacon)) {
-                        matched.add(region);
-                    } else {
-                        LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
-                    }
+        for (Region region : regions) {
+            // Need to check if region is null in case it was removed from the collection by
+            // another thread during iteration
+            if (region != null) {
+                if (region.matchesBeacon(beacon)) {
+                    matched.add(region);
+                } else {
+                    LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
                 }
             }
-
+        }
         return matched;
     }
 }

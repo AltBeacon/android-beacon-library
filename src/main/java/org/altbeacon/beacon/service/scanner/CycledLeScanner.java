@@ -208,7 +208,7 @@ public abstract class CycledLeScanner {
         } else {
             LogManager.d(TAG, "disabling scan");
             mScanning = false;
-
+            mScanCyclerStarted = false;
             stopScan();
             mLastScanCycleEndTime = new Date().getTime();
         }

@@ -51,14 +51,14 @@ organizational identifier for both formats.  Below is an example of such a conve
 
 Google also prescribes a second technique for generating a UID out of a URL.  So you can algorithmically convert a domain
 name you own like http://www.radiusnetworks.com into a unique namespace id.   Because this technique uses a one way hashing
-algorithm, there is now way to convert the namespace id back to a URL.  You can use tools like RadBeacon Android to generate namespace identifiers from both URLs and UUIDs, and configure the field directly into the beacon.
+algorithm, there is no way to convert the namespace id back to a URL.  You can use tools like RadBeacon Android to generate namespace identifiers from both URLs and UUIDs, and configure the field directly into the beacon.
 
 ##### Instance identifier
 
 This is a six byte identifier intended to uniquely identify the beacon.  Each beacon should be configured with a different
 instance id.  Because the field is 48 bits long, there are 2^48 = 281 trillion combinations.  That's a lot of beacons.  
 
-Note that this differs from the major/minor identifier scheme used by AltBeacon and iBeacon formats, which which use
+Note that this differs from the major/minor identifier scheme used by AltBeacon and iBeacon formats, which use
 two bytes for each of these fields.   Eddystone beacons are identified by two fields (namespace and instance) whereas AltBeacon and
 iBeacon use three fields (Proximity UUID, major and minor)
 

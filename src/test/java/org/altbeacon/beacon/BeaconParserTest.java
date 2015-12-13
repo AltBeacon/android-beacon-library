@@ -290,5 +290,20 @@ public class BeaconParserTest {
         byte[] bytes = p.getBeaconAdvertisementData(beacon);
         assertEquals("First byte of url should be in position 3", 0x02, bytes[2]);
     }
+    @Test
+    public void doesNotCashWithOverflowingByteCodeComparisonOnPdu() {
+        // Test for https://github.com/AltBeacon/android-beacon-library/issues/323
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+
+        // Note that the length field below is 0x16 instead of 0x1b, indicating that the packet ends
+        // one byte before the second identifier field starts
+
+        byte[] bytes = hexStringToByteArray("02010604ffe000be");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertNull("beacon not be parsed without an exception being thrown", beacon);
+    }
 
 }

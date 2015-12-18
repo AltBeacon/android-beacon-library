@@ -8,6 +8,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.os.ParcelUuid;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -26,7 +27,8 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private long mBackgroundLScanStartTime = 0l;
     private long mBackgroundLScanFirstDetectionTime = 0l;
     private boolean mScanDeferredBefore = false;
-    private BeaconManager mBeaconManager;
+    private boolean mMainScanCycleActive = false;
+    private final BeaconManager mBeaconManager;
 
     public CycledLeScannerForLollipop(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
@@ -84,8 +86,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
            operating system versions.
      */
     protected boolean deferScanIfNeeded() {
+        // This method is called to see if it is time to start a scan
         long millisecondsUntilStart = mNextScanCycleStartTime - System.currentTimeMillis();
         if (millisecondsUntilStart > 0) {
+            mMainScanCycleActive = false;
             if (true) {
                 long secsSinceLastDetection = System.currentTimeMillis() -
                         DetectionTracker.getInstance().getLastDetectionTime();
@@ -100,9 +104,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
                         // On Android L, between scan cycles do a scan with a filter looking for any beacon
                         // if we see one of those beacons, we need to deliver the results
-                        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
                         startScan();
                     } else {
+                        // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
+                        // This API is now available in Android M
                         LogManager.d(TAG, "This is Android L, but we last saw a beacon only %s "
                                 + "ago, so we will not keep scanning in background.",
                                 secsSinceLastDetection);
@@ -154,6 +159,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 mBackgroundLScanStartTime = 0;
             }
             mScanDeferredBefore = false;
+            mMainScanCycleActive = true;
         }
         return false;
     }
@@ -163,16 +169,14 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
         ScanSettings settings;
 
-        if (mBackgroundFlag) {
-            LogManager.d(TAG, "starting scan in SCAN_MODE_LOW_POWER");
+        if (mBackgroundFlag && !mMainScanCycleActive) {
+            LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                     mBeaconManager.getBeaconParsers());
-
         } else {
-            LogManager.d(TAG, "starting scan in SCAN_MODE_LOW_LATENCY");
+            LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
-
         }
 
         try {
@@ -194,6 +198,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void finishScan() {
+        LogManager.d(TAG, "Stopping scan");
         stopScan();
         mScanningPaused = true;
     }
@@ -218,7 +223,15 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
-                    LogManager.d(TAG, "got record");
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "got record");
+                        List<ParcelUuid> uuids = scanResult.getScanRecord().getServiceUuids();
+                        if (uuids != null) {
+                            for (ParcelUuid uuid : uuids) {
+                                LogManager.d(TAG, "with service uuid: "+uuid);
+                            }
+                        }
+                    }
                     mCycledLeScanCallback.onLeScan(scanResult.getDevice(),
                             scanResult.getRssi(), scanResult.getScanRecord().getBytes());
                     if (mBackgroundLScanStartTime > 0) {

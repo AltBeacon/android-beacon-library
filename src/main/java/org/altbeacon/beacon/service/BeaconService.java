@@ -47,13 +47,13 @@ import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
+import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -69,17 +69,18 @@ import java.util.concurrent.RejectedExecutionException;
 public class BeaconService extends Service {
     public static final String TAG = "BeaconService";
 
-    private Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
-    private Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
+    private final Map<Region, RangeState> rangedRegionState = new HashMap<Region, RangeState>();
+    private final Map<Region, MonitorState> monitoredRegionState = new HashMap<Region, MonitorState>();
     int trackedBeaconsPacketCount;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private int bindCount = 0;
     private BluetoothCrashResolver bluetoothCrashResolver;
     private DistanceCalculator defaultDistanceCalculator = null;
+    private BeaconManager beaconManager;
     private List<BeaconParser> beaconParsers;
     private CycledLeScanner mCycledScanner;
     private boolean mBackgroundFlag = false;
-    private GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
+    private final GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
     private ExecutorService mExecutor;
 
     /*
@@ -203,12 +204,13 @@ public class BeaconService extends Service {
 
         // Create a private executor so we don't compete with threads used by AsyncTask
         // This uses fewer threads than the default executor so it won't hog CPU
-        mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
+        mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
 
         mCycledScanner = CycledLeScanner.createScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
-                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag,  mCycledLeScanCallback,  bluetoothCrashResolver);
+                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
 
-        beaconParsers = BeaconManager.getInstanceForApplication(getApplicationContext()).getBeaconParsers();
+        beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
+        beaconParsers = beaconManager.getBeaconParsers();
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
@@ -296,12 +298,15 @@ public class BeaconService extends Service {
         mCycledScanner.setScanPeriods(scanPeriod, betweenScanPeriod, backgroundFlag);
     }
 
-    protected CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+    protected final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+
+            NonBeaconLeScanCallback nonBeaconLeScanCallback = beaconManager.getNonBeaconLeScanCallback();
+
             try {
-                new ScanProcessor().executeOnExecutor(mExecutor,
+                new ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(mExecutor,
                         new ScanData(device, rssi, scanRecord));
             }
             catch (RejectedExecutionException e) {
@@ -435,7 +440,13 @@ public class BeaconService extends Service {
     }
 
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
-        DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
+        final DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
+
+        private final NonBeaconLeScanCallback mNonBeaconLeScanCallback;
+
+        public ScanProcessor(NonBeaconLeScanCallback nonBeaconLeScanCallback) {
+            mNonBeaconLeScanCallback = nonBeaconLeScanCallback;
+        }
 
         @Override
         protected Void doInBackground(ScanData... params) {
@@ -453,6 +464,10 @@ public class BeaconService extends Service {
             if (beacon != null) {
                 mDetectionTracker.recordDetection();
                 processBeaconFromScan(beacon);
+            } else {
+                if (mNonBeaconLeScanCallback != null) {
+                    mNonBeaconLeScanCallback.onNonBeaconLeScan(scanData.device, scanData.rssi, scanData.scanRecord);
+                }
             }
             return null;
         }

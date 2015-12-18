@@ -9,7 +9,6 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
-import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -209,7 +208,7 @@ public abstract class CycledLeScanner {
         } else {
             LogManager.d(TAG, "disabling scan");
             mScanning = false;
-
+            mScanCyclerStarted = false;
             stopScan();
             mLastScanCycleEndTime = new Date().getTime();
         }
@@ -319,7 +318,7 @@ public abstract class CycledLeScanner {
         // devices.
         long milliseconds = Long.MAX_VALUE; // 2.9 million years from now
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + milliseconds, getWakeUpOperation());
+        alarmManager.set(AlarmManager.RTC_WAKEUP, milliseconds, getWakeUpOperation());
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, getWakeUpOperation());
 
     }

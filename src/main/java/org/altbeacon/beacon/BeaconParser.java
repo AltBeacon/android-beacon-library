@@ -38,6 +38,10 @@ import java.util.regex.Pattern;
  */
 public class BeaconParser {
     private static final String TAG = "BeaconParser";
+    public static final String ALTBEACON_LAYOUT = "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25";
+    public static final String EDDYSTONE_TLM_LAYOUT = "x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15";
+    public static final String EDDYSTONE_UID_LAYOUT = "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19";
+    public static final String EDDYSTONE_URL_LAYOUT = "s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v";
     private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)([blv]*)?");
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
@@ -45,17 +49,17 @@ public class BeaconParser {
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)\\:?([\\-\\d]+)?");
     private static final Pattern X_PATTERN = Pattern.compile("x");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-    private static String LITTLE_ENDIAN_SUFFIX = "l";
-    private static String VARIABLE_LENGTH_SUFFIX = "v";
+    private static final String LITTLE_ENDIAN_SUFFIX = "l";
+    private static final String VARIABLE_LENGTH_SUFFIX = "v";
 
     private Long mMatchingBeaconTypeCode;
-    protected List<Integer> mIdentifierStartOffsets;
-    protected List<Integer> mIdentifierEndOffsets;
-    protected List<Boolean> mIdentifierLittleEndianFlags;
-    protected List<Integer> mDataStartOffsets;
-    protected List<Integer> mDataEndOffsets;
-    protected List<Boolean> mDataLittleEndianFlags;
-    protected List<Boolean> mIdentifierVariableLengthFlags;
+    protected final List<Integer> mIdentifierStartOffsets;
+    protected final List<Integer> mIdentifierEndOffsets;
+    protected final List<Boolean> mIdentifierLittleEndianFlags;
+    protected final List<Integer> mDataStartOffsets;
+    protected final List<Integer> mDataEndOffsets;
+    protected final List<Boolean> mDataLittleEndianFlags;
+    protected final List<Boolean> mIdentifierVariableLengthFlags;
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mServiceUuidStartOffset;
@@ -430,9 +434,12 @@ public class BeaconParser {
                     }
                 } else {
                     if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s.  "
-                                        + "The bytes I see are: %s", byteArrayToString(serviceUuidBytes),
+                        LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s at offset %d and %s at offset %d.  "
+                                        + "The bytes I see are: %s",
+                                byteArrayToString(serviceUuidBytes),
+                                startByte + mServiceUuidStartOffset,
                                 byteArrayToString(typeCodeBytes),
+                                startByte + mMatchingBeaconTypeCodeStartOffset,
                                 bytesToHex(bytesToProcess));
                     }
                 }

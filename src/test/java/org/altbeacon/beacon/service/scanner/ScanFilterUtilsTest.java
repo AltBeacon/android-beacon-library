@@ -1,6 +1,7 @@
 package org.altbeacon.beacon.service.scanner;
 
 
+import android.bluetooth.le.ScanFilter;
 import android.content.Context;
 
 import org.altbeacon.beacon.AltBeaconParser;
@@ -15,12 +16,15 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.mockito.Mockito;
 
 @Config(sdk = 18)
 
@@ -61,9 +65,22 @@ public class ScanFilterUtilsTest {
         ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("manufacturer should be right", 0x004c, sfd.manufacturer);
         assertEquals("mask length should be right", 2, sfd.mask.length);
-        assertArrayEquals("mask should be right", new byte[] {(byte)0xff, (byte)0xff}, sfd.mask);
-        assertArrayEquals("filter should be right", new byte[] {(byte)0x11, (byte)0x11}, sfd.filter);
+        assertArrayEquals("mask should be right", new byte[]{(byte) 0xff, (byte) 0xff}, sfd.mask);
+        assertArrayEquals("filter should be right", new byte[] {(byte)0x11, (byte) 0x11}, sfd.filter);
+        assertNull("serviceUuid should be null", sfd.serviceUuid);
     }
+    @Test
+    public void testEddystoneScanFilterData() throws Exception {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT);
+        BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
+        assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
+        ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
+        assertEquals("serviceUuid should be right", new Long(0xfeaa), sfd.serviceUuid);
+    }
+
     @Test
     public void testZeroOffsetScanFilter() throws Exception {
         org.robolectric.shadows.ShadowLog.stream = System.err;

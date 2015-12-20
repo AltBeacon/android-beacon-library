@@ -1,5 +1,6 @@
 package org.altbeacon.beacon.service.scanner;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
@@ -8,6 +9,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 
 import org.altbeacon.beacon.BeaconManager;
@@ -182,7 +184,9 @@ public abstract class CycledLeScanner {
                                         LogManager.d(TAG, "starting a new bluetooth le scan");
                                     }
                                     try {
-                                        startScan();
+                                        if (checkLocationPermission()) {
+                                            startScan();
+                                        }
                                     } catch (Exception e) {
                                         LogManager.e(e, TAG, "Internal Android exception scanning for beacons");
                                     }
@@ -341,5 +345,13 @@ public abstract class CycledLeScanner {
                 normalizedBetweenScanPeriod);
 
         return System.currentTimeMillis()+normalizedBetweenScanPeriod;
+    }
+
+    private boolean checkLocationPermission() {
+        return checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION) || checkPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    private boolean checkPermission(final String permission) {
+        return mContext.checkPermission(permission, android.os.Process.myPid(), android.os.Process.myUid()) == PackageManager.PERMISSION_GRANTED;
     }
 }

@@ -661,8 +661,11 @@ public class BeaconParser {
         }
 
         // set power
-        for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
-            advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+
+        if (this.mPowerStartOffset != null && this.mPowerEndOffset != null) {
+            for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
+                advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+            }
         }
 
         // set data fields

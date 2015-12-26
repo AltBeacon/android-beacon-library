@@ -449,6 +449,7 @@ public class BeaconParser {
                 if (LogManager.isVerboseLoggingEnabled()) {
                     LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
                             byteArrayToString(typeCodeBytes));
+                    LogManager.d(TAG, "Bytes are: %s", bytesToHex(bytesToProcess));
                 }
             }
 

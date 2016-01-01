@@ -9,6 +9,7 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconParser;
 
 /**
+ * Utility class for working beacons that include Eddystone-TLM (telemetry) information
  * Created by dyoung on 12/21/15.
  */
 public class EddystoneTelemetryAccessor {
@@ -40,7 +41,7 @@ public class EddystoneTelemetryAccessor {
      * and base64 encodes them.  This is useful for passing the telemetry to Google's backend
      * services.
      * @param beacon
-     * @return
+     * @return base64 encoded telemetry bytes
      */
     @TargetApi(Build.VERSION_CODES.FROYO)
     public String getBase64EncodedTelemetry(Beacon beacon) {

@@ -672,13 +672,13 @@ public class BeaconParser {
         // set data fields
         for (int dataFieldNum = 0; dataFieldNum < this.mDataStartOffsets.size(); dataFieldNum++) {
             long dataField = beacon.getDataFields().get(dataFieldNum);
-
-            for (int index = this.mDataStartOffsets.get(dataFieldNum); index <= this.mDataEndOffsets.get(dataFieldNum); index ++) {
+            int dataFieldLength = this.mDataEndOffsets.get(dataFieldNum) - this.mDataStartOffsets.get(dataFieldNum);
+            for (int index = 0; index <= dataFieldLength; index ++) {
                 int endianCorrectedIndex = index;
-                if (this.mDataLittleEndianFlags.get(dataFieldNum)) {
-                    endianCorrectedIndex = this.mDataEndOffsets.get(dataFieldNum) - index;
+                if (!this.mDataLittleEndianFlags.get(dataFieldNum)) {
+                    endianCorrectedIndex = dataFieldLength-index;
                 }
-                advertisingBytes[endianCorrectedIndex-2] = (byte) (dataField >> (8*(index - this.mDataStartOffsets.get(dataFieldNum))) & 0xff);
+                advertisingBytes[this.mDataStartOffsets.get(dataFieldNum)-2+endianCorrectedIndex] = (byte) (dataField >> (8*index) & 0xff);
             }
         }
         return advertisingBytes;

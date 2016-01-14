@@ -65,6 +65,7 @@ Key Gradle build targets:
     ./gradlew test # run unit tests
     ./gradlew build # development build
     ./gradlew release  # release build  
+    ./gradlew generatereleaseJavadoc -Prelease
 
 ## License
 

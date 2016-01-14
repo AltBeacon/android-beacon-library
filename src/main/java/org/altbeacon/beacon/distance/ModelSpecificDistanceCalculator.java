@@ -46,7 +46,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     Map<AndroidModel,DistanceCalculator> mModelMap;
-    private static final String CONFIG_FILE = "model-distance-calculations.json";
+    private static final String CONFIG_FILE = "model-distance-calculations-r2.json";
     private static final String TAG = "ModelSpecificDistanceCalculator";
     private AndroidModel mDefaultModel;
     private DistanceCalculator mDistanceCalculator;
@@ -54,6 +54,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private AndroidModel mRequestedModel;
     private String mRemoteUpdateUrlString = null;
     private Context mContext;
+    private static Class sCalculatorClass = CurveFittedDistanceCalculator.class;
     private final ReentrantLock mLock = new ReentrantLock();
 
     /**
@@ -65,10 +66,19 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     }
 
     /**
+     * Configures the distance calculator to be used
+     * @param klass
+     */
+    public static void setDistanceCalculatorClass(Class klass) {
+        sCalculatorClass = klass;
+    }
+
+    /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device passed
      * as an argument
      */
     public ModelSpecificDistanceCalculator(Context context, String remoteUpdateUrlString, AndroidModel model) {
+        LogManager.i(TAG, "Constructing model distance database");
         mRequestedModel = model;
         mRemoteUpdateUrlString = remoteUpdateUrlString;
         mContext = context;
@@ -109,26 +119,26 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     }
 
     private DistanceCalculator findCalculatorForModel(AndroidModel model) {
-        LogManager.d(TAG, "Finding best distance calculator for %s, %s, %s, %s",
+        LogManager.i(TAG, "Finding best distance calculator for %s, %s, %s, %s",
                 model.getVersion(), model.getBuildNumber(), model.getModel(),
                 model.getManufacturer());
 
         if (mModelMap == null) {
-            LogManager.d(TAG, "Cannot get distance calculator because modelMap was never initialized");
+            LogManager.e(TAG, "Cannot get distance calculator because modelMap was never initialized");
             return null;
         }
 
-        int highestScore = 0;
+        double highestScore = 0;
         AndroidModel bestMatchingModel = null;
         for (AndroidModel candidateModel : mModelMap.keySet()) {
-            if (candidateModel.matchScore(model) > highestScore) {
-                highestScore = candidateModel.matchScore(model);
+            if (candidateModel.matchScoreWithPartialModel(model) > highestScore) {
+                highestScore = candidateModel.matchScoreWithPartialModel(model);
                 bestMatchingModel = candidateModel;
             }
         }
         if (bestMatchingModel != null) {
             LogManager.d(TAG, "found a match with score %s", highestScore);
-            LogManager.d(TAG, "Finding best distance calculator for %s, %s, %s, %s",
+            LogManager.i(TAG, "Using best match distance calculator for %s, %s, %s, %s",
                     bestMatchingModel.getVersion(), bestMatchingModel.getBuildNumber(),
                     bestMatchingModel.getModel(), bestMatchingModel.getManufacturer());
             mModel = bestMatchingModel;
@@ -274,21 +284,42 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             if (modelObject.has("default")) {
                 defaultFlag = modelObject.getBoolean("default");
             }
-            Double coefficient1 = modelObject.getDouble("coefficient1");
-            Double coefficient2 = modelObject.getDouble("coefficient2");
-            Double coefficient3 = modelObject.getDouble("coefficient3");
+
             String version = modelObject.getString("version");
             String buildNumber = modelObject.getString("build_number");
             String model = modelObject.getString("model");
             String manufacturer = modelObject.getString("manufacturer");
-
-            CurveFittedDistanceCalculator distanceCalculator =
-                    new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
-
             AndroidModel androidModel = new AndroidModel(version, buildNumber, model, manufacturer);
-            mModelMap.put(androidModel, distanceCalculator);
-            if (defaultFlag) {
-                mDefaultModel = androidModel;
+
+            DistanceCalculator distanceCalculator = null;
+            if (sCalculatorClass.equals(CurveFittedDistanceCalculator.class)) {
+                Double coefficient1 = modelObject.optDouble("coefficient1");
+                Double coefficient2 = modelObject.optDouble("coefficient2");
+                Double coefficient3 = modelObject.optDouble("coefficient3");
+
+                if (!coefficient1.isNaN() && !coefficient2.isNaN() && !coefficient3.isNaN()) {
+                    distanceCalculator =
+                            new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
+                }
+            }
+            else if (sCalculatorClass.equals(PathLossDistanceCalculator.class)) {
+                Double receiverRssiOffset = modelObject.optDouble("receiver_rssi_offset");
+                Double receiverRssiSlope = modelObject.optDouble("receiver_rssi_slope");
+                if (!receiverRssiOffset.isNaN() && !receiverRssiSlope.isNaN()) {
+                    distanceCalculator =
+                            new PathLossDistanceCalculator(receiverRssiSlope, receiverRssiOffset);
+                }
+            }
+
+            if (distanceCalculator != null) {
+                mModelMap.put(androidModel, distanceCalculator);
+                if (defaultFlag) {
+                    mDefaultModel = androidModel;
+                }
+            }
+            else {
+                LogManager.w(TAG, "No distance calculator may be constructed for model "+androidModel+
+                                  " because data are missing for configured calculator "+sCalculatorClass.getName());
             }
         }
     }

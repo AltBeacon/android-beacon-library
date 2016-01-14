@@ -14,6 +14,7 @@ public class RangedBeacon {
     //kept here for backward compatibility
     public static final long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
     private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
+    private static long mAdvertisementCount = 0;
     private boolean mTracked = true;
     protected long lastTrackedTimeMillis = 0;
     Beacon mBeacon;
@@ -62,6 +63,10 @@ public class RangedBeacon {
     }
 
     public void addMeasurement(Integer rssi) {
+        if (mAdvertisementCount < Long.MAX_VALUE) {
+            mAdvertisementCount++;
+        }
+        mBeacon.setAdvertisementCount(mAdvertisementCount);
         // Filter out unreasonable values per
         // http://stackoverflow.com/questions/30118991/rssi-returned-by-altbeacon-library-127-messes-up-distance
         if (rssi != 127) {

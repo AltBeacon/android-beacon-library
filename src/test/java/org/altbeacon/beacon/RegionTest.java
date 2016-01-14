@@ -175,5 +175,22 @@ public class RegionTest {
         assertEquals("3", region.getId3().toString());
     }
 
+    @Test
+    public void testSingleIdentifierMatchesWildcardRegion() {
+        ArrayList<Identifier> idlist = new ArrayList<Identifier>(1);
+        idlist.add(Identifier.fromInt(123));
+
+        Beacon beacon = new Beacon.Builder()
+                .setIdentifiers(idlist)
+                .setManufacturer(0x4c)
+                .setTxPower(-59)
+                .build();
+
+        Region region = new Region("com.example.myapp.boostrapRegion", null, null, null);
+
+        assertTrue("Beacon should match region", region.matchesBeacon(beacon));
+    }
+
+
 
 }

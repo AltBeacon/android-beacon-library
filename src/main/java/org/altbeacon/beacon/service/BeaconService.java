@@ -462,6 +462,7 @@ public class BeaconService extends Service {
                 }
             }
             if (beacon != null) {
+                android.util.Log.d(TAG, "brssi, "+(new java.util.Date().getTime())+", "+scanData.rssi);
                 mDetectionTracker.recordDetection();
                 processBeaconFromScan(beacon);
             } else {

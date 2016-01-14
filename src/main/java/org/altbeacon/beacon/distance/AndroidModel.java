@@ -91,6 +91,56 @@ public class AndroidModel {
         return score;
     }
 
+    /**
+     * Calculates a qualitative match score between two different Android device models for the
+     * purposes of how likely they are to have similar Bluetooth signal level responses
+     * This algorithm takes into account partial matches of model strings, as Samsung devices
+     * commonly have different model name suffixes
+     * @param otherModel
+     * @return match quality, higher numbers are a better match
+     */
+    public double matchScoreWithPartialModel(AndroidModel otherModel) {
+        double score = 0;
+        if (this.mManufacturer.equalsIgnoreCase(otherModel.mManufacturer)) {
+            score = 1;
+        }
+        if (score == 1 ) {
+            score = 1+ratioOfMatchingPrefixCharacters(this.getModel(), otherModel.getModel());
+        }
+        LogManager.d(TAG, "Score is %s for %s compared to %s", score, toString(), otherModel);
+        return score;
+    }
+
+    /**
+     * Returns 1.0 if the string is a complete match, 0.0 if the first characters are different
+     * and 0.5 if the first halves of each string match.  Not case sensitive.
+     * @param string1
+     * @param string2
+     * @return
+     */
+    private double ratioOfMatchingPrefixCharacters(String string1, String string2) {
+        int maxLength = 0;
+        int minLength = 0;
+        int matchingChars = 0;
+        String lower1 = string1.toLowerCase();
+        String lower2 = string2.toLowerCase();
+        if (string2.length() >= string1.length()) {
+            maxLength = string2.length();
+            minLength = string1.length();
+        }
+        else {
+            maxLength = string1.length();
+            minLength = string2.length();
+        }
+
+        for (int i = 0; i < minLength; i++) {
+            if (lower1.charAt(i) == lower2.charAt(i)) {
+                matchingChars++;
+            }
+        }
+        return 1.0*matchingChars/maxLength;
+    }
+
     @Override
     public String toString() {
         return ""+mManufacturer+";"+mModel+";"+mBuildNumber+";"+mVersion;

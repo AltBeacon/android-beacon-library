@@ -127,6 +127,11 @@ public class Beacon implements Parcelable {
     protected int mBeaconTypeCode;
 
     /**
+     * A count of the number of advertisements detected
+     */
+    protected long mAdvertisementCount;
+
+    /**
      * A two byte code indicating the beacon manufacturer.  A list of registered manufacturer codes
      * may be found here:
      * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
@@ -223,6 +228,10 @@ public class Beacon implements Parcelable {
         }
         mManufacturer = in.readInt();
         mBluetoothName = in.readString();
+        // This nonsense is needed because we can't do readDouble on null values.
+        // See: http://stackoverflow.com/a/10769887/1461050
+        mRunningAverageRssi = (Double) in.readValue(Double.class.getClassLoader());
+        mAdvertisementCount = in.readLong();
     }
 
     /**
@@ -260,6 +269,18 @@ public class Beacon implements Parcelable {
     public void setRunningAverageRssi(double rssi) {
         mRunningAverageRssi = rssi;
         mDistance = null; // force calculation of accuracy and proximity next time they are requested
+    }
+
+    /**
+     * Gets the running average rssi, if available, otherwise get the latest rssi
+     */
+    public double getRunningAverageRssi() {
+        if (mRunningAverageRssi != null) {
+            return mRunningAverageRssi;
+        }
+        else {
+            return getRssi();
+        }
     }
 
     /**
@@ -365,6 +386,20 @@ public class Beacon implements Parcelable {
         else {
             return Collections.unmodifiableList(mIdentifiers);
         }
+    }
+
+    /**
+     * @see #mAdvertisementCount
+     */
+    public long getAdvertisementCount() {
+        return mAdvertisementCount;
+    }
+
+    /**
+     * @see #mAdvertisementCount
+     */
+    public void setAdvertisementCount(long advertisementCount) {
+        mAdvertisementCount = advertisementCount;
     }
 
 
@@ -526,6 +561,8 @@ public class Beacon implements Parcelable {
         }
         out.writeInt(mManufacturer);
         out.writeString(mBluetoothName);
+        out.writeValue(mRunningAverageRssi);
+        out.writeLong(mAdvertisementCount);
 
     }
 

@@ -18,7 +18,6 @@ See [configuring your project](configure.html) for more information on how to us
 
 
 ####Archived Releases
-
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.6.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.6.1/android-beacon-library-2.6.1.aar)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.6.1.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.6.1/android-beacon-library-2.6.1.tar.gz)

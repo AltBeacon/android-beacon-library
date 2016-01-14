@@ -24,6 +24,6 @@ Note that this is a subtle difference from the iOS implementation of beacons, wh
 
 When testing beacon detections after a force termination of an app, simply connect/disconnect the device to a charger to immediately be able to resume detections.
 
-It is important to note that not all means of terminating apps allows them to resume.  Terminating an app as described in case 5 above will typically allow them to resume automatically without starting them manually -- this is a limitation imposed by the operating system.   On a limited number of Android device models, users have 
+It is important to note that not all means of terminating apps allows them to resume.  Terminating an app as described in case 5 above will typically not allow them to resume automatically without starting them manually -- this is a limitation imposed by the operating system.   On a limited number of Android device models, users have 
 reported that this same restriction also applies to case 2. 
 

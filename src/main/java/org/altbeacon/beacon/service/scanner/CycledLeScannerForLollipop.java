@@ -8,6 +8,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.os.ParcelUuid;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -222,7 +223,15 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
-                    LogManager.d(TAG, "got record");
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "got record");
+                        List<ParcelUuid> uuids = scanResult.getScanRecord().getServiceUuids();
+                        if (uuids != null) {
+                            for (ParcelUuid uuid : uuids) {
+                                LogManager.d(TAG, "with service uuid: "+uuid);
+                            }
+                        }
+                    }
                     mCycledLeScanCallback.onLeScan(scanResult.getDevice(),
                             scanResult.getRssi(), scanResult.getScanRecord().getBytes());
                     if (mBackgroundLScanStartTime > 0) {

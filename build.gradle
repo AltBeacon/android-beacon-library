@@ -153,7 +153,7 @@ task release(dependsOn: 'distribution') << {
 android.libraryVariants.all { variant ->
 
     task("generate${variant.name}Javadoc", type: Javadoc) {
-        title = "$name $version API"
+        title = "Android Beacon Library $version API"
         description "Generates Javadoc for $variant.name."
         source = variant.javaCompile.source
         ext.androidJar =

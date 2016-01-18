@@ -773,6 +773,9 @@ public class BeaconParser {
 
     private boolean byteArraysMatch(byte[] array1, int offset1, byte[] array2, int offset2) {
         int minSize = array1.length > array2.length ? array2.length : array1.length;
+        if (offset1+minSize > array1.length || offset2+minSize > array2.length) {
+            return false;
+        }
         for (int i = 0; i <  minSize; i++) {
             if (array1[i+offset1] != array2[i+offset2]) {
                 return false;

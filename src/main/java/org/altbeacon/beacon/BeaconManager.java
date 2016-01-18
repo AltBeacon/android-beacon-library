@@ -603,31 +603,6 @@ public class BeaconManager {
         return packageName;
     }
 
-    private ServiceConnection beaconServiceConnection = new ServiceConnection() {
-        // Called when the connection with the service is established
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            LogManager.d(TAG, "we have a connection to the service now");
-            serviceMessenger = new Messenger(service);
-            synchronized(consumers) {
-                Iterator<Map.Entry<BeaconConsumer, ConsumerInfo>> iter = consumers.entrySet().iterator();
-                while (iter.hasNext()) {
-                    Map.Entry<BeaconConsumer, ConsumerInfo> entry = iter.next();
-
-                    if (!entry.getValue().isConnected) {
-                        entry.getKey().onBeaconServiceConnect();
-                        entry.getValue().isConnected = true;
-                    }
-                }
-            }
-        }
-
-        // Called when the connection with the service disconnects
-        public void onServiceDisconnected(ComponentName className) {
-            LogManager.e(TAG, "onServiceDisconnected");
-            serviceMessenger = null;
-        }
-    };
-
     /**
      * @return monitorNotifier
      * @see #monitorNotifier

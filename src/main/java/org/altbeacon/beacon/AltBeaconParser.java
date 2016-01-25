@@ -52,6 +52,7 @@ public class AltBeaconParser extends BeaconParser {
         // detection APIs will not be able to detect the beacon in the background.
         mHardwareAssistManufacturers = new int[]{0x0118};
         this.setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT);
+        this.mIdentifier = "altbeacon";
     }
     /**
      * Construct an AltBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,

@@ -99,6 +99,17 @@ public class BeaconParserTest {
     }
 
     @Test
+    public void testAllowsAccessToParserIdentifier() {
+        LogManager.setLogger(Loggers.verboseLogger());
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02011a1aff180112342f234454cf6d4a0fadf2f4911ba9ffa600010002c5");
+        BeaconParser parser = new BeaconParser("my_beacon_type");
+        parser.setBeaconLayout("m:2-3=1234,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertEquals("parser identifier should be accessible", "my_beacon_type", beacon.getParserIdentifier());
+    }
+
+    @Test
     public void testParsesBeaconMissingDataField() {
         LogManager.setLogger(Loggers.verboseLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;

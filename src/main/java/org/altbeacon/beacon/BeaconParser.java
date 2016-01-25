@@ -53,13 +53,13 @@ public class BeaconParser {
     private static final String VARIABLE_LENGTH_SUFFIX = "v";
 
     private Long mMatchingBeaconTypeCode;
-    protected final List<Integer> mIdentifierStartOffsets;
-    protected final List<Integer> mIdentifierEndOffsets;
-    protected final List<Boolean> mIdentifierLittleEndianFlags;
-    protected final List<Integer> mDataStartOffsets;
-    protected final List<Integer> mDataEndOffsets;
-    protected final List<Boolean> mDataLittleEndianFlags;
-    protected final List<Boolean> mIdentifierVariableLengthFlags;
+    protected final List<Integer> mIdentifierStartOffsets = new ArrayList<Integer>();
+    protected final List<Integer> mIdentifierEndOffsets = new ArrayList<Integer>();
+    protected final List<Boolean> mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
+    protected final List<Integer> mDataStartOffsets = new ArrayList<Integer>();
+    protected final List<Integer> mDataEndOffsets = new ArrayList<Integer>();
+    protected final List<Boolean> mDataLittleEndianFlags = new ArrayList<Boolean>();
+    protected final List<Boolean> mIdentifierVariableLengthFlags = new ArrayList<Boolean>();
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mServiceUuidStartOffset;
@@ -71,21 +71,22 @@ public class BeaconParser {
     protected Integer mPowerEndOffset;
     protected Integer mDBmCorrection;
     protected Integer mLayoutSize;
-    protected Boolean mAllowPduOverflow;
+    protected Boolean mAllowPduOverflow = true;
+    protected String mIdentifier;
     protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
 
     /**
      * Makes a new BeaconParser.  Should normally be immediately followed by a call to #setLayout
      */
     public BeaconParser() {
-        mIdentifierStartOffsets = new ArrayList<Integer>();
-        mIdentifierEndOffsets = new ArrayList<Integer>();
-        mDataStartOffsets = new ArrayList<Integer>();
-        mDataEndOffsets = new ArrayList<Integer>();
-        mDataLittleEndianFlags = new ArrayList<Boolean>();
-        mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
-        mIdentifierVariableLengthFlags = new ArrayList<Boolean>();
-        mAllowPduOverflow = true;
+    }
+
+    /**
+     * Makes a new BeaconParser with an identifier that can be used to identify beacons decoded with
+     * this parser
+     */
+    public BeaconParser(String identifier) {
+        mIdentifier = identifier;
     }
 
     /**
@@ -272,6 +273,15 @@ public class BeaconParser {
         }
         mLayoutSize = calculateLayoutSize();
         return this;
+    }
+
+    /**
+     * Gets an optional identifier field that may be used to identify this parser.  If set, it will
+     * be passed along to any beacons decoded with this parser.
+     * @return
+     */
+    public String getIdentifier() {
+        return mIdentifier;
     }
 
     /**
@@ -563,6 +573,7 @@ public class BeaconParser {
             beacon.mBluetoothAddress = macAddress;
             beacon.mBluetoothName= name;
             beacon.mManufacturer = manufacturer;
+            beacon.mParserIdentifier = mIdentifier;
         }
         return beacon;
     }

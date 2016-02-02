@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.os.SystemClock;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -296,7 +297,7 @@ public abstract class CycledLeScanner {
         }
 
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + milliseconds, getWakeUpOperation());
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + milliseconds, getWakeUpOperation());
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, getWakeUpOperation());
     }
 
@@ -318,7 +319,7 @@ public abstract class CycledLeScanner {
         // devices.
         long milliseconds = Long.MAX_VALUE; // 2.9 million years from now
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, milliseconds, getWakeUpOperation());
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, milliseconds, getWakeUpOperation());
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, getWakeUpOperation());
 
     }
@@ -336,7 +337,7 @@ public abstract class CycledLeScanner {
             return System.currentTimeMillis();
         }
         long fullScanCycle = mScanPeriod + mBetweenScanPeriod;
-        long normalizedBetweenScanPeriod = mBetweenScanPeriod-(System.currentTimeMillis() % fullScanCycle);
+        long normalizedBetweenScanPeriod = mBetweenScanPeriod-(SystemClock.elapsedRealtime() % fullScanCycle);
         LogManager.d(TAG, "Normalizing between scan period from %s to %s", mBetweenScanPeriod,
                 normalizedBetweenScanPeriod);
 

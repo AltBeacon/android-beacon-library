@@ -4,11 +4,10 @@ import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.SystemClock;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
-
-import java.util.Date;
 
 @TargetApi(18)
 public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
@@ -34,7 +33,7 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
 
     @Override
     protected boolean deferScanIfNeeded() {
-        long millisecondsUntilStart = mNextScanCycleStartTime - (new Date().getTime());
+        long millisecondsUntilStart = mNextScanCycleStartTime - SystemClock.elapsedRealtime();
         if (millisecondsUntilStart > 0) {
             LogManager.d(TAG, "Waiting to start next Bluetooth scan for another %s milliseconds",
                     millisecondsUntilStart);

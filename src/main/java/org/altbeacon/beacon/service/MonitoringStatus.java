@@ -1,13 +1,10 @@
-package org.altbeacon.beacon.service.scanner;/* Created by ${user} on ${month}/${year}. */
+package org.altbeacon.beacon.service;
 
 import android.content.Context;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.service.Callback;
-import org.altbeacon.beacon.service.MonitoringData;
-import org.altbeacon.beacon.service.RegionMonitoringState;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,9 +29,9 @@ public class MonitoringStatus {
     private final Map<Region, RegionMonitoringState> mRegionsStatesMap
             = new HashMap<Region, RegionMonitoringState>();
 
-    private Context context;
+    private Context mContext;
 
-    private boolean statePreservationIsOn = true;
+    private boolean mStatePreservationIsOn = true;
 
     public static MonitoringStatus getInstanceForApplication(Context context) {
         if (sInstance == null) {
@@ -48,13 +45,13 @@ public class MonitoringStatus {
     }
 
     public MonitoringStatus(Context context) {
-        this.context = context;
+        this.mContext = context;
         restoreMonitoringStatus();
     }
 
     public synchronized void addRegion(Region region) {
         if (mRegionsStatesMap.containsKey(region)) return;
-        mRegionsStatesMap.put(region, new RegionMonitoringState(new Callback(context.getPackageName())));
+        mRegionsStatesMap.put(region, new RegionMonitoringState(new Callback(mContext.getPackageName())));
         saveMonitoringStatusIfOn();
     }
 
@@ -84,7 +81,7 @@ public class MonitoringStatus {
             if (state.isNewlyOutside()) {
                 needsMonitoringStateSaving = true;
                 LogManager.d(TAG, "found a monitor that expired: %s", region);
-                state.getCallback().call(context, "monitoringData", new MonitoringData(state.isInside(), region));
+                state.getCallback().call(mContext, "monitoringData", new MonitoringData(state.isInside(), region));
             }
         }
         if (needsMonitoringStateSaving) saveMonitoringStatusIfOn();
@@ -97,7 +94,7 @@ public class MonitoringStatus {
             RegionMonitoringState state = mRegionsStatesMap.get(region);
             if (state != null && state.markInside()) {
                 needsMonitoringStateSaving = true;
-                state.getCallback().call(context, "monitoringData",
+                state.getCallback().call(mContext, "monitoringData",
                         new MonitoringData(state.isInside(), region));
             }
         }
@@ -117,12 +114,12 @@ public class MonitoringStatus {
     }
 
     private void saveMonitoringStatusIfOn() {
-        if(!statePreservationIsOn) return;
-        LogManager.e(TAG, "saveMonitoringStatusIfOn()" );
+        if(!mStatePreservationIsOn) return;
+        LogManager.d(TAG, "saveMonitoringStatusIfOn()");
         FileOutputStream outputStream = null;
         ObjectOutputStream objectOutputStream = null;
         try {
-            outputStream = context.openFileOutput(STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
+            outputStream = mContext.openFileOutput(STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(mRegionsStatesMap);
 
@@ -148,7 +145,7 @@ public class MonitoringStatus {
         FileInputStream inputStream = null;
         ObjectInputStream objectInputStream = null;
         try {
-            inputStream = context.openFileInput(STATUS_PRESERVATION_FILE_NAME);
+            inputStream = mContext.openFileInput(STATUS_PRESERVATION_FILE_NAME);
             objectInputStream = new ObjectInputStream(inputStream);
             Map<Region, RegionMonitoringState> obj = (Map<Region, RegionMonitoringState>) objectInputStream.readObject();
             mRegionsStatesMap.putAll(obj);
@@ -174,12 +171,12 @@ public class MonitoringStatus {
     }
 
     public synchronized void stopStatusPreservationOnProcessDestruction() {
-        context.deleteFile(STATUS_PRESERVATION_FILE_NAME);
-        this.statePreservationIsOn = false;
+        mContext.deleteFile(STATUS_PRESERVATION_FILE_NAME);
+        this.mStatePreservationIsOn = false;
     }
 
     public synchronized void clear() {
-        context.deleteFile(STATUS_PRESERVATION_FILE_NAME);
+        mContext.deleteFile(STATUS_PRESERVATION_FILE_NAME);
         mRegionsStatesMap.clear();
     }
 }

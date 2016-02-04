@@ -51,7 +51,6 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
-import org.altbeacon.beacon.service.scanner.MonitoringStatus;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
@@ -258,7 +257,6 @@ public class BeaconService extends Service {
         handler.removeCallbacksAndMessages(null);
         mCycledScanner.stop();
         monitoringStatus.stopStatusPreservationOnProcessDestruction();
-        monitoringStatus.clear();
     }
 
     @Override
@@ -491,14 +489,10 @@ public class BeaconService extends Service {
     private List<Region> matchingRegions(Beacon beacon, Collection<Region> regions) {
         List<Region> matched = new ArrayList<Region>();
         for (Region region : regions) {
-            // Need to check if region is null in case it was removed from the collection by
-            // another thread during iteration
-            if (region != null) {
-                if (region.matchesBeacon(beacon)) {
-                    matched.add(region);
-                } else {
-                    LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
-                }
+            if (region.matchesBeacon(beacon)) {
+                matched.add(region);
+            } else {
+                LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
             }
         }
         return matched;

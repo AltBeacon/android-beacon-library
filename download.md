@@ -13,7 +13,7 @@ See [configuring your project](configure.html) for more information on how to us
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.8-beta1.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.8-beta1/android-beacon-library-2.8-beta1.tar.gz)
 
-[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.7)
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.8-beta1)
 
 ####Latest Stable Release 2.7
 

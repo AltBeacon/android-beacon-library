@@ -23,6 +23,8 @@
  */
 package org.altbeacon.beacon.service;
 
+import android.os.SystemClock;
+
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -42,7 +44,7 @@ public class MonitorState {
 
     // returns true if it is newly inside
     public boolean markInside() {
-        lastSeenTime = System.currentTimeMillis();
+        lastSeenTime = SystemClock.elapsedRealtime();
         if (!inside) {
             inside = true;
             return true;
@@ -51,11 +53,11 @@ public class MonitorState {
     }
     public boolean isNewlyOutside() {
         if (inside) {
-            if (lastSeenTime > 0 && System.currentTimeMillis() - lastSeenTime > BeaconManager.getRegionExitPeriod()) {
+            if (lastSeenTime > 0 && SystemClock.elapsedRealtime() - lastSeenTime > BeaconManager.getRegionExitPeriod()) {
                 inside = false;
                 LogManager.d(TAG, "We are newly outside the region because the lastSeenTime of %s "
                                 + "was %s seconds ago, and that is over the expiration duration "
-                                + "of %s", lastSeenTime, System.currentTimeMillis() - lastSeenTime,
+                                + "of %s", lastSeenTime, SystemClock.elapsedRealtime() - lastSeenTime,
                         BeaconManager.getRegionExitPeriod());
                 lastSeenTime = 0l;
                 return true;

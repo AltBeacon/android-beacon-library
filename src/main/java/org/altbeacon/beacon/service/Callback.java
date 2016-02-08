@@ -30,21 +30,30 @@ import android.os.Parcelable;
 
 import org.altbeacon.beacon.logging.LogManager;
 
-public class Callback {
+import java.io.IOException;
+import java.io.Serializable;
+
+public class Callback implements Serializable {
     private static final String TAG = "Callback";
-    private Intent intent;
+    private transient Intent intent;
+    private String intentPackageName;
+
     public Callback(String intentPackageName) {
+        this.intentPackageName = intentPackageName;
+        initializeIntent();
+    }
+
+    private void initializeIntent() {
         if (intentPackageName != null) {
             intent = new Intent();
             intent.setComponent(new ComponentName(intentPackageName, "org.altbeacon.beacon.BeaconIntentProcessor"));
         }
     }
+
     public Intent getIntent() {
         return intent;
     }
-    public void setIntent(Intent intent) {
-        this.intent = intent;
-    }
+
     /**
      * Tries making the callback, first via messenger, then via intent
      *
@@ -61,5 +70,12 @@ public class Callback {
             return true;
         }
         return false;
+    }
+
+    @SuppressWarnings("unused")
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        initializeIntent();
     }
 }

@@ -26,13 +26,15 @@ package org.altbeacon.beacon.service;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
-public class MonitorState {
-    private static final String TAG = "MonitorState";
+import java.io.Serializable;
+
+public class RegionMonitoringState implements Serializable {
+    private static final String TAG = RegionMonitoringState.class.getSimpleName();
     private boolean inside = false;
     private long lastSeenTime = 0l;
     private final Callback callback;
 
-    public MonitorState(Callback c) {
+    public RegionMonitoringState(Callback c) {
         callback = c;
     }
 
@@ -49,7 +51,7 @@ public class MonitorState {
         }
         return false;
     }
-    public boolean isNewlyOutside() {
+    public boolean isNewlyOutside() { //FIXME oh my god, it changes state of object :O
         if (inside) {
             if (lastSeenTime > 0 && System.currentTimeMillis() - lastSeenTime > BeaconManager.getRegionExitPeriod()) {
                 inside = false;
@@ -63,7 +65,7 @@ public class MonitorState {
         }
         return false;
     }
-    public boolean isInside() {
+    public boolean isInside() { //FIXME it also can change state through isNewlyOutside()
         if (inside) {
             if (!isNewlyOutside()) {
                 return true;

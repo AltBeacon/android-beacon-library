@@ -157,6 +157,18 @@ public class BeaconParserTest {
         assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
     }
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    @Test
+    public void testReEncodesBeaconForEddystoneTelemetry() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("0201060303aafe1516aafe2001021203130414243405152535");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout(BeaconParser.EDDYSTONE_TLM_LAYOUT);
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
+        byte[] expectedMatch = Arrays.copyOfRange(bytes, 11, bytes.length);
+        assertEquals("beacon advertisement bytes should be the same after re-encoding", byteArrayToHexString(expectedMatch), byteArrayToHexString(regeneratedBytes));
+    }
 
     @Test
     public void testLittleEndianIdentifierParsing() {
@@ -185,7 +197,7 @@ public class BeaconParserTest {
         byte[] expectedMatch = Arrays.copyOfRange(bytes, 7, bytes.length);
         System.err.println(byteArrayToHexString(expectedMatch));
         System.err.println(byteArrayToHexString(regeneratedBytes));
-        assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
+        assertEquals("beacon advertisement bytes should be the same after re-encoding", byteArrayToHexString(expectedMatch), byteArrayToHexString(regeneratedBytes));
     }
 
 

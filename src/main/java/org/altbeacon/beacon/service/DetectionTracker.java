@@ -1,5 +1,7 @@
 package org.altbeacon.beacon.service;
 
+import android.os.SystemClock;
+
 /**
  * Created by dyoung on 1/10/15.
  */
@@ -19,6 +21,6 @@ public class DetectionTracker {
         return mLastDetectionTime;
     }
     public void recordDetection() {
-        mLastDetectionTime = System.currentTimeMillis();
+        mLastDetectionTime = SystemClock.elapsedRealtime();
     }
 }

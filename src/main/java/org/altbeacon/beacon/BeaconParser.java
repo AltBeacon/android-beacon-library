@@ -459,6 +459,7 @@ public class BeaconParser {
                 if (LogManager.isVerboseLoggingEnabled()) {
                     LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
                             byteArrayToString(typeCodeBytes));
+                    LogManager.d(TAG, "Bytes are: %s", bytesToHex(bytesToProcess));
                 }
             }
 
@@ -672,20 +673,23 @@ public class BeaconParser {
         }
 
         // set power
-        for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
-            advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+
+        if (this.mPowerStartOffset != null && this.mPowerEndOffset != null) {
+            for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
+                advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+            }
         }
 
         // set data fields
         for (int dataFieldNum = 0; dataFieldNum < this.mDataStartOffsets.size(); dataFieldNum++) {
             long dataField = beacon.getDataFields().get(dataFieldNum);
-
-            for (int index = this.mDataStartOffsets.get(dataFieldNum); index <= this.mDataEndOffsets.get(dataFieldNum); index ++) {
+            int dataFieldLength = this.mDataEndOffsets.get(dataFieldNum) - this.mDataStartOffsets.get(dataFieldNum);
+            for (int index = 0; index <= dataFieldLength; index ++) {
                 int endianCorrectedIndex = index;
-                if (this.mDataLittleEndianFlags.get(dataFieldNum)) {
-                    endianCorrectedIndex = this.mDataEndOffsets.get(dataFieldNum) - index;
+                if (!this.mDataLittleEndianFlags.get(dataFieldNum)) {
+                    endianCorrectedIndex = dataFieldLength-index;
                 }
-                advertisingBytes[endianCorrectedIndex-2] = (byte) (dataField >> (8*(index - this.mDataStartOffsets.get(dataFieldNum))) & 0xff);
+                advertisingBytes[this.mDataStartOffsets.get(dataFieldNum)-2+endianCorrectedIndex] = (byte) (dataField >> (8*index) & 0xff);
             }
         }
         return advertisingBytes;

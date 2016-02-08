@@ -1,5 +1,7 @@
 package org.altbeacon.beacon.service;
 
+import android.os.SystemClock;
+
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -66,7 +68,7 @@ public class RangedBeacon {
         // http://stackoverflow.com/questions/30118991/rssi-returned-by-altbeacon-library-127-messes-up-distance
         if (rssi != 127) {
             mTracked = true;
-            lastTrackedTimeMillis = System.currentTimeMillis();
+            lastTrackedTimeMillis = SystemClock.elapsedRealtime();
             filter.addMeasurement(rssi);
         }
     }
@@ -85,7 +87,7 @@ public class RangedBeacon {
     }
 
     public long getTrackingAge() {
-        return System.currentTimeMillis() - lastTrackedTimeMillis;
+        return SystemClock.elapsedRealtime() - lastTrackedTimeMillis;
     }
 
     public boolean isExpired() {

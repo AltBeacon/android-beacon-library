@@ -28,7 +28,9 @@ import android.os.Parcelable;
 
 import org.altbeacon.beacon.Region;
 
-public class StartRMData implements Parcelable {
+import java.io.Serializable;
+
+public class StartRMData implements Serializable, Parcelable {
     private Region region;
     private long scanPeriod;
     private long betweenScanPeriod;

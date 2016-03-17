@@ -30,17 +30,7 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
      *
      */
     public BackgroundPowerSaver(Context context, boolean countActiveActivityStrategy) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "BackgroundPowerSaver requires API 18 or higher.");
-            return;
-        }
-        if (context instanceof Application) {
-            ((Application)context).registerActivityLifecycleCallbacks(this);
-        }
-        else {
-            LogManager.e(TAG, "Context is not an application instance, so we cannot use the BackgroundPowerSaver");
-        }
-        beaconManager = BeaconManager.getInstanceForApplication(context);
+        this(context);
     }
 
     /**
@@ -50,7 +40,12 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
      * @param context
      */
     public BackgroundPowerSaver(Context context) {
-        this(context, false);
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            LogManager.w(TAG, "BackgroundPowerSaver requires API 18 or higher.");
+            return;
+        }
+        ((Application)context.getApplicationContext()).registerActivityLifecycleCallbacks(this);
+        beaconManager = BeaconManager.getInstanceForApplication(context);
     }
 
     @Override

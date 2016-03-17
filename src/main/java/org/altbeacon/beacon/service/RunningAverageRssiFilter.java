@@ -1,10 +1,11 @@
 package org.altbeacon.beacon.service;
 
+import android.os.SystemClock;
+
 import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 
 /**
@@ -23,7 +24,7 @@ public class RunningAverageRssiFilter implements RssiFilter {
     public void addMeasurement(Integer rssi) {
         Measurement measurement = new Measurement();
         measurement.rssi = rssi;
-        measurement.timestamp = new Date().getTime();
+        measurement.timestamp = SystemClock.elapsedRealtime();
         mMeasurements.add(measurement);
     }
 
@@ -55,12 +56,11 @@ public class RunningAverageRssiFilter implements RssiFilter {
     }
 
     private synchronized void refreshMeasurements() {
-        Date now = new Date();
         ArrayList<Measurement> newMeasurements = new ArrayList<Measurement>();
         Iterator<Measurement> iterator = mMeasurements.iterator();
         while (iterator.hasNext()) {
             Measurement measurement = iterator.next();
-            if (now.getTime() - measurement.timestamp < sampleExpirationMilliseconds ) {
+            if (SystemClock.elapsedRealtime() - measurement.timestamp < sampleExpirationMilliseconds ) {
                 newMeasurements.add(measurement);
             }
         }

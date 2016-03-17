@@ -73,11 +73,29 @@ public class RegionTest {
     }
 
     @Test
+    public void testBeaconMatchesRegionWithSingleNullIdentifierList() {
+        Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
+        ArrayList<Identifier> identifiers=new ArrayList<>();
+        identifiers.add(null);
+        Region region=new Region("all-beacons-region",identifiers);
+        assertTrue("Beacon should match region with first identifier null and shorter Identifier list", region.matchesBeacon(beacon));
+    }
+
+    @Test
     public void testBeaconDoesntMatchRegionWithLongerIdentifierList() {
         Beacon beacon = new Beacon.Builder().setId1("1").setId2("2").setRssi(4)
                 .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), Identifier.parse("3"));
         assertFalse("Beacon should not match region with more identifers than the beacon", region.matchesBeacon(beacon));
+    }
+
+    @Test
+    public void testBeaconDoesMatchRegionWithLongerIdentifierListWithSomeNull() {
+        Beacon beacon = new Beacon.Builder().setId1("1").setId2("2").setRssi(4)
+                .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
+        Region region = new Region("myRegion", null, null, null);
+        assertTrue("Beacon should match region with more identifers than the beacon, if the region identifiers are null", region.matchesBeacon(beacon));
     }
 
     @Test

@@ -38,6 +38,10 @@ import java.util.regex.Pattern;
  */
 public class BeaconParser {
     private static final String TAG = "BeaconParser";
+    public static final String ALTBEACON_LAYOUT = "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25";
+    public static final String EDDYSTONE_TLM_LAYOUT = "x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15";
+    public static final String EDDYSTONE_UID_LAYOUT = "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19";
+    public static final String EDDYSTONE_URL_LAYOUT = "s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v";
     private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)([blv]*)?");
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
@@ -49,13 +53,13 @@ public class BeaconParser {
     private static final String VARIABLE_LENGTH_SUFFIX = "v";
 
     private Long mMatchingBeaconTypeCode;
-    protected final List<Integer> mIdentifierStartOffsets;
-    protected final List<Integer> mIdentifierEndOffsets;
-    protected final List<Boolean> mIdentifierLittleEndianFlags;
-    protected final List<Integer> mDataStartOffsets;
-    protected final List<Integer> mDataEndOffsets;
-    protected final List<Boolean> mDataLittleEndianFlags;
-    protected final List<Boolean> mIdentifierVariableLengthFlags;
+    protected final List<Integer> mIdentifierStartOffsets = new ArrayList<Integer>();
+    protected final List<Integer> mIdentifierEndOffsets = new ArrayList<Integer>();
+    protected final List<Boolean> mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
+    protected final List<Integer> mDataStartOffsets = new ArrayList<Integer>();
+    protected final List<Integer> mDataEndOffsets = new ArrayList<Integer>();
+    protected final List<Boolean> mDataLittleEndianFlags = new ArrayList<Boolean>();
+    protected final List<Boolean> mIdentifierVariableLengthFlags = new ArrayList<Boolean>();
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mServiceUuidStartOffset;
@@ -67,21 +71,22 @@ public class BeaconParser {
     protected Integer mPowerEndOffset;
     protected Integer mDBmCorrection;
     protected Integer mLayoutSize;
-    protected Boolean mAllowPduOverflow;
+    protected Boolean mAllowPduOverflow = true;
+    protected String mIdentifier;
     protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
 
     /**
      * Makes a new BeaconParser.  Should normally be immediately followed by a call to #setLayout
      */
     public BeaconParser() {
-        mIdentifierStartOffsets = new ArrayList<Integer>();
-        mIdentifierEndOffsets = new ArrayList<Integer>();
-        mDataStartOffsets = new ArrayList<Integer>();
-        mDataEndOffsets = new ArrayList<Integer>();
-        mDataLittleEndianFlags = new ArrayList<Boolean>();
-        mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
-        mIdentifierVariableLengthFlags = new ArrayList<Boolean>();
-        mAllowPduOverflow = true;
+    }
+
+    /**
+     * Makes a new BeaconParser with an identifier that can be used to identify beacons decoded with
+     * this parser
+     */
+    public BeaconParser(String identifier) {
+        mIdentifier = identifier;
     }
 
     /**
@@ -271,6 +276,15 @@ public class BeaconParser {
     }
 
     /**
+     * Gets an optional identifier field that may be used to identify this parser.  If set, it will
+     * be passed along to any beacons decoded with this parser.
+     * @return
+     */
+    public String getIdentifier() {
+        return mIdentifier;
+    }
+
+    /**
      * Returns a list of Bluetooth manufacturer codes which will be used for hardware-assisted
      * accelerated looking for this beacon type
      *
@@ -430,9 +444,12 @@ public class BeaconParser {
                     }
                 } else {
                     if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s.  "
-                                        + "The bytes I see are: %s", byteArrayToString(serviceUuidBytes),
+                        LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s at offset %d and %s at offset %d.  "
+                                        + "The bytes I see are: %s",
+                                byteArrayToString(serviceUuidBytes),
+                                startByte + mServiceUuidStartOffset,
                                 byteArrayToString(typeCodeBytes),
+                                startByte + mMatchingBeaconTypeCodeStartOffset,
                                 bytesToHex(bytesToProcess));
                     }
                 }
@@ -442,6 +459,7 @@ public class BeaconParser {
                 if (LogManager.isVerboseLoggingEnabled()) {
                     LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
                             byteArrayToString(typeCodeBytes));
+                    LogManager.d(TAG, "Bytes are: %s", bytesToHex(bytesToProcess));
                 }
             }
 
@@ -556,6 +574,7 @@ public class BeaconParser {
             beacon.mBluetoothAddress = macAddress;
             beacon.mBluetoothName= name;
             beacon.mManufacturer = manufacturer;
+            beacon.mParserIdentifier = mIdentifier;
         }
         return beacon;
     }
@@ -654,20 +673,23 @@ public class BeaconParser {
         }
 
         // set power
-        for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
-            advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+
+        if (this.mPowerStartOffset != null && this.mPowerEndOffset != null) {
+            for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
+                advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+            }
         }
 
         // set data fields
         for (int dataFieldNum = 0; dataFieldNum < this.mDataStartOffsets.size(); dataFieldNum++) {
             long dataField = beacon.getDataFields().get(dataFieldNum);
-
-            for (int index = this.mDataStartOffsets.get(dataFieldNum); index <= this.mDataEndOffsets.get(dataFieldNum); index ++) {
+            int dataFieldLength = this.mDataEndOffsets.get(dataFieldNum) - this.mDataStartOffsets.get(dataFieldNum);
+            for (int index = 0; index <= dataFieldLength; index ++) {
                 int endianCorrectedIndex = index;
-                if (this.mDataLittleEndianFlags.get(dataFieldNum)) {
-                    endianCorrectedIndex = this.mDataEndOffsets.get(dataFieldNum) - index;
+                if (!this.mDataLittleEndianFlags.get(dataFieldNum)) {
+                    endianCorrectedIndex = dataFieldLength-index;
                 }
-                advertisingBytes[endianCorrectedIndex-2] = (byte) (dataField >> (8*(index - this.mDataStartOffsets.get(dataFieldNum))) & 0xff);
+                advertisingBytes[this.mDataStartOffsets.get(dataFieldNum)-2+endianCorrectedIndex] = (byte) (dataField >> (8*index) & 0xff);
             }
         }
         return advertisingBytes;
@@ -766,6 +788,9 @@ public class BeaconParser {
 
     private boolean byteArraysMatch(byte[] array1, int offset1, byte[] array2, int offset2) {
         int minSize = array1.length > array2.length ? array2.length : array1.length;
+        if (offset1+minSize > array1.length || offset2+minSize > array2.length) {
+            return false;
+        }
         for (int i = 0; i <  minSize; i++) {
             if (array1[i+offset1] != array2[i+offset2]) {
                 return false;

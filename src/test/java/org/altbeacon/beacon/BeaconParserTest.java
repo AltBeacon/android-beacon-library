@@ -99,6 +99,17 @@ public class BeaconParserTest {
     }
 
     @Test
+    public void testAllowsAccessToParserIdentifier() {
+        LogManager.setLogger(Loggers.verboseLogger());
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("02011a1aff180112342f234454cf6d4a0fadf2f4911ba9ffa600010002c5");
+        BeaconParser parser = new BeaconParser("my_beacon_type");
+        parser.setBeaconLayout("m:2-3=1234,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertEquals("parser identifier should be accessible", "my_beacon_type", beacon.getParserIdentifier());
+    }
+
+    @Test
     public void testParsesBeaconMissingDataField() {
         LogManager.setLogger(Loggers.verboseLogger());
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -146,6 +157,18 @@ public class BeaconParserTest {
         assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
     }
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    @Test
+    public void testReEncodesBeaconForEddystoneTelemetry() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("0201060303aafe1516aafe2001021203130414243405152535");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout(BeaconParser.EDDYSTONE_TLM_LAYOUT);
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
+        byte[] expectedMatch = Arrays.copyOfRange(bytes, 11, bytes.length);
+        assertEquals("beacon advertisement bytes should be the same after re-encoding", byteArrayToHexString(expectedMatch), byteArrayToHexString(regeneratedBytes));
+    }
 
     @Test
     public void testLittleEndianIdentifierParsing() {
@@ -159,7 +182,7 @@ public class BeaconParserTest {
         assertEquals("id2 should be little endian", "0x0c0b0a090807", beacon.getIdentifier(1).toString());
         assertEquals("id3 should be big endian", "0x0d0e0f1011121314", beacon.getIdentifier(2).toString());
         assertEquals("txPower should be parsed", -59, beacon.getTxPower());
-        assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
+        assertEquals("manufacturer should be parsed", 0x118, beacon.getManufacturer());
     }
 
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
@@ -174,7 +197,7 @@ public class BeaconParserTest {
         byte[] expectedMatch = Arrays.copyOfRange(bytes, 7, bytes.length);
         System.err.println(byteArrayToHexString(expectedMatch));
         System.err.println(byteArrayToHexString(regeneratedBytes));
-        assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
+        assertEquals("beacon advertisement bytes should be the same after re-encoding", byteArrayToHexString(expectedMatch), byteArrayToHexString(regeneratedBytes));
     }
 
 
@@ -185,7 +208,7 @@ public class BeaconParserTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
-        assertEquals("manufacturer should be parsed", "bbaa" ,String.format("%04x", beacon.getManufacturer()));
+        assertEquals("manufacturer should be parsed", "bbaa", String.format("%04x", beacon.getManufacturer()));
     }
 
 
@@ -198,6 +221,16 @@ public class BeaconParserTest {
         parser.setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20");
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         assertNull("beacon should not be parsed", beacon);
+    }
+
+    @Test
+    public void testLongUrlBeaconIdentifier() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        byte[] bytes = hexStringToByteArray("0201060303aafe0d16aafe10e70102030405060708090a0b0c0d0e0f0102030405060708090a0b0c0d0e0f00000000000000000000000000000000000000");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v");
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertEquals("URL Identifier should be truncated at 8 bytes", 8, beacon.getId1().toByteArray().length);
     }
 
     @Test
@@ -279,6 +312,21 @@ public class BeaconParserTest {
                 setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v");
         byte[] bytes = p.getBeaconAdvertisementData(beacon);
         assertEquals("First byte of url should be in position 3", 0x02, bytes[2]);
+    }
+    @Test
+    public void doesNotCashWithOverflowingByteCodeComparisonOnPdu() {
+        // Test for https://github.com/AltBeacon/android-beacon-library/issues/323
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+
+        // Note that the length field below is 0x16 instead of 0x1b, indicating that the packet ends
+        // one byte before the second identifier field starts
+
+        byte[] bytes = hexStringToByteArray("02010604ffe000be");
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+
+        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        assertNull("beacon not be parsed without an exception being thrown", beacon);
     }
 
 }

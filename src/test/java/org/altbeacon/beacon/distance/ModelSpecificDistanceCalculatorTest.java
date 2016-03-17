@@ -53,6 +53,18 @@ public class ModelSpecificDistanceCalculatorTest {
     }
 
 	@Test
+	public void testCalculatesDistanceForMotoXPro() {
+		final Context applicationContext = ShadowApplication.getInstance().getApplicationContext();
+		org.robolectric.shadows.ShadowLog.stream = System.err;
+
+		final AndroidModel model = new AndroidModel("5.0.2", "LXG22.67-7.1", "Moto X Pro", "XT1115");
+		ModelSpecificDistanceCalculator distanceCalculator = new ModelSpecificDistanceCalculator(applicationContext, null, model);
+		assertEquals("should be Moto X Pro", "Moto X Pro", distanceCalculator.getModel().getModel());
+		Double distance = distanceCalculator.calculateDistance(-49, -58);
+		assertEquals("Distance should be as predicted by coefficients at 3 meters", 2.661125466, distance, 0.1);
+	}
+
+	@Test
 	public void testConcurrentModificationException() {
 		org.robolectric.shadows.ShadowLog.stream = System.err;
 

@@ -1,5 +1,6 @@
 package org.altbeacon.beacon.service.scanner;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
@@ -8,8 +9,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Handler;
-import android.util.Log;
+import android.os.SystemClock;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -103,7 +105,7 @@ public abstract class CycledLeScanner {
             LogManager.d(TAG, "We are not in the background.  Cancelling wakeup alarm");
             cancelWakeUpAlarm();
         }
-        long now = new Date().getTime();
+        long now = SystemClock.elapsedRealtime();
         if (mNextScanCycleStartTime > now) {
             // We are waiting to start scanning.  We may need to adjust the next start time
             // only do an adjustment if we need to make it happen sooner.  Otherwise, it will
@@ -111,7 +113,8 @@ public abstract class CycledLeScanner {
             long proposedNextScanStartTime = (mLastScanCycleEndTime + betweenScanPeriod);
             if (proposedNextScanStartTime < mNextScanCycleStartTime) {
                 mNextScanCycleStartTime = proposedNextScanStartTime;
-                LogManager.i(TAG, "Adjusted nextScanStartTime to be %s", new Date(mNextScanCycleStartTime));
+                LogManager.i(TAG, "Adjusted nextScanStartTime to be %s",
+                        new Date(mNextScanCycleStartTime - SystemClock.elapsedRealtime() + System.currentTimeMillis()));
             }
         }
         if (mScanCycleStopTime > now) {
@@ -145,7 +148,7 @@ public abstract class CycledLeScanner {
         }
         if (mBluetoothAdapter != null) {
             stopScan();
-            mLastScanCycleEndTime = new Date().getTime();
+            mLastScanCycleEndTime = SystemClock.elapsedRealtime();
         }
     }
 
@@ -183,7 +186,9 @@ public abstract class CycledLeScanner {
                                         LogManager.d(TAG, "starting a new bluetooth le scan");
                                     }
                                     try {
-                                        startScan();
+                                        if (checkLocationPermission()) {
+                                            startScan();
+                                        }
                                     } catch (Exception e) {
                                         LogManager.e(e, TAG, "Internal Android exception scanning for beacons");
                                     }
@@ -191,7 +196,7 @@ public abstract class CycledLeScanner {
                                     LogManager.d(TAG, "Scanning unnecessary - no monitoring or ranging active.");
                                 }
                             }
-                            mLastScanCycleStartTime = new Date().getTime();
+                            mLastScanCycleStartTime = SystemClock.elapsedRealtime();
                         } else {
                             LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                         }
@@ -202,22 +207,22 @@ public abstract class CycledLeScanner {
             } else {
                 LogManager.d(TAG, "We are already scanning");
             }
-            mScanCycleStopTime = (new Date().getTime() + mScanPeriod);
+            mScanCycleStopTime = (SystemClock.elapsedRealtime() + mScanPeriod);
             scheduleScanCycleStop();
 
             LogManager.d(TAG, "Scan started");
         } else {
             LogManager.d(TAG, "disabling scan");
             mScanning = false;
-
+            mScanCyclerStarted = false;
             stopScan();
-            mLastScanCycleEndTime = new Date().getTime();
+            mLastScanCycleEndTime = SystemClock.elapsedRealtime();
         }
     }
 
     protected void scheduleScanCycleStop() {
         // Stops scanning after a pre-defined scan period.
-        long millisecondsUntilStop = mScanCycleStopTime - (new Date().getTime());
+        long millisecondsUntilStop = mScanCycleStopTime - SystemClock.elapsedRealtime();
         if (millisecondsUntilStop > 0) {
             LogManager.d(TAG, "Waiting to stop scan cycle for another %s milliseconds",
                     millisecondsUntilStop);
@@ -251,7 +256,7 @@ public abstract class CycledLeScanner {
                     } catch (Exception e) {
                         LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
                     }
-                    mLastScanCycleEndTime = new Date().getTime();
+                    mLastScanCycleEndTime = SystemClock.elapsedRealtime();
                 } else {
                     LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                 }
@@ -297,7 +302,7 @@ public abstract class CycledLeScanner {
         }
 
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + milliseconds, getWakeUpOperation());
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + milliseconds, getWakeUpOperation());
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, getWakeUpOperation());
     }
 
@@ -319,8 +324,8 @@ public abstract class CycledLeScanner {
         // devices.
         long milliseconds = Long.MAX_VALUE; // 2.9 million years from now
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + milliseconds, getWakeUpOperation());
-        LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, getWakeUpOperation());
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, milliseconds, getWakeUpOperation());
+        LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds - SystemClock.elapsedRealtime(), getWakeUpOperation());
 
     }
 
@@ -334,13 +339,21 @@ public abstract class CycledLeScanner {
         // This, of course, won't help at all if people set custom scan periods.  But since most
         // people accept the defaults, this will likely have a positive effect.
         if (mBetweenScanPeriod == 0) {
-            return System.currentTimeMillis();
+            return SystemClock.elapsedRealtime();
         }
         long fullScanCycle = mScanPeriod + mBetweenScanPeriod;
-        long normalizedBetweenScanPeriod = mBetweenScanPeriod-(System.currentTimeMillis() % fullScanCycle);
+        long normalizedBetweenScanPeriod = mBetweenScanPeriod-(SystemClock.elapsedRealtime() % fullScanCycle);
         LogManager.d(TAG, "Normalizing between scan period from %s to %s", mBetweenScanPeriod,
                 normalizedBetweenScanPeriod);
 
-        return System.currentTimeMillis()+normalizedBetweenScanPeriod;
+        return SystemClock.elapsedRealtime()+normalizedBetweenScanPeriod;
+    }
+
+    private boolean checkLocationPermission() {
+        return checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION) || checkPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    private boolean checkPermission(final String permission) {
+        return mContext.checkPermission(permission, android.os.Process.myPid(), android.os.Process.myUid()) == PackageManager.PERMISSION_GRANTED;
     }
 }

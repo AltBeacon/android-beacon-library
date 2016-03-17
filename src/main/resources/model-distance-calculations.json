@@ -19,6 +19,16 @@
       "model":"Nexus 5",
       "manufacturer":"LGE",
       "default": true
+    },
+    {
+      "coefficient1": 0.9401940951,
+      "coefficient2": 6.170094565,
+      "coefficient3": 0.0,
+      "version":"5.0.2",
+      "build_number":"LXG22.67-7.1",
+      "model":"Moto X Pro",
+      "manufacturer":"XT1115",
+      "default": false
     }
   ]
 }

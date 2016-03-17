@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.SystemClock;
 
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -16,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -210,7 +210,7 @@ public class BluetoothCrashResolver {
             LogManager.d(TAG, "Distinct Bluetooth devices seen at crash: %s",
                     distinctBluetoothAddresses.size());
         }
-        long nowTimestamp = new Date().getTime();
+        long nowTimestamp = SystemClock.elapsedRealtime();
         lastBluetoothCrashDetectionTime = nowTimestamp;
         detectedCrashCount++;
 
@@ -267,7 +267,7 @@ public class BluetoothCrashResolver {
         if (updateNotifier != null) {
             updateNotifier.dataUpdated();
         }
-        if (System.currentTimeMillis() - lastStateSaveTime > MIN_TIME_BETWEEN_STATE_SAVES_MILLIS) {
+        if (SystemClock.elapsedRealtime() - lastStateSaveTime > MIN_TIME_BETWEEN_STATE_SAVES_MILLIS) {
             saveState();
         }
     }
@@ -345,7 +345,7 @@ public class BluetoothCrashResolver {
                         break;
                     case BluetoothAdapter.STATE_OFF:
                         LogManager.d(TAG, "Bluetooth state is OFF");
-                        lastBluetoothOffTime = System.currentTimeMillis();
+                        lastBluetoothOffTime = SystemClock.elapsedRealtime();
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         break;
@@ -357,7 +357,7 @@ public class BluetoothCrashResolver {
                         }
                         break;
                     case BluetoothAdapter.STATE_TURNING_ON:
-                        lastBluetoothTurningOnTime = new Date().getTime();
+                        lastBluetoothTurningOnTime = SystemClock.elapsedRealtime();
                         LogManager.d(TAG, "Bluetooth state is TURNING_ON");
                         break;
                 }
@@ -369,7 +369,7 @@ public class BluetoothCrashResolver {
     private void saveState() {
         FileOutputStream outputStream;
         OutputStreamWriter writer = null;
-        lastStateSaveTime = new Date().getTime();
+        lastStateSaveTime = SystemClock.elapsedRealtime();
 
         try {
             outputStream = context.openFileOutput(DISTINCT_BLUETOOTH_ADDRESSES_FILE, Context.MODE_PRIVATE);

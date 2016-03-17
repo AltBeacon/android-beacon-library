@@ -38,6 +38,7 @@ import android.os.RemoteException;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
+import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
@@ -46,7 +47,6 @@ import org.altbeacon.beacon.simulator.BeaconSimulator;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +115,7 @@ public class BeaconManager {
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
+    private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
 
@@ -295,14 +296,15 @@ public class BeaconManager {
             return;
         }
         synchronized (consumers) {
-            ConsumerInfo consumerInfo = consumers.putIfAbsent(consumer, new ConsumerInfo());
-            if (consumerInfo != null) {
+            ConsumerInfo newConsumerInfo = new ConsumerInfo();
+            ConsumerInfo alreadyBoundConsumerInfo = consumers.putIfAbsent(consumer, newConsumerInfo);
+            if (alreadyBoundConsumerInfo != null) {
                 LogManager.d(TAG, "This consumer is already bound");
             }
             else {
                 LogManager.d(TAG, "This consumer is not bound.  binding: %s", consumer);
                 Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
-                consumer.bindService(intent, beaconServiceConnection, Context.BIND_AUTO_CREATE);
+                consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
                 LogManager.d(TAG, "consumer count is now: %s", consumers.size());
             }
         }
@@ -322,7 +324,7 @@ public class BeaconManager {
         synchronized (consumers) {
             if (consumers.containsKey(consumer)) {
                 LogManager.d(TAG, "Unbinding");
-                consumer.unbindService(beaconServiceConnection);
+                consumer.unbindService(consumers.get(consumer).beaconServiceConnection);
                 consumers.remove(consumer);
                 if (consumers.size() == 0) {
                     // If this is the last consumer to disconnect, the service will exit
@@ -600,31 +602,6 @@ public class BeaconManager {
         return packageName;
     }
 
-    private ServiceConnection beaconServiceConnection = new ServiceConnection() {
-        // Called when the connection with the service is established
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            LogManager.d(TAG, "we have a connection to the service now");
-            serviceMessenger = new Messenger(service);
-            synchronized(consumers) {
-                Iterator<Map.Entry<BeaconConsumer, ConsumerInfo>> iter = consumers.entrySet().iterator();
-                while (iter.hasNext()) {
-                    Map.Entry<BeaconConsumer, ConsumerInfo> entry = iter.next();
-
-                    if (!entry.getValue().isConnected) {
-                        entry.getKey().onBeaconServiceConnect();
-                        entry.getValue().isConnected = true;
-                    }
-                }
-            }
-        }
-
-        // Called when the connection with the service disconnects
-        public void onServiceDisconnected(ComponentName className) {
-            LogManager.e(TAG, "onServiceDisconnected");
-            serviceMessenger = null;
-        }
-    };
-
     /**
      * @return monitorNotifier
      * @see #monitorNotifier
@@ -746,8 +723,12 @@ public class BeaconManager {
         return this.dataRequestNotifier;
     }
 
-    private class ConsumerInfo {
-        public boolean isConnected = false;
+    public NonBeaconLeScanCallback getNonBeaconLeScanCallback() {
+        return mNonBeaconLeScanCallback;
+    }
+
+    public void setNonBeaconLeScanCallback(NonBeaconLeScanCallback callback) {
+        mNonBeaconLeScanCallback = callback;
     }
 
     private long getScanPeriod() {
@@ -777,6 +758,43 @@ public class BeaconManager {
         }
     }
 
+    private class ConsumerInfo {
+        public boolean isConnected = false;
+        public BeaconServiceConnection beaconServiceConnection;
+
+        public ConsumerInfo() {
+            this.isConnected = false;
+            this.beaconServiceConnection= new BeaconServiceConnection();
+        }
+    }
+
+    private class BeaconServiceConnection implements ServiceConnection {
+        private BeaconServiceConnection() {
+        }
+
+        // Called when the connection with the service is established
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            LogManager.d(TAG, "we have a connection to the service now");
+            serviceMessenger = new Messenger(service);
+            synchronized(consumers) {
+                Iterator<Map.Entry<BeaconConsumer, ConsumerInfo>> iter = consumers.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry<BeaconConsumer, ConsumerInfo> entry = iter.next();
+
+                    if (!entry.getValue().isConnected) {
+                        entry.getKey().onBeaconServiceConnect();
+                        entry.getValue().isConnected = true;
+                    }
+                }
+            }
+        }
+
+        // Called when the connection with the service disconnects
+        public void onServiceDisconnected(ComponentName className) {
+            LogManager.e(TAG, "onServiceDisconnected");
+            serviceMessenger = null;
+        }
+    }
 
     public class ServiceNotDeclaredException extends RuntimeException {
         public ServiceNotDeclaredException() {

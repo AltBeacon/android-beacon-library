@@ -151,6 +151,12 @@ public class Beacon implements Parcelable {
     protected String mBluetoothName;
 
     /**
+     * The identifier of the beaconParser used to create this beacon.  Useful for figuring out
+     * beacon types.
+     */
+    protected String mParserIdentifier;
+
+    /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
      */
@@ -223,6 +229,8 @@ public class Beacon implements Parcelable {
         }
         mManufacturer = in.readInt();
         mBluetoothName = in.readString();
+        mParserIdentifier = in.readString();
+
     }
 
     /**
@@ -242,6 +250,7 @@ public class Beacon implements Parcelable {
         this.mBeaconTypeCode = otherBeacon.getBeaconTypeCode();
         this.mServiceUuid = otherBeacon.getServiceUuid();
         this.mBluetoothName = otherBeacon.mBluetoothName;
+        this.mParserIdentifier = otherBeacon.mParserIdentifier;
     }
 
     /**
@@ -427,6 +436,12 @@ public class Beacon implements Parcelable {
     }
 
     /**
+     * @see #mParserIdentifier
+     * @return mParserIdentifier
+     */
+    public String getParserIdentifier() { return mParserIdentifier; }
+
+    /**
      * Calculate a hashCode for this beacon
      * @return
      */
@@ -487,6 +502,9 @@ public class Beacon implements Parcelable {
             sb.append(identifier == null ? "null" : identifier.toString());
             i++;
         }
+        if (mParserIdentifier != null) {
+            sb.append(" type "+mParserIdentifier);
+        }
         return sb;
     }
 
@@ -526,7 +544,7 @@ public class Beacon implements Parcelable {
         }
         out.writeInt(mManufacturer);
         out.writeString(mBluetoothName);
-
+        out.writeString(mParserIdentifier);
     }
 
     /**
@@ -753,6 +771,15 @@ public class Beacon implements Parcelable {
             return this;
         }
 
+        /**
+         * @see Beacon#mParserIdentifier
+         * @param id
+         * @return builder
+         */
+        public Builder setParserIdentifier(String id) {
+            mBeacon.mParserIdentifier = id;
+            return this;
+        }
     }
 
 }

@@ -3,6 +3,7 @@ package org.altbeacon.beacon;
 import android.annotation.TargetApi;
 import android.os.Build;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
  * <p>
  * The value is internally this is stored as a byte array.
  */
-public class Identifier implements Comparable<Identifier> {
+public class Identifier implements Comparable<Identifier>, Serializable {
     private static final Pattern HEX_PATTERN = Pattern.compile("^0x[0-9A-Fa-f]*$");
     private static final Pattern HEX_PATTERN_NO_PREFIX = Pattern.compile("^[0-9A-Fa-f]*$");
     private static final Pattern DECIMAL_PATTERN = Pattern.compile("^0|[1-9][0-9]*$");

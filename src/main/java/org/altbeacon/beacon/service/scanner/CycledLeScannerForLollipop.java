@@ -8,6 +8,8 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.os.ParcelUuid;
+import android.os.SystemClock;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -86,18 +88,18 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
      */
     protected boolean deferScanIfNeeded() {
         // This method is called to see if it is time to start a scan
-        long millisecondsUntilStart = mNextScanCycleStartTime - System.currentTimeMillis();
+        long millisecondsUntilStart = mNextScanCycleStartTime - SystemClock.elapsedRealtime();
         if (millisecondsUntilStart > 0) {
             mMainScanCycleActive = false;
             if (true) {
-                long secsSinceLastDetection = System.currentTimeMillis() -
+                long secsSinceLastDetection = SystemClock.elapsedRealtime() -
                         DetectionTracker.getInstance().getLastDetectionTime();
                 // If we have seen a device recently
                 // devices should behave like pre-Android L devices, because we don't want to drain battery
                 // by continuously delivering packets for beacons visible in the background
                 if (mScanDeferredBefore == false) {
                     if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
-                        mBackgroundLScanStartTime = System.currentTimeMillis();
+                        mBackgroundLScanStartTime = SystemClock.elapsedRealtime();
                         mBackgroundLScanFirstDetectionTime = 0l;
                         LogManager.d(TAG, "This is Android L. Doing a filtered scan for the background.");
 
@@ -118,7 +120,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                         if (mBackgroundLScanFirstDetectionTime == 0l) {
                             mBackgroundLScanFirstDetectionTime = DetectionTracker.getInstance().getLastDetectionTime();
                         }
-                        if (System.currentTimeMillis() - mBackgroundLScanFirstDetectionTime
+                        if (SystemClock.elapsedRealtime() - mBackgroundLScanFirstDetectionTime
                                 >= BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
                             // if we are in here, it has been more than 10 seconds since we detected
                             // a beacon in background L scanning mode.  We need to stop scanning
@@ -222,7 +224,15 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
-                    LogManager.d(TAG, "got record");
+                    if (LogManager.isVerboseLoggingEnabled()) {
+                        LogManager.d(TAG, "got record");
+                        List<ParcelUuid> uuids = scanResult.getScanRecord().getServiceUuids();
+                        if (uuids != null) {
+                            for (ParcelUuid uuid : uuids) {
+                                LogManager.d(TAG, "with service uuid: "+uuid);
+                            }
+                        }
+                    }
                     mCycledLeScanCallback.onLeScan(scanResult.getDevice(),
                             scanResult.getRssi(), scanResult.getScanRecord().getBytes());
                     if (mBackgroundLScanStartTime > 0) {

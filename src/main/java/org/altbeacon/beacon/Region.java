@@ -26,6 +26,7 @@ package org.altbeacon.beacon;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -47,7 +48,7 @@ import java.util.regex.Pattern;
  * @author dyoung
  *
  */
-public class Region implements Parcelable {
+public class Region implements Parcelable, Serializable {
     private static final String TAG = "Region";
     private static final Pattern MAC_PATTERN = Pattern.compile("^[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}$");
 
@@ -183,8 +184,13 @@ public class Region implements Parcelable {
     public boolean matchesBeacon(Beacon beacon) {
         // All identifiers must match, or the corresponding region identifier must be null.
         for (int i = mIdentifiers.size(); --i >= 0; ) {
-            final Identifier ident = mIdentifiers.get(i);
-            if (beacon.mIdentifiers.size() <= i || ident != null && !ident.equals(beacon.mIdentifiers.get(i))) {
+            final Identifier identifier = mIdentifiers.get(i);
+            Identifier beaconIdentifier = null;
+            if (i < beacon.mIdentifiers.size()) {
+                beaconIdentifier = beacon.getIdentifier(i);
+            }
+            if ((beaconIdentifier == null && identifier != null) ||
+                    (beaconIdentifier != null  && identifier != null && !identifier.equals(beaconIdentifier))) {
                 return false;
             }
         }

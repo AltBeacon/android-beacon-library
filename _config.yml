@@ -1,6 +1,6 @@
 safe: true
 lsi: false
 pygments: true
-markdown: redcarpet
+markdown: kramdown
 redcarpet:
   extensions: ["tables"]

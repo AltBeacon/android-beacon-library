@@ -4,6 +4,7 @@ import android.content.Context;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
+import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -136,6 +137,27 @@ public class GattBeaconTest {
         }
         assertEquals("Advertisement bytes should be as expected", "00 25 C5 45 44 52 E2 97 35 32 3D 81 C0 06 05 04 03 02 01 ", byteString);
     }
+
+    @Test
+    public void testDetectsUriBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        LogManager.setLogger(Loggers.verboseLogger());
+        LogManager.setVerboseLoggingEnabled(true);
+        //"https://goo.gl/hqBXE1"
+        byte[] bytes = {2, 1, 4, 3, 3, (byte) 216, (byte) 254, 19, 22, (byte) 216, (byte) 254, 0, (byte) 242, 3, 103, 111, 111, 46, 103, 108, 47, 104, 113, 66, 88, 69, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=fed8,m:2-2=00,p:3-3:-41,i:4-21v");
+        LogManager.d("xxx", "------");
+        Beacon uriBeacon = parser.fromScanData(bytes, -55, null);
+        assertNotNull("UriBeacon should be not null if parsed successfully", uriBeacon);
+        assertEquals("UriBeacon identifier length should be correct",
+                14,
+                uriBeacon.getId1().toByteArray().length);
+        String urlString = UrlBeaconUrlCompressor.uncompress(uriBeacon.getId1().toByteArray());
+        assertEquals("URL should be decompressed successfully", "https://goo.gl/hqBXE1", urlString);
+    }
+
+
+
 
 
     public static byte[] hexStringToByteArray(String s) {

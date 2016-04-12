@@ -2,7 +2,7 @@
 layout: android-beacon-library
 ---
 
-###Detecting Beacons After App is Killed
+### Detecting Beacons After App is Killed
 
 When properly configured, the Android Beacon Library guarantees your app can respond to beacon events on a daily basis, even if the user never launches the app or even if the user kills the app manually.
 

@@ -10,7 +10,7 @@ Because manifest specifies that it requires the permissions `android.permission.
 
 Most devices nowadays have support for both Bluetooth and Bluetooth Low Energy. The [Android Compatibility](http://source.android.com/compatibility/) program specifies that handheld devices should have Bluetooth and Bluetooth LE support, but it isn't a must have. This still leaves the possibility open for manufacturers to release phones without Bluetooth LE or even without any Bluetooth support.
 
-###Require Bluetooth LE support from the device
+### Require Bluetooth LE support from the device
 
 When the ability to detect beacons is essential for the functioning of your app you should specify that your app requires support for Bluetooth Low Energy. An example of such an app is a beacon based scavenger hunt.
 
@@ -32,6 +32,6 @@ You can specify this in AndroidManifest.xml. Add the following two elements to t
 <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 ```
 
-###More information
+### More information
 
 [&lt;uses-feature&gt; in Android API Guide](http://developer.android.com/guide/topics/manifest/uses-feature-element.html)

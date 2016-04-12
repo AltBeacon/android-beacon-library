@@ -2,7 +2,7 @@
 layout: android-beacon-library
 ---
 
-###Transmitting as a Beacon
+### Transmitting as a Beacon
 
 As of version 2.1, the library supports transmitting as a variety of beacon types.  Below is an example of transmitting as an AltBeacon.
 In order to transmit as other proprietary beacon types, you will need to set the beacon layout for the type.  You may also set the manufacturer
@@ -36,7 +36,7 @@ beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
 
 ```
 
-####Compatible Devices
+#### Compatible Devices
 
 In order to support beacon transmission, a device must have Android 5.0+, a Bluetooth LE chipset that supports peripheral mode, and
 a compatible hardware driver from the device manufacturer.  Check [here](beacon-transmitter-devices.html) for a list of devices that

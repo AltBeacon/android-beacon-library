@@ -2,7 +2,7 @@
 layout: android-beacon-library
 ---
 
-###Configuring the Android Beacon Library
+### Configuring the Android Beacon Library
 
 #### Android Studio / Gradle 
 
@@ -42,13 +42,13 @@ Go to Project -> Properties -> Android -> Library -> Add, then select the import
 
 Add the following sdk and permission declarations to your AndroidManifest.xml
 
-   ```
+```
    <uses-sdk
         android:minSdkVersion="18"
         android:targetSdkVersion="18" />
          <uses-permission android:name="android.permission.BLUETOOTH"/>
          <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-   ```
+```
 
 Edit your project.properties file and add the line:
    ```

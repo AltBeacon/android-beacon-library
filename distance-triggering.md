@@ -2,11 +2,11 @@
 layout: android-beacon-library
 ---
 
-##Triggering Actions at a Specific Distance
+## Triggering Actions at a Specific Distance
 
 A common use case with Beacons is to trigger an action only when you get within a certain distance of the beacon.  Because beacons often have a range of 40 meters or more, it often is not appropriate to execute the action when the beacon is first seen.  The solution to this problem is to use ranging APIs, which give you an estimate of the distance to the beacon each second.
 
-###Setting Up Distance Triggering
+### Setting Up Distance Triggering
 
 The typical way to handle this situation is to start ranging as soon as the beacon is detected at all like so:
 
@@ -40,7 +40,7 @@ a specific action.
         }
 ```
 
-###Limitations on Distance Triggering
+### Limitations on Distance Triggering
 
 It is important to note that the accuracy of distance estimates are rough.  In general, they tend to be much more accurate at short distances, and have a high degree
 of variation at larger distances.  When the library reports a beacon is 5 meters away, it may actually be anywhere between 2 meters and 10 meters away.  At great

@@ -2,7 +2,7 @@
 layout: android-beacon-library
 ---
 
-##Documentation
+## Documentation
 
 ### General Features and Topics
 

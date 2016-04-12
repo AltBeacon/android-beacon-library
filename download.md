@@ -123,7 +123,7 @@ See [configuring your project](configure.html) for more information on how to us
   }
 </style>
 
-###Source Distribution###
+### Source Distribution
 
 The full source code of the edge release is available on <a href='https://github.com/AltBeacon/android-beacon-library'>GitHub</a>
 

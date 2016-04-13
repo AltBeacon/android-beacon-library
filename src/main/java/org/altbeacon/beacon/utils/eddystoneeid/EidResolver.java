@@ -31,28 +31,56 @@ import java.util.concurrent.Executor;
  * Created by dyoung on 4/5/2016
  */
 public class EidResolver {
-    public static final int REGISTERED_NAME_FIELD = 0;
     private static final String TAG = EidResolver.class.getSimpleName();
     private static final String GOOGLE_PROXIMITY_BEACON_API_GET_FOR_OBSERVED_URL =
           "https://proximitybeacon.googleapis.com/v1beta1/beaconinfo:getforobserved";
+    private static final String GOOGLE_PROXIMITY_BEACON_API_GET_URL =
+            "https://proximitybeacon.googleapis.com/v1beta1/beacons/4!";
     private static final Double MAX_SERVICE_CALL_SECONDS = 10.0;
     private String mGoogleProximityBeaconApiKey = null;
+    private String mGoogleOAuthToken = null;
     private HashMap<Identifier,String> mResolvedIdentifiers;
     private HashMap<Identifier,Date> mResolutionServiceCalls;
     private Identifier mIdentifierBeingResolved = null;
     private Executor mExecutor;
-    private int mResolutionField = REGISTERED_NAME_FIELD;
+    private String mResolutionAttachmentNamespacedType = null;
 
     /**
-     * Makes a new EidResolver with a user-supplied Google API key
-     * @param googleProximityBeaconApiKey
+     * Makes a new EidResolver with a Google API key
+     * @param googleProximityBeaconApiKey An API Key from the Google Proximity Beacon API.  The key must be for the account where the beacon to be resolved is registered.
+     * @param resolutionAttachmentNamespacedType The key of the attachment stored in Google's Proximity Beacon API used to resolve the beacon to a fixed identifier.  Cannot be null.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public EidResolver(String googleProximityBeaconApiKey) {
+    public static EidResolver getInstanceWithGoogleApiKey(String googleProximityBeaconApiKey, String resolutionAttachmentNamespacedType) {
+        EidResolver resolver = new EidResolver();
         if (googleProximityBeaconApiKey == null) {
-            throw new IllegalArgumentException("A non-null googleProximityBeaconApiKey must be supplied");
+            throw new IllegalArgumentException("googleProximityBeaconApiKey may not be null");
         }
-        mGoogleProximityBeaconApiKey = googleProximityBeaconApiKey;
+        if (resolutionAttachmentNamespacedType == null) {
+            throw new IllegalArgumentException("resolutionAttachmentNamespacedType may not be null");
+        }
+        resolver.mResolutionAttachmentNamespacedType = resolutionAttachmentNamespacedType;
+        resolver.mGoogleProximityBeaconApiKey = googleProximityBeaconApiKey;
+        return resolver;
+    }
+
+    /**
+     * Makes a new EidResolver with a Google Oauth token.  A resolver created using this method will resolve the encrypted beacon with its registered beaconName.
+     * @param googleOAuthToken An OAuth token from a previous Oauth authentication. The token must be associated with a Google Account where the proximity beecon to be resolved is registered.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public static EidResolver getInstanceWithGoogleOauthToken(String googleOAuthToken) {
+        EidResolver resolver = new EidResolver();
+        if (googleOAuthToken == null) {
+            throw new IllegalArgumentException("googleOAuthToken may not be null");
+        }
+        resolver.mResolutionAttachmentNamespacedType = null;
+        resolver.mGoogleOAuthToken = googleOAuthToken;
+        return resolver;
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private EidResolver() {
         mResolutionServiceCalls = new HashMap<Identifier, Date>();
         mResolvedIdentifiers = new HashMap<Identifier, String>();
         mIdentifierBeingResolved = null;
@@ -62,8 +90,6 @@ public class EidResolver {
     public void setExecutor(Executor executor) {
         mExecutor = executor;
     }
-
-    public void setResolutionField(int resolutionField) { mResolutionField = resolutionField; }
 
     /**
      Returns a resolved identifier from cache if one is already known.  If one is not known, an asynchronous call will
@@ -97,39 +123,65 @@ public class EidResolver {
         mIdentifierBeingResolved = identifier;
         byte[] data = identifier.toByteArray();
         String base64EncodedData = Base64.encodeToString(data, Base64.NO_WRAP);
-        String jsonString = "{\"observations\":[{\"advertisedId\":  {\"type\": \"EDDYSTONE_EID\",\"id\": \""+base64EncodedData+"\"}}],\"namespacedTypes:\":[\"*\"]}";
-        new AsyncPostCall(jsonString, GOOGLE_PROXIMITY_BEACON_API_GET_FOR_OBSERVED_URL + "?key=" + mGoogleProximityBeaconApiKey, new AsyncPostCallback() {
-            @Override
-            public void onResponse(Integer statusCode, String body, Exception exception) {
-                mIdentifierBeingResolved = null;
-                if (exception == null ) {
-                    if (statusCode >= 200 && statusCode < 300) {
-                        String resolvedIdentifierString = parseIdentifierStringFromJsonResponse(body);
-                        if (resolvedIdentifierString != null) {
-                            mResolvedIdentifiers.put(identifier, resolvedIdentifierString);
+        String urlString;
+        if (mGoogleOAuthToken != null) {
+            urlString = GOOGLE_PROXIMITY_BEACON_API_GET_URL + identifier.toString().toLowerCase().replace("0x", "");
+            new AsyncCall(urlString, null, new AsyncCallback() {
+                @Override
+                public void onResponse(Integer statusCode, String body, Exception exception) {
+                    mIdentifierBeingResolved = null;
+                    if (exception == null ) {
+                        if (statusCode >= 200 && statusCode < 300) {
+                            String resolvedIdentifierString = parseIdentifierStringFromJsonResponse(body);
+                            if (resolvedIdentifierString != null) {
+                                mResolvedIdentifiers.put(identifier, resolvedIdentifierString);
+                            }
                         }
-                    }
-                    else {
-                        if (LogManager.isVerboseLoggingEnabled()) {
-                            LogManager.d(TAG, "bad response code resolving eddystone-eid: %d", statusCode);
+                        else {
+                            if (LogManager.isVerboseLoggingEnabled()) {
+                                LogManager.d(TAG, "bad response code resolving eddystone-eid: %d", statusCode);
+                            }
                         }
                     }
                 }
-            }
-        }).executeOnExecutor(mExecutor, new Void[]{});
+            }).executeOnExecutor(mExecutor, new Void[]{});
+        }
+        else {
+            urlString = GOOGLE_PROXIMITY_BEACON_API_GET_FOR_OBSERVED_URL + "?key=" + mGoogleProximityBeaconApiKey;
+            String jsonString = "{\"observations\":[{\"advertisedId\":  {\"type\": \"EDDYSTONE_EID\",\"id\": \""+base64EncodedData+"\"}}],\"namespacedTypes:\":[\""+mResolutionAttachmentNamespacedType+"\"]}";
+            new AsyncCall(urlString, jsonString, new AsyncCallback() {
+                @Override
+                public void onResponse(Integer statusCode, String body, Exception exception) {
+                    mIdentifierBeingResolved = null;
+                    if (exception == null ) {
+                        if (statusCode >= 200 && statusCode < 300) {
+                            String resolvedIdentifierString = parseIdentifierStringFromJsonResponse(body);
+                            if (resolvedIdentifierString != null) {
+                                mResolvedIdentifiers.put(identifier, resolvedIdentifierString);
+                            }
+                        }
+                        else {
+                            if (LogManager.isVerboseLoggingEnabled()) {
+                                LogManager.d(TAG, "bad response code resolving eddystone-eid: %d", statusCode);
+                            }
+                        }
+                    }
+                }
+            }).executeOnExecutor(mExecutor, new Void[]{});
+        }
    }
 
-    private interface AsyncPostCallback {
+    private interface AsyncCallback {
         public void onResponse(Integer statusCode, String body, Exception e);
     }
 
-    private class AsyncPostCall extends AsyncTask<Void, Void, Void>
+    private class AsyncCall extends AsyncTask<Void, Void, Void>
     {
-        private AsyncPostCallback mCallback;
+        private AsyncCallback mCallback;
         private String mUrlString;
         private String mJsonString;
 
-        public AsyncPostCall(String jsonString, String urlString, AsyncPostCallback callback) {
+        public AsyncCall(String urlString, String jsonString,  AsyncCallback callback) {
             mJsonString = jsonString;
             mCallback = callback;
             mUrlString = urlString;
@@ -151,15 +203,24 @@ public class EidResolver {
                 conn = (HttpURLConnection) url.openConnection();
                 conn.addRequestProperty("Accept", "application/json");
                 conn.addRequestProperty("Content-Type", "application/json");
-                conn.setRequestMethod("POST");
-                OutputStream out = conn.getOutputStream();
-                try {
-                    Writer writer = new OutputStreamWriter(out, "UTF-8");
-                    writer.write(mJsonString);
-                    writer.close();
-                } finally {
-                    if (out != null)
-                        out.close();
+                if (mGoogleOAuthToken != null) {
+                    conn.addRequestProperty("Authorization", "Bearer " + mGoogleOAuthToken);
+                }
+
+                if (mJsonString == null) {
+                    conn.setRequestMethod("GET");
+                }
+                else {
+                    conn.setRequestMethod("POST");
+                    OutputStream out = conn.getOutputStream();
+                    try {
+                        Writer writer = new OutputStreamWriter(out, "UTF-8");
+                        writer.write(mJsonString);
+                        writer.close();
+                    } finally {
+                        if (out != null)
+                            out.close();
+                    }
                 }
 
                 BufferedReader in = null;
@@ -214,10 +275,10 @@ public class EidResolver {
 
                     JSONObject beacon = beacons.getJSONObject(0);
                     if (beacon != null) {
-                        if (mResolutionField == REGISTERED_NAME_FIELD) {
+                        if (mResolutionAttachmentNamespacedType == null) {
                             String resolvedId =  beacon.getString("beaconName");
-                            if (resolvedId.indexOf("beacons/") == 0) {
-                                return resolvedId.substring(8);
+                            if (resolvedId.indexOf("beacons/") == 0 && resolvedId.length() > 10) {
+                                return resolvedId.substring(10);
                             }
                             else {
                                 if (LogManager.isVerboseLoggingEnabled()) {
@@ -225,6 +286,22 @@ public class EidResolver {
                                 }
                             }
                         }
+                        else {
+                            // Get resolved identifier from an attachment with mResolutionAttachmentNamespacedType
+                            if (beacon.has("attachments")) {
+                                JSONArray attachments = beacon.getJSONArray("attachments");
+                                for (int i = 0; i < attachments.length(); i++) {
+                                    JSONObject attachment = attachments.getJSONObject(0);
+                                    if (attachment.has("namespacedType") && attachment.has("data")) {
+                                        if (attachment.getString("namespacedType").equals(mResolutionAttachmentNamespacedType)) {
+                                            return attachment.getString("data");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
                         if (LogManager.isVerboseLoggingEnabled()) {
                             LogManager.d(TAG, "Cannot resolve this beacon with the specified field");
                         }

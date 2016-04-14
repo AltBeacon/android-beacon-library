@@ -78,15 +78,15 @@ The library includes a helper class to convert the 8-byte EID into something mea
 
 When resolving with a key, you must have added an attachment to the beacon when registering with Google.  You then tell the resolver the token and the attachment's namespacedXxxxx to get the attachment value:
 
-```
-EidResolver resolver = getEidResolverForGoogleProximityApiKey(googleProximityApiKey, "main/staticId")
+```java
+EidResolver resolver = getEidResolverForGoogleProximityApiKey(googleProximityApiKey, "main/staticId");
 String staticId = resolver.resolve(ephemeralId);
 ```
 
 When resolving with a token, you will receive the Google-registered beaconName as  the resolved value:
 
-```
-EidResolver resolver = getEidResolverForGoogleOAuthToken(googleOAuthToken)
+```java
+EidResolver resolver = getEidResolverForGoogleOAuthToken(googleOAuthToken);
 String beaconName = resolver.resolve(ephemeralId);
 ```
 

@@ -7,7 +7,7 @@ layout: android-beacon-library
 .app-block {
   width: 120px;
   height: 180px;
-  display: block; 
+  display: block;
   float: left;
   text-align: center;
   }
@@ -31,9 +31,11 @@ The library may be configured to detect a wide variety of beacons.  By default, 
 
 ### Eddystone Support
 
-Library versions 2.3.5 and higher provide full support for Eddystone&trade;, the new beacon format from Google.  
+**New:** Eddystone-EID Support is in the the 2.8.1-beta1 version.  Read more [here](./eddystone-eid.html).
+
+Library versions 2.3.5 and higher provide full support for Eddystone&trade;, the new beacon format from Google.
 The library will wake up your app when it detects Eddystone-compatible beacons in the background and provides regular
-ranging updates while they are in the vicinity.  Eddystone-UID (identifier frame), Eddystone-TLM (telemetry frame) and 
+ranging updates while they are in the vicinity.  Eddystone-UID (identifier frame), Eddystone-TLM (telemetry frame) and
 Eddystone-URL (URL frame) are all detected and decoded.  [Details are here.](eddystone-support.html)
 
 ### Who uses this library?

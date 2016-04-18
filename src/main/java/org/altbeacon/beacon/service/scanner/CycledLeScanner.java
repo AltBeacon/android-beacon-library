@@ -186,7 +186,7 @@ public abstract class CycledLeScanner {
                                         LogManager.d(TAG, "starting a new bluetooth le scan");
                                     }
                                     try {
-                                        if (checkLocationPermission()) {
+                                        if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
                                             startScan();
                                         }
                                     } catch (Exception e) {

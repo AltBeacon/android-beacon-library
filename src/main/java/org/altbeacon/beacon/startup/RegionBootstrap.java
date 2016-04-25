@@ -38,6 +38,7 @@ public class RegionBootstrap {
     private List<Region> regions;
     private boolean disabled = false;
     private BeaconConsumer beaconConsumer;
+    private boolean serviceConnected = false;
 
     /**
      * Constructor to bootstrap your Application on an entry/exit from a single region.
@@ -96,6 +97,42 @@ public class RegionBootstrap {
         beaconManager.unbind(beaconConsumer);
     }
 
+    /**
+     * Add a new region
+     *
+     * @param region
+     */
+    public void addRegion(Region region) {
+        if (!regions.contains(region)) {
+            if (serviceConnected) {
+                try {
+                    beaconManager.startMonitoringBeaconsInRegion(region);
+                } catch (RemoteException e) {
+                    LogManager.e(e, TAG, "Can't add bootstrap region");
+                }
+            }
+            regions.add(region);
+        }
+    }
+
+    /**
+     * Remove a given region
+     *
+     * @param region
+     */
+    public void removeRegion(Region region) {
+        if (regions.contains(region)) {
+            if (serviceConnected) {
+                try {
+                    beaconManager.stopMonitoringBeaconsInRegion(region);
+                } catch (RemoteException e) {
+                    LogManager.e(e, TAG, "Can't stop bootstrap region");
+                }
+            }
+            regions.remove(region);
+        }
+    }
+
     private class InternalBeaconConsumer implements BeaconConsumer {
 
         private Intent serviceIntent;
@@ -107,6 +144,7 @@ public class RegionBootstrap {
         public void onBeaconServiceConnect() {
             LogManager.d(TAG, "Activating background region monitoring");
             beaconManager.setMonitorNotifier(application);
+            serviceConnected = true;
             try {
                 for (Region region : regions) {
                     LogManager.d(TAG, "Background region monitoring activated for region %s", region);
@@ -128,6 +166,7 @@ public class RegionBootstrap {
             this.serviceIntent = intent;
             application.getApplicationContext().startService(intent);
             return application.getApplicationContext().bindService(intent, conn, arg2);
+
         }
 
         /**
@@ -145,6 +184,7 @@ public class RegionBootstrap {
         public void unbindService(ServiceConnection conn) {
             application.getApplicationContext().unbindService(conn);
             application.getApplicationContext().stopService(serviceIntent);
+            serviceConnected = false;
         }
     }
 

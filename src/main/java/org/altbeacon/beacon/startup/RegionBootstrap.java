@@ -110,6 +110,8 @@ public class RegionBootstrap {
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't add bootstrap region");
                 }
+            }else{
+                LogManager.w(TAG, "Adding a rigion: service not yet Connected");
             }
             regions.add(region);
         }
@@ -128,6 +130,8 @@ public class RegionBootstrap {
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't stop bootstrap region");
                 }
+            }else{
+                LogManager.w(TAG, "Removing a region: service not yet Connected");
             }
             regions.remove(region);
         }

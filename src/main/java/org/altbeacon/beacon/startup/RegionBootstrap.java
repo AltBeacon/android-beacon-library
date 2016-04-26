@@ -111,7 +111,7 @@ public class RegionBootstrap {
                     LogManager.e(e, TAG, "Can't add bootstrap region");
                 }
             }else{
-                LogManager.w(TAG, "Adding a rigion: service not yet Connected");
+                LogManager.w(TAG, "Adding a region: service not yet Connected");
             }
             regions.add(region);
         }

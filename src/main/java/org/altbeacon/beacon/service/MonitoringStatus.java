@@ -153,7 +153,7 @@ public class MonitoringStatus {
         } catch (IOException | ClassNotFoundException | ClassCastException e) {
             if (e instanceof InvalidClassException) {
                 LogManager.d(TAG, "Serialized Monitoring State has wrong class. Just ignoring saved state..." );
-            } else LogManager.e(TAG, "Deserialization exception, message: $s", e.getMessage());
+            } else LogManager.e(TAG, "Deserialization exception, message: %s", e.getMessage());
         } finally {
             if (null != inputStream) {
                 try {

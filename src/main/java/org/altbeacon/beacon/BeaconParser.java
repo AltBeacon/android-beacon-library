@@ -507,7 +507,7 @@ public class BeaconParser {
                     }
                     else {
                         String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
-                        dataFields.add(Long.parseLong(dataString));
+                        dataFields.add(Long.decode(dataString));
                     }
                 }
 

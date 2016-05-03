@@ -329,4 +329,40 @@ public class BeaconParserTest {
         assertNull("beacon not be parsed without an exception being thrown", beacon);
     }
 
+    @Test
+    public void testCanParseLongDataTypeOfDifferentSize(){
+        // Create a beacon parser
+        BeaconParser parser = new BeaconParser();
+        parser.setBeaconLayout("m:2-3=0118,i:4-7,p:8-8,d:9-16,d:18-21,d:22-25");
+
+        // Generate sample beacon for test purpose.
+        java.util.List<Long> sampleData = new java.util.ArrayList<Long>();
+        Long now = System.currentTimeMillis();
+        sampleData.add(now);
+        sampleData.add(1234L);
+        sampleData.add(9876L);
+        Beacon beacon = new Beacon.Builder()
+                .setManufacturer(0x0118)
+                .setId1("02646576656c6f7065722e636f6d")
+                .setTxPower(-59)
+                .setDataFields(sampleData)
+                .build();
+
+        assertEquals("beacon contains a valid data on index 0", now, beacon.getDataFields().get(0));
+
+        // Make byte array
+        byte[] headerBytes = hexStringToByteArray("1bff1801");
+        byte[] bodyBytes = parser.getBeaconAdvertisementData(beacon);
+        byte[] bytes = new byte[headerBytes.length + bodyBytes.length];
+        System.arraycopy(headerBytes, 0, bytes, 0, headerBytes.length);
+        System.arraycopy(bodyBytes, 0, bytes, headerBytes.length, bodyBytes.length);
+
+        // Try parsing the byte array
+        Beacon parsedBeacon = parser.fromScanData(bytes, -59, null);
+
+        assertEquals("parsed beacon should contain a valid data on index 0", now, parsedBeacon.getDataFields().get(0));
+        assertEquals("parsed beacon should contain a valid data on index 1", Long.valueOf(1234L), parsedBeacon.getDataFields().get(1));
+        assertEquals("parsed beacon should contain a valid data on index 2", Long.valueOf(9876L), parsedBeacon.getDataFields().get(2));
+
+    }
 }

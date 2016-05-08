@@ -4,7 +4,7 @@ layout: android-beacon-library
 
 ### Calculating Formula Constants
 
-After [taking distance measurements](distance-calculations.md) for a specific Android device, the next step is to run a power regression to get the A, B and C constants used in the y=A*x^B+C formula.  
+After [taking distance measurements](distance-calculations.html) for a specific Android device, the next step is to run a power regression to get the A, B and C constants used in the y=A*x^B+C formula.  
 
 #### Make a spreadsheet
 

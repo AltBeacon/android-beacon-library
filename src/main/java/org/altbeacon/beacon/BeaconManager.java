@@ -246,7 +246,7 @@ public class BeaconManager {
     }
 
    protected BeaconManager(Context context) {
-      mContext = context;
+      mContext = context.getApplicationContext();
       if (!sManifestCheckingDisabled) {
          verifyServiceDeclaration();
       }

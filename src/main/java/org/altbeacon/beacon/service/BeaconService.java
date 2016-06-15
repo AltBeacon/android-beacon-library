@@ -58,9 +58,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -84,7 +86,7 @@ public class BeaconService extends Service {
     private BluetoothCrashResolver bluetoothCrashResolver;
     private DistanceCalculator defaultDistanceCalculator = null;
     private BeaconManager beaconManager;
-    private List<BeaconParser> beaconParsers;
+    private Set<BeaconParser> beaconParsers  = new HashSet<BeaconParser>();
     private CycledLeScanner mCycledScanner;
     private boolean mBackgroundFlag = false;
     private final GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
@@ -200,7 +202,14 @@ public class BeaconService extends Service {
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
 
         beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
-        beaconParsers = beaconManager.getBeaconParsers();
+
+        if (beaconManager.getBeaconParsers() != null) {
+            beaconParsers.addAll(beaconManager.getBeaconParsers());
+            for (BeaconParser beaconParser : beaconManager.getBeaconParsers()) {
+                beaconParsers.addAll(beaconParser.getExtraDataParsers());
+            }
+        }
+
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
 

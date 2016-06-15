@@ -76,6 +76,9 @@ public class BeaconParser {
     protected String mIdentifier;
     protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
 
+    protected List<BeaconParser> extraParsers = new ArrayList<BeaconParser>();
+
+
     /**
      * Makes a new BeaconParser.  Should normally be immediately followed by a call to #setLayout
      */
@@ -150,6 +153,13 @@ public class BeaconParser {
      * implementation will already pull out this company code and store it in the
      * beacon.mManufacturer field.  Matcher expressions should therefore start with "m2-3:" followed
      * by the multi-byte hex value that signifies the beacon type.
+     *
+     * <p>
+     * Extra layouts can also be added by using:
+     * @see #addExtraDataParser(BeaconParser)
+     * This is the preferred method and matching BeaconLayouts by serviceUUID will be deprecated in
+     * the future.
+     * </p>
      *
      * @param beaconLayout
      * @return the BeaconParser instance
@@ -274,6 +284,29 @@ public class BeaconParser {
         }
         mLayoutSize = calculateLayoutSize();
         return this;
+    }
+
+    /**
+     * Adds a <code>BeaconParser</code> used for parsing extra BLE beacon advertisement packets for
+     * beacons that send multiple different advertisement packets (for example, Eddystone-TLM)
+     *
+     * @param extraDataParser a parser that must be configured with an "extra layout" prefix
+     * @return true when the extra parser is added successfully
+     */
+    public boolean addExtraDataParser(BeaconParser extraDataParser) {
+        //add an extra data parser only if it is not null and it is an extra frame parser
+        return extraDataParser != null && extraDataParser.mExtraFrame && extraParsers.add(extraDataParser);
+    }
+
+    /**
+     * Gets a list of extra parsers configured for this <code>BeaconParser</code>.
+     *
+     * @see #addExtraDataParser
+     * @see #setBeaconLayout
+     * @return
+     */
+    public List<BeaconParser> getExtraDataParsers() {
+        return new ArrayList<>(extraParsers);
     }
 
     /**
@@ -576,6 +609,7 @@ public class BeaconParser {
             beacon.mBluetoothName= name;
             beacon.mManufacturer = manufacturer;
             beacon.mParserIdentifier = mIdentifier;
+            beacon.mMultiFrameBeacon = extraParsers.size() > 0 || mExtraFrame;
         }
         return beacon;
     }

@@ -31,7 +31,7 @@ beaconManager.getBeaconParsers().add(new BeaconParser().
     setBeaconLayout("x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15"));
 // Detect the URL frame:
 beaconManager.getBeaconParsers().add(new BeaconParser().
-    setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v"));
+    setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-21v"));
 ```
 
 ### Getting Notified When Beacons Appear in the Area

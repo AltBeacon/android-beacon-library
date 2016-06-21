@@ -15,59 +15,37 @@ import java.util.List;
  */
 public abstract class RegionMonitorNotifier implements MonitorNotifier{
 
-    private final List<Region> regions = new ArrayList<>();
+    private final RegionFilter regionFilter = new RegionFilter();
 
-    /**
-     * @param region
-     */
-    public void addRegion(Region region){
-        synchronized (regions){
-            regions.add(region);
-        }
+    public void addRegion(Region region) {
+        regionFilter.addRegion(region);
     }
 
-    /**
-     * @param region
-     * @return
-     */
-    public boolean removeRegion(Region region){
-        synchronized (regions) {
-            return regions.remove(region);
-        }
+    public boolean removeRegion(Region region) {
+        return regionFilter.removeRegion(region);
     }
 
-    /**
-     *
-     */
-    public void removeAllRegions(){
-        synchronized (regions){
-            regions.clear();
-        }
-    }
-
-    private boolean containRegion(Region region){
-        synchronized (regions){
-            return regions.contains(region);
-        }
+    public void removeAllRegions() {
+        regionFilter.removeAllRegions();
     }
 
     @Override
     public void didDetermineStateForRegion(int state, Region region) {
-        if(containRegion(region)){
+        if(regionFilter.containRegion(region)){
             didDetermineStateForInReferencedRegion(state, region);
         }
     }
 
     @Override
     public void didEnterRegion(Region region) {
-        if(containRegion(region)) {
+        if(regionFilter.containRegion(region)) {
             didEnterInReferencedRegion(region);
         }
     }
 
     @Override
     public void didExitRegion(Region region) {
-        if(containRegion(region)){
+        if(regionFilter.containRegion(region)){
             didExitInReferencedRegion(region);
         }
     }

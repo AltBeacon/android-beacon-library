@@ -109,9 +109,9 @@ public class BeaconManager {
     protected static BeaconManager client = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
-    protected final List<RangeNotifier> rangeNotifiers = new ArrayList<>();
+    protected final List<RangeNotifier> rangeNotifiers = new CopyOnWriteArrayList<>();
     protected RangeNotifier dataRequestNotifier = null;
-    protected List<MonitorNotifier> monitorNotifiers = new ArrayList<MonitorNotifier>();
+    protected List<MonitorNotifier> monitorNotifiers = new CopyOnWriteArrayList<>();
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
@@ -428,8 +428,8 @@ public class BeaconManager {
     public void setRangeNotifier(RangeNotifier notifier) {
         synchronized (rangeNotifiers) {
             rangeNotifiers.clear();
-            rangeNotifiers.add(notifier);
         }
+        addRangeNotifier(notifier);
     }
 
     /**
@@ -444,8 +444,10 @@ public class BeaconManager {
      * @see RangeNotifier
      */
     public void addRangeNotifier(RangeNotifier notifier){
-        synchronized (rangeNotifiers){
-            rangeNotifiers.add(notifier);
+        if(notifier != null){
+            synchronized (rangeNotifiers){
+                rangeNotifiers.add(notifier);
+            }
         }
     }
 
@@ -488,8 +490,8 @@ public class BeaconManager {
     public void setMonitorNotifier(MonitorNotifier notifier) {
         synchronized (monitorNotifiers) {
             monitorNotifiers.clear();
-            monitorNotifiers.add(notifier);
         }
+        addMonitorNotifier(notifier);
     }
 
     /**
@@ -506,8 +508,10 @@ public class BeaconManager {
      * @see Region
      */
     public void addMonitorNotifier(MonitorNotifier notifier){
-        synchronized (monitorNotifiers) {
-            monitorNotifiers.add(notifier);
+        if(notifier != null){
+            synchronized (monitorNotifiers) {
+                monitorNotifiers.add(notifier);
+            }
         }
     }
 
@@ -710,9 +714,7 @@ public class BeaconManager {
      * @return the list of registered monitorNotifier
      */
     public List<MonitorNotifier> getMonitoringNotifiers(){
-        synchronized (monitorNotifiers){
-            return new ArrayList<>(monitorNotifiers);
-        }
+        return monitorNotifiers;
     }
 
     /**
@@ -733,9 +735,7 @@ public class BeaconManager {
      * @return the list of registered rangeNotifier
      */
     public List<RangeNotifier> getRangingNotifiers(){
-        synchronized (rangeNotifiers){
-            return new ArrayList<>(rangeNotifiers);
-        }
+        return rangeNotifiers;
     }
 
     /**

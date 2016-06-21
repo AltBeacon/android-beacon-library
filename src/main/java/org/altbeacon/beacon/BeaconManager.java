@@ -38,11 +38,11 @@ import android.os.RemoteException;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
-import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.StartRMData;
+import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 
 import java.util.ArrayList;
@@ -109,9 +109,9 @@ public class BeaconManager {
     protected static BeaconManager client = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
-    protected RangeNotifier rangeNotifier = null;
+    protected final List<RangeNotifier> rangeNotifiers = new ArrayList<>();
     protected RangeNotifier dataRequestNotifier = null;
-    protected MonitorNotifier monitorNotifier = null;
+    protected List<MonitorNotifier> monitorNotifiers = new ArrayList<MonitorNotifier>();
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
@@ -422,9 +422,52 @@ public class BeaconManager {
      *
      * @param notifier
      * @see RangeNotifier
+     * @deprecated replaced by (@link #addRangeNotifier)
      */
+    @Deprecated
     public void setRangeNotifier(RangeNotifier notifier) {
-        rangeNotifier = notifier;
+        synchronized (rangeNotifiers) {
+            rangeNotifiers.clear();
+            rangeNotifiers.add(notifier);
+        }
+    }
+
+    /**
+     * Specifies a class that should be called each time the <code>BeaconService</code> gets ranging
+     * data, which is nominally once per second when beacons are detected.
+     * <p/>
+     * Permits to register several <code>RangeNotifier</code> objects.
+     * <p/>
+     *The notifier must be unregistered using (@link #removeRangeNotifier)
+     *
+     * @param notifier
+     * @see RangeNotifier
+     */
+    public void addRangeNotifier(RangeNotifier notifier){
+        synchronized (rangeNotifiers){
+            rangeNotifiers.add(notifier);
+        }
+    }
+
+    /**
+     * Specifies a class to remove from the array of <code>RangeNotifier</code>
+     *
+     * @param notifier
+     * @see RangeNotifier
+     */
+    public boolean removeRangeNotifier(RangeNotifier notifier){
+        synchronized (rangeNotifiers){
+            return rangeNotifiers.remove(notifier);
+        }
+    }
+
+    /**
+     * Remove all the Range Notifiers
+     */
+    public void removeAllRangeNotifiers(){
+        synchronized (rangeNotifiers){
+            rangeNotifiers.clear();
+        }
     }
 
     /**
@@ -439,9 +482,56 @@ public class BeaconManager {
      * @see MonitorNotifier
      * @see #startMonitoringBeaconsInRegion(Region region)
      * @see Region
+     * @deprecated replaced by (@link #addMonitorNotifier)
      */
+    @Deprecated
     public void setMonitorNotifier(MonitorNotifier notifier) {
-        monitorNotifier = notifier;
+        synchronized (monitorNotifiers) {
+            monitorNotifiers.clear();
+            monitorNotifiers.add(notifier);
+        }
+    }
+
+    /**
+     * Specifies a class that should be called each time the <code>BeaconService</code> sees
+     * or stops seeing a Region of beacons.
+     * <p/>
+     * Permits to register severals <code>MonitorNotifier</code> objects.
+     *<p/>
+     * Unregister the notifier using (@link #removeMonitoreNotifier)
+     *
+     * @param notifier
+     * @see MonitorNotifier
+     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see Region
+     */
+    public void addMonitorNotifier(MonitorNotifier notifier){
+        synchronized (monitorNotifiers) {
+            monitorNotifiers.add(notifier);
+        }
+    }
+
+    /**
+     * Specifies a class to remove from the array of <code>MonitorNotifier</code>.
+     *
+     * @param notifier
+     * @see MonitorNotifier
+     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see Region
+     */
+    public boolean removeMonitoreNotifier(MonitorNotifier notifier){
+        synchronized (monitorNotifiers){
+            return monitorNotifiers.remove(notifier);
+        }
+    }
+
+    /**
+     * Remove all the Monitor Notifers
+     */
+    public void removeAllMonitorNotifiers(){
+        synchronized (monitorNotifiers){
+            monitorNotifiers.clear();
+        }
     }
 
     /**
@@ -603,19 +693,49 @@ public class BeaconManager {
     }
 
     /**
-     * @return monitorNotifier
-     * @see #monitorNotifier
+     * @return the first registered monitorNotifier
+     * @deprecated replaced by (@link #getMonitorNotifiers)
      */
+    @Deprecated
     public MonitorNotifier getMonitoringNotifier() {
-        return this.monitorNotifier;
+        synchronized (monitorNotifiers) {
+            if (monitorNotifiers.size() > 0) {
+                return monitorNotifiers.get(0);
+            }
+            return null;
+        }
     }
 
     /**
-     * @return rangeNotifier
-     * @see #rangeNotifier
+     * @return the list of registered monitorNotifier
      */
+    public List<MonitorNotifier> getMonitoringNotifiers(){
+        synchronized (monitorNotifiers){
+            return new ArrayList<>(monitorNotifiers);
+        }
+    }
+
+    /**
+     * @return the first registered rangeNotifier
+     * @deprecated replaced by (@link #getRangeNotifiers)
+     */
+    @Deprecated
     public RangeNotifier getRangingNotifier() {
-        return this.rangeNotifier;
+        synchronized (rangeNotifiers) {
+            if (rangeNotifiers.size() > 0) {
+                return rangeNotifiers.get(0);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * @return the list of registered rangeNotifier
+     */
+    public List<RangeNotifier> getRangingNotifiers(){
+        synchronized (rangeNotifiers){
+            return new ArrayList<>(rangeNotifiers);
+        }
     }
 
     /**

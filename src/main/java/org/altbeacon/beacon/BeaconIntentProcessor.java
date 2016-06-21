@@ -31,6 +31,8 @@ import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Intent;
 
+import java.util.List;
+
 /**
  * Converts internal intents to notifier callbacks
  */
@@ -59,10 +61,12 @@ public class BeaconIntentProcessor extends IntentService {
             if (rangingData.getBeacons() == null) {
                 LogManager.w(TAG, "Ranging data has a null beacons collection");
             }
-            RangeNotifier notifier = BeaconManager.getInstanceForApplication(this).getRangingNotifier();
+            List<RangeNotifier> notifiers = BeaconManager.getInstanceForApplication(this).getRangingNotifiers();
             java.util.Collection<Beacon> beacons = rangingData.getBeacons();
-            if (notifier != null) {
-                notifier.didRangeBeaconsInRegion(beacons, rangingData.getRegion());
+            if (notifiers != null) {
+                for(RangeNotifier notifier : notifiers){
+                    notifier.didRangeBeaconsInRegion(beacons, rangingData.getRegion());
+                }
             }
             else {
                 LogManager.d(TAG, "but ranging notifier is null, so we're dropping it.");
@@ -75,15 +79,16 @@ public class BeaconIntentProcessor extends IntentService {
 
         if (monitoringData != null) {
             LogManager.d(TAG, "got monitoring data");
-            MonitorNotifier notifier = BeaconManager.getInstanceForApplication(this).getMonitoringNotifier();
-            if (notifier != null) {
-                LogManager.d(TAG, "Calling monitoring notifier: %s", notifier);
-                notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
-                if (monitoringData.isInside()) {
-                    notifier.didEnterRegion(monitoringData.getRegion());
-                }
-                else {
-                    notifier.didExitRegion(monitoringData.getRegion());
+            List<MonitorNotifier> notifiers = BeaconManager.getInstanceForApplication(this).getMonitoringNotifiers();
+            if (notifiers != null) {
+                for(MonitorNotifier notifier : notifiers) {
+                    LogManager.d(TAG, "Calling monitoring notifier: %s", notifier);
+                    notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
+                    if (monitoringData.isInside()) {
+                        notifier.didEnterRegion(monitoringData.getRegion());
+                    } else {
+                        notifier.didExitRegion(monitoringData.getRegion());
+                    }
                 }
             }
         }

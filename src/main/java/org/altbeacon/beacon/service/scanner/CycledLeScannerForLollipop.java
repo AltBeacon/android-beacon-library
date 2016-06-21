@@ -23,6 +23,7 @@ import java.util.List;
 public class CycledLeScannerForLollipop extends CycledLeScanner {
     private static final String TAG = "CycledLeScannerForLollipop";
     private static final long BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS = 10000l;
+    private static final long SCAN_REPORT_DELAY_MILLIS = 10l;
     private BluetoothLeScanner mScanner;
     private ScanCallback leScanCallback;
     private long mBackgroundLScanStartTime = 0l;
@@ -172,12 +173,14 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
         if (mBackgroundFlag && !mMainScanCycleActive) {
             LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
-            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER))
+                                                  .setReportDelay(SCAN_REPORT_DELAY_MILLIS).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                     mBeaconManager.getBeaconParsers());
         } else {
             LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
-            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY))
+                                                  .setReportDelay(SCAN_REPORT_DELAY_MILLIS).build();
         }
 
         try {
@@ -254,7 +257,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
                 @Override
                 public void onScanFailed(int i) {
-                    LogManager.e(TAG, "Scan Failed");
+                    LogManager.e(TAG, "Scan Failed, code: "+i);
                 }
             };
         }

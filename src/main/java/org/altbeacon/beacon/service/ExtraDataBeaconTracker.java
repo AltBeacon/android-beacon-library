@@ -9,13 +9,21 @@ import java.util.HashMap;
  * merges them together depending on configured beacon parsers
  * Created by dyoung on 5/5/15.
  */
-public class GattBeaconTracker {
+public class ExtraDataBeaconTracker {
     private static final String TAG = "BeaconTracker";
     // This is a lookup table to find tracked beacons by the calculated beacon key
     private HashMap<String,HashMap<Integer,Beacon>> mBeaconsByKey = new HashMap<String,HashMap<Integer,Beacon>>();
 
+    private boolean matchBeaconsByServiceUUID = true;
+    public ExtraDataBeaconTracker() {
+    }
+
+    public ExtraDataBeaconTracker(boolean matchBeaconsByServiceUUID) {
+        this.matchBeaconsByServiceUUID = matchBeaconsByServiceUUID;
+    }
+
     /**
-     * Tracks a beacon.  For Gatt-based beacons, returns a merged copy of fields from multiple
+     * Tracks a beacon. For Gatt-based beacons, returns a merged copy of fields from multiple
      * frames.  Returns null when passed a Gatt-based beacon that has is only extra beacon data.
      *
      * @param beacon
@@ -68,6 +76,10 @@ public class GattBeaconTracker {
     }
 
     private String getBeaconKey(Beacon beacon) {
-        return beacon.getBluetoothAddress() + beacon.getServiceUuid();
+        if (matchBeaconsByServiceUUID) {
+            return beacon.getBluetoothAddress() + beacon.getServiceUuid();
+        } else {
+            return beacon.getBluetoothAddress();
+        }
     }
 }

@@ -10,12 +10,15 @@ import org.robolectric.annotation.Config;
 import java.util.ArrayList;
 import java.util.List;
 
+import dalvik.annotation.TestTargetClass;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotEquals;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 18)
-public class GattBeaconTrackerTest {
+public class ExtraDataBeaconTrackerTest {
     Beacon getManufacturerBeacon() {
         return new Beacon.Builder().setId1("1")
                 .setBluetoothAddress("01:02:03:04:05:06")
@@ -68,6 +71,23 @@ public class GattBeaconTrackerTest {
                 .build();
     }
 
+    Beacon getMultiFrameBeacon() {
+        return new Beacon.Builder().setId1("1")
+                .setBluetoothAddress("01:02:03:04:05:06")
+                .setServiceUuid(1234)
+                .setMultiFrameBeacon(true)
+                .build();
+    }
+
+    Beacon getMultiFrameBeaconUpdateDifferentServiceUUID() {
+        return new Beacon.Builder()
+                .setBluetoothAddress("01:02:03:04:05:06")
+                .setServiceUuid(5678)
+                .setRssi(-50)
+                .setDataFields(getDataFields())
+                .setMultiFrameBeacon(true)
+                .build();
+    }
 
     @Before
     public void before() {
@@ -78,7 +98,7 @@ public class GattBeaconTrackerTest {
     @Test
     public void trackingManufacturerBeaconReturnsSelf() {
         Beacon beacon = getManufacturerBeacon();
-        GattBeaconTracker tracker = new GattBeaconTracker();
+        ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         Beacon trackedBeacon = tracker.track(beacon);
         assertEquals("Returns itself", trackedBeacon, beacon);
     }
@@ -86,7 +106,7 @@ public class GattBeaconTrackerTest {
     @Test
     public void gattBeaconExtraDataIsNotReturned() {
         Beacon extraDataBeacon = getGattBeaconExtraData();
-        GattBeaconTracker tracker = new GattBeaconTracker();
+        ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         Beacon trackedBeacon = tracker.track(extraDataBeacon);
         assertNull("trackedBeacon should be null", trackedBeacon);
     }
@@ -96,7 +116,7 @@ public class GattBeaconTrackerTest {
         Beacon beacon = getGattBeacon();
         Beacon extraDataBeacon = getGattBeaconExtraData();
         Beacon extraDataBeacon2 = getGattBeaconExtraData2();
-        GattBeaconTracker tracker = new GattBeaconTracker();
+        ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         tracker.track(beacon);
         tracker.track(extraDataBeacon);
         tracker.track(extraDataBeacon2);
@@ -108,7 +128,7 @@ public class GattBeaconTrackerTest {
     public void gattBeaconExtraDataAreNotOverwritten() {
         Beacon beacon = getGattBeacon();
         Beacon extraDataBeacon = getGattBeaconExtraData();
-        GattBeaconTracker tracker = new GattBeaconTracker();
+        ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         tracker.track(beacon);
         tracker.track(extraDataBeacon);
         Beacon trackedBeacon = tracker.track(beacon);
@@ -120,11 +140,34 @@ public class GattBeaconTrackerTest {
         Beacon beacon = getGattBeacon();
         Beacon beaconUpdate = getGattBeaconUpdate();
         Beacon extraDataBeacon = getGattBeaconExtraData();
-        GattBeaconTracker tracker = new GattBeaconTracker();
+        ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         tracker.track(beacon);
         Beacon trackedBeacon = tracker.track(beaconUpdate);
         assertEquals("rssi should be updated", beaconUpdate.getRssi(), trackedBeacon.getRssi());
         assertEquals("data fields should be updated", beaconUpdate.getDataFields(), trackedBeacon.getDataFields());
     }
 
+    @Test
+    public void multiFrameBeaconDifferentServiceUUIDFieldsNotUpdated() {
+        Beacon beacon = getMultiFrameBeacon();
+        Beacon beaconUpdate = getMultiFrameBeaconUpdateDifferentServiceUUID();
+        ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
+        tracker.track(beacon);
+        tracker.track(beaconUpdate);
+        Beacon trackedBeacon = tracker.track(beacon);
+        assertNotEquals("rssi should NOT be updated", beaconUpdate.getRssi(), trackedBeacon.getRssi());
+        assertNotEquals("data fields should NOT be updated", beaconUpdate.getDataFields(), trackedBeacon.getExtraDataFields());
+    }
+
+    @Test
+    public void multiFrameBeaconProgramaticParserAssociationDifferentServiceUUIDFieldsGetUpdated() {
+        Beacon beacon = getMultiFrameBeacon();
+        Beacon beaconUpdate = getMultiFrameBeaconUpdateDifferentServiceUUID();
+        ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker(false);
+        tracker.track(beacon);
+        tracker.track(beaconUpdate);
+        Beacon trackedBeacon = tracker.track(beacon);
+        assertEquals("rssi should be updated", beaconUpdate.getRssi(), trackedBeacon.getRssi());
+        assertEquals("data fields should be updated", beaconUpdate.getDataFields(), trackedBeacon.getExtraDataFields());
+    }
 }

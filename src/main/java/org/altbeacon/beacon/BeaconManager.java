@@ -54,6 +54,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * A class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
@@ -109,9 +110,9 @@ public class BeaconManager {
     protected static BeaconManager client = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
-    protected final List<RangeNotifier> rangeNotifiers = new CopyOnWriteArrayList<>();
+    protected final Set<RangeNotifier> rangeNotifiers = new CopyOnWriteArraySet<>();
     protected RangeNotifier dataRequestNotifier = null;
-    protected List<MonitorNotifier> monitorNotifiers = new CopyOnWriteArrayList<>();
+    protected Set<MonitorNotifier> monitorNotifiers = new CopyOnWriteArraySet<>();
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
@@ -704,7 +705,7 @@ public class BeaconManager {
     public MonitorNotifier getMonitoringNotifier() {
         synchronized (monitorNotifiers) {
             if (monitorNotifiers.size() > 0) {
-                return monitorNotifiers.get(0);
+                return monitorNotifiers.iterator().next();
             }
             return null;
         }
@@ -713,7 +714,7 @@ public class BeaconManager {
     /**
      * @return the list of registered monitorNotifier
      */
-    public List<MonitorNotifier> getMonitoringNotifiers(){
+    public Set<MonitorNotifier> getMonitoringNotifiers(){
         return monitorNotifiers;
     }
 
@@ -725,7 +726,7 @@ public class BeaconManager {
     public RangeNotifier getRangingNotifier() {
         synchronized (rangeNotifiers) {
             if (rangeNotifiers.size() > 0) {
-                return rangeNotifiers.get(0);
+                return rangeNotifiers.iterator().next();
             }
             return null;
         }
@@ -734,7 +735,7 @@ public class BeaconManager {
     /**
      * @return the list of registered rangeNotifier
      */
-    public List<RangeNotifier> getRangingNotifiers(){
+    public Set<RangeNotifier> getRangingNotifiers(){
         return rangeNotifiers;
     }
 

@@ -23,15 +23,15 @@
  */
 package org.altbeacon.beacon;
 
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.service.MonitoringData;
-import org.altbeacon.beacon.service.RangingData;
-
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Intent;
 
-import java.util.List;
+import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.service.MonitoringData;
+import org.altbeacon.beacon.service.RangingData;
+
+import java.util.Set;
 
 /**
  * Converts internal intents to notifier callbacks
@@ -61,7 +61,7 @@ public class BeaconIntentProcessor extends IntentService {
             if (rangingData.getBeacons() == null) {
                 LogManager.w(TAG, "Ranging data has a null beacons collection");
             }
-            List<RangeNotifier> notifiers = BeaconManager.getInstanceForApplication(this).getRangingNotifiers();
+            Set<RangeNotifier> notifiers = BeaconManager.getInstanceForApplication(this).getRangingNotifiers();
             java.util.Collection<Beacon> beacons = rangingData.getBeacons();
             if (notifiers != null) {
                 for(RangeNotifier notifier : notifiers){
@@ -79,7 +79,7 @@ public class BeaconIntentProcessor extends IntentService {
 
         if (monitoringData != null) {
             LogManager.d(TAG, "got monitoring data");
-            List<MonitorNotifier> notifiers = BeaconManager.getInstanceForApplication(this).getMonitoringNotifiers();
+            Set<MonitorNotifier> notifiers = BeaconManager.getInstanceForApplication(this).getMonitoringNotifiers();
             if (notifiers != null) {
                 for(MonitorNotifier notifier : notifiers) {
                     LogManager.d(TAG, "Calling monitoring notifier: %s", notifier);

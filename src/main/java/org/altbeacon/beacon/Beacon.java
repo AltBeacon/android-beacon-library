@@ -647,6 +647,7 @@ public class Beacon implements Parcelable {
             setTxPower(beacon.getTxPower());
             setRssi(beacon.getRssi());
             setServiceUuid(beacon.getServiceUuid());
+            setMultiFrameBeacon(beacon.isMultiFrameBeacon());
             return this;
         }
 
@@ -793,6 +794,16 @@ public class Beacon implements Parcelable {
          */
         public Builder setParserIdentifier(String id) {
             mBeacon.mParserIdentifier = id;
+            return this;
+        }
+
+
+        /**
+         * @see Beacon#mMultiFrameBeacon
+         * @return multiFrameBeacon
+         */
+        public Builder setMultiFrameBeacon(boolean multiFrameBeacon) {
+            mBeacon.mMultiFrameBeacon = multiFrameBeacon;
             return this;
         }
     }

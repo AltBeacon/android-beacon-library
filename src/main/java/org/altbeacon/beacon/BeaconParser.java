@@ -897,5 +897,32 @@ public class BeaconParser {
         return Arrays.copyOf(array, requiredLength);
     }
 
-
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(new Object[] {
+                mMatchingBeaconTypeCode,
+                mIdentifierStartOffsets,
+                mIdentifierEndOffsets,
+                mIdentifierLittleEndianFlags,
+                mDataStartOffsets,
+                mDataEndOffsets,
+                mDataLittleEndianFlags,
+                mIdentifierVariableLengthFlags,
+                mMatchingBeaconTypeCodeStartOffset,
+                mMatchingBeaconTypeCodeEndOffset,
+                mServiceUuidStartOffset,
+                mServiceUuidEndOffset,
+                mServiceUuid,
+                mExtraFrame,
+                mPowerStartOffset,
+                mPowerEndOffset,
+                mDBmCorrection,
+                mLayoutSize,
+                mAllowPduOverflow,
+                mIdentifier,
+                mHardwareAssistManufacturers,
+                extraParsers
+            }
+        );
+    }
 }

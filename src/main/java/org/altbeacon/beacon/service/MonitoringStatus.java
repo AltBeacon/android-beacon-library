@@ -1,11 +1,13 @@
 package org.altbeacon.beacon.service;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +26,8 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class MonitoringStatus {
     private static MonitoringStatus sInstance;
+    private static final int MAX_REGIONS_FOR_STATUS_PRESERVATION = 50;
+    private static final int MAX_STATUS_PRESERVATION_FILE_AGE_TO_RESTORE_SECS = 60 * 15;
     private static final String TAG = MonitoringStatus.class.getSimpleName();
     public static final String STATUS_PRESERVATION_FILE_NAME =
             "org.altbeacon.beacon.service.monitoring_status_state";
@@ -46,7 +51,13 @@ public class MonitoringStatus {
 
     public MonitoringStatus(Context context) {
         this.mContext = context;
-        restoreMonitoringStatus();
+        long millisSinceLastMonitor = System.currentTimeMillis() - getLastMonitoringStatusUpdateTime();
+        if (millisSinceLastMonitor > MAX_STATUS_PRESERVATION_FILE_AGE_TO_RESTORE_SECS * 1000) {
+            LogManager.d(TAG, "Not restoring monitoring state because it was recorded too many milliseconds ago: "+millisSinceLastMonitor);
+        }
+        else {
+            restoreMonitoringStatus();
+        }
     }
 
     public synchronized void addRegion(Region region) {
@@ -84,7 +95,12 @@ public class MonitoringStatus {
                 state.getCallback().call(mContext, "monitoringData", new MonitoringData(state.isInside(), region));
             }
         }
-        if (needsMonitoringStateSaving) saveMonitoringStatusIfOn();
+        if (needsMonitoringStateSaving) {
+            saveMonitoringStatusIfOn();
+        }
+        else {
+            updateMonitoringStatusTime(System.currentTimeMillis());
+        }
     }
 
     public synchronized void updateNewlyInsideInRegionsContaining(Beacon beacon) {
@@ -98,7 +114,12 @@ public class MonitoringStatus {
                         new MonitoringData(state.isInside(), region));
             }
         }
-        if (needsMonitoringStateSaving) saveMonitoringStatusIfOn();
+        if (needsMonitoringStateSaving) {
+            saveMonitoringStatusIfOn();
+        }
+        else {
+            updateMonitoringStatusTime(System.currentTimeMillis());
+        }
     }
 
     private List<Region> regionsMatchingTo(Beacon beacon) {
@@ -113,35 +134,51 @@ public class MonitoringStatus {
         return matched;
     }
 
-    private void saveMonitoringStatusIfOn() {
+    protected void saveMonitoringStatusIfOn() {
         if(!mStatePreservationIsOn) return;
         LogManager.d(TAG, "saveMonitoringStatusIfOn()");
-        FileOutputStream outputStream = null;
-        ObjectOutputStream objectOutputStream = null;
-        try {
-            outputStream = mContext.openFileOutput(STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
-            objectOutputStream = new ObjectOutputStream(outputStream);
-            objectOutputStream.writeObject(mRegionsStatesMap);
+        if (mRegionsStatesMap.size() > MAX_REGIONS_FOR_STATUS_PRESERVATION) {
+            LogManager.w(TAG, "Too many regions being monitored.  Will not persist region state");
+            mContext.deleteFile(STATUS_PRESERVATION_FILE_NAME);
+        }
+        else {
+            FileOutputStream outputStream = null;
+            ObjectOutputStream objectOutputStream = null;
+            try {
+                outputStream = mContext.openFileOutput(STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
+                objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(mRegionsStatesMap);
 
-        } catch (IOException e) {
-            LogManager.e(TAG, "Error while saving monitored region states to file. %s ", e.getMessage());
-        } finally {
-            if (null != outputStream) {
-                try {
-                    outputStream.close();
-                } catch (IOException ignored) {
+            } catch (IOException e) {
+                LogManager.e(TAG, "Error while saving monitored region states to file. %s ", e.getMessage());
+            } finally {
+                if (null != outputStream) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException ignored) {
+                    }
                 }
-            }
-            if (objectOutputStream != null) {
-                try {
-                    objectOutputStream.close();
-                } catch (IOException ignored) {
+                if (objectOutputStream != null) {
+                    try {
+                        objectOutputStream.close();
+                    } catch (IOException ignored) {
+                    }
                 }
             }
         }
     }
 
-    private void restoreMonitoringStatus() {
+    protected void updateMonitoringStatusTime(long time) {
+        File file = mContext.getFileStreamPath(STATUS_PRESERVATION_FILE_NAME);
+        file.setLastModified(time);
+    }
+
+    protected long getLastMonitoringStatusUpdateTime() {
+        File file = mContext.getFileStreamPath(STATUS_PRESERVATION_FILE_NAME);
+        return file.lastModified();
+    }
+
+    protected void restoreMonitoringStatus() {
         FileInputStream inputStream = null;
         ObjectInputStream objectInputStream = null;
         try {

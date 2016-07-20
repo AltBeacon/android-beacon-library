@@ -75,7 +75,8 @@ public class MonitoringStatusTest {
             monitoringStatus.addRegion(region);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
-        monitoringStatus.updateMonitoringStatusTime();
+        // Set update time to one hour ago
+        monitoringStatus.updateMonitoringStatusTime(System.currentTimeMillis() - 1000*3600l);
         MonitoringStatus monitoringStatus2 = new MonitoringStatus(context);
         assertEquals("restored regions should be none", 0, monitoringStatus2.regions().size());
     }

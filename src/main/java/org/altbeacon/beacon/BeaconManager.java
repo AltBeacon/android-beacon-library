@@ -551,7 +551,7 @@ public class BeaconManager {
         MonitoringStatus status = MonitoringStatus.getInstanceForApplication(mContext);
         RegionMonitoringState stateObj = status.stateOf(region);
         int state = MonitorNotifier.OUTSIDE;
-        if (stateObj.isInside()) {
+        if (stateObj != null && stateObj.isInside()) {
             state = MonitorNotifier.INSIDE;
         }
         synchronized (monitorNotifiers) {

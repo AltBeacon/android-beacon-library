@@ -57,7 +57,16 @@ public class Callback {
         if (intent != null) {
             LogManager.d(TAG, "attempting callback via intent: %s", intent.getComponent());
             intent.putExtra(dataName, data);
-            context.startService(intent);
+            try {
+                context.startService(intent);
+            } catch (Exception e) {
+                LogManager.e(
+                        TAG,
+                        "Failed attempting to start service: " +
+                                intent.getComponent().flattenToString(),
+                        e
+                );
+            }
             return true;
         }
         return false;

@@ -57,11 +57,31 @@ public class MonitoringStatus {
         }
         else {
             restoreMonitoringStatus();
+            LogManager.d(TAG, "Done restoring monitoring status");
         }
     }
 
     public synchronized void addRegion(Region region) {
-        if (mRegionsStatesMap.containsKey(region)) return;
+        if (mRegionsStatesMap.containsKey(region)) {
+            // if the region definition hasn't changed, becasue if it has, we need to clear state
+            // otherwise a region with the same uniqueId can never be changed
+            for (Region existingRegion : mRegionsStatesMap.keySet()) {
+                if (existingRegion.equals(region)) {
+                    if (existingRegion.hasSameIdentifiers(region)) {
+                        return;
+                    }
+                    else {
+                        LogManager.d(TAG, "Replacing region with unique identifier "+region.getUniqueId());
+                        LogManager.d(TAG, "Old definition: "+existingRegion);
+                        LogManager.d(TAG, "New definition: "+region);
+                        LogManager.d(TAG, "clearing state");
+                    }
+                }
+            }
+
+
+            return;
+        }
         mRegionsStatesMap.put(region, new RegionMonitoringState(new Callback(mContext.getPackageName())));
         saveMonitoringStatusIfOn();
     }
@@ -89,10 +109,10 @@ public class MonitoringStatus {
         while (monitoredRegionIterator.hasNext()) {
             Region region = monitoredRegionIterator.next();
             RegionMonitoringState state = stateOf(region);
-            if (state.isNewlyOutside()) {
+            if (state.markOutsideIfExpired()) {
                 needsMonitoringStateSaving = true;
                 LogManager.d(TAG, "found a monitor that expired: %s", region);
-                state.getCallback().call(mContext, "monitoringData", new MonitoringData(state.isInside(), region));
+                state.getCallback().call(mContext, "monitoringData", new MonitoringData(state.getInside(), region));
             }
         }
         if (needsMonitoringStateSaving) {
@@ -111,7 +131,7 @@ public class MonitoringStatus {
             if (state != null && state.markInside()) {
                 needsMonitoringStateSaving = true;
                 state.getCallback().call(mContext, "monitoringData",
-                        new MonitoringData(state.isInside(), region));
+                        new MonitoringData(state.getInside(), region));
             }
         }
         if (needsMonitoringStateSaving) {
@@ -185,6 +205,10 @@ public class MonitoringStatus {
             inputStream = mContext.openFileInput(STATUS_PRESERVATION_FILE_NAME);
             objectInputStream = new ObjectInputStream(inputStream);
             Map<Region, RegionMonitoringState> obj = (Map<Region, RegionMonitoringState>) objectInputStream.readObject();
+            LogManager.d(TAG, "Restored region monitoring state for "+obj.size()+" regions.");
+            for (Region region : obj.keySet()) {
+                LogManager.d(TAG, "Region  "+region+" uniqueId: "+region.getUniqueId()+" state: "+obj.get(region));
+            }
             mRegionsStatesMap.putAll(obj);
 
         } catch (IOException | ClassNotFoundException | ClassCastException e) {
@@ -207,9 +231,22 @@ public class MonitoringStatus {
         }
     }
 
-    public synchronized void stopStatusPreservationOnProcessDestruction() {
+    /**
+     * Client applications should not call directly.  Call BeaconManager#setRegionStatePeristenceEnabled
+     */
+    public synchronized void stopStatusPreservation() {
         mContext.deleteFile(STATUS_PRESERVATION_FILE_NAME);
         this.mStatePreservationIsOn = false;
+    }
+
+    /**
+     * Client applications should not call directly.  Call BeaconManager#setRegionStatePeristenceEnabled
+     */
+    public synchronized void startStatusPreservation() {
+        if (!this.mStatePreservationIsOn) {
+            this.mStatePreservationIsOn = true;
+            saveMonitoringStatusIfOn();
+        }
     }
 
     public synchronized void clear() {

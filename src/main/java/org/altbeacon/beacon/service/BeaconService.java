@@ -222,6 +222,7 @@ public class BeaconService extends Service {
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
         monitoringStatus = MonitoringStatus.getInstanceForApplication(getApplicationContext());
+        monitoringStatus.startStatusPreservation();
         // Look for simulated scan data
         try {
             Class klass = Class.forName("org.altbeacon.beacon.SimulatedScanData");
@@ -273,7 +274,7 @@ public class BeaconService extends Service {
         LogManager.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         mCycledScanner.stop();
-        monitoringStatus.stopStatusPreservationOnProcessDestruction();
+        monitoringStatus.stopStatusPreservation();
     }
 
     @Override

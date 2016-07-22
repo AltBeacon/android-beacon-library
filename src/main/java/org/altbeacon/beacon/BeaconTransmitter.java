@@ -179,15 +179,17 @@ public class BeaconTransmitter {
                         (byte) ((serviceUuid >> 8) & 0xff)};
                 ParcelUuid parcelUuid = parseUuidFrom(serviceUuidBytes);
                 dataBuilder.addServiceData(parcelUuid, advertisingBytes);
-            }
-            else {
+                dataBuilder.addServiceUuid(parcelUuid);
+                dataBuilder.setIncludeTxPowerLevel(false);
+                dataBuilder.setIncludeDeviceName(false);
+
+            } else {
                 dataBuilder.addManufacturerData(manufacturerCode, advertisingBytes);
             }
 
             AdvertiseSettings.Builder settingsBuilder = new AdvertiseSettings.Builder();
 
             settingsBuilder.setAdvertiseMode(mAdvertiseMode);
-
             settingsBuilder.setTxPowerLevel(mAdvertiseTxPowerLevel);
             settingsBuilder.setConnectable(false);
 

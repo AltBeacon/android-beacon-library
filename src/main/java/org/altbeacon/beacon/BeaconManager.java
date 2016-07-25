@@ -38,8 +38,10 @@ import android.os.RemoteException;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
+import org.altbeacon.beacon.service.MonitoringStatus;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
+import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
@@ -540,6 +542,44 @@ public class BeaconManager {
     }
 
     /**
+     * Turns off saving the state of monitored regions to persistent storage so it is retained
+     * over app restarts.  Defaults to enabled.  When enabled, there will not be an "extra" region
+     * entry event when the app starts up and a beacon for a monitored region was previously visible
+     * within the past 15 minutes.  Note that there is a limit to 50 monitored regions that may be
+     * perisisted.  If more than 50 regions are monitored, state is not persisted for any.
+     *
+     * @param enabled
+     */
+    public void setRegionStatePeristenceEnabled(boolean enabled) {
+        if (enabled) {
+            MonitoringStatus.getInstanceForApplication(mContext).startStatusPreservation();
+        }
+        else {
+            MonitoringStatus.getInstanceForApplication(mContext).stopStatusPreservation();
+        }
+    }
+
+    /**
+     * Requests the current in/out state on the specified region. If the region is being monitored,
+     * this will cause an asynchronous callback on the `MonitorNotifier`'s `didDetermineStateForRegion`
+     * method.  If it is not a monitored region, it will be ignored.
+     * @param region
+     */
+    public void requestStateForRegion(Region region) {
+        MonitoringStatus status = MonitoringStatus.getInstanceForApplication(mContext);
+        RegionMonitoringState stateObj = status.stateOf(region);
+        int state = MonitorNotifier.OUTSIDE;
+        if (stateObj != null && stateObj.getInside()) {
+            state = MonitorNotifier.INSIDE;
+        }
+        synchronized (monitorNotifiers) {
+            for (MonitorNotifier notifier: monitorNotifiers) {
+                notifier.didDetermineStateForRegion(state, region);
+            }
+        }
+    }
+
+    /**
      * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
      * <code>Region</code> object, and providing updates on the estimated mDistance every seconds while
      * beacons in the Region are visible.  Note that the Region's unique identifier must be retained to
@@ -623,11 +663,14 @@ public class BeaconManager {
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
+        LogManager.d(TAG, "Starting monitoring region "+region+" with uniqueID: "+region.getUniqueId());
         Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
         StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
+            // If we are already tracking the state of this region, send a callback about it
+            this.requestStateForRegion(region);
             monitoredRegions.add(region);
         }
     }

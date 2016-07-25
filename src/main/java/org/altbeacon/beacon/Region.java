@@ -213,6 +213,31 @@ public class Region implements Parcelable, Serializable {
         return false;
     }
 
+    public boolean hasSameIdentifiers(Region region) {
+        if (region.mIdentifiers.size() == this.mIdentifiers.size()) {
+            for (int i = 0 ; i < region.mIdentifiers.size(); i++) {
+
+                if (region.getIdentifier(i) == null && this.getIdentifier(i) != null) {
+                    return false;
+                }
+                else if (region.getIdentifier(i) != null && this.getIdentifier(i) == null) {
+                    return false;
+                }
+                else if (!(region.getIdentifier(i) == null && this.getIdentifier(i) == null)) {
+                    if (!region.getIdentifier(i).equals(this.getIdentifier(i))) {
+                        return false;
+                    }
+                }
+            }
+        }
+        else {
+            return false;
+        }
+        return true;
+    }
+
+
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         int i = 1;

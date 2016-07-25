@@ -222,7 +222,6 @@ public class BeaconService extends Service {
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
         monitoringStatus = MonitoringStatus.getInstanceForApplication(getApplicationContext());
-        monitoringStatus.startStatusPreservation();
         // Look for simulated scan data
         try {
             Class klass = Class.forName("org.altbeacon.beacon.SimulatedScanData");

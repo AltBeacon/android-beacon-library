@@ -148,7 +148,7 @@ public class EidResolver {
         }
         else {
             urlString = GOOGLE_PROXIMITY_BEACON_API_GET_FOR_OBSERVED_URL + "?key=" + mGoogleProximityBeaconApiKey;
-            String jsonString = "{\"observations\":[{\"advertisedId\":  {\"type\": \"EDDYSTONE_EID\",\"id\": \""+base64EncodedData+"\"}}],\"namespacedTypes:\":[\""+mResolutionAttachmentNamespacedType+"\"]}";
+            String jsonString = "{\"observations\":[{\"advertisedId\":  {\"type\": \"EDDYSTONE_EID\",\"id\": \""+base64EncodedData+"\"}}],\"namespacedTypes\":[\""+mResolutionAttachmentNamespacedType+"\"]}";
             new AsyncCall(urlString, jsonString, new AsyncCallback() {
                 @Override
                 public void onResponse(Integer statusCode, String body, Exception exception) {

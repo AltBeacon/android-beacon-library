@@ -22,7 +22,7 @@ layout: android-beacon-library
 <li><a href='samples.html'>Code samples</a></li>
 <li><a href='https://github.com/AltBeacon/android-beacon-library-reference'>Reference application (Android Studio)</a></li>
 <li><a href='https://github.com/AltBeacon/android-beacon-library-reference/tree/eclipse'>Reference application (Eclipse)</a></li>
-<li><a href='javadoc/index.html'>API JavaDoc</a>
+<li><a href='javadoc/index.html'>API JavaDoc</a></li>
 <li><a href='alternate-configuration.html'>Alternate Configuration (JAR only)</a></li>
 <li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
 </ul>

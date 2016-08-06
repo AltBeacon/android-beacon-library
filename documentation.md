@@ -7,11 +7,7 @@ layout: android-beacon-library
 ### General Features and Topics
 
 <ul>
-<li><a href='background_launching.html'>Auto launching app on beacon detection</a></li>
-<li><a href='notifications.html'>Sending notifications on beacon detection</a></li>
-<li><a href='battery_manager.html'>Saving battery when your app is in the background</a></li>
-<li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
-<li><a href='resume-after-terminate.html'>Detecting beacons after the app is killed</a></li>
+<li><a href='requesting_permission.html'>Getting Location Permission</a></li>
 <li><a href='beacon-transmitter.html'>Transmitting as a Beacon</a></li>
 <li><a href='distance-calculations.html'>Getting distance estimates between a device and a beacon.</a></li>
 <li><a href='distance-triggering.html'>Triggering actions at a specific distance.</a></li>
@@ -27,6 +23,24 @@ layout: android-beacon-library
 <li><a href='https://github.com/AltBeacon/android-beacon-library-reference'>Reference application (Android Studio)</a></li>
 <li><a href='https://github.com/AltBeacon/android-beacon-library-reference/tree/eclipse'>Reference application (Eclipse)</a></li>
 <li><a href='javadoc/index.html'>API JavaDoc</a>
+<li><a href='alternate-configuration.html'>Alternate Configuration (JAR only)</a></li>
+<li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
+</ul>
+
+### Background Detection
+
+<li><a href='background_launching.html'>Auto launching app on beacon detection</a></li>
+<li><a href='notifications.html'>Sending notifications on beacon detection</a></li>
+<li><a href='battery_manager.html'>Saving battery when your app is in the background</a></li>
+<li><a href='resume-after-terminate.html'>Detecting beacons after the app is killed</a></li>
+<li><a href='state-persistence.html'>Region state across app restarts</a></li>
+
+### Eddystone
+
+<ul>
+<li><a href='eddystone-support.html'>Eddystone Support</a></li>
+<li><a href='eddystone-howto.html'>Eddystone Code Samples</a></li>
+<li><a href='eddystone-eid.html'>Eddystone Ephemeral Identifier (Encryption)</a></li>
 </ul>
 
 

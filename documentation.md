@@ -34,6 +34,7 @@ layout: android-beacon-library
 <li><a href='battery_manager.html'>Saving battery when your app is in the background</a></li>
 <li><a href='resume-after-terminate.html'>Detecting beacons after the app is killed</a></li>
 <li><a href='state-persistence.html'>Region state across app restarts</a></li>
+</ul>
 
 ### Eddystone
 

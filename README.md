@@ -58,13 +58,13 @@ replacing `${altbeacon.version}` with the version you wish to use.
 ## How to build this Library
 
 This project uses an AndroidStudio/gradle build system and is known working with Android Studio
-1.0.1 and Gradle 2.2.1
+2.1 and Gradle 2.2.1
 
 Key Gradle build targets:
 
     ./gradlew test # run unit tests
     ./gradlew build # development build
-    ./gradlew release  # release build  
+    ./gradlew release -Prelease # release build
     ./gradlew generatereleaseJavadoc -Prelease
 
 ## License

@@ -49,12 +49,11 @@ allprojects {
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24"
-//    buildToolsVersion "23.0.3"
+    buildToolsVersion "24.0.0"
 
     defaultConfig {
         minSdkVersion 7
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName version
         testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"

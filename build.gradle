@@ -57,6 +57,7 @@ android {
         versionCode 1
         versionName version
         testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
+        consumerProguardFiles 'proguard-rules.pro'
     }
 
     compileOptions {

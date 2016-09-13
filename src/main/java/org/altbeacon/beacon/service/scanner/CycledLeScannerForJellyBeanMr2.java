@@ -18,17 +18,9 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void stopScan() {
-        try {
-            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
-            if (bluetoothAdapter != null) {
-                bluetoothAdapter.stopLeScan(getLeScanCallback());
-            }
-        } catch (Exception e) {
-            LogManager.e(e, TAG, "Internal Android exception scanning for beacons");
-        }
+        postStopLeScan();
     }
 
     @Override
@@ -54,17 +46,55 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
         return false;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void startScan() {
-        getBluetoothAdapter().startLeScan(getLeScanCallback());
+        postStartLeScan();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void finishScan() {
-        getBluetoothAdapter().stopLeScan(getLeScanCallback());
+        postStopLeScan();
         mScanningPaused = true;
+    }
+
+    private void postStartLeScan() {
+        final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+        if (bluetoothAdapter == null) {
+            return;
+        }
+        final BluetoothAdapter.LeScanCallback leScanCallback = getLeScanCallback();
+        mScanHandler.removeCallbacksAndMessages(null);
+        mScanHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //noinspection deprecation
+                    bluetoothAdapter.startLeScan(leScanCallback);
+                } catch (Exception e) {
+                    LogManager.e(e, TAG, "Internal Android exception in startLeScan()");
+                }
+            }
+        });
+    }
+
+    private void postStopLeScan() {
+        final BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+        if (bluetoothAdapter == null) {
+            return;
+        }
+        final BluetoothAdapter.LeScanCallback leScanCallback = getLeScanCallback();
+        mScanHandler.removeCallbacksAndMessages(null);
+        mScanHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //noinspection deprecation
+                    bluetoothAdapter.stopLeScan(leScanCallback);
+                } catch (Exception e) {
+                    LogManager.e(e, TAG, "Internal Android exception in stopLeScan()");
+                }
+            }
+        });
     }
 
     private BluetoothAdapter.LeScanCallback getLeScanCallback() {

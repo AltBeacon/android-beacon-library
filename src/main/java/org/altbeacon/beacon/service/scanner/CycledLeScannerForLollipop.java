@@ -8,7 +8,6 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
 
@@ -39,20 +38,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void stopScan() {
-        try {
-            if (getScanner() != null) {
-                try {
-                    getScanner().stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
-                }
-                catch (NullPointerException npe) {
-                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.e(TAG, "Cannot stop scan.  Unexpected NPE.", npe);
-                }
-            }
-        }
-        catch (IllegalStateException e) {
-            LogManager.w(TAG, "Cannot stop scan.  Bluetooth may be turned off.");
-        }
+        postStopLeScan();
     }
 
     /*
@@ -181,21 +167,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
         }
 
-        try {
-            if (getScanner() != null) {
-                ScanCallback callback = getNewLeScanCallback();
-                try {
-                    getScanner().startScan(filters, settings, callback);
-                }
-                catch (NullPointerException npe) {
-                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.w(TAG, "Cannot start scan.  Unexpected NPE.", npe);
-                }
-            }
-        }
-        catch (IllegalStateException e) {
-            LogManager.w(TAG, "Cannot start scan.  Bluetooth may be turned off.");
-        }
+        postStartLeScan(filters, settings);
     }
 
     @Override
@@ -203,6 +175,50 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         LogManager.d(TAG, "Stopping scan");
         stopScan();
         mScanningPaused = true;
+    }
+
+    private void postStartLeScan(final List<ScanFilter> filters, final ScanSettings settings) {
+        final BluetoothLeScanner scanner = getScanner();
+        if (scanner == null) {
+            return;
+        }
+        final ScanCallback scanCallback = getNewLeScanCallback();
+        mScanHandler.removeCallbacksAndMessages(null);
+        mScanHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    scanner.startScan(filters, settings, scanCallback);
+                } catch (IllegalStateException e) {
+                    LogManager.w(TAG, "Cannot start scan. Bluetooth may be turned off.");
+                } catch (NullPointerException npe) {
+                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
+                    LogManager.e(TAG, "Cannot start scan. Unexpected NPE.", npe);
+                }
+            }
+        });
+    }
+
+    private void postStopLeScan() {
+        final BluetoothLeScanner scanner = getScanner();
+        if (scanner == null) {
+            return;
+        }
+        final ScanCallback scanCallback = getNewLeScanCallback();
+        mScanHandler.removeCallbacksAndMessages(null);
+        mScanHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    scanner.stopScan(scanCallback);
+                } catch (IllegalStateException e) {
+                    LogManager.w(TAG, "Cannot stop scan. Bluetooth may be turned off.");
+                } catch (NullPointerException npe) {
+                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
+                    LogManager.e(TAG, "Cannot stop scan. Unexpected NPE.", npe);
+                }
+            }
+        });
     }
 
     private BluetoothLeScanner getScanner() {

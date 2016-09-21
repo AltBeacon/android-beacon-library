@@ -38,11 +38,13 @@ import android.os.RemoteException;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
-import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
+import org.altbeacon.beacon.service.MonitoringStatus;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
+import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.StartRMData;
+import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 
 import java.util.ArrayList;
@@ -54,6 +56,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * A class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
@@ -109,9 +112,9 @@ public class BeaconManager {
     protected static BeaconManager client = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
-    protected RangeNotifier rangeNotifier = null;
+    protected final Set<RangeNotifier> rangeNotifiers = new CopyOnWriteArraySet<>();
     protected RangeNotifier dataRequestNotifier = null;
-    protected MonitorNotifier monitorNotifier = null;
+    protected Set<MonitorNotifier> monitorNotifiers = new CopyOnWriteArraySet<>();
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
@@ -422,9 +425,54 @@ public class BeaconManager {
      *
      * @param notifier
      * @see RangeNotifier
+     * @deprecated replaced by (@link #addRangeNotifier)
      */
+    @Deprecated
     public void setRangeNotifier(RangeNotifier notifier) {
-        rangeNotifier = notifier;
+        synchronized (rangeNotifiers) {
+            rangeNotifiers.clear();
+        }
+        addRangeNotifier(notifier);
+    }
+
+    /**
+     * Specifies a class that should be called each time the <code>BeaconService</code> gets ranging
+     * data, which is nominally once per second when beacons are detected.
+     * <p/>
+     * Permits to register several <code>RangeNotifier</code> objects.
+     * <p/>
+     *The notifier must be unregistered using (@link #removeRangeNotifier)
+     *
+     * @param notifier
+     * @see RangeNotifier
+     */
+    public void addRangeNotifier(RangeNotifier notifier){
+        if(notifier != null){
+            synchronized (rangeNotifiers){
+                rangeNotifiers.add(notifier);
+            }
+        }
+    }
+
+    /**
+     * Specifies a class to remove from the array of <code>RangeNotifier</code>
+     *
+     * @param notifier
+     * @see RangeNotifier
+     */
+    public boolean removeRangeNotifier(RangeNotifier notifier){
+        synchronized (rangeNotifiers){
+            return rangeNotifiers.remove(notifier);
+        }
+    }
+
+    /**
+     * Remove all the Range Notifiers
+     */
+    public void removeAllRangeNotifiers(){
+        synchronized (rangeNotifiers){
+            rangeNotifiers.clear();
+        }
     }
 
     /**
@@ -439,9 +487,96 @@ public class BeaconManager {
      * @see MonitorNotifier
      * @see #startMonitoringBeaconsInRegion(Region region)
      * @see Region
+     * @deprecated replaced by (@link #addMonitorNotifier)
      */
+    @Deprecated
     public void setMonitorNotifier(MonitorNotifier notifier) {
-        monitorNotifier = notifier;
+        synchronized (monitorNotifiers) {
+            monitorNotifiers.clear();
+        }
+        addMonitorNotifier(notifier);
+    }
+
+    /**
+     * Specifies a class that should be called each time the <code>BeaconService</code> sees
+     * or stops seeing a Region of beacons.
+     * <p/>
+     * Permits to register severals <code>MonitorNotifier</code> objects.
+     *<p/>
+     * Unregister the notifier using (@link #removeMonitoreNotifier)
+     *
+     * @param notifier
+     * @see MonitorNotifier
+     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see Region
+     */
+    public void addMonitorNotifier(MonitorNotifier notifier){
+        if(notifier != null){
+            synchronized (monitorNotifiers) {
+                monitorNotifiers.add(notifier);
+            }
+        }
+    }
+
+    /**
+     * Specifies a class to remove from the array of <code>MonitorNotifier</code>.
+     *
+     * @param notifier
+     * @see MonitorNotifier
+     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see Region
+     */
+    public boolean removeMonitoreNotifier(MonitorNotifier notifier){
+        synchronized (monitorNotifiers){
+            return monitorNotifiers.remove(notifier);
+        }
+    }
+
+    /**
+     * Remove all the Monitor Notifers
+     */
+    public void removeAllMonitorNotifiers(){
+        synchronized (monitorNotifiers){
+            monitorNotifiers.clear();
+        }
+    }
+
+    /**
+     * Turns off saving the state of monitored regions to persistent storage so it is retained
+     * over app restarts.  Defaults to enabled.  When enabled, there will not be an "extra" region
+     * entry event when the app starts up and a beacon for a monitored region was previously visible
+     * within the past 15 minutes.  Note that there is a limit to 50 monitored regions that may be
+     * perisisted.  If more than 50 regions are monitored, state is not persisted for any.
+     *
+     * @param enabled
+     */
+    public void setRegionStatePeristenceEnabled(boolean enabled) {
+        if (enabled) {
+            MonitoringStatus.getInstanceForApplication(mContext).startStatusPreservation();
+        }
+        else {
+            MonitoringStatus.getInstanceForApplication(mContext).stopStatusPreservation();
+        }
+    }
+
+    /**
+     * Requests the current in/out state on the specified region. If the region is being monitored,
+     * this will cause an asynchronous callback on the `MonitorNotifier`'s `didDetermineStateForRegion`
+     * method.  If it is not a monitored region, it will be ignored.
+     * @param region
+     */
+    public void requestStateForRegion(Region region) {
+        MonitoringStatus status = MonitoringStatus.getInstanceForApplication(mContext);
+        RegionMonitoringState stateObj = status.stateOf(region);
+        int state = MonitorNotifier.OUTSIDE;
+        if (stateObj != null && stateObj.getInside()) {
+            state = MonitorNotifier.INSIDE;
+        }
+        synchronized (monitorNotifiers) {
+            for (MonitorNotifier notifier: monitorNotifiers) {
+                notifier.didDetermineStateForRegion(state, region);
+            }
+        }
     }
 
     /**
@@ -528,11 +663,14 @@ public class BeaconManager {
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
+        LogManager.d(TAG, "Starting monitoring region "+region+" with uniqueID: "+region.getUniqueId());
         Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
         StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
         synchronized (monitoredRegions) {
+            // If we are already tracking the state of this region, send a callback about it
+            this.requestStateForRegion(region);
             monitoredRegions.add(region);
         }
     }
@@ -603,19 +741,45 @@ public class BeaconManager {
     }
 
     /**
-     * @return monitorNotifier
-     * @see #monitorNotifier
+     * @return the first registered monitorNotifier
+     * @deprecated replaced by (@link #getMonitorNotifiers)
      */
+    @Deprecated
     public MonitorNotifier getMonitoringNotifier() {
-        return this.monitorNotifier;
+        synchronized (monitorNotifiers) {
+            if (monitorNotifiers.size() > 0) {
+                return monitorNotifiers.iterator().next();
+            }
+            return null;
+        }
     }
 
     /**
-     * @return rangeNotifier
-     * @see #rangeNotifier
+     * @return the list of registered monitorNotifier
      */
+    public Set<MonitorNotifier> getMonitoringNotifiers(){
+        return monitorNotifiers;
+    }
+
+    /**
+     * @return the first registered rangeNotifier
+     * @deprecated replaced by (@link #getRangeNotifiers)
+     */
+    @Deprecated
     public RangeNotifier getRangingNotifier() {
-        return this.rangeNotifier;
+        synchronized (rangeNotifiers) {
+            if (rangeNotifiers.size() > 0) {
+                return rangeNotifiers.iterator().next();
+            }
+            return null;
+        }
+    }
+
+    /**
+     * @return the list of registered rangeNotifier
+     */
+    public Set<RangeNotifier> getRangingNotifiers(){
+        return rangeNotifiers;
     }
 
     /**

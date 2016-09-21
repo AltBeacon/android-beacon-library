@@ -58,9 +58,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -84,10 +86,10 @@ public class BeaconService extends Service {
     private BluetoothCrashResolver bluetoothCrashResolver;
     private DistanceCalculator defaultDistanceCalculator = null;
     private BeaconManager beaconManager;
-    private List<BeaconParser> beaconParsers;
+    private Set<BeaconParser> beaconParsers  = new HashSet<BeaconParser>();
     private CycledLeScanner mCycledScanner;
     private boolean mBackgroundFlag = false;
-    private final GattBeaconTracker mGattBeaconTracker = new GattBeaconTracker();
+    private ExtraDataBeaconTracker mExtraDataBeaconTracker;
     private ExecutorService mExecutor;
 
     /*
@@ -200,7 +202,22 @@ public class BeaconService extends Service {
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
 
         beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
-        beaconParsers = beaconManager.getBeaconParsers();
+
+        //flatMap all beacon parsers
+        boolean matchBeaconsByServiceUUID = true;
+        if (beaconManager.getBeaconParsers() != null) {
+            beaconParsers.addAll(beaconManager.getBeaconParsers());
+            for (BeaconParser beaconParser : beaconManager.getBeaconParsers()) {
+                if (beaconParser.getExtraDataParsers().size() > 0) {
+                    matchBeaconsByServiceUUID = false;
+                    beaconParsers.addAll(beaconParser.getExtraDataParsers());
+                }
+            }
+        }
+
+        //initialize the extra data beacon tracker
+        mExtraDataBeaconTracker = new ExtraDataBeaconTracker(matchBeaconsByServiceUUID);
+
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
@@ -256,7 +273,7 @@ public class BeaconService extends Service {
         LogManager.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
         mCycledScanner.stop();
-        monitoringStatus.stopStatusPreservationOnProcessDestruction();
+        monitoringStatus.stopStatusPreservation();
     }
 
     @Override
@@ -396,7 +413,7 @@ public class BeaconService extends Service {
                     "beacon detected : %s", beacon.toString());
         }
 
-        beacon = mGattBeaconTracker.track(beacon);
+        beacon = mExtraDataBeaconTracker.track(beacon);
         // If this is a Gatt beacon that should be ignored, it will be set to null as a result of
         // the above
         if (beacon == null) {

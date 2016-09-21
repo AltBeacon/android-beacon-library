@@ -157,6 +157,14 @@ public class Beacon implements Parcelable {
     protected String mParserIdentifier;
 
     /**
+     * An indicator marking this beacon as a potential multi frame beacon.
+     *
+     * This will be set to true if the beacon was parsed by a BeaconParser which has extra
+     * data parsers defined.
+     */
+    protected boolean mMultiFrameBeacon = false;
+
+    /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
      */
@@ -230,7 +238,7 @@ public class Beacon implements Parcelable {
         mManufacturer = in.readInt();
         mBluetoothName = in.readString();
         mParserIdentifier = in.readString();
-
+        mMultiFrameBeacon = in.readByte() != 0;
     }
 
     /**
@@ -442,6 +450,12 @@ public class Beacon implements Parcelable {
     public String getParserIdentifier() { return mParserIdentifier; }
 
     /**
+     * @see #mMultiFrameBeacon
+     * @return mMultiFrameBeacon
+     */
+    public boolean isMultiFrameBeacon() { return mMultiFrameBeacon; }
+
+    /**
      * Calculate a hashCode for this beacon
      * @return
      */
@@ -545,6 +559,7 @@ public class Beacon implements Parcelable {
         out.writeInt(mManufacturer);
         out.writeString(mBluetoothName);
         out.writeString(mParserIdentifier);
+        out.writeByte((byte) (mMultiFrameBeacon ? 1: 0));
     }
 
     /**
@@ -632,6 +647,7 @@ public class Beacon implements Parcelable {
             setTxPower(beacon.getTxPower());
             setRssi(beacon.getRssi());
             setServiceUuid(beacon.getServiceUuid());
+            setMultiFrameBeacon(beacon.isMultiFrameBeacon());
             return this;
         }
 
@@ -778,6 +794,16 @@ public class Beacon implements Parcelable {
          */
         public Builder setParserIdentifier(String id) {
             mBeacon.mParserIdentifier = id;
+            return this;
+        }
+
+
+        /**
+         * @see Beacon#mMultiFrameBeacon
+         * @return multiFrameBeacon
+         */
+        public Builder setMultiFrameBeacon(boolean multiFrameBeacon) {
+            mBeacon.mMultiFrameBeacon = multiFrameBeacon;
             return this;
         }
     }

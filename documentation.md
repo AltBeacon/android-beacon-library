@@ -41,7 +41,7 @@ layout: android-beacon-library
 
 <ul>
 <li><a href='eddystone-support.html'>Eddystone Support</a></li>
-<li><a href='eddystone-howto.html'>Eddystone Code Samples</a></li>
+<li><a href='eddystone-how-to.html'>Eddystone Code Samples</a></li>
 <li><a href='eddystone-eid.html'>Eddystone Ephemeral Identifier (Encryption)</a></li>
 </ul>
 

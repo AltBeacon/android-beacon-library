@@ -326,9 +326,7 @@ public abstract class CycledLeScanner {
 
     protected PendingIntent getWakeUpOperation() {
         if (mWakeUpOperation == null) {
-            Intent wakeupIntent = new Intent();
-            //intent.setFlags(Intent.FLAG_UPDATE_CURRENT);
-            wakeupIntent.setClassName(mContext, StartupBroadcastReceiver.class.getName());
+            Intent wakeupIntent = new Intent(mContext, StartupBroadcastReceiver.class);
             wakeupIntent.putExtra("wakeup", true);
             mWakeUpOperation = PendingIntent.getBroadcast(mContext, 0, wakeupIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }

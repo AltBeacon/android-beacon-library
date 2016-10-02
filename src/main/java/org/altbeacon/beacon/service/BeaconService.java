@@ -32,6 +32,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
@@ -191,17 +192,23 @@ public class BeaconService extends Service {
     @Override
     public void onCreate() {
         LogManager.i(TAG, "beaconService version %s is starting up", BuildConfig.VERSION_NAME);
-        bluetoothCrashResolver = new BluetoothCrashResolver(this);
-        bluetoothCrashResolver.start();
+
+        beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
 
         // Create a private executor so we don't compete with threads used by AsyncTask
         // This uses fewer threads than the default executor so it won't hog CPU
         mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
 
+        if (this.checkCallingOrSelfPermission("android.permission.BLUETOOTH_ADMIN") !=
+                PackageManager.PERMISSION_GRANTED) {
+            LogManager.e(TAG, "Application does not have BLUETOOTH_ADMIN permission");
+            return;
+        }
+        bluetoothCrashResolver = new BluetoothCrashResolver(this);
+        bluetoothCrashResolver.start();
+
         mCycledScanner = CycledLeScanner.createScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
-
-        beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
 
         //flatMap all beacon parsers
         boolean matchBeaconsByServiceUUID = true;

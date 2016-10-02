@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.SystemClock;
 
 import org.altbeacon.beacon.logging.LogManager;
@@ -112,6 +113,11 @@ public class BluetoothCrashResolver {
      * so that crashes can be predicted ahead of time.
      */
     public void start() {
+        if (this.context.checkCallingOrSelfPermission("android.permission.BLUETOOTH_ADMIN") !=
+                PackageManager.PERMISSION_GRANTED) {
+            LogManager.e(TAG, "Application does not have BLUETOOTH_ADMIN permission");
+            return;
+        }
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);

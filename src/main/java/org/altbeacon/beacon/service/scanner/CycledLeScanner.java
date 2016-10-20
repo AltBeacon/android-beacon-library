@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.SystemClock;
 
 import org.altbeacon.beacon.BeaconManager;
@@ -40,7 +42,10 @@ public abstract class CycledLeScanner {
     private long mScanPeriod;
 
     protected long mBetweenScanPeriod;
-    protected final Handler mHandler = new Handler();
+
+    protected final Handler mHandler = new Handler(Looper.getMainLooper());
+    protected final Handler mScanHandler;
+    private final HandlerThread mScanThread;
 
     protected final BluetoothCrashResolver mBluetoothCrashResolver;
     protected final CycledLeScanCallback mCycledLeScanCallback;
@@ -57,6 +62,10 @@ public abstract class CycledLeScanner {
         mCycledLeScanCallback = cycledLeScanCallback;
         mBluetoothCrashResolver = crashResolver;
         mBackgroundFlag = backgroundFlag;
+
+        mScanThread = new HandlerThread("CycledLeScannerThread");
+        mScanThread.start();
+        mScanHandler = new Handler(mScanThread.getLooper());
     }
 
     public static CycledLeScanner createScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
@@ -154,6 +163,10 @@ public abstract class CycledLeScanner {
             stopScan();
             mLastScanCycleEndTime = SystemClock.elapsedRealtime();
         }
+    }
+
+    public void destroy() {
+        mScanThread.quit();
     }
 
     protected abstract void stopScan();

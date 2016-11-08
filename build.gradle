@@ -20,7 +20,7 @@ def getVersionName = {
         println("Can't get version from git: " + e);
         return "adhoc"
     }*/
-    return "2.9.1-CS6"
+    return "2.9.1-CS7"
 }
 
 buildscript {

@@ -27,7 +27,7 @@ public class CycledLeScanner {
 
     private long mLastScanCycleStartTime = 0l;
     private long mLastScanCycleEndTime = 0l;
-    protected long mNextScanCycleStartTime = 0l;
+    private long mNextScanCycleStartTime = 0l;
     private long mScanCycleStopTime = 0l;
     private long mLastScanStopTime = 0l;
     /**
@@ -40,11 +40,11 @@ public class CycledLeScanner {
     private long mScanCycleActiveStopTime = 0l;
 
     private boolean mScanning;
-    protected boolean mScanningPaused;
+    private boolean mScanningPaused;
     private boolean mInScanningPeriod;
     private boolean mScanCyclerStarted = false;
     private boolean mScanningEnabled = false;
-    protected Context mContext;
+    private Context mContext;
 
     private ScanPeriods mCurrentScanPeriods;
     /**
@@ -63,9 +63,9 @@ public class CycledLeScanner {
     protected final Handler mHandler = new Handler(Looper.getMainLooper());
 
 
-    protected boolean mBackgroundFlag = false;
-    protected boolean mRestartNeeded = false;
-    protected LeScanner leScanner;
+    private boolean mBackgroundFlag = false;
+    private boolean mRestartNeeded = false;
+    private LeScanner leScanner;
 
     private final Runnable runableStartScan = new Runnable() {
         @Override
@@ -118,6 +118,14 @@ public class CycledLeScanner {
         return true;
     }
 
+    public boolean isBackgroundFlag() {
+        return mBackgroundFlag;
+    }
+
+    public Context getContext() {
+        return mContext;
+    }
+
     private void createActiveScanPeriods(){
         mActiveScanPeriods = new ScanPeriods(Math.min(mCurrentScanPeriods.getScanPeriod(), BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD),
                                                 Math.min(mCurrentScanPeriods.getBetweenScanPeriod(), BeaconManager.DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD));
@@ -131,6 +139,16 @@ public class CycledLeScanner {
      * @param backgroundFlag
      */
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
+        setScanPeriods(scanPeriod, betweenScanPeriod, backgroundFlag, false);
+    }
+    /**
+     * Tells the cycler the scan rate and whether it is in operating in background mode.
+     * Background mode flag  is used only with the Android 5.0 scanning implementations to switch
+     * between LOW_POWER_MODE vs. LOW_LATENCY_MODE
+     *
+     * @param backgroundFlag
+     */
+    public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, boolean scanNow) {
         LogManager.d(TAG, "Set scan periods called with %s, %s Background mode must have changed.",
                 scanPeriod, betweenScanPeriod);
         if (mBackgroundFlag != backgroundFlag) {
@@ -157,7 +175,7 @@ public class CycledLeScanner {
             // We are waiting to start scanning.  We may need to adjust the next start time
             // only do an adjustment if we need to make it happen sooner.  Otherwise, it will
             // take effect on the next cycle.
-            if(mBackgroundFlag) {
+            if(mBackgroundFlag && scanNow) {
                 long proposedNextScanStartTime = (mLastScanCycleEndTime + betweenScanPeriod);
                 if (proposedNextScanStartTime < mNextScanCycleStartTime) {
                     mNextScanCycleStartTime = proposedNextScanStartTime;
@@ -287,12 +305,16 @@ public class CycledLeScanner {
         leScanner.stopScan();
     }
 
-    protected long calculateNextTimeToStartScan(){
+    protected long calculateNextTimeToStartScanInBg(){
+        return calculateNextDelay(mNextScanCycleStartTime, mNextScanCycleActiveStartTime);
+    }
+
+    protected long calculateNextTimeToStartScanInFg(){
         return calculateNextDelay(mNextScanCycleStartTime, mNextScanCycleActiveStartTime);
     }
 
     protected boolean deferScanIfNeeded() {
-        long millisecondsUntilStart = calculateNextTimeToStartScan();
+        long millisecondsUntilStart = mBackgroundFlag?calculateNextTimeToStartScanInBg():calculateNextTimeToStartScanInFg();
         boolean deferScanIsNeeded = millisecondsUntilStart > 0;
         LogManager.d(TAG, "defer scan is needed %b", deferScanIsNeeded);
         if (leScanner.onDeferScanIfNeeded(deferScanIsNeeded)) {
@@ -318,13 +340,17 @@ public class CycledLeScanner {
         return  Math.min(referenceTime1,referenceTime2) - SystemClock.elapsedRealtime();
     }
 
-    protected long calculateNextTimeForScanCycleStop(){
+    protected long calculateNextTimeForScanCycleStopInBg(){
+        return calculateNextDelay(mScanCycleStopTime, mScanCycleActiveStopTime);
+    }
+
+    protected long calculateNextTimeForScanCycleStopInFg(){
         return calculateNextDelay(mScanCycleStopTime, mScanCycleActiveStopTime);
     }
 
     protected void scheduleScanCycleStop() {
         // Stops scanning after a pre-defined scan period.
-        long millisecondsUntilStop = calculateNextTimeForScanCycleStop();
+        long millisecondsUntilStop = mBackgroundFlag?calculateNextTimeForScanCycleStopInBg():calculateNextTimeForScanCycleStopInFg();
         if (millisecondsUntilStop > 0) {
             LogManager.d(TAG, "Waiting to stop scan cycle for another %s milliseconds",
                     millisecondsUntilStop);
@@ -438,7 +464,6 @@ public class CycledLeScanner {
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, milliseconds, getWakeUpOperation());
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds - SystemClock.elapsedRealtime(), getWakeUpOperation());
-
     }
 
     private long getNextScanStartTime(ScanPeriods referenceScanPeriods) {

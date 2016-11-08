@@ -8,7 +8,7 @@ ext {
  * Gets the version name from the latest Git tag
  */
 def getVersionName = {
-    def stdout = new ByteArrayOutputStream()
+    /*def stdout = new ByteArrayOutputStream()
     try {
         exec {
             commandLine 'git', 'describe', '--tags'
@@ -19,7 +19,8 @@ def getVersionName = {
     catch (e) {
         println("Can't get version from git: " + e);
         return "adhoc"
-    }
+    }*/
+    return "2.9.1-CS6"
 }
 
 buildscript {
@@ -31,12 +32,18 @@ buildscript {
         classpath 'com.android.tools.build:gradle:1.5.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.3'
+        classpath "net.researchgate:gradle-release:2.0.2"
+        classpath "com.github.dcendents:android-maven-plugin:1.2"
     }
 }
 
 apply plugin: 'com.android.library'
-
+apply plugin: 'net.researchgate.release'
+apply plugin: 'com.github.dcendents.android-maven'
 apply from: 'gradle/eclipse.gradle'
+
+archivesBaseName = 'android-beacon-library'
+group = 'org.altbeacon'
 
 allprojects {
     version = "${getVersionName()}${isSnapshot == true ? "-SNAPSHOT" : ""}"
@@ -66,11 +73,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 
-    sourceSets {
-        androidTest {
-            setRoot('src/test')
-        }
-    }
+    /* sourceSets {
+         androidTest {
+             setRoot('src/test')
+         }
+     }*/
 
     lintOptions {
         abortOnError false
@@ -143,9 +150,9 @@ task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease])
     println "Building with version=$version"
 }
 
-task release(dependsOn: 'distribution') << {
+/*task release(dependsOn: 'distribution') << {
     println('Doing release build')
-}
+}*/
 
 android.libraryVariants.all { variant ->
 

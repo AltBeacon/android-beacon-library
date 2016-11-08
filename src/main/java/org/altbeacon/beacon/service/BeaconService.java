@@ -197,11 +197,9 @@ public class BeaconService extends Service {
         // Create a private executor so we don't compete with threads used by AsyncTask
         // This uses fewer threads than the default executor so it won't hog CPU
         mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
-
-        mCycledScanner = CycledLeScanner.createScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
-                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
-
         beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
+        mCycledScanner = beaconManager.getCycledLeScanner();
+        mCycledScanner.initScanner(this, mCycledLeScanCallback, bluetoothCrashResolver);
 
         //flatMap all beacon parsers
         boolean matchBeaconsByServiceUUID = true;

@@ -1,5 +1,6 @@
 package org.altbeacon.beacon.service.scanner;
 
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -12,7 +13,7 @@ public class ScanPeriods implements Parcelable{
     private long fullPeriod;
 
     public ScanPeriods(long scanPeriod, long betweenScanPeriod) {
-        this.scanPeriod = scanPeriod;
+        this.scanPeriod = android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.N?scanPeriod:Math.max(scanPeriod, 6000);
         this.betweenScanPeriod = betweenScanPeriod;
         fullPeriod = scanPeriod + betweenScanPeriod;
     }

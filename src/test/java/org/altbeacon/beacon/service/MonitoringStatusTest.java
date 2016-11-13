@@ -44,7 +44,7 @@ public class MonitoringStatusTest {
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 50; i++) {
             Region region = new Region(""+i, null, null, null);
-            monitoringStatus.addRegion(region);
+            monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
         MonitoringStatus monitoringStatus2 = new MonitoringStatus(context);
@@ -58,7 +58,7 @@ public class MonitoringStatusTest {
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 51; i++) {
             Region region = new Region(""+i, null, null, null);
-            monitoringStatus.addRegion(region);
+            monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
         MonitoringStatus monitoringStatus2 = new MonitoringStatus(context);
@@ -72,7 +72,7 @@ public class MonitoringStatusTest {
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 50; i++) {
             Region region = new Region(""+i, null, null, null);
-            monitoringStatus.addRegion(region);
+            monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
         // Set update time to one hour ago

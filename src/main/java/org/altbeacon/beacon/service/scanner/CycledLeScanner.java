@@ -30,35 +30,14 @@ public class CycledLeScanner {
     private long mNextScanCycleStartTime = 0l;
     private long mScanCycleStopTime = 0l;
     private long mLastScanStopTime = 0l;
-    /**
-     * Link to the Active Scan Period
-     */
-    private long mNextScanCycleActiveStartTime = 0l;
-    /**
-     * Link to the Active Scan Period
-     */
-    private long mScanCycleActiveStopTime = 0l;
 
     private boolean mScanning;
     private boolean mScanningPaused;
-    private boolean mInScanningPeriod;
     private boolean mScanCyclerStarted = false;
     private boolean mScanningEnabled = false;
     private Context mContext;
 
     private ScanPeriods mCurrentScanPeriods;
-    /**
-     * We introduce the notion of "Active Scan".
-     *
-     * We notice that on Android 6 and before, that when scanning for 30s.,
-     * the result of the scan comes mostly at the end of the 30s..
-     *
-     * We notice as well, that if a device scans several times 1s. during 30s.,
-     * it get a faster scan result (and more precise) than if scanning one time 30s.
-     *
-     * The activeScanPeriod permits to achieve to scan several time 1s during 30s to get a scan result as fast as possible.
-     */
-    private ScanPeriods mActiveScanPeriods;
 
     protected final Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -85,7 +64,6 @@ public class CycledLeScanner {
 
     public CycledLeScanner(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         mCurrentScanPeriods = new ScanPeriods(scanPeriod, betweenScanPeriod);
-        createActiveScanPeriods();
         mBackgroundFlag = backgroundFlag;
     }
 
@@ -126,11 +104,6 @@ public class CycledLeScanner {
         return mContext;
     }
 
-    private void createActiveScanPeriods(){
-        mActiveScanPeriods = new ScanPeriods(Math.min(mCurrentScanPeriods.getScanPeriod(), BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD),
-                                                Math.min(mCurrentScanPeriods.getBetweenScanPeriod(), BeaconManager.DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD));
-    }
-
     /**
      * Tells the cycler the scan rate and whether it is in operating in background mode.
      * Background mode flag  is used only with the Android 5.0 scanning implementations to switch
@@ -162,7 +135,6 @@ public class CycledLeScanner {
         }
 
         mCurrentScanPeriods = new ScanPeriods(scanPeriod, betweenScanPeriod);
-        createActiveScanPeriods();
         if (mBackgroundFlag) {
             LogManager.d(TAG, "We are in the background.  Setting wakeup alarm");
             setWakeUpAlarm();
@@ -185,7 +157,6 @@ public class CycledLeScanner {
             }else{
                 //If we switch from background to foreground we would like the scan to start right now
                 cancelRunnableStartAndStopScan();
-                mNextScanCycleActiveStartTime = now;
                 mNextScanCycleStartTime = now;
                 mHandler.post(runableStartScan);
             }
@@ -282,12 +253,7 @@ public class CycledLeScanner {
                 LogManager.d(TAG, "We are already scanning");
             }
 
-            long realTime = SystemClock.elapsedRealtime();
-            if(mScanCycleStopTime < realTime && !mInScanningPeriod){
-                mScanCycleStopTime = SystemClock.elapsedRealtime() + mCurrentScanPeriods.getScanPeriod();
-                mInScanningPeriod = true;
-            }
-            mScanCycleActiveStopTime = SystemClock.elapsedRealtime() + mActiveScanPeriods.getScanPeriod();
+            mScanCycleStopTime = SystemClock.elapsedRealtime() + mCurrentScanPeriods.getScanPeriod();
             scheduleScanCycleStop();
 
             LogManager.d(TAG, "Scan started");
@@ -303,14 +269,6 @@ public class CycledLeScanner {
 
     protected void stopScan() {
         leScanner.stopScan();
-    }
-
-    protected long calculateNextTimeToStartScanInBg(){
-        return calculateNextDelay(mNextScanCycleStartTime, mNextScanCycleActiveStartTime);
-    }
-
-    protected long calculateNextTimeToStartScanInFg(){
-        return calculateNextDelay(mNextScanCycleStartTime, mNextScanCycleActiveStartTime);
     }
 
     protected boolean deferScanIfNeeded() {
@@ -336,16 +294,24 @@ public class CycledLeScanner {
         mScanningPaused = true;
     }
 
-    protected long calculateNextDelay(long referenceTime1, long referenceTime2){
-        return  Math.min(referenceTime1,referenceTime2) - SystemClock.elapsedRealtime();
+    protected long calculateNextDelay(long referenceTime){
+        return  referenceTime - SystemClock.elapsedRealtime();
+    }
+
+    protected long calculateNextTimeToStartScanInBg(){
+        return calculateNextDelay(mNextScanCycleStartTime);
+    }
+
+    protected long calculateNextTimeToStartScanInFg(){
+        return calculateNextDelay(mNextScanCycleStartTime);
     }
 
     protected long calculateNextTimeForScanCycleStopInBg(){
-        return calculateNextDelay(mScanCycleStopTime, mScanCycleActiveStopTime);
+        return calculateNextDelay(mScanCycleStopTime);
     }
 
     protected long calculateNextTimeForScanCycleStopInFg(){
-        return calculateNextDelay(mScanCycleStopTime, mScanCycleActiveStopTime);
+        return calculateNextDelay(mScanCycleStopTime);
     }
 
     protected void scheduleScanCycleStop() {
@@ -407,14 +373,7 @@ public class CycledLeScanner {
                 LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
             }
 
-            if(mScanCycleStopTime < SystemClock.elapsedRealtime() && mInScanningPeriod){
-                mNextScanCycleStartTime = getNextScanStartTime(mCurrentScanPeriods);
-                mNextScanCycleActiveStartTime = mNextScanCycleStartTime;
-                mInScanningPeriod = false;
-            }else{
-                mNextScanCycleActiveStartTime = getNextScanStartTime(mActiveScanPeriods);
-            }
-
+            mNextScanCycleStartTime = getNextScanStartTime();
             if (mScanningEnabled) {
                 scanLeDevice(true);
             }
@@ -466,7 +425,7 @@ public class CycledLeScanner {
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds - SystemClock.elapsedRealtime(), getWakeUpOperation());
     }
 
-    private long getNextScanStartTime(ScanPeriods referenceScanPeriods) {
+    private long getNextScanStartTime() {
         // Because many apps may use this library on the same device, we want to try to synchronize
         // scanning as much as possible in order to save battery.  Therefore, we will set the scan
         // intervals to be on a predictable interval using a modulus of the system time.  This may
@@ -475,12 +434,12 @@ public class CycledLeScanner {
         // will all be doing scans at the same time, thereby saving battery when none are scanning.
         // This, of course, won't help at all if people set custom scan periods.  But since most
         // people accept the defaults, this will likely have a positive effect.
-        if (referenceScanPeriods.getBetweenScanPeriod() == 0) {
+        if (mCurrentScanPeriods.getBetweenScanPeriod() == 0) {
             return SystemClock.elapsedRealtime();
         }
-        long fullScanCycle = referenceScanPeriods.getFullPeriod();
-        long normalizedBetweenScanPeriod = referenceScanPeriods.getBetweenScanPeriod() - (SystemClock.elapsedRealtime() % fullScanCycle);
-        LogManager.d(TAG, "Normalizing between scan period from %s to %s", referenceScanPeriods.getBetweenScanPeriod(),
+        long fullScanCycle = mCurrentScanPeriods.getFullPeriod();
+        long normalizedBetweenScanPeriod = mCurrentScanPeriods.getBetweenScanPeriod() - (SystemClock.elapsedRealtime() % fullScanCycle);
+        LogManager.d(TAG, "Normalizing between scan period from %s to %s", mCurrentScanPeriods.getBetweenScanPeriod(),
                 normalizedBetweenScanPeriod);
 
         return SystemClock.elapsedRealtime() + normalizedBetweenScanPeriod;

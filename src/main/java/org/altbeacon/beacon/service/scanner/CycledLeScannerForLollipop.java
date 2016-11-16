@@ -155,6 +155,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void startScan() {
+        if (!isBluetoothOn()) {
+            LogManager.d(TAG, "Not starting scan because bluetooth is off");
+            return;
+        }
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
         ScanSettings settings;
 
@@ -205,6 +209,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     }
 
     private void postStopLeScan() {
+        if (!isBluetoothOn()){
+            LogManager.d(TAG, "Not stopping scan because bluetooth is off");
+            return;
+        }
         final BluetoothLeScanner scanner = getScanner();
         if (scanner == null) {
             return;
@@ -228,6 +236,20 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
             }
         });
+    }
+
+    private boolean isBluetoothOn() {
+        try {
+            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+            if (bluetoothAdapter != null) {
+                return (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON);
+            }
+            LogManager.w(TAG, "Cannot get bluetooth adapter");
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException checking if bluetooth is on");
+        }
+        return false;
     }
 
     private BluetoothLeScanner getScanner() {

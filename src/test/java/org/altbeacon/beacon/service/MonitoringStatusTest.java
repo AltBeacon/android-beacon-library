@@ -19,6 +19,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.util.ServiceController;
 
+import java.util.Collection;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static org.junit.Assert.assertEquals;
@@ -80,5 +81,21 @@ public class MonitoringStatusTest {
         MonitoringStatus monitoringStatus2 = new MonitoringStatus(context);
         assertEquals("restored regions should be none", 0, monitoringStatus2.regions().size());
     }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    @Test
+    public void allowsAccessToRegionsAfterRestore() throws Exception {
+        Context context = ShadowApplication.getInstance().getApplicationContext();
+        MonitoringStatus monitoringStatus = new MonitoringStatus(context);
+        for (int i = 0; i < 50; i++) {
+            Region region = new Region(""+i, null, null, null);
+            monitoringStatus.addRegion(region, null);
+        }
+        monitoringStatus.saveMonitoringStatusIfOn();
+        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context);
+        Collection<Region> regions = beaconManager.getMonitoredRegions();
+        assertEquals("beaconManager should return restored regions", 50, regions.size());
+    }
+
 
 }

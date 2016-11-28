@@ -3,7 +3,7 @@ layout: android-beacon-library
 ---
 
 
-##Device Support For Beacon Transmission with Android 5 and 6
+## Device Support For Beacon Transmission with Android 5+
 
 The list below identifies the Android device builds that are able to transmit as beacons.
 The ability to transmit as a beacon requires Bluetooth LE advertisement capability, which may

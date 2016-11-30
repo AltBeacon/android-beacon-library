@@ -519,6 +519,15 @@ public class BeaconManager {
     }
 
     /**
+     * @see #removeMonitorNotifier
+     * @deprecated Misspelled. Replaced by {@link #removeMonitorNotifier}
+     */
+    @Deprecated
+    public boolean removeMonitoreNotifier(MonitorNotifier notifier) {
+        return removeMonitorNotifier(notifier);
+    }
+
+    /**
      * Specifies a class to remove from the array of <code>MonitorNotifier</code>.
      *
      * @param notifier The {@link MonitorNotifier} to unregister.
@@ -526,7 +535,7 @@ public class BeaconManager {
      * @see #startMonitoringBeaconsInRegion(Region)
      * @see Region
      */
-    public boolean removeMonitoreNotifier(MonitorNotifier notifier) {
+    public boolean removeMonitorNotifier(MonitorNotifier notifier) {
         synchronized (monitorNotifiers) {
             return monitorNotifiers.remove(notifier);
         }
@@ -542,6 +551,15 @@ public class BeaconManager {
     }
 
     /**
+     * @see #setRegionStatePersistenceEnabled
+     * @deprecated Misspelled. Replaced by {@link #setRegionStatePersistenceEnabled}
+     */
+    @Deprecated
+    public void setRegionStatePeristenceEnabled(boolean enabled) {
+        setRegionStatePersistenceEnabled(enabled);
+    }
+
+    /**
      * Turns off saving the state of monitored regions to persistent storage so it is retained over
      * app restarts.  Defaults to enabled.  When enabled, there will not be an "extra" region entry
      * event when the app starts up and a beacon for a monitored region was previously visible
@@ -550,7 +568,7 @@ public class BeaconManager {
      *
      * @param enabled true to enable the region state persistence, false to disable it.
      */
-    public void setRegionStatePeristenceEnabled(boolean enabled) {
+    public void setRegionStatePersistenceEnabled(boolean enabled) {
         if (enabled) {
             MonitoringStatus.getInstanceForApplication(mContext).startStatusPreservation();
         } else {
@@ -777,7 +795,7 @@ public class BeaconManager {
     /**
      * @return the list of registered rangeNotifier
      */
-    public Set<RangeNotifier> getRangingNotifiers(){
+    public Set<RangeNotifier> getRangingNotifiers() {
         return rangeNotifiers;
     }
 

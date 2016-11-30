@@ -114,7 +114,7 @@ public class BeaconManager {
     private Messenger serviceMessenger = null;
     protected final Set<RangeNotifier> rangeNotifiers = new CopyOnWriteArraySet<>();
     protected RangeNotifier dataRequestNotifier = null;
-    protected Set<MonitorNotifier> monitorNotifiers = new CopyOnWriteArraySet<>();
+    protected final Set<MonitorNotifier> monitorNotifiers = new CopyOnWriteArraySet<>();
     private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
@@ -423,7 +423,7 @@ public class BeaconManager {
      * activities or services set different RangeNotifier instances, the last one set will receive
      * all the notifications.
      *
-     * @param notifier
+     * @param notifier The {@link RangeNotifier} to register.
      * @see RangeNotifier
      * @deprecated replaced by (@link #addRangeNotifier)
      */
@@ -441,14 +441,14 @@ public class BeaconManager {
      * <p/>
      * Permits to register several <code>RangeNotifier</code> objects.
      * <p/>
-     *The notifier must be unregistered using (@link #removeRangeNotifier)
+     * The notifier must be unregistered using (@link #removeRangeNotifier)
      *
-     * @param notifier
+     * @param notifier The {@link RangeNotifier} to register.
      * @see RangeNotifier
      */
-    public void addRangeNotifier(RangeNotifier notifier){
-        if(notifier != null){
-            synchronized (rangeNotifiers){
+    public void addRangeNotifier(RangeNotifier notifier) {
+        if (notifier != null) {
+            synchronized (rangeNotifiers) {
                 rangeNotifiers.add(notifier);
             }
         }
@@ -457,20 +457,20 @@ public class BeaconManager {
     /**
      * Specifies a class to remove from the array of <code>RangeNotifier</code>
      *
-     * @param notifier
+     * @param notifier The {@link RangeNotifier} to unregister.
      * @see RangeNotifier
      */
-    public boolean removeRangeNotifier(RangeNotifier notifier){
-        synchronized (rangeNotifiers){
+    public boolean removeRangeNotifier(RangeNotifier notifier) {
+        synchronized (rangeNotifiers) {
             return rangeNotifiers.remove(notifier);
         }
     }
 
     /**
-     * Remove all the Range Notifiers
+     * Remove all the Range Notifiers.
      */
-    public void removeAllRangeNotifiers(){
-        synchronized (rangeNotifiers){
+    public void removeAllRangeNotifiers() {
+        synchronized (rangeNotifiers) {
             rangeNotifiers.clear();
         }
     }
@@ -483,11 +483,11 @@ public class BeaconManager {
      * activities or services set different MonitorNotifier instances, the last one set will receive
      * all the notifications.
      *
-     * @param notifier
+     * @param notifier The {@link MonitorNotifier} to register.
      * @see MonitorNotifier
-     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see #startMonitoringBeaconsInRegion(Region)
      * @see Region
-     * @deprecated replaced by (@link #addMonitorNotifier)
+     * @deprecated replaced by {@link #addMonitorNotifier}
      */
     @Deprecated
     public void setMonitorNotifier(MonitorNotifier notifier) {
@@ -498,20 +498,20 @@ public class BeaconManager {
     }
 
     /**
-     * Specifies a class that should be called each time the <code>BeaconService</code> sees
-     * or stops seeing a Region of beacons.
+     * Specifies a class that should be called each time the <code>BeaconService</code> sees or
+     * stops seeing a Region of beacons.
      * <p/>
-     * Permits to register severals <code>MonitorNotifier</code> objects.
-     *<p/>
-     * Unregister the notifier using (@link #removeMonitoreNotifier)
+     * Permits to register several <code>MonitorNotifier</code> objects.
+     * <p/>
+     * Unregister the notifier using {@link #removeMonitoreNotifier}
      *
-     * @param notifier
+     * @param notifier The {@link MonitorNotifier} to register.
      * @see MonitorNotifier
-     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see #startMonitoringBeaconsInRegion(Region)
      * @see Region
      */
-    public void addMonitorNotifier(MonitorNotifier notifier){
-        if(notifier != null){
+    public void addMonitorNotifier(MonitorNotifier notifier) {
+        if (notifier != null) {
             synchronized (monitorNotifiers) {
                 monitorNotifiers.add(notifier);
             }
@@ -521,40 +521,39 @@ public class BeaconManager {
     /**
      * Specifies a class to remove from the array of <code>MonitorNotifier</code>.
      *
-     * @param notifier
+     * @param notifier The {@link MonitorNotifier} to unregister.
      * @see MonitorNotifier
-     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see #startMonitoringBeaconsInRegion(Region)
      * @see Region
      */
-    public boolean removeMonitoreNotifier(MonitorNotifier notifier){
-        synchronized (monitorNotifiers){
+    public boolean removeMonitoreNotifier(MonitorNotifier notifier) {
+        synchronized (monitorNotifiers) {
             return monitorNotifiers.remove(notifier);
         }
     }
 
     /**
-     * Remove all the Monitor Notifers
+     * Remove all the Monitor Notifiers.
      */
-    public void removeAllMonitorNotifiers(){
-        synchronized (monitorNotifiers){
+    public void removeAllMonitorNotifiers() {
+        synchronized (monitorNotifiers) {
             monitorNotifiers.clear();
         }
     }
 
     /**
-     * Turns off saving the state of monitored regions to persistent storage so it is retained
-     * over app restarts.  Defaults to enabled.  When enabled, there will not be an "extra" region
-     * entry event when the app starts up and a beacon for a monitored region was previously visible
+     * Turns off saving the state of monitored regions to persistent storage so it is retained over
+     * app restarts.  Defaults to enabled.  When enabled, there will not be an "extra" region entry
+     * event when the app starts up and a beacon for a monitored region was previously visible
      * within the past 15 minutes.  Note that there is a limit to 50 monitored regions that may be
-     * perisisted.  If more than 50 regions are monitored, state is not persisted for any.
+     * persisted.  If more than 50 regions are monitored, state is not persisted for any.
      *
-     * @param enabled
+     * @param enabled true to enable the region state persistence, false to disable it.
      */
     public void setRegionStatePeristenceEnabled(boolean enabled) {
         if (enabled) {
             MonitoringStatus.getInstanceForApplication(mContext).startStatusPreservation();
-        }
-        else {
+        } else {
             MonitoringStatus.getInstanceForApplication(mContext).stopStatusPreservation();
         }
     }

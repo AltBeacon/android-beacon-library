@@ -8,7 +8,6 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
 
@@ -17,6 +16,7 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,20 +39,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void stopScan() {
-        try {
-            if (getScanner() != null) {
-                try {
-                    getScanner().stopScan((android.bluetooth.le.ScanCallback) getNewLeScanCallback());
-                }
-                catch (NullPointerException npe) {
-                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.e(TAG, "Cannot stop scan.  Unexpected NPE.", npe);
-                }
-            }
-        }
-        catch (IllegalStateException e) {
-            LogManager.w(TAG, "Cannot stop scan.  Bluetooth may be turned off.");
-        }
+        postStopLeScan();
     }
 
     /*
@@ -168,6 +155,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void startScan() {
+        if (!isBluetoothOn()) {
+            LogManager.d(TAG, "Not starting scan because bluetooth is off");
+            return;
+        }
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
         ScanSettings settings;
 
@@ -181,21 +172,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
         }
 
-        try {
-            if (getScanner() != null) {
-                ScanCallback callback = getNewLeScanCallback();
-                try {
-                    getScanner().startScan(filters, settings, callback);
-                }
-                catch (NullPointerException npe) {
-                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.w(TAG, "Cannot start scan.  Unexpected NPE.", npe);
-                }
-            }
-        }
-        catch (IllegalStateException e) {
-            LogManager.w(TAG, "Cannot start scan.  Bluetooth may be turned off.");
-        }
+        postStartLeScan(filters, settings);
     }
 
     @Override
@@ -205,16 +182,91 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         mScanningPaused = true;
     }
 
-    private BluetoothLeScanner getScanner() {
-        if (mScanner == null) {
-            LogManager.d(TAG, "Making new Android L scanner");
+    private void postStartLeScan(final List<ScanFilter> filters, final ScanSettings settings) {
+        final BluetoothLeScanner scanner = getScanner();
+        if (scanner == null) {
+            return;
+        }
+        final ScanCallback scanCallback = getNewLeScanCallback();
+        mScanHandler.removeCallbacksAndMessages(null);
+        mScanHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    scanner.startScan(filters, settings, scanCallback);
+                } catch (IllegalStateException e) {
+                    LogManager.w(TAG, "Cannot start scan. Bluetooth may be turned off.");
+                } catch (NullPointerException npe) {
+                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
+                    LogManager.e(TAG, "Cannot start scan. Unexpected NPE.", npe);
+                } catch (SecurityException e) {
+                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
+                    LogManager.e(TAG, "Cannot start scan.  Security Exception");
+                }
+
+            }
+        });
+    }
+
+    private void postStopLeScan() {
+        if (!isBluetoothOn()){
+            LogManager.d(TAG, "Not stopping scan because bluetooth is off");
+            return;
+        }
+        final BluetoothLeScanner scanner = getScanner();
+        if (scanner == null) {
+            return;
+        }
+        final ScanCallback scanCallback = getNewLeScanCallback();
+        mScanHandler.removeCallbacksAndMessages(null);
+        mScanHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    scanner.stopScan(scanCallback);
+                } catch (IllegalStateException e) {
+                    LogManager.w(TAG, "Cannot stop scan. Bluetooth may be turned off.");
+                } catch (NullPointerException npe) {
+                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
+                    LogManager.e(TAG, "Cannot stop scan. Unexpected NPE.", npe);
+                } catch (SecurityException e) {
+                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
+                    LogManager.e(TAG, "Cannot stop scan.  Security Exception");
+                }
+
+            }
+        });
+    }
+
+    private boolean isBluetoothOn() {
+        try {
             BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
             if (bluetoothAdapter != null) {
-                mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+                return (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON);
             }
+            LogManager.w(TAG, "Cannot get bluetooth adapter");
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException checking if bluetooth is on");
+        }
+        return false;
+    }
+
+    private BluetoothLeScanner getScanner() {
+        try {
             if (mScanner == null) {
-                LogManager.w(TAG, "Failed to make new Android L scanner");
+                LogManager.d(TAG, "Making new Android L scanner");
+                BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+                if (bluetoothAdapter != null) {
+                    mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+                }
+                if (mScanner == null) {
+                    LogManager.w(TAG, "Failed to make new Android L scanner");
+                }
             }
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException making new Android L scanner");
         }
         return mScanner;
     }

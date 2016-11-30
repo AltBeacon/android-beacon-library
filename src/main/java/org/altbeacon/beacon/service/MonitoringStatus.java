@@ -50,7 +50,7 @@ public class MonitoringStatus {
         this.mContext = context;
     }
 
-    public synchronized void addRegion(Region region) {
+    public synchronized void addRegion(Region region, Callback callback) {
         if (getRegionsStateMap().containsKey(region)) {
             // if the region definition hasn't changed, becasue if it has, we need to clear state
             // otherwise a region with the same uniqueId can never be changed
@@ -70,7 +70,7 @@ public class MonitoringStatus {
                 }
             }
         }
-        getRegionsStateMap().put(region, new RegionMonitoringState(new Callback(mContext.getPackageName())));
+        getRegionsStateMap().put(region, new RegionMonitoringState(callback));
         saveMonitoringStatusIfOn();
     }
 

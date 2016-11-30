@@ -115,7 +115,6 @@ public class BeaconManager {
     protected final Set<RangeNotifier> rangeNotifiers = new CopyOnWriteArraySet<>();
     protected RangeNotifier dataRequestNotifier = null;
     protected final Set<MonitorNotifier> monitorNotifiers = new CopyOnWriteArraySet<>();
-    private final ArrayList<Region> monitoredRegions = new ArrayList<Region>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
     private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
@@ -685,11 +684,7 @@ public class BeaconManager {
         StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
-        synchronized (monitoredRegions) {
-            // If we are already tracking the state of this region, send a callback about it
-            this.requestStateForRegion(region);
-            monitoredRegions.add(region);
-        }
+        this.requestStateForRegion(region);
     }
 
     /**
@@ -716,15 +711,6 @@ public class BeaconManager {
         StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
         msg.obj = obj;
         serviceMessenger.send(msg);
-        synchronized (monitoredRegions) {
-            Region regionToRemove = null;
-            for (Region monitoredRegion : monitoredRegions) {
-                if (region.getUniqueId().equals(monitoredRegion.getUniqueId())) {
-                    regionToRemove = monitoredRegion;
-                }
-            }
-            monitoredRegions.remove(regionToRemove);
-        }
     }
 
 
@@ -803,9 +789,7 @@ public class BeaconManager {
      * @return the list of regions currently being monitored
      */
     public Collection<Region> getMonitoredRegions() {
-        synchronized(this.monitoredRegions) {
-            return new ArrayList<Region>(this.monitoredRegions);
-        }
+        return MonitoringStatus.getInstanceForApplication(mContext).regions();
     }
 
     /**

@@ -203,66 +203,68 @@ public class CycledLeScanner {
 
     @SuppressLint("NewApi")
     protected void scanLeDevice(final Boolean enable) {
-        mScanCyclerStarted = true;
-        if (leScanner.getBluetoothAdapter() == null) {
-            LogManager.e(TAG, "No Bluetooth adapter.  beaconService cannot scan.");
-        }
-        if (enable) {
-            if (deferScanIfNeeded()) {
-                return;
+        try {
+            mScanCyclerStarted = true;
+            if (leScanner.getBluetoothAdapter() == null) {
+                LogManager.e(TAG, "No Bluetooth adapter.  beaconService cannot scan.");
             }
-            LogManager.d(TAG, "starting a new scan cycle");
-            if (!mScanning || mScanningPaused || mRestartNeeded) {
-                mScanning = true;
-                mScanningPaused = false;
-                try {
-                    BluetoothAdapter bluetoothAdapter = leScanner.getBluetoothAdapter();
-                    if (bluetoothAdapter != null) {
-                        if (bluetoothAdapter.isEnabled()) {
-                            BluetoothCrashResolver bluetoothCrashResolver = leScanner.getBluetoothCrashResolver();
-                            if (bluetoothCrashResolver != null && bluetoothCrashResolver.isRecoveryInProgress()) {
-                                LogManager.w(TAG, "Skipping scan because crash recovery is in progress.");
-                            } else {
-                                if (mScanningEnabled) {
-                                    if (mRestartNeeded) {
-                                        mRestartNeeded = false;
-                                        LogManager.d(TAG, "restarting a bluetooth le scan");
-                                    } else {
-                                        LogManager.d(TAG, "starting a new bluetooth le scan");
-                                    }
-                                    try {
-                                        if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
-                                            startScan();
-                                        }
-                                    } catch (Exception e) {
-                                        LogManager.e(e, TAG, "Internal Android exception scanning for beacons");
-                                    }
-                                } else {
-                                    LogManager.d(TAG, "Scanning unnecessary - no monitoring or ranging active.");
-                                }
-                            }
-                            mLastScanCycleStartTime = SystemClock.elapsedRealtime();
-                        } else {
-                            LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
-                        }
-                    }
-                } catch (Exception e) {
-                    LogManager.e(e, TAG, "Exception starting Bluetooth scan.  Perhaps Bluetooth is disabled or unavailable?");
+            if (enable) {
+                if (deferScanIfNeeded()) {
+                    return;
                 }
+                LogManager.d(TAG, "starting a new scan cycle");
+                if (!mScanning || mScanningPaused || mRestartNeeded) {
+                    mScanning = true;
+                    mScanningPaused = false;
+                    try {
+                        if (leScanner.getBluetoothAdapter() != null) {
+                            if (leScanner.getBluetoothAdapter().isEnabled()) {
+                                if (leScanner.getBluetoothCrashResolver() != null && leScanner.getBluetoothCrashResolver().isRecoveryInProgress()) {
+                                    LogManager.w(TAG, "Skipping scan because crash recovery is in progress.");
+                                } else {
+                                    if (mScanningEnabled) {
+                                        if (mRestartNeeded) {
+                                            mRestartNeeded = false;
+                                            LogManager.d(TAG, "restarting a bluetooth le scan");
+                                        } else {
+                                            LogManager.d(TAG, "starting a new bluetooth le scan");
+                                        }
+                                        try {
+                                            if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
+                                                startScan();
+                                            }
+                                        } catch (Exception e) {
+                                            LogManager.e(e, TAG, "Internal Android exception scanning for beacons");
+                                        }
+                                    } else {
+                                        LogManager.d(TAG, "Scanning unnecessary - no monitoring or ranging active.");
+                                    }
+                                }
+                                mLastScanCycleStartTime = SystemClock.elapsedRealtime();
+                            } else {
+                                LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+                            }
+                        }
+                    } catch (Exception e) {
+                        LogManager.e(e, TAG, "Exception starting Bluetooth scan.  Perhaps Bluetooth is disabled or unavailable?");
+                    }
+                } else {
+                    LogManager.d(TAG, "We are already scanning");
+                }
+                mScanCycleStopTime = (SystemClock.elapsedRealtime() + mCurrentScanPeriods.getScanPeriod());
+                scheduleScanCycleStop();
+
+                LogManager.d(TAG, "Scan started");
             } else {
-                LogManager.d(TAG, "We are already scanning");
+                LogManager.d(TAG, "disabling scan");
+                mScanning = false;
+                mScanCyclerStarted = false;
+                stopScan();
+                mLastScanCycleEndTime = SystemClock.elapsedRealtime();
             }
-
-            mScanCycleStopTime = SystemClock.elapsedRealtime() + mCurrentScanPeriods.getScanPeriod();
-            scheduleScanCycleStop();
-
-            LogManager.d(TAG, "Scan started");
-        } else {
-            LogManager.d(TAG, "disabling scan");
-            mScanning = false;
-            mScanCyclerStarted = false;
-            stopScan();
-            mLastScanCycleEndTime = SystemClock.elapsedRealtime();
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException working accessing bluetooth.");
         }
     }
 
@@ -344,46 +346,55 @@ public class CycledLeScanner {
 
     private void finishScanCycle() {
         LogManager.d(TAG, "Done with scan cycle");
-        leScanner.getCycledLeScanCallback().onCycleEnd();
-        if (mScanning) {
-            BluetoothAdapter bluetoothAdapter = leScanner.getBluetoothAdapter();
-            if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
-                long now = System.currentTimeMillis();
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
-                        mCurrentScanPeriods.getFullPeriod() < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&
-                        now - mLastScanStopTime < ANDROID_N_MIN_SCAN_CYCLE_MILLIS) {
-                    // As of Android N, only 5 scans may be started in a 30 second period (6
-                    // seconds per cycle)  otherwise they are blocked.  So we check here to see
-                    // if the scan period is 6 seconds or less, and if we last stopped scanning
-                    // fewer than 6 seconds ag and if so, we simply do not stop scanning
-                    LogManager.d(TAG, "Not stopping scan because this is Android N and we" +
-                            " keep scanning for a minimum of 6 seconds at a time. " +
-                            "We will stop in " + (ANDROID_N_MIN_SCAN_CYCLE_MILLIS - (now - mLastScanStopTime)) + " millisconds.");
-                } else {
-                    try {
-                        LogManager.d(TAG, "stopping bluetooth le scan");
-                        finishScan();
-                        mLastScanStopTime = now;
-                    } catch (Exception e) {
-                        LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
+        try {
+            leScanner.getCycledLeScanCallback().onCycleEnd();
+            if (mScanning) {
+                if (leScanner.getBluetoothAdapter() != null) {
+                    if (leScanner.getBluetoothAdapter().isEnabled()) {
+                        long now = System.currentTimeMillis();
+                        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                                mCurrentScanPeriods.getFullPeriod() < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&
+                                now-mLastScanStopTime < ANDROID_N_MIN_SCAN_CYCLE_MILLIS) {
+                            // As of Android N, only 5 scans may be started in a 30 second period (6
+                            // seconds per cycle)  otherwise they are blocked.  So we check here to see
+                            // if the scan period is 6 seconds or less, and if we last stopped scanning
+                            // fewer than 6 seconds ag and if so, we simply do not stop scanning
+                            LogManager.d(TAG, "Not stopping scan because this is Android N and we" +
+                                    " keep scanning for a minimum of 6 seconds at a time. "+
+                                    "We will stop in "+(ANDROID_N_MIN_SCAN_CYCLE_MILLIS-(now-mLastScanStopTime))+" millisconds.");
+                        }
+                        else {
+                            try {
+                                LogManager.d(TAG, "stopping bluetooth le scan");
+                                finishScan();
+                                mLastScanStopTime = now;
+                            } catch (Exception e) {
+                                LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
+                            }
+                        }
+
+                        mLastScanCycleEndTime = SystemClock.elapsedRealtime();
+                    } else {
+                        LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
                     }
                 }
-                mLastScanCycleEndTime = SystemClock.elapsedRealtime();
-            } else {
-                LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+                mNextScanCycleStartTime = getNextScanStartTime();
+                if (mScanningEnabled) {
+                    scanLeDevice(true);
+                }
             }
-
-            mNextScanCycleStartTime = getNextScanStartTime();
-            if (mScanningEnabled) {
-                scanLeDevice(true);
+            if (!mScanningEnabled) {
+                LogManager.d(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
+                mScanCyclerStarted = false;
+                cancelWakeUpAlarm();
             }
         }
-        if (!mScanningEnabled) {
-            LogManager.d(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
-            mScanCyclerStarted = false;
-            cancelWakeUpAlarm();
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException working accessing bluetooth.");
         }
     }
+
+
 
 
     private PendingIntent mWakeUpOperation = null;

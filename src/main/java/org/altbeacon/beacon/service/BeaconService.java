@@ -335,7 +335,7 @@ public class BeaconService extends Service {
 
     public void startMonitoringBeaconsInRegion(Region region, Callback callback) {
         LogManager.d(TAG, "startMonitoring called");
-        monitoringStatus.addRegion(region);
+        monitoringStatus.addRegion(region, callback);
         LogManager.d(TAG, "Currently monitoring %s regions.", monitoringStatus.regionsCount());
         mCycledScanner.start();
     }

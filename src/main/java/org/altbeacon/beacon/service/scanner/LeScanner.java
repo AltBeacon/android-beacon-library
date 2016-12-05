@@ -71,6 +71,20 @@ public abstract class LeScanner {
         mScanHandler.post(startRunnable);
     }
 
+    private boolean isBluetoothOn() {
+        try {
+            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+            if (bluetoothAdapter != null) {
+                return (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON);
+            }
+            LogManager.w(TAG, "Cannot get bluetooth adapter");
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException checking if bluetooth is on");
+        }
+        return false;
+    }
+
     protected void stopScan() {
         postStopLeScan();
     }
@@ -105,14 +119,20 @@ public abstract class LeScanner {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     protected BluetoothAdapter getBluetoothAdapter() {
-        if (mBluetoothAdapter == null) {
-            // Initializes Bluetooth adapter.
-            final BluetoothManager bluetoothManager =
-                    (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
-            mBluetoothAdapter = bluetoothManager.getAdapter();
+        try {
             if (mBluetoothAdapter == null) {
-                LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+                // Initializes Bluetooth adapter.
+                final BluetoothManager bluetoothManager =
+                        (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+                mBluetoothAdapter = bluetoothManager.getAdapter();
+                if (mBluetoothAdapter == null) {
+                    LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+                }
             }
+        }
+        catch (SecurityException e) {
+            // Thrown by Samsung Knox devices if bluetooth access denied for an app
+            LogManager.e(TAG, "Cannot consruct bluetooth adapter.  Security Exception");
         }
         return mBluetoothAdapter;
     }

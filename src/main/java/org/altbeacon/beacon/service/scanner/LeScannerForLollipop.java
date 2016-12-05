@@ -16,6 +16,7 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,8 +140,6 @@ public class LeScannerForLollipop extends LeScanner {
         return setWakeUpAlarm;
     }
 
-
-
     @Override
     protected void finishScan() {
         LogManager.d(TAG, "Stopping scan");
@@ -178,6 +177,9 @@ public class LeScannerForLollipop extends LeScanner {
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
                     LogManager.e(TAG, "Cannot start scan. Unexpected NPE.", npe);
+                } catch (SecurityException e) {
+                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
+                    LogManager.e(TAG, "Cannot start scan.  Security Exception");
                 }
             }
         };
@@ -199,21 +201,29 @@ public class LeScannerForLollipop extends LeScanner {
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
                     LogManager.e(TAG, "Cannot stop scan. Unexpected NPE.", npe);
+                } catch (SecurityException e) {
+                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
+                    LogManager.e(TAG, "Cannot stop scan.  Security Exception");
                 }
             }
         };
     }
 
     private BluetoothLeScanner getScanner() {
-        if (mScanner == null) {
-            LogManager.d(TAG, "Making new Android L scanner");
-            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
-            if (bluetoothAdapter != null) {
-                mScanner = getBluetoothAdapter().getBluetoothLeScanner();
-            }
+        try {
             if (mScanner == null) {
-                LogManager.w(TAG, "Failed to make new Android L scanner");
+                LogManager.d(TAG, "Making new Android L scanner");
+                BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+                if (bluetoothAdapter != null) {
+                    mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+                }
+                if (mScanner == null) {
+                    LogManager.w(TAG, "Failed to make new Android L scanner");
+                }
             }
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException making new Android L scanner");
         }
         return mScanner;
     }

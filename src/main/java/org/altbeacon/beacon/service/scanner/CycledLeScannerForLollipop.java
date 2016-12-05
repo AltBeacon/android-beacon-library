@@ -16,6 +16,7 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -154,6 +155,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void startScan() {
+        if (!isBluetoothOn()) {
+            LogManager.d(TAG, "Not starting scan because bluetooth is off");
+            return;
+        }
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
         ScanSettings settings;
 
@@ -194,12 +199,20 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
                     LogManager.e(TAG, "Cannot start scan. Unexpected NPE.", npe);
+                } catch (SecurityException e) {
+                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
+                    LogManager.e(TAG, "Cannot start scan.  Security Exception");
                 }
+
             }
         });
     }
 
     private void postStopLeScan() {
+        if (!isBluetoothOn()){
+            LogManager.d(TAG, "Not stopping scan because bluetooth is off");
+            return;
+        }
         final BluetoothLeScanner scanner = getScanner();
         if (scanner == null) {
             return;
@@ -216,21 +229,44 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
                     LogManager.e(TAG, "Cannot stop scan. Unexpected NPE.", npe);
+                } catch (SecurityException e) {
+                    // Thrown by Samsung Knox devices if bluetooth access denied for an app
+                    LogManager.e(TAG, "Cannot stop scan.  Security Exception");
                 }
+
             }
         });
     }
 
-    private BluetoothLeScanner getScanner() {
-        if (mScanner == null) {
-            LogManager.d(TAG, "Making new Android L scanner");
+    private boolean isBluetoothOn() {
+        try {
             BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
             if (bluetoothAdapter != null) {
-                mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+                return (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON);
             }
+            LogManager.w(TAG, "Cannot get bluetooth adapter");
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException checking if bluetooth is on");
+        }
+        return false;
+    }
+
+    private BluetoothLeScanner getScanner() {
+        try {
             if (mScanner == null) {
-                LogManager.w(TAG, "Failed to make new Android L scanner");
+                LogManager.d(TAG, "Making new Android L scanner");
+                BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+                if (bluetoothAdapter != null) {
+                    mScanner = getBluetoothAdapter().getBluetoothLeScanner();
+                }
+                if (mScanner == null) {
+                    LogManager.w(TAG, "Failed to make new Android L scanner");
+                }
             }
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException making new Android L scanner");
         }
         return mScanner;
     }

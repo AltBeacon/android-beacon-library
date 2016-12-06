@@ -164,7 +164,7 @@ public class LeScannerForLollipop extends LeScanner {
         if(isBluetoothOn()){
             super.stopScan();
         }else{
-            LogManager.d(TAG, "Bluetooth off - don't stop scan");
+            LogManager.d(TAG, "Not starting scan because bluetooth is off");
         }
     }
 
@@ -172,7 +172,7 @@ public class LeScannerForLollipop extends LeScanner {
         if(isBluetoothOn()){
             super.stopScan();
         }else{
-            LogManager.d(TAG, "Bluetooth off - don't start scan");
+            LogManager.d(TAG, "Not stopping scan because bluetooth is off");
         }
     }
 

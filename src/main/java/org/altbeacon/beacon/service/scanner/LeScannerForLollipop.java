@@ -140,12 +140,41 @@ public class LeScannerForLollipop extends LeScanner {
         return setWakeUpAlarm;
     }
 
+    private boolean isBluetoothOn() {
+        try {
+            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+            if (bluetoothAdapter != null) {
+                return (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON);
+            }
+            LogManager.w(TAG, "Cannot get bluetooth adapter");
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException checking if bluetooth is on");
+        }
+        return false;
+    }
+
     @Override
     protected void finishScan() {
         LogManager.d(TAG, "Stopping scan");
         stopScan();
     }
 
+    public void startScan(){
+        if(isBluetoothOn()){
+            super.stopScan();
+        }else{
+            LogManager.d(TAG, "Bluetooth off - don't stop scan");
+        }
+    }
+
+    public void stopScan(){
+        if(isBluetoothOn()){
+            super.stopScan();
+        }else{
+            LogManager.d(TAG, "Bluetooth off - don't start scan");
+        }
+    }
 
     Runnable generateStartScanRunnable(){
         List<ScanFilter> filters = new ArrayList<ScanFilter>();

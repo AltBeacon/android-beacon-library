@@ -71,20 +71,6 @@ public abstract class LeScanner {
         mScanHandler.post(startRunnable);
     }
 
-    private boolean isBluetoothOn() {
-        try {
-            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
-            if (bluetoothAdapter != null) {
-                return (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON);
-            }
-            LogManager.w(TAG, "Cannot get bluetooth adapter");
-        }
-        catch (SecurityException e) {
-            LogManager.w(TAG, "SecurityException checking if bluetooth is on");
-        }
-        return false;
-    }
-
     protected void stopScan() {
         postStopLeScan();
     }

@@ -23,7 +23,7 @@ import java.util.List;
 @TargetApi(21)
 public class LeScannerForLollipop extends LeScanner {
 
-    private static final String TAG = "CycledLeScannerForLollipop";
+    private static final String TAG = "LeScannerForLollipop";
     private static final long BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS = 10000l;
     private BluetoothLeScanner mScanner;
     private ScanCallback leScanCallback;
@@ -162,7 +162,7 @@ public class LeScannerForLollipop extends LeScanner {
 
     public void startScan(){
         if(isBluetoothOn()){
-            super.stopScan();
+            super.startScan();
         }else{
             LogManager.d(TAG, "Not starting scan because bluetooth is off");
         }

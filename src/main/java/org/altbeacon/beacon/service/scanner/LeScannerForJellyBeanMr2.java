@@ -11,13 +11,12 @@ import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 @TargetApi(18)
 public class LeScannerForJellyBeanMr2 extends LeScanner {
-    private static final String TAG = "CycledLeScannerForJellyBeanMr2";
+    private static final String TAG = "LeScannerForJellyBeanMr2";
     private BluetoothAdapter.LeScanCallback leScanCallback;
 
     public LeScannerForJellyBeanMr2(Context context, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, cycledLeScanCallback, crashResolver);
     }
-
 
     protected boolean onDeferScanIfNeeded(boolean deferScanIsNeeded) {
         if (deferScanIsNeeded) {
@@ -73,7 +72,7 @@ public class LeScannerForJellyBeanMr2 extends LeScanner {
                         public void onLeScan(final BluetoothDevice device, final int rssi,
                                              final byte[] scanRecord) {
                             LogManager.d(TAG, "got record");
-                            getLeScanCallback().onLeScan(device, rssi, scanRecord);
+                            getCycledLeScanCallback().onLeScan(device, rssi, scanRecord);
                             getBluetoothCrashResolver().notifyScannedDevice(device, getLeScanCallback());
                         }
                     };

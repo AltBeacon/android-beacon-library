@@ -72,11 +72,13 @@ public abstract class LeScanner {
     }
 
     protected void stopScan() {
+        LogManager.d(TAG, "stopScann");
         postStopLeScan();
     }
 
 
     protected void startScan() {
+        LogManager.d(TAG, "startScan");
         postStartLeScan();
     }
 

@@ -35,7 +35,7 @@ public class CycledLeScannerScreenState extends CycledLeScanner implements Scree
     private SCAN_ON_SCREEN_STATE mScanScreenState;
 
     public CycledLeScannerScreenState(){
-        this(20000, SCAN_ON_SCREEN_STATE.ON_OFF);
+        this(18000, SCAN_ON_SCREEN_STATE.ON_OFF);
     }
 
     public CycledLeScannerScreenState(int activeScanningTimeOnScreenSwitchState, SCAN_ON_SCREEN_STATE scanScreenState){
@@ -49,23 +49,30 @@ public class CycledLeScannerScreenState extends CycledLeScanner implements Scree
         mScanScreenState = scanScreenState;
     }
 
-    protected long calculateNextTimeToStartScanInBg(){
+    protected synchronized long calculateNextTimeToStartScanInBg(){
         if(scanIsEnabled){
+            LogManager.d(TAG, "calculate next scan bg");
             return super.calculateNextTimeToStartScanInBg();
         }
+        LogManager.d(TAG, "lock next scan");
         return 1000;
     }
 
-    protected long calculateNextTimeForScanCycleStopInBg(){
+    protected synchronized long calculateNextTimeForScanCycleStopInBg(){
         if(scanIsEnabled){
+            LogManager.d(TAG, "calculate next stop bg");
             return super.calculateNextTimeForScanCycleStopInBg();
         }
-        return 1000;
+        LogManager.d(TAG, "stop scan definitivly");
+        return 0;
     }
 
     public synchronized void stopScanningOnSwitchScreenState(){
         LogManager.d(TAG, "stopScanningOnSwitchScreenState");
-        scanIsEnabled = false;
+        if(isBackgroundFlag()) {
+            scanIsEnabled = false;
+            stop();
+        }
     }
 
     public synchronized void startScanningOnSwitchScreenState(){
@@ -82,6 +89,13 @@ public class CycledLeScannerScreenState extends CycledLeScanner implements Scree
         }else{
             LogManager.d(TAG, "startScanningOnSwitchScreenState - app is in foreground - it does not start the scan");
         }
+    }
+
+    public synchronized void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, boolean scanNow) {
+        if(!backgroundFlag && isBackgroundFlag()){
+            cancelRunnable(runnableStopScanning);
+        }
+        super.setScanPeriods(scanPeriod, betweenScanPeriod, backgroundFlag, scanNow);
     }
 
     @Override

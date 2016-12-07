@@ -171,6 +171,9 @@ public class CycledLeScanner {
                 LogManager.i(TAG, "Adjusted scanStopTime to be %s", mScanCycleStopTime);
             }
         }
+        if(!mScanningEnabled){
+            start();
+        }
     }
 
     public void start() {
@@ -197,6 +200,7 @@ public class CycledLeScanner {
     }
 
     public void destroy() {
+        cancelRunnableStartAndStopScan();
         leScanner.onDestroy();
     }
 
@@ -276,7 +280,8 @@ public class CycledLeScanner {
     protected boolean deferScanIfNeeded() {
         long millisecondsUntilStart = mBackgroundFlag?calculateNextTimeToStartScanInBg():calculateNextTimeToStartScanInFg();
         boolean deferScanIsNeeded = millisecondsUntilStart > 0;
-        LogManager.d(TAG, "defer scan is needed %b", deferScanIsNeeded);
+        LogManager.d(TAG, "Waiting to start next Bluetooth scan for another %s milliseconds",
+                millisecondsUntilStart);
         if (leScanner.onDeferScanIfNeeded(deferScanIsNeeded)) {
             LogManager.d(TAG, "plan a wakeup alarm");
             setWakeUpAlarm();

@@ -19,7 +19,7 @@ The typical way to handle this situation is to start ranging as soon as the beac
                         // start ranging for beacons.  This will provide an update once per second with the estimated
                         // distance to the beacon in the didRAngeBeaconsInRegion method.
                         beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-                        beaconManager.setRangeNotifier(this);
+                        beaconManager.addRangeNotifier(this);
                   } catch (RemoteException e) {   }
       	}
 

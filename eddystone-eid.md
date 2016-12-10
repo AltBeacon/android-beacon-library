@@ -45,7 +45,7 @@ The following code detects when a beacon transmitting Eddystone-EID is nearby, a
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        mBeaconManager.setRangeNotifier(this);
+        mBeaconManager.addRangeNotifier(this);
     }
 
     @Override

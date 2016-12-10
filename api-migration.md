@@ -108,22 +108,23 @@ This sample ranges all beacons matching id1=2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6
 ```
 public class RangingActivity extends Activity implements BeaconConsumer {
     protected static final String TAG = "RangingActivity";
-    private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+    private BeaconManager beaconManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
+       beaconManager = BeaconManager.getInstanceForApplication(this);
        setContentView(R.layout.activity_ranging);
        beaconManager.bind(this);
     }
-    @Override 
+    @Override
     protected void onDestroy() {
        super.onDestroy();
        beaconManager.unBind(this);
     }
     @Override
     public void onBeaconServiceConnect() {
-       beaconManager.setRangeNotifier(new RangeNotifier() {
-           @Override 
+       beaconManager.addRangeNotifier(new RangeNotifier() {
+           @Override
              public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0) {
                   Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");

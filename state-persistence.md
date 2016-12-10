@@ -21,7 +21,7 @@ If an app stops running for more than 15 minutes, persisted region state will be
 ## Why Don't I get a `didEnterRegion` event at startup?
 
 As of version 2.8, an app that is restarted won't get a `didEnterRegion` callback, if it was already in the region right before restarting.  This can be a source of confusion
-during the development process, because re-starting the app via Android Studio while a beacon is transmitting will cause a
+during the development process, because re-starting the app via Android Studio while a beacon is transmitting will not cause a new `didEnterRegion` callback, as a the library determines that the device is still in region.
 
 As of version 2.9, there are two tools to make this easier:
 

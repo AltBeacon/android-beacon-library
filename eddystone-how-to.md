@@ -25,13 +25,13 @@ to detect and decode.  Do this the first time you access the BeaconManager in yo
 BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this.getApplicationContext());
 // Detect the main identifier (UID) frame:
 beaconManager.getBeaconParsers().add(new BeaconParser().
-    setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
+    setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT));
 // Detect the telemetry (TLM) frame:
 beaconManager.getBeaconParsers().add(new BeaconParser().
-    setBeaconLayout("x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15"));
+    setBeaconLayout(BeaconParser.EDDYSTONE_TLM_LAYOUT));
 // Detect the URL frame:
 beaconManager.getBeaconParsers().add(new BeaconParser().
-    setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-21v"));
+    setBeaconLayout(BeaconParser.EDDYSTONE_URL_LAYOUT));
 ```
 
 ### Getting Notified When Beacons Appear in the Area
@@ -50,7 +50,7 @@ made.
         mBeaconManager = BeaconManager.getInstanceForApplication(this.getApplicationContext());
         // Detect the main Eddystone-UID frame:
         mBeaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
+                setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT));
         mBeaconManager.bind(this);
     }
 
@@ -60,7 +60,7 @@ made.
         Identifier myBeaconNamespaceId = Identifier.parse("0x2f234454f4911ba9ffa6");
         Identifier myBeaconInstanceId = Identifier.parse("0x000000000001");
         Region region = new Region("my-beacon-region", myBeaconNamespaceId, myBeaconInstanceId, null);
-        mBeaconManager.setMonitorNotifier(this);
+        mBeaconManager.addMonitorNotifier(this);
         try {
             mBeaconManager.startMonitoringBeaconsInRegion(region);
         } catch (RemoteException e) {
@@ -104,10 +104,10 @@ The example below also shows how to access fields from the Eddystone-TLM frame.
         mBeaconManager = BeaconManager.getInstanceForApplication(this.getApplicationContext());
         // Detect the main Eddystone-UID frame:
         mBeaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
+                setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT));
         // Detect the telemetry Eddystone-TLM frame:
         mBeaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15"));
+                setBeaconLayout(BeaconParser.EDDYSTONE_TLM_LAYOUT));
         mBeaconManager.bind(this);
     }
 
@@ -118,7 +118,7 @@ The example below also shows how to access fields from the Eddystone-TLM frame.
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        mBeaconManager.setRangeNotifier(this);
+        mBeaconManager.addRangeNotifier(this);
     }
 
     @Override
@@ -173,7 +173,7 @@ public class MyActivity extends Activity implements BeaconConsumer, RangeNotifie
         mBeaconManager = BeaconManager.getInstanceForApplication(this.getApplicationContext());
         // Detect the URL frame:
         mBeaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v"));
+                setBeaconLayout(BeaconParser.EDDYSTONE_URL_LAYOUT));
         mBeaconManager.bind(this);
     }
 

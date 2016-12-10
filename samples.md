@@ -37,7 +37,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
     }
     @Override
     public void onBeaconServiceConnect() {
-        beaconManager.setMonitorNotifier(new MonitorNotifier() {
+        beaconManager.addMonitorNotifier(new MonitorNotifier() {
         @Override
         public void didEnterRegion(Region region) {
             Log.i(TAG, "I just saw an beacon for the first time!");        
@@ -90,7 +90,7 @@ public class RangingActivity extends Activity implements BeaconConsumer {
     }
     @Override
     public void onBeaconServiceConnect() {
-        beaconManager.setRangeNotifier(new RangeNotifier() {
+        beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override 
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0) {

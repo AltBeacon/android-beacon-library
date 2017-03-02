@@ -44,8 +44,8 @@ public class BackgroundPowerSaver implements Application.ActivityLifecycleCallba
             LogManager.w(TAG, "BackgroundPowerSaver requires API 18 or higher.");
             return;
         }
-        ((Application)context.getApplicationContext()).registerActivityLifecycleCallbacks(this);
         beaconManager = BeaconManager.getInstanceForApplication(context);
+        ((Application)context.getApplicationContext()).registerActivityLifecycleCallbacks(this);
     }
 
     @Override

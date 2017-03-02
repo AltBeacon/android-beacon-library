@@ -17,6 +17,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BleNotAvailableException;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
@@ -167,6 +168,13 @@ public abstract class CycledLeScanner {
 
     public void destroy() {
         mScanThread.quit();
+    }
+
+    protected boolean canScan() {
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            return false;
+        }
+        return true;
     }
 
     protected abstract void stopScan();

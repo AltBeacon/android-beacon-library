@@ -20,7 +20,9 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
 
     @Override
     protected void stopScan() {
-        postStopLeScan();
+        if (canScan()) {
+            postStopLeScan();
+        }
     }
 
     @Override
@@ -48,7 +50,9 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
 
     @Override
     protected void startScan() {
-        postStartLeScan();
+        if (canScan()) {
+            postStartLeScan();
+        }
     }
 
     @Override

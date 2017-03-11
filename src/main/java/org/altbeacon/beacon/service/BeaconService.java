@@ -137,6 +137,7 @@ public class BeaconService extends Service {
     public static final int MSG_START_MONITORING = 4;
     public static final int MSG_STOP_MONITORING = 5;
     public static final int MSG_SET_SCAN_PERIODS = 6;
+    public static final int MSG_SYNC_SETTINGS = 7;
 
     static class IncomingHandler extends Handler {
         private final WeakReference<BeaconService> mService;
@@ -148,37 +149,52 @@ public class BeaconService extends Service {
         @Override
         public void handleMessage(Message msg) {
             BeaconService service = mService.get();
-            StartRMData startRMData = StartRMData.fromBundle(msg.getData());
-
             if (service != null) {
-                switch (msg.what) {
-                    case MSG_START_RANGING:
-                        LogManager.i(TAG, "start ranging received");
-                        service.startRangingBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                        break;
-                    case MSG_STOP_RANGING:
-                        LogManager.i(TAG, "stop ranging received");
-                        service.stopRangingBeaconsInRegion(startRMData.getRegionData());
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                        break;
-                    case MSG_START_MONITORING:
-                        LogManager.i(TAG, "start monitoring received");
-                        service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                        break;
-                    case MSG_STOP_MONITORING:
-                        LogManager.i(TAG, "stop monitoring received");
-                        service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                        break;
-                    case MSG_SET_SCAN_PERIODS:
-                        LogManager.i(TAG, "set scan intervals received");
-                        service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                        break;
-                    default:
-                        super.handleMessage(msg);
+                StartRMData startRMData = StartRMData.fromBundle(msg.getData());
+                if (startRMData != null) {
+                    switch (msg.what) {
+                        case MSG_START_RANGING:
+                            LogManager.i(TAG, "start ranging received");
+                            service.startRangingBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_STOP_RANGING:
+                            LogManager.i(TAG, "stop ranging received");
+                            service.stopRangingBeaconsInRegion(startRMData.getRegionData());
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_START_MONITORING:
+                            LogManager.i(TAG, "start monitoring received");
+                            service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_STOP_MONITORING:
+                            LogManager.i(TAG, "stop monitoring received");
+                            service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_SET_SCAN_PERIODS:
+                            LogManager.i(TAG, "set scan intervals received");
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        default:
+                            super.handleMessage(msg);
+                    }
                 }
+                else if (msg.what == MSG_SYNC_SETTINGS) {
+                    LogManager.i(TAG, "Received settings update from other process");
+                    SettingsData settingsData = SettingsData.fromBundle(msg.getData());
+                    if (settingsData != null) {
+                        settingsData.apply(service);
+                    }
+                    else {
+                        LogManager.w(TAG, "Settings data missing");
+                    }
+                }
+                else {
+                    LogManager.i(TAG, "Received unknown message from other process : "+msg.what);
+                }
+
             }
         }
     }
@@ -202,7 +218,7 @@ public class BeaconService extends Service {
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
 
         beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
-        beaconManager.setScannerProcess(true);
+        beaconManager.setScannerInSameProcess(true);
         if (beaconManager.isMainProcess()) {
             LogManager.i(TAG, "beaconService version %s is starting up on the main process", BuildConfig.VERSION_NAME);
         }
@@ -212,21 +228,7 @@ public class BeaconService extends Service {
             LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
 
-
-        //flatMap all beacon parsers
-        boolean matchBeaconsByServiceUUID = true;
-        if (beaconManager.getBeaconParsers() != null) {
-            beaconParsers.addAll(beaconManager.getBeaconParsers());
-            for (BeaconParser beaconParser : beaconManager.getBeaconParsers()) {
-                if (beaconParser.getExtraDataParsers().size() > 0) {
-                    matchBeaconsByServiceUUID = false;
-                    beaconParsers.addAll(beaconParser.getExtraDataParsers());
-                }
-            }
-        }
-
-        //initialize the extra data beacon tracker
-        mExtraDataBeaconTracker = new ExtraDataBeaconTracker(matchBeaconsByServiceUUID);
+        reloadParsers();
 
         defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
@@ -242,6 +244,24 @@ public class BeaconService extends Service {
         } catch (Exception e) {
             LogManager.e(e, TAG, "Cannot get simulated Scan data.  Make sure your org.altbeacon.beacon.SimulatedScanData class defines a field with the signature 'public static List<Beacon> beacons'");
         }
+    }
+
+    protected void reloadParsers() {
+        HashSet<BeaconParser> newBeaconParsers = new HashSet<BeaconParser>();
+        //flatMap all beacon parsers
+        boolean matchBeaconsByServiceUUID = true;
+        if (beaconManager.getBeaconParsers() != null) {
+            newBeaconParsers.addAll(beaconManager.getBeaconParsers());
+            for (BeaconParser beaconParser : beaconManager.getBeaconParsers()) {
+                if (beaconParser.getExtraDataParsers().size() > 0) {
+                    matchBeaconsByServiceUUID = false;
+                    newBeaconParsers.addAll(beaconParser.getExtraDataParsers());
+                }
+            }
+        }
+        beaconParsers = newBeaconParsers;
+        //initialize the extra data beacon tracker
+        mExtraDataBeaconTracker = new ExtraDataBeaconTracker(matchBeaconsByServiceUUID);
     }
 
 

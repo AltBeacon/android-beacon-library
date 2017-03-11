@@ -54,6 +54,7 @@ public class BeaconParser implements Serializable {
     private static final String LITTLE_ENDIAN_SUFFIX = "l";
     private static final String VARIABLE_LENGTH_SUFFIX = "v";
 
+    protected String mBeaconLayout;
     private Long mMatchingBeaconTypeCode;
     protected final List<Integer> mIdentifierStartOffsets = new ArrayList<Integer>();
     protected final List<Integer> mIdentifierEndOffsets = new ArrayList<Integer>();
@@ -166,7 +167,7 @@ public class BeaconParser implements Serializable {
      * @return the BeaconParser instance
      */
     public BeaconParser setBeaconLayout(String beaconLayout) {
-
+        mBeaconLayout = beaconLayout;
         Log.d(TAG, "Parsing beacon layout: "+beaconLayout);
 
         String[] terms =  beaconLayout.split(",");
@@ -760,6 +761,13 @@ public class BeaconParser implements Serializable {
     }
 
     /**
+     * @return the layout string for the parser
+     */
+    public String getLayout() {
+        return mBeaconLayout;
+    }
+
+    /**
      * @return the correction value in dBm to apply to the calibrated txPower to get a 1m calibrated value.
      * Some formats like Eddystone use a 0m calibrated value, which requires this correction
      */
@@ -926,4 +934,20 @@ public class BeaconParser implements Serializable {
             }
         );
     }
+
+    @Override
+    public boolean equals(Object o) {
+        BeaconParser that = null;
+        try {
+            that = (BeaconParser) o;
+            if (that.mBeaconLayout != null && that.mBeaconLayout.equals(this.mBeaconLayout)) {
+                if (that.mIdentifier != null && that.mIdentifier.equals(this.mIdentifier)) {
+                    return true;
+                }
+            }
+        }
+        catch (ClassCastException e ) { }
+        return false;
+    }
+
 }

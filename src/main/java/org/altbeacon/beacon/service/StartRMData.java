@@ -120,9 +120,15 @@ public class StartRMData implements Serializable, Parcelable {
 
     public static StartRMData fromBundle(Bundle bundle) {
         bundle.setClassLoader(Region.class.getClassLoader());
+        boolean valid = false;
         StartRMData data = new StartRMData();
+        if (bundle.containsKey(REGION_KEY)) {
+            data.mRegion = (Region)bundle.getSerializable(REGION_KEY);
+            valid = true;
+        }
         if (bundle.containsKey(SCAN_PERIOD_KEY)) {
             data.mScanPeriod = (Long) bundle.get(SCAN_PERIOD_KEY);
+            valid = true;
         }
         if (bundle.containsKey(BETWEEN_SCAN_PERIOD_KEY)) {
             data.mBetweenScanPeriod = (Long) bundle.get(BETWEEN_SCAN_PERIOD_KEY);
@@ -133,10 +139,12 @@ public class StartRMData implements Serializable, Parcelable {
         if (bundle.containsKey(CALLBACK_PACKAGE_NAME_KEY)) {
             data.mCallbackPackageName = (String) bundle.get(CALLBACK_PACKAGE_NAME_KEY);
         }
-        if (bundle.containsKey(REGION_KEY)) {
-            data.mRegion = (Region)bundle.getSerializable(REGION_KEY);
+        if (valid) {
+            return data;
         }
-        return data;
+        else {
+            return null;
+        }
     }
 
 }

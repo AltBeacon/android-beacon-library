@@ -111,7 +111,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class BeaconManager {
     private static final String TAG = "BeaconManager";
     private Context mContext;
-    protected static BeaconManager client = null;
+    protected static BeaconManager sInstance = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
     protected final Set<RangeNotifier> rangeNotifiers = new CopyOnWriteArraySet<>();
@@ -123,7 +123,7 @@ public class BeaconManager {
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
     private boolean mMainProcess = false;
-    private Boolean mScannerProcess = null;
+    private Boolean mScannerInSameProcess = null;
 
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
@@ -244,11 +244,11 @@ public class BeaconManager {
      * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
      */
     public static BeaconManager getInstanceForApplication(Context context) {
-        if (client == null) {
+        if (sInstance == null) {
             LogManager.d(TAG, "BeaconManager instance creation");
-            client = new BeaconManager(context);
+            sInstance = new BeaconManager(context);
         }
-        return client;
+        return sInstance;
     }
 
     protected BeaconManager(Context context) {
@@ -273,19 +273,19 @@ public class BeaconManager {
     /**
      * Determines if this BeaconManager instance is part of the process hosting the beacon scanning
      * service.  This is normally true, except when scanning is hosted in a different service.
-     * This may return null until the first consumer is bound, because the value cannot be determined.
+     * This will return null until the scanning service starts up, at which time it will be known.
      * @return
      */
-    public Boolean isScannerProcess() {
-        return mScannerProcess;
+    public Boolean isScannerInSameProcess() {
+        return mScannerInSameProcess;
     }
 
     /**
      * Reserved for internal by the library.
      * @hide
      */
-    public void setScannerProcess(boolean isScanner) {
-        mScannerProcess = isScanner;
+    public void setScannerInSameProcess(boolean isScanner) {
+        mScannerInSameProcess = isScanner;
     }
 
     protected void checkIfMainProcess() {
@@ -707,13 +707,34 @@ public class BeaconManager {
         }
     }
 
+    /**
+     * Call this method if you are running the scanner service in a different process in order to
+     * synchronize any configuration settings, including BeaconParsers to the scanner
+     * @see #isScannerInSameProcess()
+     */
+    public void applySettings() {
+        if (isScannerInSameProcess() != null && isScannerInSameProcess() == false) {
+            LogManager.d(TAG, "Synchronizing settings to service");
+            syncSettingsToService();
+        }
+        else {
+            if (isScannerInSameProcess() == null) {
+                LogManager.d(TAG, "Not synchronizing settings to service, as it has not started up yet");
+
+            }
+            else {
+                LogManager.d(TAG, "Not synchronizing settings to service, as it is in the same process");
+            }
+        }
+    }
+
     protected void syncSettingsToService() {
         if (serviceMessenger == null) {
             LogManager.e(TAG, "The BeaconManager is not bound to the service.  Settings synchronization will fail.");
             return;
         }
         try {
-            Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
+            Message msg = Message.obtain(null, BeaconService.MSG_SYNC_SETTINGS, 0, 0);
             msg.setData(new SettingsData().collect(mContext).toBundle());
             serviceMessenger.send(msg);
         }
@@ -920,6 +941,9 @@ public class BeaconManager {
      */
     public static void setUseTrackingCache(boolean useTrackingCache) {
         RangeState.setUseTrackingCache(useTrackingCache);
+        if (sInstance != null) {
+            sInstance.applySettings();
+        }
     }
 
     /**
@@ -1000,7 +1024,12 @@ public class BeaconManager {
         // Called when the connection with the service is established
         public void onServiceConnected(ComponentName className, IBinder service) {
             LogManager.d(TAG, "we have a connection to the service now");
+            if (mScannerInSameProcess == null) {
+                mScannerInSameProcess = false;
+            }
             serviceMessenger = new Messenger(service);
+            // This will sync settings to the scanning service if it is in a different process
+            applySettings();
             synchronized(consumers) {
                 Iterator<Map.Entry<BeaconConsumer, ConsumerInfo>> iter = consumers.entrySet().iterator();
                 while (iter.hasNext()) {
@@ -1046,6 +1075,9 @@ public class BeaconManager {
      */
     public static void setAndroidLScanningDisabled(boolean disabled) {
         sAndroidLScanningDisabled = disabled;
+        if (sInstance != null) {
+            sInstance.applySettings();
+        }
     }
 
     /**

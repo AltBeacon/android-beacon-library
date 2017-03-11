@@ -52,6 +52,7 @@ import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
+import org.altbeacon.beacon.utils.ProcessUtils;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.lang.ref.WeakReference;
@@ -147,7 +148,7 @@ public class BeaconService extends Service {
         @Override
         public void handleMessage(Message msg) {
             BeaconService service = mService.get();
-            StartRMData startRMData = (StartRMData) msg.obj;
+            StartRMData startRMData = StartRMData.fromBundle(msg.getData());
 
             if (service != null) {
                 switch (msg.what) {
@@ -190,7 +191,6 @@ public class BeaconService extends Service {
 
     @Override
     public void onCreate() {
-        LogManager.i(TAG, "beaconService version %s is starting up", BuildConfig.VERSION_NAME);
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
         bluetoothCrashResolver.start();
 
@@ -202,6 +202,16 @@ public class BeaconService extends Service {
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
 
         beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
+        beaconManager.setScannerProcess(true);
+        if (beaconManager.isMainProcess()) {
+            LogManager.i(TAG, "beaconService version %s is starting up on the main process", BuildConfig.VERSION_NAME);
+        }
+        else {
+            LogManager.i(TAG, "beaconService version %s is starting up on a separate process", BuildConfig.VERSION_NAME);
+            ProcessUtils processUtils = new ProcessUtils(this);
+            LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
+        }
+
 
         //flatMap all beacon parsers
         boolean matchBeaconsByServiceUUID = true;
@@ -399,7 +409,7 @@ public class BeaconService extends Service {
             for (Region region : rangedRegionState.keySet()) {
                 RangeState rangeState = rangedRegionState.get(region);
                 LogManager.d(TAG, "Calling ranging callback");
-                rangeState.getCallback().call(BeaconService.this, "rangingData", new RangingData(rangeState.finalizeBeacons(), region));
+                rangeState.getCallback().call(BeaconService.this, "rangingData", new RangingData(rangeState.finalizeBeacons(), region).toBundle());
             }
         }
     }

@@ -52,8 +52,12 @@ public class BeaconIntentProcessor extends IntentService {
         RangingData rangingData = null;
 
         if (intent != null && intent.getExtras() != null) {
-            monitoringData = (MonitoringData) intent.getExtras().get("monitoringData");
-            rangingData = (RangingData) intent.getExtras().get("rangingData");
+            if (intent.getExtras().getBundle("monitoringData") != null) {
+                monitoringData = MonitoringData.fromBundle(intent.getExtras().getBundle("monitoringData"));
+            }
+            if (intent.getExtras().getBundle("rangingData") != null) {
+                rangingData = RangingData.fromBundle(intent.getExtras().getBundle("rangingData"));
+            }
         }
 
         if (rangingData != null) {

@@ -51,7 +51,6 @@ import java.util.regex.Pattern;
 public class Region implements Parcelable, Serializable {
     private static final String TAG = "Region";
     private static final Pattern MAC_PATTERN = Pattern.compile("^[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}\\:[0-9A-Fa-f]{2}$");
-
     /**
      * Required to make class Parcelable
      */
@@ -309,4 +308,5 @@ public class Region implements Parcelable, Serializable {
     public Region clone() {
         return new Region(mUniqueId, mIdentifiers, mBluetoothAddress);
     }
+
 }

@@ -9,6 +9,7 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.bluetooth.BleAdvertisement;
 import org.altbeacon.bluetooth.Pdu;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.regex.Pattern;
  * </p>
  *
  */
-public class BeaconParser {
+public class BeaconParser implements Serializable {
     private static final String TAG = "BeaconParser";
     public static final String ALTBEACON_LAYOUT = "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25";
     public static final String EDDYSTONE_TLM_LAYOUT = "x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15";

@@ -25,49 +25,42 @@ package org.altbeacon.beacon.service;
 
 import org.altbeacon.beacon.Region;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.os.Bundle;
 
-public class MonitoringData implements Parcelable {
+public class MonitoringData {
     @SuppressWarnings("unused")
     private static final String TAG = "MonitoringData";
-    private final boolean inside;
-    private final Region region;
+    private final boolean mInside;
+    private final Region mRegion;
+    private static final String REGION_KEY = "region";
+    private static final String INSIDE_KEY = "inside";
 
     public MonitoringData (boolean inside, Region region) {
-        this.inside = inside;
-        this.region = region;
+        this.mInside = inside;
+        this.mRegion = region;
     }
     public boolean isInside() {
-        return inside;
+        return mInside;
     }
     public Region getRegion() {
-        return region;
+        return mRegion;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeByte((byte) (inside ? 1 : 0));
-        out.writeParcelable(region, flags);
+    public Bundle toBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(REGION_KEY, mRegion);
+        bundle.putBoolean(INSIDE_KEY, mInside);
 
+        return bundle;
     }
-
-    public static final Parcelable.Creator<MonitoringData> CREATOR
-            = new Parcelable.Creator<MonitoringData>() {
-        public MonitoringData createFromParcel(Parcel in) {
-            return new MonitoringData(in);
+    public static MonitoringData fromBundle(Bundle bundle) {
+        bundle.setClassLoader(Region.class.getClassLoader());
+        Region region = null;
+        if (bundle.get(REGION_KEY) != null) {
+            region = (Region) bundle.getSerializable(REGION_KEY);
         }
-
-        public MonitoringData[] newArray(int size) {
-            return new MonitoringData[size];
-        }
-    };
-
-    private MonitoringData(Parcel in) {
-        inside = in.readByte() == 1;
-        region = in.readParcelable(this.getClass().getClassLoader());
+        Boolean inside = bundle.getBoolean(INSIDE_KEY);
+        return new MonitoringData(inside, region);
     }
+
 }

@@ -43,9 +43,11 @@ import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
+import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
+import org.altbeacon.beacon.utils.ProcessUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -120,6 +122,8 @@ public class BeaconManager {
     private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
+    private boolean mMainProcess = false;
+    private Boolean mScannerProcess = null;
 
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
@@ -247,13 +251,51 @@ public class BeaconManager {
         return client;
     }
 
-   protected BeaconManager(Context context) {
-      mContext = context.getApplicationContext();
-      if (!sManifestCheckingDisabled) {
-         verifyServiceDeclaration();
-      }
-      this.beaconParsers.add(new AltBeaconParser());
-   }
+    protected BeaconManager(Context context) {
+        mContext = context.getApplicationContext();
+        checkIfMainProcess();
+        if (!sManifestCheckingDisabled) {
+           verifyServiceDeclaration();
+         }
+        this.beaconParsers.add(new AltBeaconParser());
+    }
+
+    /***
+     * Determines if this BeaconManager instance is associated with the main application process that
+     * hosts the user interface.  This is normally true unless the scanning service or another servide
+     * is running in a separate process.
+     * @return
+     */
+    public boolean isMainProcess() {
+        return mMainProcess;
+    }
+
+    /**
+     * Determines if this BeaconManager instance is part of the process hosting the beacon scanning
+     * service.  This is normally true, except when scanning is hosted in a different service.
+     * This may return null until the first consumer is bound, because the value cannot be determined.
+     * @return
+     */
+    public Boolean isScannerProcess() {
+        return mScannerProcess;
+    }
+
+    /**
+     * Reserved for internal by the library.
+     * @hide
+     */
+    public void setScannerProcess(boolean isScanner) {
+        mScannerProcess = isScanner;
+    }
+
+    protected void checkIfMainProcess() {
+        ProcessUtils processUtils = new ProcessUtils(mContext);
+        String processName = processUtils.getProcessName();
+        String packageName = processUtils.getPackageName();
+        int pid = processUtils.getPid();
+        mMainProcess = processUtils.isMainProcess();
+        LogManager.i(TAG, "BeaconManager started up on pid "+pid+" named '"+processName+"' for application package '"+packageName+"'.  isMainProcess="+mMainProcess);
+    }
 
    /**
      * Gets a list of the active beaconParsers.
@@ -576,6 +618,14 @@ public class BeaconManager {
     }
 
     /**
+     * Indicates whether region state preservation is enabled
+     * @return
+     */
+    public boolean isRegionStatePersistenceEnabled() {
+        return MonitoringStatus.getInstanceForApplication(mContext).isStatePreservationOn();
+    }
+
+    /**
      * Requests the current in/out state on the specified region. If the region is being monitored,
      * this will cause an asynchronous callback on the `MonitorNotifier`'s `didDetermineStateForRegion`
      * method.  If it is not a monitored region, it will be ignored.
@@ -617,8 +667,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
-        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
-        msg.obj = obj;
+        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
         synchronized (rangedRegions) {
             rangedRegions.add(region);
@@ -645,8 +694,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
-        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
-        msg.obj = obj;
+        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
         synchronized (rangedRegions) {
             Region regionToRemove = null;
@@ -656,6 +704,21 @@ public class BeaconManager {
                 }
             }
             rangedRegions.remove(regionToRemove);
+        }
+    }
+
+    protected void syncSettingsToService() {
+        if (serviceMessenger == null) {
+            LogManager.e(TAG, "The BeaconManager is not bound to the service.  Settings synchronization will fail.");
+            return;
+        }
+        try {
+            Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
+            msg.setData(new SettingsData().collect(mContext).toBundle());
+            serviceMessenger.send(msg);
+        }
+        catch (RemoteException e) {
+            LogManager.e(TAG, "Failed to sync settings to service", e);
         }
     }
 
@@ -681,8 +744,7 @@ public class BeaconManager {
         }
         LogManager.d(TAG, "Starting monitoring region "+region+" with uniqueID: "+region.getUniqueId());
         Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
-        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
-        msg.obj = obj;
+        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
         this.requestStateForRegion(region);
     }
@@ -708,8 +770,7 @@ public class BeaconManager {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
-        StartRMData obj = new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
-        msg.obj = obj;
+        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
     }
 
@@ -732,8 +793,7 @@ public class BeaconManager {
         Message msg = Message.obtain(null, BeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
         LogManager.d(TAG, "updating background flag to %s", mBackgroundMode);
         LogManager.d(TAG, "updating scan period to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
-        StartRMData obj = new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode);
-        msg.obj = obj;
+        msg.setData(new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
     }
 
@@ -989,12 +1049,30 @@ public class BeaconManager {
     }
 
     /**
+     * Deprecated misspelled method
+     * @see #setManifestCheckingDisabled(boolean)
+     * @param disabled
+     */
+    @Deprecated
+    public static void setsManifestCheckingDisabled(boolean disabled) {
+        sManifestCheckingDisabled = disabled;
+    }
+
+    /**
      * Allows disabling check of manifest for proper configuration of service.  Useful for unit
      * testing
      *
      * @param disabled
      */
-    public static void setsManifestCheckingDisabled(boolean disabled) {
+    public static void setManifestCheckingDisabled(boolean disabled) {
         sManifestCheckingDisabled = disabled;
     }
+
+    /**
+     * Returns whether manifest checking is disabled
+     */
+    public static boolean getManifestCheckingDisabled() {
+        return sManifestCheckingDisabled;
+    }
+
 }

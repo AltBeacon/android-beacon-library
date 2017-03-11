@@ -26,7 +26,7 @@ package org.altbeacon.beacon.service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Parcelable;
+import android.os.Bundle;
 
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -35,23 +35,23 @@ import java.io.Serializable;
 
 public class Callback implements Serializable {
     private static final String TAG = "Callback";
-    private transient Intent intent;
-    private String intentPackageName;
+    private transient Intent mIntent;
+    private String mIntentPackageName;
 
     public Callback(String intentPackageName) {
-        this.intentPackageName = intentPackageName;
+        mIntentPackageName = intentPackageName;
         initializeIntent();
     }
 
     private void initializeIntent() {
-        if (intentPackageName != null) {
-            intent = new Intent();
-            intent.setComponent(new ComponentName(intentPackageName, "org.altbeacon.beacon.BeaconIntentProcessor"));
+        if (mIntentPackageName != null) {
+            mIntent = new Intent();
+            mIntent.setComponent(new ComponentName(mIntentPackageName, "org.altbeacon.beacon.BeaconIntentProcessor"));
         }
     }
 
     public Intent getIntent() {
-        return intent;
+        return mIntent;
     }
 
     /**
@@ -62,14 +62,14 @@ public class Callback implements Serializable {
      * @param data
      * @return false if it callback cannot be made
      */
-    public boolean call(Context context, String dataName, Parcelable data) {
-        if(intent == null){
+    public boolean call(Context context, String dataName, Bundle data) {
+        if(mIntent == null){
             initializeIntent();
         }
-        if (intent != null) {
-            LogManager.d(TAG, "attempting callback via intent: %s", intent.getComponent());
-            intent.putExtra(dataName, data);
-            context.startService(intent);
+        if (mIntent != null) {
+            LogManager.d(TAG, "attempting callback via intent: %s", mIntent.getComponent());
+            mIntent.putExtra(dataName, data);
+            context.startService(mIntent);
             return true;
         }
         return false;

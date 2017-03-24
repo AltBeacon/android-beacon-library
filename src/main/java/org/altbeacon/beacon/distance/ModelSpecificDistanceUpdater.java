@@ -1,6 +1,5 @@
 package org.altbeacon.beacon.distance;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.os.AsyncTask;
@@ -14,7 +13,6 @@ import org.json.JSONObject;
 /**
  * Created by dyoung on 9/12/14.
  */
-@TargetApi(Build.VERSION_CODES.CUPCAKE)
 public class ModelSpecificDistanceUpdater extends AsyncTask<Void, Void, Void> {
 
     private static final String TAG = "ModelSpecificDistanceUpdater";

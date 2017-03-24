@@ -105,7 +105,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author David G. Young
  * @author Andrew Reitz <andrew@andrewreitz.com>
  */
-@TargetApi(4)
 public class BeaconManager {
     private static final String TAG = "BeaconManager";
     private Context mContext;

@@ -39,7 +39,6 @@ import java.util.Set;
  *
  * Created by dyoung on 3/24/14.
  */
-@TargetApi(5)
 public class BluetoothCrashResolver {
     private static final String TAG = "BluetoothCrashResolver";
     private static final boolean PREEMPTIVE_ACTION_ENABLED = true;

@@ -412,12 +412,10 @@ public class BeaconParser {
      * @param device The Bluetooth device that was detected
      * @return An instance of a <code>Beacon</code>
      */
-    @TargetApi(5)
     public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
         return fromScanData(scanData, rssi, device, new Beacon());
     }
 
-    @TargetApi(5)
     protected Beacon fromScanData(byte[] bytesToProcess, int rssi, BluetoothDevice device, Beacon beacon) {
         BleAdvertisement advert = new BleAdvertisement(bytesToProcess);
         boolean parseFailed = false;

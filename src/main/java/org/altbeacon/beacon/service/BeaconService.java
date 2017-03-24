@@ -74,7 +74,6 @@ import static android.app.PendingIntent.getBroadcast;
  * @author dyoung
  */
 
-@TargetApi(5)
 public class BeaconService extends Service {
     public static final String TAG = "BeaconService";
 

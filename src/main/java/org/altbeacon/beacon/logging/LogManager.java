@@ -24,7 +24,7 @@ package org.altbeacon.beacon.logging;
  * @since 2.2
  */
 public final class LogManager {
-    private static Logger sLogger = Loggers.warningLogger();
+    private static Logger sLogger = Loggers.infoLogger();
     private static boolean sVerboseLoggingEnabled = false;
 
     /**

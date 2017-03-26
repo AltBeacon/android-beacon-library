@@ -35,7 +35,7 @@ public class RangeState {
     private static final String TAG = "RangeState";
     private final Callback mCallback;
     private Map<Beacon,RangedBeacon> mRangedBeacons = new HashMap<Beacon,RangedBeacon>();
-    private static boolean UseTrackingCache = false;
+    private static boolean sUseTrackingCache = false;
 
     public RangeState(Callback c) {
         mCallback = c;
@@ -77,7 +77,7 @@ public class RangeState {
                 if (!rangedBeacon.noMeasurementsAvailable() == true) {
                     //if TrackingCache is enabled, allow beacon to not receive
                     //measurements for a certain amount of time
-                    if (!UseTrackingCache || rangedBeacon.isExpired())
+                    if (!sUseTrackingCache || rangedBeacon.isExpired())
                         rangedBeacon.setTracked(false);
                     newRangedBeacons.put(beacon, rangedBeacon);
                 }
@@ -92,8 +92,11 @@ public class RangeState {
     }
 
     public static void setUseTrackingCache(boolean useTrackingCache) {
-        RangeState.UseTrackingCache = useTrackingCache;
+        RangeState.sUseTrackingCache = useTrackingCache;
     }
 
+    public static boolean getUseTrackingCache() {
+        return sUseTrackingCache;
+    }
 
 }

@@ -30,6 +30,9 @@ public final class Loggers {
     /** Debug Logger Singleton. */
     private static final Logger VERBOSE_ANDROID_LOGGER = new VerboseAndroidLogger();
 
+    /** Info Logger Singleton. */
+    private static final Logger INFO_ANDROID_LOGGER = new InfoAndroidLogger();
+
     /** Warning Logger Singleton. */
     private static final Logger WARNING_ANDROID_LOGGER = new WarningAndroidLogger();
 
@@ -46,6 +49,14 @@ public final class Loggers {
      */
     public static Logger verboseLogger() {
         return VERBOSE_ANDROID_LOGGER;
+    }
+
+    /**
+     * @return Get a logger that logs messages of info and greater.
+     * @see android.util.Log
+     */
+    public static Logger infoLogger() {
+        return INFO_ANDROID_LOGGER;
     }
 
     /**

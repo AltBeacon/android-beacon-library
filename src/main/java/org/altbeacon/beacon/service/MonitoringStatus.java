@@ -100,7 +100,7 @@ public class MonitoringStatus {
             if (state.markOutsideIfExpired()) {
                 needsMonitoringStateSaving = true;
                 LogManager.d(TAG, "found a monitor that expired: %s", region);
-                state.getCallback().call(mContext, "monitoringData", new MonitoringData(state.getInside(), region));
+                state.getCallback().call(mContext, "monitoringData", new MonitoringData(state.getInside(), region).toBundle());
             }
         }
         if (needsMonitoringStateSaving) {
@@ -119,7 +119,7 @@ public class MonitoringStatus {
             if (state != null && state.markInside()) {
                 needsMonitoringStateSaving = true;
                 state.getCallback().call(mContext, "monitoringData",
-                        new MonitoringData(state.getInside(), region));
+                        new MonitoringData(state.getInside(), region).toBundle());
             }
         }
         if (needsMonitoringStateSaving) {
@@ -269,6 +269,10 @@ public class MonitoringStatus {
             this.mStatePreservationIsOn = true;
             saveMonitoringStatusIfOn();
         }
+    }
+
+    public boolean isStatePreservationOn() {
+        return mStatePreservationIsOn;
     }
 
     public synchronized void clear() {

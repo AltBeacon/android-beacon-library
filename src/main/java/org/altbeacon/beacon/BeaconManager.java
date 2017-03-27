@@ -43,6 +43,8 @@ import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
+import org.altbeacon.beacon.service.ScanJob;
+import org.altbeacon.beacon.service.ScanState;
 import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
@@ -339,6 +341,12 @@ public class BeaconManager {
             LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
+        if (mScheduledScanJobsEnabled) {
+            LogManager.d(TAG, "Not starting beacon scanning service. Using scheduled jobs");
+            consumer.onBeaconServiceConnect();
+            return;
+        }
+
         synchronized (consumers) {
             ConsumerInfo newConsumerInfo = new ConsumerInfo();
             ConsumerInfo alreadyBoundConsumerInfo = consumers.putIfAbsent(consumer, newConsumerInfo);
@@ -446,6 +454,25 @@ public class BeaconManager {
                 LogManager.e(TAG, "Cannot contact service to set scan periods");
             }
         }
+    }
+    private boolean mScheduledScanJobsEnabled = false;
+    public void setEnableScheduledScanJobs(boolean enabled) {
+        this.mScheduledScanJobsEnabled = enabled;
+    }
+    public boolean getBackgroundMode() {
+        return mBackgroundMode;
+    }
+    public long getBackgroundScanPeriod() {
+        return backgroundScanPeriod;
+    }
+    public long getBackgroundBetweenScanPeriod() {
+        return backgroundBetweenScanPeriod;
+    }
+    public long getForegroundScanPeriod() {
+        return foregroundScanPeriod;
+    }
+    public long getForegroundBetweenScanPeriod() {
+        return foregroundBetweenScanPeriod;
     }
 
     /**
@@ -663,12 +690,17 @@ public class BeaconManager {
             LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+        if (mScheduledScanJobsEnabled) {
+            ScanJob.applySettingsToScheduledJob(mContext, this);
         }
-        Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
+        else {
+            if (serviceMessenger == null) {
+                throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+            }
+            Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
+            msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
+            serviceMessenger.send(msg);
+        }
         synchronized (rangedRegions) {
             rangedRegions.add(region);
         }
@@ -690,12 +722,14 @@ public class BeaconManager {
             LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+        if (!mScheduledScanJobsEnabled) {
+            if (serviceMessenger == null) {
+                throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+            }
+            Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
+            msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
+            serviceMessenger.send(msg);
         }
-        Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
         synchronized (rangedRegions) {
             Region regionToRemove = null;
             for (Region rangedRegion : rangedRegions) {
@@ -704,6 +738,9 @@ public class BeaconManager {
                 }
             }
             rangedRegions.remove(regionToRemove);
+        }
+        if (mScheduledScanJobsEnabled) {
+            ScanJob.startMonitoring(mContext, this, region);
         }
     }
 
@@ -733,13 +770,18 @@ public class BeaconManager {
             LogManager.e(TAG, "The BeaconManager is not bound to the service.  Settings synchronization will fail.");
             return;
         }
-        try {
-            Message msg = Message.obtain(null, BeaconService.MSG_SYNC_SETTINGS, 0, 0);
-            msg.setData(new SettingsData().collect(mContext).toBundle());
-            serviceMessenger.send(msg);
+        if (mScheduledScanJobsEnabled) {
+            ScanJob.applySettingsToScheduledJob(mContext, this);
         }
-        catch (RemoteException e) {
-            LogManager.e(TAG, "Failed to sync settings to service", e);
+        else {
+            try {
+                Message msg = Message.obtain(null, BeaconService.MSG_SYNC_SETTINGS, 0, 0);
+                msg.setData(new SettingsData().collect(mContext).toBundle());
+                serviceMessenger.send(msg);
+            }
+            catch (RemoteException e) {
+                LogManager.e(TAG, "Failed to sync settings to service", e);
+            }
         }
     }
 
@@ -760,13 +802,18 @@ public class BeaconManager {
             LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+        if (mScheduledScanJobsEnabled) {
+            ScanJob.applySettingsToScheduledJob(mContext, this);
         }
-        LogManager.d(TAG, "Starting monitoring region "+region+" with uniqueID: "+region.getUniqueId());
-        Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
+        else {
+            if (serviceMessenger == null) {
+                throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+            }
+            LogManager.d(TAG, "Starting monitoring region "+region+" with uniqueID: "+region.getUniqueId());
+            Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
+            msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
+            serviceMessenger.send(msg);
+        }
         this.requestStateForRegion(region);
     }
 
@@ -787,12 +834,18 @@ public class BeaconManager {
             LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+        if (mScheduledScanJobsEnabled) {
+            ScanJob.applySettingsToScheduledJob(mContext, this);
+            ScanJob.stopMonitoring(mContext, this, region);
         }
-        Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
+        else {
+            if (serviceMessenger == null) {
+                throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+            }
+            Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
+            msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
+            serviceMessenger.send(msg);
+        }
     }
 
 
@@ -806,6 +859,10 @@ public class BeaconManager {
     public void updateScanPeriods() throws RemoteException {
         if (android.os.Build.VERSION.SDK_INT < 18) {
             LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            return;
+        }
+        if (mScheduledScanJobsEnabled) {
+            ScanJob.applySettingsToScheduledJob(mContext, this);
             return;
         }
         if (serviceMessenger == null) {

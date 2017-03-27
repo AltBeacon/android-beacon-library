@@ -28,6 +28,8 @@
             android:exported="false"
             />
 
+        <service android:name=".service.ScanJob"
+                 android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

@@ -135,6 +135,7 @@ public class RegionTest {
         region.writeToParcel(parcel, 0);
         parcel.setDataPosition(0);
         Region region2 = new Region(parcel);
+        parcel.recycle();
         assertEquals("Right number of identifiers after deserialization", 3, region2.mIdentifiers.size());
         assertEquals("uniqueId is same after deserialization", region.getUniqueId(), region2.getUniqueId());
         assertEquals("id1 is same after deserialization", region.getIdentifier(0), region2.getIdentifier(0));
@@ -151,6 +152,7 @@ public class RegionTest {
         region.writeToParcel(parcel, 0);
         parcel.setDataPosition(0);
         Region region2 = new Region(parcel);
+        parcel.recycle();
         assertEquals("Right number of identifiers after deserialization", 0, region2.mIdentifiers.size());
         assertEquals("ac is same after deserialization", region.getBluetoothAddress(), region2.getBluetoothAddress());
     }
@@ -158,7 +160,6 @@ public class RegionTest {
     @Test
     public void rejectsInvalidMac() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Parcel parcel = Parcel.obtain();
         try {
             Region region = new Region("myRegion", "this string is not a valid mac address!");
             assertTrue("IllegalArgumentException should have been thrown", false);

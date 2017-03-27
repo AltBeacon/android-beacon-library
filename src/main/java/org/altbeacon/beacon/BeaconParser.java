@@ -412,12 +412,10 @@ public class BeaconParser {
      * @param device The Bluetooth device that was detected
      * @return An instance of a <code>Beacon</code>
      */
-    @TargetApi(5)
     public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
         return fromScanData(scanData, rssi, device, new Beacon());
     }
 
-    @TargetApi(5)
     protected Beacon fromScanData(byte[] bytesToProcess, int rssi, BluetoothDevice device, Beacon beacon) {
         BleAdvertisement advert = new BleAdvertisement(bytesToProcess);
         boolean parseFailed = false;
@@ -457,12 +455,12 @@ public class BeaconParser {
             boolean patternFound = false;
 
             if (getServiceUuid() == null) {
-                if (byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+                if (byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes)) {
                     patternFound = true;
                 }
             } else {
-                if (byteArraysMatch(bytesToProcess, startByte + mServiceUuidStartOffset, serviceUuidBytes, 0) &&
-                        byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes, 0)) {
+                if (byteArraysMatch(bytesToProcess, startByte + mServiceUuidStartOffset, serviceUuidBytes) &&
+                        byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes)) {
                     patternFound = true;
                 }
             }
@@ -821,18 +819,19 @@ public class BeaconParser {
         return lastEndOffset+1;
     }
 
-    private boolean byteArraysMatch(byte[] array1, int offset1, byte[] array2, int offset2) {
-        int minSize = array1.length > array2.length ? array2.length : array1.length;
-        if (offset1+minSize > array1.length || offset2+minSize > array2.length) {
+    private boolean byteArraysMatch(byte[] source, int offset, byte[] expected) {
+        int length = expected.length;
+        if (source.length - offset < length) {
             return false;
         }
-        for (int i = 0; i <  minSize; i++) {
-            if (array1[i+offset1] != array2[i+offset2]) {
+        for (int i = 0; i <  length; i++) {
+            if (source[offset + i] != expected[i]) {
                 return false;
             }
         }
         return true;
     }
+
     private String byteArrayToString(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < bytes.length; i++) {

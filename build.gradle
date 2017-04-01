@@ -66,12 +66,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 
-    sourceSets {
-        androidTest {
-            setRoot('src/test')
-        }
-    }
-
     lintOptions {
         abortOnError false
     }
@@ -82,7 +76,6 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE'
     }
-
 }
 
 dependencies {

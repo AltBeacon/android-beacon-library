@@ -31,6 +31,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -51,6 +52,8 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
+import org.altbeacon.beacon.service.scanner.screenstate.ScreenStateBroadcastReceiver;
+import org.altbeacon.beacon.service.scanner.screenstate.ScreenStateListener;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
@@ -90,6 +93,7 @@ public class BeaconService extends Service {
     private boolean mBackgroundFlag = false;
     private ExtraDataBeaconTracker mExtraDataBeaconTracker;
     private ExecutorService mExecutor;
+    private ScreenStateBroadcastReceiver screenStateBroadcastReceiver;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -196,12 +200,15 @@ public class BeaconService extends Service {
         // Create a private executor so we don't compete with threads used by AsyncTask
         // This uses fewer threads than the default executor so it won't hog CPU
         mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
-
-        mCycledScanner = CycledLeScanner.createScanner(this, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
-                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, mBackgroundFlag, mCycledLeScanCallback, bluetoothCrashResolver);
-
         beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
-
+        mCycledScanner = beaconManager.getCycledLeScanner();
+        mCycledScanner.initScanner(this, mCycledLeScanCallback, bluetoothCrashResolver);
+        if(mCycledScanner instanceof ScreenStateListener){
+            IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+            filter.addAction(Intent.ACTION_SCREEN_OFF);
+            screenStateBroadcastReceiver = new ScreenStateBroadcastReceiver();
+            registerReceiver(screenStateBroadcastReceiver, filter);
+        }
         //flatMap all beacon parsers
         boolean matchBeaconsByServiceUUID = true;
         if (beaconManager.getBeaconParsers() != null) {
@@ -274,6 +281,9 @@ public class BeaconService extends Service {
         mCycledScanner.stop();
         mCycledScanner.destroy();
         monitoringStatus.stopStatusPreservation();
+        if(screenStateBroadcastReceiver != null){
+            unregisterReceiver(screenStateBroadcastReceiver);
+        }
     }
 
     @Override

@@ -44,6 +44,7 @@ import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.StartRMData;
+import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 
@@ -116,6 +117,7 @@ public class BeaconManager {
     protected final Set<MonitorNotifier> monitorNotifiers = new CopyOnWriteArraySet<>();
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
+    private CycledLeScanner cycledLeScanner;
     private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
@@ -252,6 +254,8 @@ public class BeaconManager {
          verifyServiceDeclaration();
       }
       this.beaconParsers.add(new AltBeaconParser());
+       cycledLeScanner = new CycledLeScanner(BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
+               BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, false);
    }
 
    /**
@@ -995,5 +999,21 @@ public class BeaconManager {
      */
     public static void setsManifestCheckingDisabled(boolean disabled) {
         sManifestCheckingDisabled = disabled;
+    }
+
+    /**
+     *
+     * @return the CycledLeScanner to use
+     */
+    public CycledLeScanner getCycledLeScanner(){
+        return cycledLeScanner;
+    }
+
+    /**
+     * Permits to update the way the library scans for beacon
+     * @param cycledLeScanner : the CycledLeScanner to use to scan for beacons
+     */
+    public void setCycledLeScanner(CycledLeScanner cycledLeScanner){
+        this.cycledLeScanner = cycledLeScanner;
     }
 }

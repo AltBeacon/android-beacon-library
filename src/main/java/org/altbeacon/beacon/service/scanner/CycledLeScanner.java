@@ -271,7 +271,7 @@ public abstract class CycledLeScanner {
             if (mScanning) {
                 if (getBluetoothAdapter() != null) {
                     if (getBluetoothAdapter().isEnabled()) {
-                        long now = System.currentTimeMillis();
+                        long now = SystemClock.elapsedRealtime();
                         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                                 mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&
                                 now-mLastScanStopTime < ANDROID_N_MIN_SCAN_CYCLE_MILLIS) {

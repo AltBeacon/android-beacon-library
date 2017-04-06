@@ -32,7 +32,6 @@ public abstract class CycledLeScanner {
     private long mLastScanCycleEndTime = 0l;
     protected long mNextScanCycleStartTime = 0l;
     private long mScanCycleStopTime = 0l;
-    private long mLastScanStopTime = 0l;
 
     private boolean mScanning;
     protected boolean mScanningPaused;
@@ -274,20 +273,19 @@ public abstract class CycledLeScanner {
                         long now = SystemClock.elapsedRealtime();
                         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                                 mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&
-                                now-mLastScanStopTime < ANDROID_N_MIN_SCAN_CYCLE_MILLIS) {
+                                now-mLastScanCycleStartTime < ANDROID_N_MIN_SCAN_CYCLE_MILLIS) {
                             // As of Android N, only 5 scans may be started in a 30 second period (6
                             // seconds per cycle)  otherwise they are blocked.  So we check here to see
                             // if the scan period is 6 seconds or less, and if we last stopped scanning
                             // fewer than 6 seconds ag and if so, we simply do not stop scanning
                             LogManager.d(TAG, "Not stopping scan because this is Android N and we" +
                                     " keep scanning for a minimum of 6 seconds at a time. "+
-                                    "We will stop in "+(ANDROID_N_MIN_SCAN_CYCLE_MILLIS-(now-mLastScanStopTime))+" millisconds.");
+                                    "We will stop in "+(ANDROID_N_MIN_SCAN_CYCLE_MILLIS-(now-mLastScanCycleStartTime))+" millisconds.");
                         }
                         else {
                             try {
                                 LogManager.d(TAG, "stopping bluetooth le scan");
                                 finishScan();
-                                mLastScanStopTime = now;
                             } catch (Exception e) {
                                 LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
                             }

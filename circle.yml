@@ -3,5 +3,5 @@ machine:
     version: openjdk8
 dependencies:
   pre:
-    - echo y | android update sdk --no-ui --all --filter "tools,android-24,build-tools-24.0.2,platform-tools,extra-android-m2repository,extra-google-m2repository"
+    - echo y | android update sdk --no-ui --all --filter "tools,android-24,build-tools-25.0.2,platform-tools,extra-android-m2repository,extra-google-m2repository"
 

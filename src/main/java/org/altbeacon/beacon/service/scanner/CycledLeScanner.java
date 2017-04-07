@@ -158,10 +158,8 @@ public abstract class CycledLeScanner {
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
             scanLeDevice(false);
-        }
-        if (mBluetoothAdapter != null) {
-            stopScan();
-            mLastScanCycleEndTime = SystemClock.elapsedRealtime();
+        } else {
+            LogManager.d(TAG, "scanning already stopped");
         }
     }
 

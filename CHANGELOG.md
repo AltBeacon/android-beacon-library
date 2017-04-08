@@ -1,11 +1,16 @@
 ### Development
 
+Enhancements:
+
+- Don't restart BLE scanning periodically if the library confrims device can detect duplicate
+  advertisements in a single scan, leading to more reliable detections with short scan cycles
+  (#456, David G. Young)
+
 Bug Fixes:
 
 - Deprecate misspelled methods `removeMonitoreNotifier` and
   `setRegionStatePeristenceEnabled` in favor of correctly spelled alternatives.
   (#461, Marco Salis)
-
 
 ### 2.9.2 / 2016-11-22
 

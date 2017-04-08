@@ -12,6 +12,7 @@ Bug Fixes:
   `setRegionStatePeristenceEnabled` in favor of correctly spelled alternatives.
   (#461, Marco Salis)
 
+
 ### 2.9.2 / 2016-11-22
 
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.9.1...2.9.2)

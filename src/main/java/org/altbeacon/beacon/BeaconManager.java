@@ -296,6 +296,10 @@ public class BeaconManager {
             LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
             return;
         }
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            LogManager.w(TAG, "This device does not support bluetooth LE.  Will not start beacon scanning.");
+            return;
+        }
         synchronized (consumers) {
             ConsumerInfo newConsumerInfo = new ConsumerInfo();
             ConsumerInfo alreadyBoundConsumerInfo = consumers.putIfAbsent(consumer, newConsumerInfo);

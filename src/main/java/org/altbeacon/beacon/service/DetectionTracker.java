@@ -6,16 +6,14 @@ import android.os.SystemClock;
  * Created by dyoung on 1/10/15.
  */
 public class DetectionTracker {
-    private static DetectionTracker sDetectionTracker = null;
+    private static final DetectionTracker INSTANCE = new DetectionTracker();
+
     private long mLastDetectionTime = 0l;
     private DetectionTracker() {
 
     }
-    public static synchronized DetectionTracker getInstance() {
-        if (sDetectionTracker == null) {
-            sDetectionTracker  = new DetectionTracker();
-        }
-        return sDetectionTracker;
+    public static DetectionTracker getInstance() {
+        return INSTANCE;
     }
     public long getLastDetectionTime() {
         return mLastDetectionTime;

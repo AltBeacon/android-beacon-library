@@ -12,6 +12,7 @@ import java.util.Date;
  * Created by dyoung on 10/16/14.
  */
 public class Stats {
+    private static final Stats INSTANCE = new Stats();
     private static final String TAG = "Stats";
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
 
@@ -21,14 +22,11 @@ public class Stats {
     private boolean mEnableHistoricalLogging;
     private boolean mEnabled;
     private Sample mSample;
-    private static Stats mInstance;
 
     public static Stats getInstance() {
-        if(mInstance == null) {
-            mInstance = new Stats();
-        }
-        return mInstance;
+        return INSTANCE;
     }
+
     private Stats() {
         mSampleIntervalMillis = 0l;
         clearSamples();

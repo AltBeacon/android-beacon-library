@@ -108,7 +108,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class BeaconManager {
     private static final String TAG = "BeaconManager";
     private Context mContext;
-    protected static BeaconManager client = null;
+    protected static volatile BeaconManager client = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
     protected final Set<RangeNotifier> rangeNotifiers = new CopyOnWriteArraySet<>();
@@ -122,6 +122,11 @@ public class BeaconManager {
 
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
+
+    /**
+     * Private lock object for singleton initialization protecting against denial-of-service attack.
+     */
+    private static final Object SINGLETON_LOCK = new Object();
 
     /**
      * Set to true if you want to show library debugging.
@@ -239,11 +244,29 @@ public class BeaconManager {
      * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
      */
     public static BeaconManager getInstanceForApplication(Context context) {
-        if (client == null) {
-            LogManager.d(TAG, "BeaconManager instance creation");
-            client = new BeaconManager(context);
+        /*
+         * Follow double check pattern from Effective Java v2 Item 71.
+         *
+         * Bloch recommends using the local variable for this for performance reasons:
+         *
+         * > What this variable does is ensure that `field` is read only once in the common case
+         * > where it's already initialized. While not strictly necessary, this may improve
+         * > performance and is more elegant by the standards applied to low-level concurrent
+         * > programming. On my machine, [this] is about 25 percent faster than the obvious
+         * > version without a local variable.
+         *
+         * Joshua Bloch. Effective Java, Second Edition. Addison-Wesley, 2008. pages 283-284
+         */
+        BeaconManager instance = client;
+        if (instance == null) {
+            synchronized (SINGLETON_LOCK) {
+                instance = client;
+                if (instance == null) {
+                    client = instance = new BeaconManager(context);
+                }
+            }
         }
-        return client;
+        return instance;
     }
 
    protected BeaconManager(Context context) {

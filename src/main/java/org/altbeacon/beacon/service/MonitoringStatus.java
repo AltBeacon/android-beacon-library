@@ -3,6 +3,7 @@ package org.altbeacon.beacon.service;
 import android.content.Context;
 
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -279,4 +280,18 @@ public class MonitoringStatus {
         mContext.deleteFile(STATUS_PRESERVATION_FILE_NAME);
         getRegionsStateMap().clear();
     }
+
+    public void updateLocalState(Region region, Integer state) {
+        RegionMonitoringState internalState = getRegionsStateMap().get(region);
+        if (state != null) {
+            if (state == MonitorNotifier.OUTSIDE) {
+                internalState.markOutside();
+
+            }
+            if (state == MonitorNotifier.INSIDE) {
+                internalState.markInside();
+            }
+        }
+    }
+
 }

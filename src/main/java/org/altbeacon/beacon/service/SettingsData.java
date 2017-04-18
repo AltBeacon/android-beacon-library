@@ -79,7 +79,15 @@ public class SettingsData implements Serializable {
         else {
             LogManager.d(TAG, "Beacon parsers unchanged.");
         }
-        beaconManager.setRegionStatePersistenceEnabled(mRegionStatePersistenceEnabled);
+        MonitoringStatus monitoringStatus = MonitoringStatus.getInstanceForApplication(scanService);
+        if (monitoringStatus.isStatePreservationOn() &&
+                !mRegionStatePersistenceEnabled) {
+            monitoringStatus.stopStatusPreservation();
+        }
+        else if (!monitoringStatus.isStatePreservationOn() &&
+                mRegionStatePersistenceEnabled) {
+            monitoringStatus.startStatusPreservation();
+        }
         beaconManager.setAndroidLScanningDisabled(mAndroidLScanningDisabled);
         BeaconManager.setRegionExitPeriod(mRegionExitPeriod);
         RangeState.setUseTrackingCache(mUseTrackingCache);

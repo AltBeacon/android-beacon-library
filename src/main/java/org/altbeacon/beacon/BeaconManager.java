@@ -120,10 +120,12 @@ public class BeaconManager {
     private final ArrayList<Region> rangedRegions = new ArrayList<Region>();
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
     private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
+    private boolean mRegionStatePersistenceEnabled = true;
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
     private boolean mMainProcess = false;
     private Boolean mScannerInSameProcess = null;
+
 
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
@@ -228,6 +230,7 @@ public class BeaconManager {
      */
     public static void setRegionExitPeriod(long regionExitPeriod){
         sExitRegionPeriod = regionExitPeriod;
+
     }
     
     /**
@@ -610,11 +613,15 @@ public class BeaconManager {
      * @param enabled true to enable the region state persistence, false to disable it.
      */
     public void setRegionStatePersistenceEnabled(boolean enabled) {
-        if (enabled) {
-            MonitoringStatus.getInstanceForApplication(mContext).startStatusPreservation();
-        } else {
-            MonitoringStatus.getInstanceForApplication(mContext).stopStatusPreservation();
+        mRegionStatePersistenceEnabled = enabled;
+        if (isScannerInSameProcess()) {
+            if (enabled) {
+                MonitoringStatus.getInstanceForApplication(mContext).startStatusPreservation();
+            } else {
+                MonitoringStatus.getInstanceForApplication(mContext).stopStatusPreservation();
+            }
         }
+        this.applySettings();
     }
 
     /**
@@ -622,7 +629,7 @@ public class BeaconManager {
      * @return
      */
     public boolean isRegionStatePersistenceEnabled() {
-        return MonitoringStatus.getInstanceForApplication(mContext).isStatePreservationOn();
+        return mRegionStatePersistenceEnabled;
     }
 
     /**
@@ -767,6 +774,9 @@ public class BeaconManager {
         Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
         msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
+        if (!isScannerInSameProcess()) {
+            MonitoringStatus.getInstanceForApplication(mContext).addLocalRegion(region);
+        }
         this.requestStateForRegion(region);
     }
 
@@ -793,6 +803,9 @@ public class BeaconManager {
         Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
         msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
+        if (!isScannerInSameProcess()) {
+            MonitoringStatus.getInstanceForApplication(mContext).removeLocalRegion(region);
+        }
     }
 
 

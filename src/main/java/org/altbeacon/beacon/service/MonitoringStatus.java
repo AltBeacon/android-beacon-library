@@ -52,31 +52,12 @@ public class MonitoringStatus {
     }
 
     public synchronized void addRegion(Region region, Callback callback) {
-        if (getRegionsStateMap().containsKey(region)) {
-            // if the region definition hasn't changed, becasue if it has, we need to clear state
-            // otherwise a region with the same uniqueId can never be changed
-            for (Region existingRegion : getRegionsStateMap().keySet()) {
-                if (existingRegion.equals(region)) {
-                    if (existingRegion.hasSameIdentifiers(region)) {
-                        return;
-                    }
-                    else {
-                        LogManager.d(TAG, "Replacing region with unique identifier "+region.getUniqueId());
-                        LogManager.d(TAG, "Old definition: "+existingRegion);
-                        LogManager.d(TAG, "New definition: "+region);
-                        LogManager.d(TAG, "clearing state");
-                        getRegionsStateMap().remove(region);
-                        break;
-                    }
-                }
-            }
-        }
-        getRegionsStateMap().put(region, new RegionMonitoringState(callback));
+        addLocalRegion(region, callback);
         saveMonitoringStatusIfOn();
     }
 
     public synchronized void removeRegion(Region region) {
-        getRegionsStateMap().remove(region);
+        removeLocalRegion(region);
         saveMonitoringStatusIfOn();
     }
 
@@ -294,4 +275,34 @@ public class MonitoringStatus {
         }
     }
 
+    public void removeLocalRegion(Region region) {
+        getRegionsStateMap().remove(region);
+    }
+    public void addLocalRegion(Region region){
+        Callback dummyCallback = new Callback(null);
+        addLocalRegion(region, dummyCallback);
+    }
+
+    private void addLocalRegion(Region region, Callback callback){
+        if (getRegionsStateMap().containsKey(region)) {
+            // if the region definition hasn't changed, becasue if it has, we need to clear state
+            // otherwise a region with the same uniqueId can never be changed
+            for (Region existingRegion : getRegionsStateMap().keySet()) {
+                if (existingRegion.equals(region)) {
+                    if (existingRegion.hasSameIdentifiers(region)) {
+                        return;
+                    }
+                    else {
+                        LogManager.d(TAG, "Replacing region with unique identifier "+region.getUniqueId());
+                        LogManager.d(TAG, "Old definition: "+existingRegion);
+                        LogManager.d(TAG, "New definition: "+region);
+                        LogManager.d(TAG, "clearing state");
+                        getRegionsStateMap().remove(region);
+                        break;
+                    }
+                }
+            }
+        }
+        getRegionsStateMap().put(region, new RegionMonitoringState(callback));
+    }
 }

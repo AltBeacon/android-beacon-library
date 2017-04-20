@@ -1122,4 +1122,20 @@ public class BeaconManager {
         return sManifestCheckingDisabled;
     }
 
+    private boolean determineIfCalledFromSeparateScannerProcess() {
+        if (!isScannerInSameProcess() && !isMainProcess()) {
+            LogManager.w(TAG, "Ranging/Monitoring may not be controlled from a separate BeaconScanner process.  To remove this warning, please wrap this call in: if (beaconManager.isMainProcess())");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean determineIfUnsupportedApi() {
+        if (android.os.Build.VERSION.SDK_INT < 18) {
+            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+            return true;
+        }
+        return false;
+    }
+
 }

@@ -23,7 +23,6 @@
  */
 package org.altbeacon.beacon;
 
-import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Intent;
 
@@ -38,7 +37,6 @@ import java.util.Set;
  * Converts internal intents to notifier callbacks
  * This IntentService may be running in a different process from the BeaconService.
  */
-@TargetApi(3)
 public class BeaconIntentProcessor extends IntentService {
     private static final String TAG = "BeaconIntentProcessor";
 

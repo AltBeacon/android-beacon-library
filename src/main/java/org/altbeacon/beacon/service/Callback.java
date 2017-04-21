@@ -66,13 +66,22 @@ public class Callback implements Serializable {
         if(mIntent == null){
             initializeIntent();
         }
+        boolean success = false;
         if (mIntent != null) {
             LogManager.d(TAG, "attempting callback via intent: %s", mIntent.getComponent());
             mIntent.putExtra(dataName, data);
-            context.startService(mIntent);
-            return true;
+            try {
+                context.startService(mIntent);
+                success = true;
+            } catch (Exception e) {
+                LogManager.e(
+                        TAG,
+                        "Failed attempting to start service: " + mIntent.getComponent().flattenToString(),
+                        e
+                );
+            }
         }
-        return false;
+        return success;
     }
 
     @SuppressWarnings("unused")

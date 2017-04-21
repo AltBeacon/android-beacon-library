@@ -107,11 +107,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author David G. Young
  * @author Andrew Reitz <andrew@andrewreitz.com>
  */
-@TargetApi(4)
 public class BeaconManager {
     private static final String TAG = "BeaconManager";
     private Context mContext;
-    protected static BeaconManager sInstance = null;
+    protected static volatile BeaconManager sInstance = null;
     private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<BeaconConsumer,ConsumerInfo>();
     private Messenger serviceMessenger = null;
     protected final Set<RangeNotifier> rangeNotifiers = new CopyOnWriteArraySet<>();
@@ -129,6 +128,11 @@ public class BeaconManager {
 
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
+
+    /**
+     * Private lock object for singleton initialization protecting against denial-of-service attack.
+     */
+    private static final Object SINGLETON_LOCK = new Object();
 
     /**
      * Set to true if you want to show library debugging.
@@ -247,11 +251,29 @@ public class BeaconManager {
      * or non-Service class, you can attach it to another singleton or a subclass of the Android Application class.
      */
     public static BeaconManager getInstanceForApplication(Context context) {
-        if (sInstance == null) {
-            LogManager.d(TAG, "BeaconManager instance creation");
-            sInstance = new BeaconManager(context);
+        /*
+         * Follow double check pattern from Effective Java v2 Item 71.
+         *
+         * Bloch recommends using the local variable for this for performance reasons:
+         *
+         * > What this variable does is ensure that `field` is read only once in the common case
+         * > where it's already initialized. While not strictly necessary, this may improve
+         * > performance and is more elegant by the standards applied to low-level concurrent
+         * > programming. On my machine, [this] is about 25 percent faster than the obvious
+         * > version without a local variable.
+         *
+         * Joshua Bloch. Effective Java, Second Edition. Addison-Wesley, 2008. pages 283-284
+         */
+        BeaconManager instance = sInstance;
+        if (instance == null) {
+            synchronized (SINGLETON_LOCK) {
+                instance = sInstance;
+                if (instance == null) {
+                    sInstance = instance = new BeaconManager(context);
+                }
+            }
         }
-        return sInstance;
+        return instance;
     }
 
     protected BeaconManager(Context context) {
@@ -319,17 +341,10 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public boolean checkAvailability() throws BleNotAvailableException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
+        if (!isBleAvailable()) {
             throw new BleNotAvailableException("Bluetooth LE not supported by this device");
         }
-        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            throw new BleNotAvailableException("Bluetooth LE not supported by this device");
-        } else {
-            if (((BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled()) {
-                return true;
-            }
-        }
-        return false;
+        return ((BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter().isEnabled();
     }
 
     /**
@@ -340,8 +355,12 @@ public class BeaconManager {
      * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
      */
     public void bind(BeaconConsumer consumer) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
+            return;
+        }
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            LogManager.w(TAG, "This device does not support bluetooth LE.  Will not start beacon scanning.");
             return;
         }
         synchronized (consumers) {
@@ -366,8 +385,8 @@ public class BeaconManager {
      * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
      */
     public void unbind(BeaconConsumer consumer) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
         synchronized (consumers) {
@@ -439,8 +458,9 @@ public class BeaconManager {
      * @see #setBackgroundBetweenScanPeriod(long p)
      */
     public void setBackgroundMode(boolean backgroundMode) {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
+            return;
         }
         mBackgroundModeUninitialized = false;
         if (backgroundMode != mBackgroundMode) {
@@ -668,8 +688,8 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void startRangingBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
         if (serviceMessenger == null) {
@@ -695,8 +715,8 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
         if (serviceMessenger == null) {
@@ -765,8 +785,8 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void startMonitoringBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
         if (serviceMessenger == null) {
@@ -795,8 +815,8 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void stopMonitoringBeaconsInRegion(Region region) throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
         if (serviceMessenger == null) {
@@ -819,8 +839,8 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void updateScanPeriods() throws RemoteException {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
+        if (!isBleAvailable()) {
+            LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
         if (serviceMessenger == null) {
@@ -993,6 +1013,18 @@ public class BeaconManager {
 
     public void setNonBeaconLeScanCallback(NonBeaconLeScanCallback callback) {
         mNonBeaconLeScanCallback = callback;
+    }
+
+    private boolean isBleAvailable() {
+        boolean available = false;
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            LogManager.w(TAG, "Bluetooth LE not supported prior to API 18.");
+        } else if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            LogManager.w(TAG, "This device does not support bluetooth LE.");
+        } else {
+            available = true;
+        }
+        return available;
     }
 
     private long getScanPeriod() {

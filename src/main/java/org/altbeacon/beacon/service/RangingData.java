@@ -69,7 +69,6 @@ public class RangingData {
             region = (Region) bundle.getSerializable(REGION_KEY);
         }
 
-
         return new RangingData(beacons, region);
     }
 

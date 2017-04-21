@@ -12,7 +12,12 @@ import java.util.Date;
  * Created by dyoung on 10/16/14.
  */
 public class Stats {
+    private static final Stats INSTANCE = new Stats();
     private static final String TAG = "Stats";
+
+    /**
+     * Synchronize all usage as this is not a thread safe class.
+     */
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("HH:mm:ss.SSS");
 
     private ArrayList<Sample> mSamples;
@@ -21,14 +26,11 @@ public class Stats {
     private boolean mEnableHistoricalLogging;
     private boolean mEnabled;
     private Sample mSample;
-    private static Stats mInstance;
 
     public static Stats getInstance() {
-        if(mInstance == null) {
-            mInstance = new Stats();
-        }
-        return mInstance;
+        return INSTANCE;
     }
+
     private Stats() {
         mSampleIntervalMillis = 0l;
         clearSamples();
@@ -105,7 +107,13 @@ public class Stats {
     }
 
     private String formattedDate(Date d) {
-        return d == null ? "" : SIMPLE_DATE_FORMAT.format(d);
+        String formattedDate = "";
+        if (d != null) {
+            synchronized (SIMPLE_DATE_FORMAT) {
+                formattedDate = SIMPLE_DATE_FORMAT.format(d);
+            }
+        }
+        return formattedDate;
     }
 
     private void logSamples() {

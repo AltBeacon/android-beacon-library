@@ -11,6 +11,11 @@ Bug Fixes:
 - Deprecate misspelled methods `removeMonitoreNotifier` and
   `setRegionStatePeristenceEnabled` in favor of correctly spelled alternatives.
   (#461, Marco Salis)
+- Fix bug causing brief scan dropouts after starting a scan after a long period
+  of inactivity (i.e. startup and background-foreground transitions) due to
+  Android N scan limits (#489, Aaron Kromer)
+- Ensure thread safety for singleton creation of `BeaconManager`,
+  `DetectionTracker`, `MonitoringStatus`, and `Stats`. (#494, Aaron Kromer)
 
 
 ### 2.9.2 / 2016-11-22

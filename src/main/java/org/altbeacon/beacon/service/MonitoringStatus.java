@@ -23,7 +23,7 @@ import java.util.Set;
 import static android.content.Context.MODE_PRIVATE;
 
 public class MonitoringStatus {
-    private static MonitoringStatus sInstance;
+    private static volatile MonitoringStatus sInstance;
     private static final int MAX_REGIONS_FOR_STATUS_PRESERVATION = 50;
     private static final int MAX_STATUS_PRESERVATION_FILE_AGE_TO_RESTORE_SECS = 60 * 15;
     private static final String TAG = MonitoringStatus.class.getSimpleName();
@@ -35,15 +35,35 @@ public class MonitoringStatus {
 
     private boolean mStatePreservationIsOn = true;
 
+    /**
+     * Private lock object for singleton initialization protecting against denial-of-service attack.
+     */
+    private static final Object SINGLETON_LOCK = new Object();
+
     public static MonitoringStatus getInstanceForApplication(Context context) {
-        if (sInstance == null) {
-            synchronized (MonitoringStatus.class) {
-                if (sInstance == null) {
-                    sInstance = new MonitoringStatus(context.getApplicationContext());
+        /*
+         * Follow double check pattern from Effective Java v2 Item 71.
+         *
+         * Bloch recommends using the local variable for this for performance reasons:
+         *
+         * > What this variable does is ensure that `field` is read only once in the common case
+         * > where it's already initialized. While not strictly necessary, this may improve
+         * > performance and is more elegant by the standards applied to low-level concurrent
+         * > programming. On my machine, [this] is about 25 percent faster than the obvious
+         * > version without a local variable.
+         *
+         * Joshua Bloch. Effective Java, Second Edition. Addison-Wesley, 2008. pages 283-284
+         */
+        MonitoringStatus instance = sInstance;
+        if (instance == null) {
+            synchronized (SINGLETON_LOCK) {
+                instance = sInstance;
+                if (instance == null) {
+                    sInstance = instance = new MonitoringStatus(context.getApplicationContext());
                 }
             }
         }
-        return sInstance;
+        return instance;
     }
 
     public MonitoringStatus(Context context) {

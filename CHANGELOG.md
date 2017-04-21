@@ -2,6 +2,8 @@
 
 Enhancements:
 
+- Allow running the BeaconService on a separate process and using the library with other services
+  running on a separate process. (#479, David G. Young)
 - Don't restart BLE scanning periodically if the library confrims device can detect duplicate
   advertisements in a single scan, leading to more reliable detections with short scan cycles
   (#491, David G. Young)

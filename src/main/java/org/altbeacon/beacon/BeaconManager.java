@@ -234,7 +234,9 @@ public class BeaconManager {
      */
     public static void setRegionExitPeriod(long regionExitPeriod){
         sExitRegionPeriod = regionExitPeriod;
-
+        if (sInstance != null) {
+            sInstance.applySettings();
+        }
     }
     
     /**
@@ -557,6 +559,9 @@ public class BeaconManager {
      */
     @Deprecated
     public void setMonitorNotifier(MonitorNotifier notifier) {
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         synchronized (monitorNotifiers) {
             monitorNotifiers.clear();
         }
@@ -577,6 +582,9 @@ public class BeaconManager {
      * @see Region
      */
     public void addMonitorNotifier(MonitorNotifier notifier) {
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         if (notifier != null) {
             synchronized (monitorNotifiers) {
                 monitorNotifiers.add(notifier);
@@ -602,6 +610,9 @@ public class BeaconManager {
      * @see Region
      */
     public boolean removeMonitorNotifier(MonitorNotifier notifier) {
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return false;
+        }
         synchronized (monitorNotifiers) {
             return monitorNotifiers.remove(notifier);
         }
@@ -611,6 +622,9 @@ public class BeaconManager {
      * Remove all the Monitor Notifiers.
      */
     public void removeAllMonitorNotifiers() {
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         synchronized (monitorNotifiers) {
             monitorNotifiers.clear();
         }
@@ -661,6 +675,9 @@ public class BeaconManager {
      * @param region
      */
     public void requestStateForRegion(Region region) {
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         MonitoringStatus status = MonitoringStatus.getInstanceForApplication(mContext);
         RegionMonitoringState stateObj = status.stateOf(region);
         int state = MonitorNotifier.OUTSIDE;
@@ -692,6 +709,9 @@ public class BeaconManager {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
@@ -719,6 +739,9 @@ public class BeaconManager {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
@@ -742,6 +765,9 @@ public class BeaconManager {
      * @see #isScannerInSameProcess()
      */
     public void applySettings() {
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         if (isAnyConsumerBound() && isScannerInSameProcess() == false) {
             LogManager.d(TAG, "Synchronizing settings to service");
             syncSettingsToService();
@@ -789,6 +815,9 @@ public class BeaconManager {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
@@ -819,6 +848,9 @@ public class BeaconManager {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
         }
+        if (determineIfCalledFromSeparateScannerProcess()) {
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
@@ -841,6 +873,9 @@ public class BeaconManager {
     public void updateScanPeriods() throws RemoteException {
         if (!isBleAvailable()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
+            return;
+        }
+        if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
         if (serviceMessenger == null) {
@@ -954,6 +989,7 @@ public class BeaconManager {
     }
 
     public static void setDistanceModelUpdateUrl(String url) {
+        warnIfScannerNotInSameProcess();
         distanceModelUpdateUrl = url;
     }
 
@@ -963,6 +999,7 @@ public class BeaconManager {
     protected static Class rssiFilterImplClass = RunningAverageRssiFilter.class;
 
     public static void setRssiFilterImplClass(Class c) {
+        warnIfScannerNotInSameProcess();
         rssiFilterImplClass = c;
     }
 
@@ -991,6 +1028,7 @@ public class BeaconManager {
     }
 
     public static void setBeaconSimulator(BeaconSimulator beaconSimulator) {
+        warnIfScannerNotInSameProcess();
         BeaconManager.beaconSimulator = beaconSimulator;
     }
 
@@ -1156,18 +1194,19 @@ public class BeaconManager {
 
     private boolean determineIfCalledFromSeparateScannerProcess() {
         if (!isScannerInSameProcess() && !isMainProcess()) {
-            LogManager.w(TAG, "Ranging/Monitoring may not be controlled from a separate BeaconScanner process.  To remove this warning, please wrap this call in: if (beaconManager.isMainProcess())");
+            LogManager.w(TAG, "Ranging/Monitoring may not be controlled from a separate "+
+                    "BeaconScanner process.  To remove this warning, please wrap this call in:"+
+                    " if (beaconManager.isMainProcess())");
             return true;
         }
         return false;
     }
 
-    private boolean determineIfUnsupportedApi() {
-        if (android.os.Build.VERSION.SDK_INT < 18) {
-            LogManager.w(TAG, "Not supported prior to API 18.  Method invocation will be ignored");
-            return true;
+    private static void warnIfScannerNotInSameProcess() {
+        if (sInstance != null && !sInstance.isScannerInSameProcess()) {
+            LogManager.w(TAG,
+                    "Unsupported configuration change made for BeaconScanner in separate process");
         }
-        return false;
     }
 
 }

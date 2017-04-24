@@ -284,6 +284,9 @@ public class MonitoringStatus {
 
     public void updateLocalState(Region region, Integer state) {
         RegionMonitoringState internalState = getRegionsStateMap().get(region);
+        if (internalState == null) {
+            internalState = addLocalRegion(region);
+        }
         if (state != null) {
             if (state == MonitorNotifier.OUTSIDE) {
                 internalState.markOutside();
@@ -298,19 +301,19 @@ public class MonitoringStatus {
     public void removeLocalRegion(Region region) {
         getRegionsStateMap().remove(region);
     }
-    public void addLocalRegion(Region region){
+    public RegionMonitoringState addLocalRegion(Region region){
         Callback dummyCallback = new Callback(null);
-        addLocalRegion(region, dummyCallback);
+        return addLocalRegion(region, dummyCallback);
     }
 
-    private void addLocalRegion(Region region, Callback callback){
+    private RegionMonitoringState addLocalRegion(Region region, Callback callback){
         if (getRegionsStateMap().containsKey(region)) {
             // if the region definition hasn't changed, becasue if it has, we need to clear state
             // otherwise a region with the same uniqueId can never be changed
             for (Region existingRegion : getRegionsStateMap().keySet()) {
                 if (existingRegion.equals(region)) {
                     if (existingRegion.hasSameIdentifiers(region)) {
-                        return;
+                        return getRegionsStateMap().get(existingRegion);
                     }
                     else {
                         LogManager.d(TAG, "Replacing region with unique identifier "+region.getUniqueId());
@@ -323,6 +326,8 @@ public class MonitoringStatus {
                 }
             }
         }
-        getRegionsStateMap().put(region, new RegionMonitoringState(callback));
+        RegionMonitoringState monitoringState = new RegionMonitoringState(callback);
+        getRegionsStateMap().put(region, monitoringState);
+        return monitoringState;
     }
 }

@@ -508,6 +508,9 @@ public class BeaconService extends Service {
                 }
             }
             if (beacon != null) {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "Beacon packet detected for: "+beacon+" with rssi "+beacon.getRssi());
+                }
                 mDetectionTracker.recordDetection();
                 trackedBeaconsPacketCount++;
                 processBeaconFromScan(beacon);

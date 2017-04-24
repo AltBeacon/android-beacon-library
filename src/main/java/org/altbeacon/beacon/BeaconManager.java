@@ -298,15 +298,16 @@ public class BeaconManager {
     }
 
     /**
-     * Determines if this BeaconManager instance is part of the process hosting the beacon scanning
-     * service.  This is normally true, except when scanning is hosted in a different service.
+     * Determines if this BeaconManager instance is not part of the process hosting the beacon scanning
+     * service.  This is normally false, except when scanning is hosted in a different process.
      * This will always return false until the scanning service starts up, at which time it will be
-     * known.
+     * known if it is in a different process.
      *
      * @return
      */
-    public boolean isScannerInSameProcess() {
-        return mScannerInSameProcess;
+    public boolean isScannerInDifferentProcess() {
+        // may be null if service not started yet, so explicitly check
+        return mScannerInSameProcess != null && !mScannerInSameProcess;
     }
 
     /**
@@ -650,7 +651,7 @@ public class BeaconManager {
      */
     public void setRegionStatePersistenceEnabled(boolean enabled) {
         mRegionStatePersistenceEnabled = enabled;
-        if (isScannerInSameProcess()) {
+        if (!isScannerInDifferentProcess()) {
             if (enabled) {
                 MonitoringStatus.getInstanceForApplication(mContext).startStatusPreservation();
             } else {
@@ -762,13 +763,13 @@ public class BeaconManager {
     /**
      * Call this method if you are running the scanner service in a different process in order to
      * synchronize any configuration settings, including BeaconParsers to the scanner
-     * @see #isScannerInSameProcess()
+     * @see #isScannerInDifferentProcess()
      */
     public void applySettings() {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (isAnyConsumerBound() && isScannerInSameProcess() == false) {
+        if (isAnyConsumerBound() && !isScannerInDifferentProcess() == false) {
             LogManager.d(TAG, "Synchronizing settings to service");
             syncSettingsToService();
         }
@@ -825,7 +826,7 @@ public class BeaconManager {
         Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
         msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
-        if (!isScannerInSameProcess()) {
+        if (isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).addLocalRegion(region);
         }
         this.requestStateForRegion(region);
@@ -857,7 +858,7 @@ public class BeaconManager {
         Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
         msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
         serviceMessenger.send(msg);
-        if (!isScannerInSameProcess()) {
+        if (isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).removeLocalRegion(region);
         }
     }
@@ -1193,7 +1194,7 @@ public class BeaconManager {
     }
 
     private boolean determineIfCalledFromSeparateScannerProcess() {
-        if (!isScannerInSameProcess() && !isMainProcess()) {
+        if (isScannerInDifferentProcess() && !isMainProcess()) {
             LogManager.w(TAG, "Ranging/Monitoring may not be controlled from a separate "+
                     "BeaconScanner process.  To remove this warning, please wrap this call in:"+
                     " if (beaconManager.isMainProcess())");
@@ -1203,7 +1204,7 @@ public class BeaconManager {
     }
 
     private static void warnIfScannerNotInSameProcess() {
-        if (sInstance != null && !sInstance.isScannerInSameProcess()) {
+        if (sInstance != null && sInstance.isScannerInDifferentProcess()) {
             LogManager.w(TAG,
                     "Unsupported configuration change made for BeaconScanner in separate process");
         }

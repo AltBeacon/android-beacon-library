@@ -49,6 +49,11 @@ public class BeaconTransmitter {
      * @param parser specifies the format of the beacon transmission
      */
     public BeaconTransmitter(Context context, BeaconParser parser) {
+        if (context.checkCallingOrSelfPermission("android.permission.BLUETOOTH_ADMIN") !=
+                PackageManager.PERMISSION_GRANTED) {
+            LogManager.e(TAG, "Application does not have BLUETOOTH_ADMIN permission");
+            return;
+        }
         mBeaconParser = parser;
         BluetoothManager bluetoothManager =
                 (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);

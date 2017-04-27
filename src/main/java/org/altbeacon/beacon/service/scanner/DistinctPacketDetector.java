@@ -22,7 +22,7 @@ public class DistinctPacketDetector {
     private static final int MAX_PACKETS_TO_TRACK = 1000;
 
     @NonNull
-    private Set<ByteBuffer> mDistinctPacketsDetected = new HashSet<>();
+    private final Set<ByteBuffer> mDistinctPacketsDetected = new HashSet<>();
 
     public void clearDetections() {
         mDistinctPacketsDetected.clear();

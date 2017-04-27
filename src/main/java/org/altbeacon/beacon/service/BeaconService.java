@@ -487,13 +487,13 @@ public class BeaconService extends Service {
             this.scanRecord = scanRecord;
         }
 
-        int rssi;
+        final int rssi;
 
         @NonNull
-        BluetoothDevice device;
+        final BluetoothDevice device;
 
         @NonNull
-        byte[] scanRecord;
+        final byte[] scanRecord;
     }
 
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {

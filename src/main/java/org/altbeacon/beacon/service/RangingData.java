@@ -23,6 +23,8 @@
  */
 package org.altbeacon.beacon.service;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.altbeacon.beacon.Beacon;
@@ -30,6 +32,10 @@ import org.altbeacon.beacon.Region;
 
 import android.os.Bundle;
 
+/**
+ * Internal class used to transfer ranging data between the BeaconService and the client
+ * @hide
+ */
 public class RangingData {
     private static final String TAG = "RangingData";
     private final Collection<Beacon> mBeacons;
@@ -54,7 +60,11 @@ public class RangingData {
     public Bundle toBundle() {
         Bundle bundle = new Bundle();
         bundle.putSerializable(REGION_KEY, mRegion);
-        bundle.putSerializable(BEACONS_KEY, new DataSerializer().getSerializableBeaconList(mBeacons));
+        ArrayList<Serializable> serializableBeacons = new ArrayList<Serializable>();
+        for (Beacon beacon : mBeacons) {
+            serializableBeacons.add(beacon);
+        }
+        bundle.putSerializable(BEACONS_KEY, serializableBeacons);
 
         return bundle;
     }

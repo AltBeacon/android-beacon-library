@@ -298,6 +298,7 @@ public class BeaconManager {
     }
 
     /**
+     * 
      * Determines if this BeaconManager instance is not part of the process hosting the beacon scanning
      * service.  This is normally false, except when scanning is hosted in a different process.
      * This will always return false until the scanning service starts up, at which time it will be
@@ -311,7 +312,7 @@ public class BeaconManager {
     }
 
     /**
-     * Reserved for internal by the library.
+     * Reserved for internal use by the library.
      * @hide
      */
     public void setScannerInSameProcess(boolean isScanner) {

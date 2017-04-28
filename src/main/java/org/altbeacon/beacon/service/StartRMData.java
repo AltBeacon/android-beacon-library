@@ -26,11 +26,18 @@ package org.altbeacon.beacon.service;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import org.altbeacon.beacon.Region;
 
 import java.io.Serializable;
 
+/**
+ *
+ * Internal class used to transfer ranging and monitoring data between the BeaconService and client
+ *
+ * @hide
+ */
 public class StartRMData implements Serializable, Parcelable {
     private static final String SCAN_PERIOD_KEY = "scanPeriod";
     private static final String BETWEEN_SCAN_PERIOD_KEY = "betweenScanPeriod";
@@ -47,7 +54,7 @@ public class StartRMData implements Serializable, Parcelable {
     private StartRMData() {
     }
 
-    public StartRMData(Region region, String callbackPackageName) {
+    public StartRMData(@NonNull Region region, @NonNull String callbackPackageName) {
         this.mRegion = region;
         this.mCallbackPackageName = callbackPackageName;
     }
@@ -57,7 +64,7 @@ public class StartRMData implements Serializable, Parcelable {
         this.mBackgroundFlag = backgroundFlag;
     }
 
-    public StartRMData(Region region, String callbackPackageName, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
+    public StartRMData(@NonNull Region region, @NonNull String callbackPackageName, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         this.mScanPeriod = scanPeriod;
         this.mBetweenScanPeriod = betweenScanPeriod;
         this.mRegion = region;
@@ -118,7 +125,7 @@ public class StartRMData implements Serializable, Parcelable {
         return bundle;
     }
 
-    public static StartRMData fromBundle(Bundle bundle) {
+    public static StartRMData fromBundle(@NonNull Bundle bundle) {
         bundle.setClassLoader(Region.class.getClassLoader());
         boolean valid = false;
         StartRMData data = new StartRMData();

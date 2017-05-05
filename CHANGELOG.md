@@ -1,4 +1,18 @@
+
 ### Development
+
+Enhancements:
+
+- Add support for running the beacon scanning service in a separate process and working with
+  application setups that have more than one process. (#479, David G. Young)
+
+Bug Fixes:
+
+- TODO
+
+### 2.10 / 2017-04-21
+
+[Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.9.2...2.10)
 
 Enhancements:
 

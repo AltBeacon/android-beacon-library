@@ -9,6 +9,7 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.bluetooth.BleAdvertisement;
 import org.altbeacon.bluetooth.Pdu;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.regex.Pattern;
  * </p>
  *
  */
-public class BeaconParser {
+public class BeaconParser implements Serializable {
     private static final String TAG = "BeaconParser";
     public static final String ALTBEACON_LAYOUT = "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25";
     public static final String EDDYSTONE_TLM_LAYOUT = "x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15";
@@ -53,6 +54,7 @@ public class BeaconParser {
     private static final String LITTLE_ENDIAN_SUFFIX = "l";
     private static final String VARIABLE_LENGTH_SUFFIX = "v";
 
+    protected String mBeaconLayout;
     private Long mMatchingBeaconTypeCode;
     protected final List<Integer> mIdentifierStartOffsets = new ArrayList<Integer>();
     protected final List<Integer> mIdentifierEndOffsets = new ArrayList<Integer>();
@@ -165,7 +167,7 @@ public class BeaconParser {
      * @return the BeaconParser instance
      */
     public BeaconParser setBeaconLayout(String beaconLayout) {
-
+        mBeaconLayout = beaconLayout;
         Log.d(TAG, "Parsing beacon layout: "+beaconLayout);
 
         String[] terms =  beaconLayout.split(",");
@@ -757,6 +759,13 @@ public class BeaconParser {
     }
 
     /**
+     * @return the layout string for the parser
+     */
+    public String getLayout() {
+        return mBeaconLayout;
+    }
+
+    /**
      * @return the correction value in dBm to apply to the calibrated txPower to get a 1m calibrated value.
      * Some formats like Eddystone use a 0m calibrated value, which requires this correction
      */
@@ -924,4 +933,20 @@ public class BeaconParser {
             }
         );
     }
+
+    @Override
+    public boolean equals(Object o) {
+        BeaconParser that = null;
+        try {
+            that = (BeaconParser) o;
+            if (that.mBeaconLayout != null && that.mBeaconLayout.equals(this.mBeaconLayout)) {
+                if (that.mIdentifier != null && that.mIdentifier.equals(this.mIdentifier)) {
+                    return true;
+                }
+            }
+        }
+        catch (ClassCastException e ) { }
+        return false;
+    }
+
 }

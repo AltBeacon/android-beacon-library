@@ -23,62 +23,63 @@
  */
 package org.altbeacon.beacon.service;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Region;
-import org.altbeacon.beacon.logging.LogManager;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.os.Bundle;
 
-public class RangingData implements Parcelable {
+/**
+ * Internal class used to transfer ranging data between the BeaconService and the client
+ * @hide
+ */
+public class RangingData {
     private static final String TAG = "RangingData";
-    private final Collection<Beacon> beacons;
-    private final Region region;
+    private final Collection<Beacon> mBeacons;
+    private final Region mRegion;
+    private static final String REGION_KEY = "region";
+    private static final String BEACONS_KEY = "beacons";
 
     public RangingData (Collection<Beacon> beacons, Region region) {
         synchronized (beacons) {
-            this.beacons =  beacons;
+            this.mBeacons =  beacons;
         }
-        this.region = region;
+        this.mRegion = region;
     }
 
     public Collection<Beacon> getBeacons() {
-        return beacons;
+        return mBeacons;
     }
     public Region getRegion() {
-        return region;
+        return mRegion;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeParcelableArray(beacons.toArray(new Parcelable[0]), flags);
-        out.writeParcelable(region, flags);
-    }
+    public Bundle toBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(REGION_KEY, mRegion);
+        ArrayList<Serializable> serializableBeacons = new ArrayList<Serializable>();
+        for (Beacon beacon : mBeacons) {
+            serializableBeacons.add(beacon);
+        }
+        bundle.putSerializable(BEACONS_KEY, serializableBeacons);
 
-    public static final Parcelable.Creator<RangingData> CREATOR
-            = new Parcelable.Creator<RangingData>() {
-        public RangingData createFromParcel(Parcel in) {
-            return new RangingData(in);
+        return bundle;
+    }
+    public static RangingData fromBundle(Bundle bundle) {
+        bundle.setClassLoader(Region.class.getClassLoader());
+        Region region = null;
+        Collection<Beacon> beacons = null;
+        if (bundle.get(BEACONS_KEY) != null) {
+            beacons = (Collection<Beacon>) bundle.getSerializable(BEACONS_KEY);
+        }
+        if (bundle.get(REGION_KEY) != null) {
+            region = (Region) bundle.getSerializable(REGION_KEY);
         }
 
-        public RangingData[] newArray(int size) {
-            return new RangingData[size];
-        }
-    };
-
-    protected RangingData(Parcel in) {
-        Parcelable[] parcelables  = in.readParcelableArray(this.getClass().getClassLoader());
-        beacons = new ArrayList<Beacon>(parcelables.length);
-        for (int i = 0; i < parcelables.length; i++) {
-            beacons.add((Beacon)parcelables[i]);
-        }
-        region = in.readParcelable(this.getClass().getClassLoader());
+        return new RangingData(beacons, region);
     }
+
 }

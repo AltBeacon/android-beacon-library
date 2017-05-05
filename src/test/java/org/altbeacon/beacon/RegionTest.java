@@ -1,7 +1,5 @@
 package org.altbeacon.beacon;
 
-import android.os.Parcel;
-
 import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -16,6 +14,12 @@ import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Collections;
+
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 @Config(sdk = 18)
 
@@ -128,14 +132,11 @@ public class RegionTest {
 
 
     @Test
-    public void testCanSerializeParcelable() {
+    public void testCanSerialize() throws Exception {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Parcel parcel = Parcel.obtain();
         Region region = new Region("myRegion", Identifier.parse("1"), Identifier.parse("2"), null);
-        region.writeToParcel(parcel, 0);
-        parcel.setDataPosition(0);
-        Region region2 = new Region(parcel);
-        parcel.recycle();
+        byte[] serializedRegion = convertToBytes(region);
+        Region region2 = (Region) convertFromBytes(serializedRegion);
         assertEquals("Right number of identifiers after deserialization", 3, region2.mIdentifiers.size());
         assertEquals("uniqueId is same after deserialization", region.getUniqueId(), region2.getUniqueId());
         assertEquals("id1 is same after deserialization", region.getIdentifier(0), region2.getIdentifier(0));
@@ -145,14 +146,11 @@ public class RegionTest {
     }
 
     @Test
-    public void testCanSerializeParcelableWithMac() {
+    public void testCanSerializeWithMac() throws Exception {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Parcel parcel = Parcel.obtain();
         Region region = new Region("myRegion", "1B:2a:03:4C:6E:9F");
-        region.writeToParcel(parcel, 0);
-        parcel.setDataPosition(0);
-        Region region2 = new Region(parcel);
-        parcel.recycle();
+        byte[] serializedRegion = convertToBytes(region);
+        Region region2 = (Region) convertFromBytes(serializedRegion);
         assertEquals("Right number of identifiers after deserialization", 0, region2.mIdentifiers.size());
         assertEquals("ac is same after deserialization", region.getBluetoothAddress(), region2.getBluetoothAddress());
     }
@@ -184,6 +182,22 @@ public class RegionTest {
         assertEquals("1", region.getId1().toString());
         assertEquals("2", region.getId2().toString());
         assertEquals("3", region.getId3().toString());
+    }
+
+    // utilty methods for testing serialization
+
+    private byte[] convertToBytes(Object object) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream out = new ObjectOutputStream(bos)) {
+            out.writeObject(object);
+            return bos.toByteArray();
+        }
+    }
+    private Object convertFromBytes(byte[] bytes) throws IOException, ClassNotFoundException {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+             ObjectInputStream in = new ObjectInputStream(bis)) {
+            return in.readObject();
+        }
     }
 
 

@@ -157,6 +157,8 @@ public abstract class CycledLeScanner {
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
             scanLeDevice(false);
+            LogManager.d(TAG, "forcing scanning to stop even for devices capable of multiple detections per cycle");
+            stopScan();
         } else {
             LogManager.d(TAG, "scanning already stopped");
         }
@@ -285,7 +287,7 @@ public abstract class CycledLeScanner {
                         // so it is best avoided.  If we know the device has detected to distinct
                         // packets in the same cycle, we will not restart scanning and just keep it
                         // going.
-                        if (!getDistinctPacketsDetectedPerScan()) {
+                        if (!getDistinctPacketsDetectedPerScan() || mBetweenScanPeriod != 0) {
                             long now = SystemClock.elapsedRealtime();
                             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                                     mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&

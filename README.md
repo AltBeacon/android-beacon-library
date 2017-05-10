@@ -109,3 +109,5 @@ The following instructions are for project administrators.
         ./gradlew bintrayUpload -Prelease
 
 4. Log in to JCenter, hit the button to publish the release, then select the Maven tab and enter your credentials to Sync to Maven
+
+[![Badge](http://www.libtastic.com/static/osbadges/294.png)](http://www.libtastic.com/technology/294/)

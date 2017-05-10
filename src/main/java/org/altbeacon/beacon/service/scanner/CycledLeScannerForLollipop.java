@@ -223,6 +223,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             @Override
             public void run() {
                 try {
+                    LogManager.d(TAG, "Stopping LE scan on scan handler");
                     scanner.stopScan(scanCallback);
                 } catch (IllegalStateException e) {
                     LogManager.w(TAG, "Cannot stop scan. Bluetooth may be turned off.");

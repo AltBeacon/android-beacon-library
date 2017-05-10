@@ -157,8 +157,6 @@ public abstract class CycledLeScanner {
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
             scanLeDevice(false);
-            LogManager.d(TAG, "forcing scanning to stop even for devices capable of multiple detections per cycle");
-            stopScan();
         } else {
             LogManager.d(TAG, "scanning already stopped");
         }
@@ -173,7 +171,20 @@ public abstract class CycledLeScanner {
     }
 
     public void destroy() {
-        mScanThread.quit();
+        LogManager.d(TAG, "Destroying");
+        // We cannot quit the thread used by the handler until queued Runnables have been processed,
+        // because the handler is what stops scanning, and we do not want scanning left on.
+        // So we stop the thread using the handler, so we make sure it happens after all other
+        // waiting Runnables are finished.
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                LogManager.d(TAG, "Quitting scan thread");
+                // Remove any postDelayed Runnables queued for the next scan cycle
+                mHandler.removeCallbacksAndMessages(null);
+                mScanThread.quit();
+            }
+        });
     }
 
     protected abstract void stopScan();

@@ -105,17 +105,17 @@ less frequently than other frames, because the timeliness of the information it 
 that can be used to tell you about the health and status of the beacon including:
 
 * Version - a numeric version of the version of the telemetry format.  This is currently always 0, as this is the first version
-of the telemetry format.
+ of the telemetry format.
 
 * Temperature - a two byte field indicating the output of a temperature sensor on the beacon, if supported by the hardware.
-Note, however, that beacon temperature sensors are often pretty inaccurate, and can be influenced by heating of adjacent
-electronic components.
+ Note, however, that beacon temperature sensors are often pretty inaccurate, and can be influenced by heating of adjacent
+ electronic components.
 
 * Battery level - a two byte indicator of the voltage of the battery on the beacon.  If the beacon does not have
-a battery (e.g. a USB powered beacon), this field is set to zero.
+ a battery (e.g. a USB powered beacon), this field is set to zero.
 
 * Uptime - a four byte measurement of how many seconds the beacon has been powered.  Since most beacons are based on low-power
-hardware that do not contain real-time clocks or quartz crystals, this time is typically just a rough estimate.
+ hardware that do not contain real-time clocks or quartz crystals, this time is typically just a rough estimate.
 * PduCount - a count of how many advertising packets have been transmitted by the beacon since it was last powered on.
 
 #### iBeacon

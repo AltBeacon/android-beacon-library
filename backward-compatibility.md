@@ -13,7 +13,7 @@ you do the proper checks, otherwise your app with crash when it tries to access 
 
 Before executing any code in the library, perform a check by calling a method like this:
 
-
+```java
   	public String getIncompatibilityReason(Context context) {
   		if (android.os.Build.VERSION.SDK_INT < 18) {
   			return "requires Android 4.3";
@@ -22,7 +22,7 @@ Before executing any code in the library, perform a check by calling a method li
   			return "requires Bluetooth LE";
   		}
   		return null;
-  	}	
-  	
+  	}
+```
 If the method does not return null, don't make any calls to library functions.
 

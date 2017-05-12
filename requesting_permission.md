@@ -73,7 +73,7 @@ public void onRequestPermissionsResult(int requestCode,
 
 ```
 
-##How Permission Prompting Works
+## How Permission Prompting Works
 
 The code above will first check to see if the location permission has already been granted.  If not, it will prompt the user with an `AlertDialog`, "Please grant location access so this app can detect beacons."  This dialog is not strictly required, but it is recommended to first explain to the user why your app needs the permission.  While this message is just an example, you should probably fine tune the verbiage to explain in less technical terms what functional benefit users gets from granting this permission.  Otherwise, users will likely deny the permission to keep the app from tracking them.
 

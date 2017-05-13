@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -1086,10 +1087,10 @@ public class BeaconManager {
     private void verifyServiceDeclaration() {
         final PackageManager packageManager = mContext.getPackageManager();
         final Intent intent = new Intent(mContext, BeaconService.class);
-        List resolveInfo =
+        List<ResolveInfo> resolveInfo =
                 packageManager.queryIntentServices(intent,
                         PackageManager.MATCH_DEFAULT_ONLY);
-        if (resolveInfo.size() == 0) {
+        if (resolveInfo != null && resolveInfo.size() == 0) {
             throw new ServiceNotDeclaredException();
         }
     }

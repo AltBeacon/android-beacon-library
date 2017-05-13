@@ -171,7 +171,20 @@ public abstract class CycledLeScanner {
     }
 
     public void destroy() {
-        mScanThread.quit();
+        LogManager.d(TAG, "Destroying");
+        // We cannot quit the thread used by the handler until queued Runnables have been processed,
+        // because the handler is what stops scanning, and we do not want scanning left on.
+        // So we stop the thread using the handler, so we make sure it happens after all other
+        // waiting Runnables are finished.
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                LogManager.d(TAG, "Quitting scan thread");
+                // Remove any postDelayed Runnables queued for the next scan cycle
+                mHandler.removeCallbacksAndMessages(null);
+                mScanThread.quit();
+            }
+        });
     }
 
     protected abstract void stopScan();
@@ -285,7 +298,7 @@ public abstract class CycledLeScanner {
                         // so it is best avoided.  If we know the device has detected to distinct
                         // packets in the same cycle, we will not restart scanning and just keep it
                         // going.
-                        if (!getDistinctPacketsDetectedPerScan()) {
+                        if (!getDistinctPacketsDetectedPerScan() || mBetweenScanPeriod != 0) {
                             long now = SystemClock.elapsedRealtime();
                             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                                     mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&

@@ -1,7 +1,6 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -125,6 +124,7 @@ public abstract class CycledLeScanner {
      * between LOW_POWER_MODE vs. LOW_LATENCY_MODE
      * @param backgroundFlag
      */
+    @MainThread
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         LogManager.d(TAG, "Set scan periods called with %s, %s Background mode must have changed.",
                 scanPeriod, betweenScanPeriod);
@@ -165,6 +165,7 @@ public abstract class CycledLeScanner {
         }
     }
 
+    @MainThread
     public void start() {
         LogManager.d(TAG, "start called");
         mScanningEnabled = true;
@@ -175,7 +176,7 @@ public abstract class CycledLeScanner {
         }
     }
 
-    @SuppressLint("NewApi")
+    @MainThread
     public void stop() {
         LogManager.d(TAG, "stop called");
         mScanningEnabled = false;
@@ -194,6 +195,7 @@ public abstract class CycledLeScanner {
         mDistinctPacketsDetectedPerScan = detected;
     }
 
+    @MainThread
     public void destroy() {
         LogManager.d(TAG, "Destroying");
         // We cannot quit the thread used by the handler until queued Runnables have been processed,
@@ -218,7 +220,7 @@ public abstract class CycledLeScanner {
 
     protected abstract void startScan();
 
-    @SuppressLint("NewApi")
+    @MainThread
     protected void scanLeDevice(final Boolean enable) {
         try {
             mScanCyclerStarted = true;
@@ -285,6 +287,7 @@ public abstract class CycledLeScanner {
         }
     }
 
+    @MainThread
     protected void scheduleScanCycleStop() {
         // Stops scanning after a pre-defined scan period.
         long millisecondsUntilStop = mScanCycleStopTime - SystemClock.elapsedRealtime();
@@ -308,6 +311,7 @@ public abstract class CycledLeScanner {
 
     protected abstract void finishScan();
 
+    @MainThread
     private void finishScanCycle() {
         LogManager.d(TAG, "Done with scan cycle");
         try {

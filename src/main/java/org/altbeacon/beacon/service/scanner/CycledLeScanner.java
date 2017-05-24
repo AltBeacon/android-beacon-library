@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -198,17 +199,19 @@ public abstract class CycledLeScanner {
     @MainThread
     public void destroy() {
         LogManager.d(TAG, "Destroying");
+
+        // Remove any postDelayed Runnables queued for the next scan cycle
+        mHandler.removeCallbacksAndMessages(null);
+
         // We cannot quit the thread used by the handler until queued Runnables have been processed,
         // because the handler is what stops scanning, and we do not want scanning left on.
         // So we stop the thread using the handler, so we make sure it happens after all other
         // waiting Runnables are finished.
-        mHandler.post(new Runnable() {
-            @MainThread
+        mScanHandler.post(new Runnable() {
+            @WorkerThread
             @Override
             public void run() {
                 LogManager.d(TAG, "Quitting scan thread");
-                // Remove any postDelayed Runnables queued for the next scan cycle
-                mHandler.removeCallbacksAndMessages(null);
                 mScanThread.quit();
             }
         });

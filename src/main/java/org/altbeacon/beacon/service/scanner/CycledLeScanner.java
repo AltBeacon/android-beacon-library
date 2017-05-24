@@ -15,6 +15,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -41,8 +43,30 @@ public abstract class CycledLeScanner {
 
     protected long mBetweenScanPeriod;
 
+    /**
+     * Main thread handle for scheduling scan cycle tasks.
+     * <p>
+     * Use this to schedule deferred tasks such as the following:
+     * <ul>
+     *     <li>{@link #scheduleScanCycleStop()}</li>
+     *     <li>{@link #scanLeDevice(Boolean) scanLeDevice(true)} from {@link #deferScanIfNeeded()}</li>
+     * </ul>
+     */
+    @NonNull
     protected final Handler mHandler = new Handler(Looper.getMainLooper());
+
+    /**
+     * Handler to background thread for interacting with the low-level Android BLE scanner.
+     * <p>
+     * Use this to queue any potentially long running BLE scanner actions such as starts and stops.
+     */
+    @NonNull
     protected final Handler mScanHandler;
+
+    /**
+     * Worker thread hosting the internal scanner message queue.
+     */
+    @NonNull
     private final HandlerThread mScanThread;
 
     protected final BluetoothCrashResolver mBluetoothCrashResolver;
@@ -177,6 +201,7 @@ public abstract class CycledLeScanner {
         // So we stop the thread using the handler, so we make sure it happens after all other
         // waiting Runnables are finished.
         mHandler.post(new Runnable() {
+            @MainThread
             @Override
             public void run() {
                 LogManager.d(TAG, "Quitting scan thread");
@@ -270,6 +295,7 @@ public abstract class CycledLeScanner {
                 setWakeUpAlarm();
             }
             mHandler.postDelayed(new Runnable() {
+                @MainThread
                 @Override
                 public void run() {
                     scheduleScanCycleStop();

@@ -10,6 +10,8 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
+import android.support.annotation.MainThread;
+import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -134,6 +136,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 setWakeUpAlarm();
             }
             mHandler.postDelayed(new Runnable() {
+                @MainThread
                 @Override
                 public void run() {
                     scanLeDevice(true);
@@ -190,6 +193,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         final ScanCallback scanCallback = getNewLeScanCallback();
         mScanHandler.removeCallbacksAndMessages(null);
         mScanHandler.post(new Runnable() {
+            @WorkerThread
             @Override
             public void run() {
                 try {
@@ -220,6 +224,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         final ScanCallback scanCallback = getNewLeScanCallback();
         mScanHandler.removeCallbacksAndMessages(null);
         mScanHandler.post(new Runnable() {
+            @WorkerThread
             @Override
             public void run() {
                 try {

@@ -230,7 +230,7 @@ public abstract class CycledLeScanner {
             if (getBluetoothAdapter() == null) {
                 LogManager.e(TAG, "No Bluetooth adapter.  beaconService cannot scan.");
             }
-            if (enable) {
+            if (mScanningEnabled && enable) {
                 if (deferScanIfNeeded()) {
                     return;
                 }
@@ -283,6 +283,9 @@ public abstract class CycledLeScanner {
                 mScanCyclerStarted = false;
                 stopScan();
                 mLastScanCycleEndTime = SystemClock.elapsedRealtime();
+                // Clear any queued schedule tasks as we're done scanning
+                mScanHandler.removeCallbacksAndMessages(null);
+                finishScanCycle();
             }
         }
         catch (SecurityException e) {
@@ -294,7 +297,7 @@ public abstract class CycledLeScanner {
     protected void scheduleScanCycleStop() {
         // Stops scanning after a pre-defined scan period.
         long millisecondsUntilStop = mScanCycleStopTime - SystemClock.elapsedRealtime();
-        if (millisecondsUntilStop > 0) {
+        if (mScanningEnabled && millisecondsUntilStop > 0) {
             LogManager.d(TAG, "Waiting to stop scan cycle for another %s milliseconds",
                     millisecondsUntilStop);
             if (mBackgroundFlag) {

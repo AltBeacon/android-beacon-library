@@ -10,6 +10,8 @@ Bug Fixes:
 
 - Fix failure to stop scanning when unbinding from service or when the between scan period
   is nonzero. (#507, David G. Young)
+- Fix possible `NullPointerException` with `BackgroundPowerSaver` on devices
+  prior to Android 4.3 Jelly Bean MR 2 (API 18) (#516, Aaron Kromer)
 
 ### 2.10 / 2017-04-21
 

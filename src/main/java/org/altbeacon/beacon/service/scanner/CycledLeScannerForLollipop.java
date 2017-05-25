@@ -86,7 +86,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // If we have seen a device recently
             // devices should behave like pre-Android L devices, because we don't want to drain battery
             // by continuously delivering packets for beacons visible in the background
-            if (mScanDeferredBefore == false) {
+            if (!mScanDeferredBefore) {
                 if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
                     mBackgroundLScanStartTime = SystemClock.elapsedRealtime();
                     mBackgroundLScanFirstDetectionTime = 0l;
@@ -130,7 +130,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // Don't actually wait until the next scan time -- only wait up to 1 second.  This
             // allows us to start scanning sooner if a consumer enters the foreground and expects
             // results more quickly.
-            if (mScanDeferredBefore == false && mBackgroundFlag) {
+            if (!mScanDeferredBefore && mBackgroundFlag) {
                 setWakeUpAlarm();
             }
             mHandler.postDelayed(new Runnable() {

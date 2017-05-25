@@ -30,7 +30,6 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private ScanCallback leScanCallback;
     private long mBackgroundLScanStartTime = 0l;
     private long mBackgroundLScanFirstDetectionTime = 0l;
-    private boolean mScanDeferredBefore = false;
     private boolean mMainScanCycleActive = false;
     private final BeaconManager mBeaconManager;
 
@@ -79,14 +78,16 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     protected boolean deferScanIfNeeded() {
         // This method is called to see if it is time to start a scan
         long millisecondsUntilStart = mNextScanCycleStartTime - SystemClock.elapsedRealtime();
-        if (millisecondsUntilStart > 0) {
-            mMainScanCycleActive = false;
+        final boolean deferScan = millisecondsUntilStart > 0;
+        final boolean scanActiveBefore = mMainScanCycleActive;
+        mMainScanCycleActive = !deferScan;
+        if (deferScan) {
             long secsSinceLastDetection = SystemClock.elapsedRealtime() -
                     DetectionTracker.getInstance().getLastDetectionTime();
             // If we have seen a device recently
             // devices should behave like pre-Android L devices, because we don't want to drain battery
             // by continuously delivering packets for beacons visible in the background
-            if (!mScanDeferredBefore) {
+            if (scanActiveBefore) {
                 if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
                     mBackgroundLScanStartTime = SystemClock.elapsedRealtime();
                     mBackgroundLScanFirstDetectionTime = 0l;
@@ -130,7 +131,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // Don't actually wait until the next scan time -- only wait up to 1 second.  This
             // allows us to start scanning sooner if a consumer enters the foreground and expects
             // results more quickly.
-            if (!mScanDeferredBefore && mBackgroundFlag) {
+            if (scanActiveBefore && mBackgroundFlag) {
                 setWakeUpAlarm();
             }
             mHandler.postDelayed(new Runnable() {
@@ -140,18 +141,13 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     scanLeDevice(true);
                 }
             }, millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart);
-            mScanDeferredBefore = true;
-            return true;
-        }
-        else {
+        } else {
             if (mBackgroundLScanStartTime > 0l) {
                 stopScan();
                 mBackgroundLScanStartTime = 0;
             }
-            mScanDeferredBefore = false;
-            mMainScanCycleActive = true;
         }
-        return false;
+        return deferScan;
     }
 
     @Override

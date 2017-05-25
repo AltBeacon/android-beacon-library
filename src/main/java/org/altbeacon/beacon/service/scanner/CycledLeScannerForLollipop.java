@@ -198,7 +198,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     LogManager.w(TAG, "Cannot start scan. Bluetooth may be turned off.");
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.e(TAG, "Cannot start scan. Unexpected NPE.", npe);
+                    LogManager.e(npe, TAG, "Cannot start scan. Unexpected NPE.");
                 } catch (SecurityException e) {
                     // Thrown by Samsung Knox devices if bluetooth access denied for an app
                     LogManager.e(TAG, "Cannot start scan.  Security Exception");
@@ -229,7 +229,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     LogManager.w(TAG, "Cannot stop scan. Bluetooth may be turned off.");
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.e(TAG, "Cannot stop scan. Unexpected NPE.", npe);
+                    LogManager.e(npe, TAG, "Cannot stop scan. Unexpected NPE.");
                 } catch (SecurityException e) {
                     // Thrown by Samsung Knox devices if bluetooth access denied for an app
                     LogManager.e(TAG, "Cannot stop scan.  Security Exception");

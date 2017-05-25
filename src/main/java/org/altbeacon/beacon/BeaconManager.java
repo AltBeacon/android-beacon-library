@@ -797,7 +797,7 @@ public class BeaconManager {
             serviceMessenger.send(msg);
         }
         catch (RemoteException e) {
-            LogManager.e(TAG, "Failed to sync settings to service", e);
+            LogManager.e(e, TAG, "Failed to sync settings to service");
         }
     }
 

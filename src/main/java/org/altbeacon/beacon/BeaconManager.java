@@ -469,7 +469,7 @@ public class BeaconManager {
      */
     public boolean isAnyConsumerBound() {
         synchronized(consumers) {
-            return consumers.size() > 0 && (serviceMessenger != null);
+            return consumers.isEmpty() && (serviceMessenger != null);
         }
     }
 
@@ -807,18 +807,13 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (isAnyConsumerBound() && !isScannerInDifferentProcess() == false) {
+        if (!isAnyConsumerBound()) {
+            LogManager.d(TAG, "Not synchronizing settings to service, as it has not started up yet");
+        } else if (isScannerInDifferentProcess()) {
             LogManager.d(TAG, "Synchronizing settings to service");
             syncSettingsToService();
-        }
-        else {
-            if (isAnyConsumerBound() == false) {
-                LogManager.d(TAG, "Not synchronizing settings to service, as it has not started up yet");
-
-            }
-            else {
-                LogManager.d(TAG, "Not synchronizing settings to service, as it is in the same process");
-            }
+        } else {
+            LogManager.d(TAG, "Not synchronizing settings to service, as it is in the same process");
         }
     }
 
@@ -993,7 +988,7 @@ public class BeaconManager {
     @NonNull
     public Collection<Region> getRangedRegions() {
         synchronized(this.rangedRegions) {
-            return new ArrayList<Region>(this.rangedRegions);
+            return new ArrayList<>(this.rangedRegions);
         }
     }
 

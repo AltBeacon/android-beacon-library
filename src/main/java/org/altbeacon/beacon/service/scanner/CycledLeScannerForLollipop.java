@@ -307,8 +307,39 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 }
 
                 @Override
-                public void onScanFailed(int i) {
-                    LogManager.e(TAG, "Scan Failed");
+                public void onScanFailed(int errorCode) {
+                    switch (errorCode) {
+                        case SCAN_FAILED_ALREADY_STARTED:
+                            LogManager.e(
+                                    TAG,
+                                    "Scan failed: a BLE scan with the same settings is already started by the app"
+                            );
+                            break;
+                        case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
+                            LogManager.e(
+                                    TAG,
+                                    "Scan failed: app cannot be registered"
+                            );
+                            break;
+                        case SCAN_FAILED_FEATURE_UNSUPPORTED:
+                            LogManager.e(
+                                    TAG,
+                                    "Scan failed: power optimized scan feature is not supported"
+                            );
+                            break;
+                        case SCAN_FAILED_INTERNAL_ERROR:
+                            LogManager.e(
+                                    TAG,
+                                    "Scan failed: internal error"
+                            );
+                            break;
+                        default:
+                            LogManager.e(
+                                    TAG,
+                                    "Scan failed with unknown error (errorCode=" + errorCode + ")"
+                            );
+                            break;
+                    }
                 }
             };
         }

@@ -42,6 +42,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -391,6 +392,7 @@ public class BeaconService extends Service {
     }
 
     protected final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+        @MainThread
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -405,6 +407,7 @@ public class BeaconService extends Service {
             }
         }
 
+        @MainThread
         @Override
         public void onCycleEnd() {
             mDistinctPacketDetector.clearDetections();
@@ -418,6 +421,9 @@ public class BeaconService extends Service {
 
                 if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                     for (Beacon beacon : simulatedScanData) {
+                        // This is an expensive call and we do not want to block the main thread.
+                        // But here we are in debug/test mode so we allow it on the main thread.
+                        //noinspection WrongThread
                         processBeaconFromScan(beacon);
                     }
                 } else {
@@ -430,6 +436,9 @@ public class BeaconService extends Service {
                 if (BeaconManager.getBeaconSimulator().getBeacons() != null) {
                     if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                         for (Beacon beacon : BeaconManager.getBeaconSimulator().getBeacons()) {
+                            // This is an expensive call and we do not want to block the main thread.
+                            // But here we are in debug/test mode so we allow it on the main thread.
+                            //noinspection WrongThread
                             processBeaconFromScan(beacon);
                         }
                     } else {
@@ -452,7 +461,15 @@ public class BeaconService extends Service {
         }
     }
 
-    private void processBeaconFromScan(Beacon beacon) {
+    /**
+     * Helper for processing BLE beacons. This has been extracted from {@link ScanProcessor} to
+     * support simulated scan data for test and debug environments.
+     * <p>
+     * Processing beacons is a frequent and expensive operation. It should not be run on the main
+     * thread to avoid UI contention.
+     */
+    @WorkerThread
+    private void processBeaconFromScan(@NonNull Beacon beacon) {
         if (Stats.getInstance().isEnabled()) {
             Stats.getInstance().log(beacon);
         }
@@ -520,6 +537,7 @@ public class BeaconService extends Service {
             mNonBeaconLeScanCallback = nonBeaconLeScanCallback;
         }
 
+        @WorkerThread
         @Override
         protected Void doInBackground(ScanData... params) {
             ScanData scanData = params[0];
@@ -553,18 +571,6 @@ public class BeaconService extends Service {
                 }
             }
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
         }
     }
 

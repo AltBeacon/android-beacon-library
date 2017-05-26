@@ -280,7 +280,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private ScanCallback getNewLeScanCallback() {
         if (leScanCallback == null) {
             leScanCallback = new ScanCallback() {
-
+                @MainThread
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
                     if (LogManager.isVerboseLoggingEnabled()) {
@@ -299,6 +299,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     }
                 }
 
+                @MainThread
                 @Override
                 public void onBatchScanResults(List<ScanResult> results) {
                     LogManager.d(TAG, "got batch records");
@@ -311,6 +312,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     }
                 }
 
+                @MainThread
                 @Override
                 public void onScanFailed(int errorCode) {
                     switch (errorCode) {

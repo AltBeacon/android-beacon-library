@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
@@ -22,6 +23,7 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
+
 import java.util.Date;
 
 @TargetApi(18)
@@ -75,7 +77,22 @@ public abstract class CycledLeScanner {
     protected boolean mBackgroundFlag = false;
     protected boolean mRestartNeeded = false;
 
-    private boolean mDistinctPacketsDetectedPerScan = false;
+    /**
+     * Flag indicating device hardware supports detecting multiple identical packets per scan.
+     * <p>
+     * Restarting scanning (stopping and immediately restarting) is necessary on many older Android
+     * devices like the Nexus 4 and Moto G because once they detect a distinct BLE packet in a scan,
+     * subsequent detections do not get a scan callback. Stopping scanning and restarting clears
+     * this out, allowing subsequent detection of identical advertisements. On most newer device,
+     * this is not necessary, and multiple callbacks are given for identical packets detected in
+     * a single scan.
+     * <p>
+     * This is declared {@code volatile} because it may be set by a background scan thread while
+     * we are in a method on the main thread which will end up checking it. Using this modifier
+     * ensures that when we read the flag we'll always see the most recently written value. This is
+     * also true for background scan threads which may be running concurrently.
+     */
+    private volatile boolean mDistinctPacketsDetectedPerScan = false;
     private static final long ANDROID_N_MIN_SCAN_CYCLE_MILLIS = 6000l;
 
     protected CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
@@ -188,10 +205,12 @@ public abstract class CycledLeScanner {
         }
     }
 
+    @AnyThread
     public boolean getDistinctPacketsDetectedPerScan() {
         return mDistinctPacketsDetectedPerScan;
     }
 
+    @AnyThread
     public void setDistinctPacketsDetectedPerScan(boolean detected) {
         mDistinctPacketsDetectedPerScan = detected;
     }
@@ -334,7 +353,7 @@ public abstract class CycledLeScanner {
                         // so it is best avoided.  If we know the device has detected to distinct
                         // packets in the same cycle, we will not restart scanning and just keep it
                         // going.
-                        if (!getDistinctPacketsDetectedPerScan() || mBetweenScanPeriod != 0) {
+                        if (!mDistinctPacketsDetectedPerScan || mBetweenScanPeriod != 0) {
                             long now = SystemClock.elapsedRealtime();
                             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                                     mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&

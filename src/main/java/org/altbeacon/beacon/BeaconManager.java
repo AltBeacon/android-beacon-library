@@ -530,9 +530,7 @@ public class BeaconManager {
      */
     @Deprecated
     public void setRangeNotifier(@Nullable RangeNotifier notifier) {
-        synchronized (rangeNotifiers) {
-            rangeNotifiers.clear();
-        }
+        rangeNotifiers.clear();
         if (null != notifier) {
             addRangeNotifier(notifier);
         }
@@ -552,9 +550,7 @@ public class BeaconManager {
     public void addRangeNotifier(@NonNull RangeNotifier notifier) {
         //noinspection ConstantConditions
         if (notifier != null) {
-            synchronized (rangeNotifiers) {
-                rangeNotifiers.add(notifier);
-            }
+            rangeNotifiers.add(notifier);
         }
     }
 
@@ -565,18 +561,14 @@ public class BeaconManager {
      * @see RangeNotifier
      */
     public boolean removeRangeNotifier(@NonNull RangeNotifier notifier) {
-        synchronized (rangeNotifiers) {
-            return rangeNotifiers.remove(notifier);
-        }
+        return rangeNotifiers.remove(notifier);
     }
 
     /**
      * Remove all the Range Notifiers.
      */
     public void removeAllRangeNotifiers() {
-        synchronized (rangeNotifiers) {
-            rangeNotifiers.clear();
-        }
+        rangeNotifiers.clear();
     }
 
     /**
@@ -598,9 +590,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        synchronized (monitorNotifiers) {
-            monitorNotifiers.clear();
-        }
+        monitorNotifiers.clear();
         if (null != notifier) {
             addMonitorNotifier(notifier);
         }
@@ -625,9 +615,7 @@ public class BeaconManager {
         }
         //noinspection ConstantConditions
         if (notifier != null) {
-            synchronized (monitorNotifiers) {
-                monitorNotifiers.add(notifier);
-            }
+            monitorNotifiers.add(notifier);
         }
     }
 
@@ -652,9 +640,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return false;
         }
-        synchronized (monitorNotifiers) {
-            return monitorNotifiers.remove(notifier);
-        }
+        return monitorNotifiers.remove(notifier);
     }
 
     /**
@@ -664,9 +650,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        synchronized (monitorNotifiers) {
-            monitorNotifiers.clear();
-        }
+        monitorNotifiers.clear();
     }
 
     /**
@@ -723,10 +707,8 @@ public class BeaconManager {
         if (stateObj != null && stateObj.getInside()) {
             state = MonitorNotifier.INSIDE;
         }
-        synchronized (monitorNotifiers) {
-            for (MonitorNotifier notifier: monitorNotifiers) {
-                notifier.didDetermineStateForRegion(state, region);
-            }
+        for (MonitorNotifier notifier : monitorNotifiers) {
+            notifier.didDetermineStateForRegion(state, region);
         }
     }
 
@@ -935,12 +917,11 @@ public class BeaconManager {
     @Deprecated
     @Nullable
     public MonitorNotifier getMonitoringNotifier() {
-        synchronized (monitorNotifiers) {
-            if (monitorNotifiers.size() > 0) {
-                return monitorNotifiers.iterator().next();
-            }
-            return null;
+        Iterator<MonitorNotifier> iterator = monitorNotifiers.iterator();
+        if (iterator.hasNext()) {
+            return iterator.next();
         }
+        return null;
     }
 
     /**
@@ -958,12 +939,11 @@ public class BeaconManager {
     @Deprecated
     @Nullable
     public RangeNotifier getRangingNotifier() {
-        synchronized (rangeNotifiers) {
-            if (rangeNotifiers.size() > 0) {
-                return rangeNotifiers.iterator().next();
-            }
-            return null;
+        Iterator<RangeNotifier> iterator = rangeNotifiers.iterator();
+        if (iterator.hasNext()) {
+            return iterator.next();
         }
+        return null;
     }
 
     /**

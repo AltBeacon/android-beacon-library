@@ -26,12 +26,13 @@ package org.altbeacon.beacon.service;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.logging.LogManager;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RangeState {
+public class RangeState implements Serializable {
     private static final String TAG = "RangeState";
     private final Callback mCallback;
     private Map<Beacon,RangedBeacon> mRangedBeacons = new HashMap<Beacon,RangedBeacon>();

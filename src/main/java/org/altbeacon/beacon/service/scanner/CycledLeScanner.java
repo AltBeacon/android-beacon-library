@@ -20,7 +20,6 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
-
 import java.util.Date;
 
 @TargetApi(18)
@@ -32,7 +31,6 @@ public abstract class CycledLeScanner {
     private long mLastScanCycleEndTime = 0l;
     protected long mNextScanCycleStartTime = 0l;
     private long mScanCycleStopTime = 0l;
-    private long mLastScanStopTime = 0l;
 
     private boolean mScanning;
     protected boolean mScanningPaused;
@@ -53,6 +51,7 @@ public abstract class CycledLeScanner {
     protected boolean mBackgroundFlag = false;
     protected boolean mRestartNeeded = false;
 
+    private boolean mDistinctPacketsDetectedPerScan = false;
     private static final long ANDROID_N_MIN_SCAN_CYCLE_MILLIS = 6000l;
 
     protected CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
@@ -158,15 +157,34 @@ public abstract class CycledLeScanner {
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
             scanLeDevice(false);
-        }
-        if (mBluetoothAdapter != null) {
-            stopScan();
-            mLastScanCycleEndTime = SystemClock.elapsedRealtime();
+        } else {
+            LogManager.d(TAG, "scanning already stopped");
         }
     }
 
+    public boolean getDistinctPacketsDetectedPerScan() {
+        return mDistinctPacketsDetectedPerScan;
+    }
+
+    public void setDistinctPacketsDetectedPerScan(boolean detected) {
+        mDistinctPacketsDetectedPerScan = detected;
+    }
+
     public void destroy() {
-        mScanThread.quit();
+        LogManager.d(TAG, "Destroying");
+        // We cannot quit the thread used by the handler until queued Runnables have been processed,
+        // because the handler is what stops scanning, and we do not want scanning left on.
+        // So we stop the thread using the handler, so we make sure it happens after all other
+        // waiting Runnables are finished.
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                LogManager.d(TAG, "Quitting scan thread");
+                // Remove any postDelayed Runnables queued for the next scan cycle
+                mHandler.removeCallbacksAndMessages(null);
+                mScanThread.quit();
+            }
+        });
     }
 
     protected abstract void stopScan();
@@ -271,26 +289,39 @@ public abstract class CycledLeScanner {
             if (mScanning) {
                 if (getBluetoothAdapter() != null) {
                     if (getBluetoothAdapter().isEnabled()) {
-                        long now = System.currentTimeMillis();
-                        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
-                                mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&
-                                now-mLastScanStopTime < ANDROID_N_MIN_SCAN_CYCLE_MILLIS) {
-                            // As of Android N, only 5 scans may be started in a 30 second period (6
-                            // seconds per cycle)  otherwise they are blocked.  So we check here to see
-                            // if the scan period is 6 seconds or less, and if we last stopped scanning
-                            // fewer than 6 seconds ag and if so, we simply do not stop scanning
-                            LogManager.d(TAG, "Not stopping scan because this is Android N and we" +
-                                    " keep scanning for a minimum of 6 seconds at a time. "+
-                                    "We will stop in "+(ANDROID_N_MIN_SCAN_CYCLE_MILLIS-(now-mLastScanStopTime))+" millisconds.");
+                        // Determine if we need to restart scanning.  Restarting scanning is only
+                        // needed on devices incapable of detecting multiple distinct BLE advertising
+                        // packets in a single cycle, typically older Android devices (e.g. Nexus 4)
+                        // On such devices, it is necessary to stop scanning and restart to detect
+                        // multiple beacon packets in the same scan, allowing collection of multiple
+                        // rssi measurements.  Restarting however, causes brief detection dropouts
+                        // so it is best avoided.  If we know the device has detected to distinct
+                        // packets in the same cycle, we will not restart scanning and just keep it
+                        // going.
+                        if (!getDistinctPacketsDetectedPerScan() || mBetweenScanPeriod != 0) {
+                            long now = SystemClock.elapsedRealtime();
+                            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                                    mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&
+                                    now-mLastScanCycleStartTime < ANDROID_N_MIN_SCAN_CYCLE_MILLIS) {
+                                // As of Android N, only 5 scans may be started in a 30 second period (6
+                                // seconds per cycle)  otherwise they are blocked.  So we check here to see
+                                // if the scan period is 6 seconds or less, and if we last stopped scanning
+                                // fewer than 6 seconds ag and if so, we simply do not stop scanning
+                                LogManager.d(TAG, "Not stopping scan because this is Android N and we" +
+                                        " keep scanning for a minimum of 6 seconds at a time. "+
+                                        "We will stop in "+(ANDROID_N_MIN_SCAN_CYCLE_MILLIS-(now-mLastScanCycleStartTime))+" millisconds.");
+                            }
+                            else {
+                                try {
+                                    LogManager.d(TAG, "stopping bluetooth le scan");
+                                    finishScan();
+                                } catch (Exception e) {
+                                    LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
+                                }
+                            }
                         }
                         else {
-                            try {
-                                LogManager.d(TAG, "stopping bluetooth le scan");
-                                finishScan();
-                                mLastScanStopTime = now;
-                            } catch (Exception e) {
-                                LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
-                            }
+                            LogManager.d(TAG, "Not stopping scanning.  Device capable of multiple indistinct detections per scan.");
                         }
 
                         mLastScanCycleEndTime = SystemClock.elapsedRealtime();

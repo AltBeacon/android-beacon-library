@@ -54,15 +54,19 @@ public class RegionMonitoringState implements Serializable {
         return false;
     }
 
+    public void markOutside() {
+        inside = false;
+        lastSeenTime = 0l;
+    }
+
     public boolean markOutsideIfExpired() {
         if (inside) {
             if (lastSeenTime > 0 && SystemClock.elapsedRealtime() - lastSeenTime > BeaconManager.getRegionExitPeriod()) {
-                inside = false;
                 LogManager.d(TAG, "We are newly outside the region because the lastSeenTime of %s "
                                 + "was %s seconds ago, and that is over the expiration duration "
                                 + "of %s", lastSeenTime, SystemClock.elapsedRealtime() - lastSeenTime,
                         BeaconManager.getRegionExitPeriod());
-                lastSeenTime = 0l;
+                markOutside();
                 return true;
             }
         }

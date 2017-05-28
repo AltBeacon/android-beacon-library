@@ -24,12 +24,16 @@ import java.util.Set;
 import static android.content.Context.MODE_PRIVATE;
 
 /**
+ * Stores the full state of scanning for the libary, including all settings so it can be ressurrected easily
+ * for running from a scheduled job
+ *
  * Created by dyoung on 3/26/17.
  */
 
 public class ScanState implements Serializable {
     private static final String TAG = ScanState.class.getSimpleName();
     private static final String STATUS_PRESERVATION_FILE_NAME = "android-beacon-library-scan-state";
+    public static int MIN_SCAN_JOB_INTERVAL_MILLIS = 300000; //  5 minutes
 
     private Map<Region, RangeState> mRangedRegionState = new HashMap<Region, RangeState>();
     private transient MonitoringStatus mMonitoringStatus;
@@ -40,6 +44,7 @@ public class ScanState implements Serializable {
     private long mForegroundScanPeriod;
     private long mBackgroundScanPeriod;
     private boolean mBackgroundMode;
+    private long mLastScanStartTimeMillis = 0l;
     private transient Context mContext;
 
     public Boolean getBackgroundMode() {
@@ -118,6 +123,13 @@ public class ScanState implements Serializable {
         mBeaconParsers = beaconParsers;
     }
 
+    public long getLastScanStartTimeMillis() {
+        return mLastScanStartTimeMillis;
+    }
+    public void setLastScanStartTimeMillis(long time) {
+        mLastScanStartTimeMillis = time;
+    }
+
     public static ScanState restore(Context context) {
         ScanState scanState = null;
         synchronized (ScanState.class) {
@@ -156,7 +168,6 @@ public class ScanState implements Serializable {
                 scanState = new ScanState(context);
 
             }
-            // TODO: this should not be necessary.
             if (scanState.mExtraBeaconDataTracker == null) {
                 scanState.mExtraBeaconDataTracker = new ExtraDataBeaconTracker();
             }
@@ -198,6 +209,41 @@ public class ScanState implements Serializable {
         }
     }
 
+    public int getScanJobIntervalMillis() {
+        long cyclePeriodMillis;
+        if (getBackgroundMode()) {
+            cyclePeriodMillis = getBackgroundScanPeriod()+getBackgroundBetweenScanPeriod();
+        }
+        else {
+            cyclePeriodMillis = getForegroundScanPeriod()+getForegroundBetweenScanPeriod();
+        }
+        int scanJobIntervalMillis = MIN_SCAN_JOB_INTERVAL_MILLIS;
+        if (cyclePeriodMillis > MIN_SCAN_JOB_INTERVAL_MILLIS) {
+            scanJobIntervalMillis = (int) cyclePeriodMillis;
+        }
+        return scanJobIntervalMillis;
+    }
+
+    public int getScanJobRuntimeMillis() {
+        long scanPeriodMillis;
+        LogManager.d(TAG, "ScanState says background mode for ScanJob is "+getBackgroundMode());
+        if (getBackgroundMode()) {
+            scanPeriodMillis = getBackgroundScanPeriod();
+        }
+        else {
+            scanPeriodMillis = getForegroundScanPeriod();
+        }
+        if (!getBackgroundMode()) {
+            // if we are in the foreground, we keep the scan job going for the minimum interval
+            if (scanPeriodMillis < MIN_SCAN_JOB_INTERVAL_MILLIS) {
+                return MIN_SCAN_JOB_INTERVAL_MILLIS;
+            }
+        }
+        return (int) scanPeriodMillis;
+    }
+
+
+
     public void applyChanges(BeaconManager beaconManager) {
         mBeaconParsers = new HashSet<>(beaconManager.getBeaconParsers());
         mForegroundScanPeriod = beaconManager.getForegroundScanPeriod();
@@ -219,7 +265,6 @@ public class ScanState implements Serializable {
                 mRangedRegionState.put(newRangedRegion, new RangeState(new Callback(mContext.getPackageName())));
             }
         }
-
         for (Region existingRangedRegion: existingRangedRegions) {
             if (!newRangedRegions.contains(existingRangedRegion)) {
                 LogManager.d(TAG, "Stopping ranging region: "+existingRangedRegion);
@@ -232,4 +277,3 @@ public class ScanState implements Serializable {
     }
 
 }
-

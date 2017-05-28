@@ -23,20 +23,20 @@
  */
 package org.altbeacon.beacon;
 
-import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Intent;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.MonitoringData;
+import org.altbeacon.beacon.service.MonitoringStatus;
 import org.altbeacon.beacon.service.RangingData;
 
 import java.util.Set;
 
 /**
  * Converts internal intents to notifier callbacks
+ * This IntentService may be running in a different process from the BeaconService.
  */
-@TargetApi(3)
 public class BeaconIntentProcessor extends IntentService {
     private static final String TAG = "BeaconIntentProcessor";
 
@@ -87,7 +87,14 @@ public class BeaconIntentProcessor extends IntentService {
             if (notifiers != null) {
                 for(MonitorNotifier notifier : notifiers) {
                     LogManager.d(TAG, "Calling monitoring notifier: %s", notifier);
-                    notifier.didDetermineStateForRegion(monitoringData.isInside() ? MonitorNotifier.INSIDE : MonitorNotifier.OUTSIDE, monitoringData.getRegion());
+                    Region region = monitoringData.getRegion();
+                    Integer state = monitoringData.isInside() ? MonitorNotifier.INSIDE :
+                            MonitorNotifier.OUTSIDE;
+                    notifier.didDetermineStateForRegion(state, region);
+                    // In case the beacon scanner is running in a separate process, the monitoring
+                    // status in this process  will not have been updated yet as a result of this
+                    // region state change.  We make a call here to keep it in sync.
+                    MonitoringStatus.getInstanceForApplication(this).updateLocalState(region, state);
                     if (monitoringData.isInside()) {
                         notifier.didEnterRegion(monitoringData.getRegion());
                     } else {

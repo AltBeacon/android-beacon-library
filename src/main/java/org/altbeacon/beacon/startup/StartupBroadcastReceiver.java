@@ -1,6 +1,5 @@
 package org.altbeacon.beacon.startup;
 
-import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +7,6 @@ import android.content.Intent;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.BeaconManager;
 
-@TargetApi(4)
 public class StartupBroadcastReceiver extends BroadcastReceiver
 {
     private static final String TAG = "StartupBroadcastReceiver";

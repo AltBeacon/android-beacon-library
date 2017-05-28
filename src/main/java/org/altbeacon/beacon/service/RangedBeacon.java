@@ -6,7 +6,6 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 
@@ -46,13 +45,11 @@ public class RangedBeacon implements Serializable {
 
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
-
         RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
-
-        if (!getFilter().noMeasurementsAvailable()) {
-            double runningAverage = getFilter().calculateRssi();
-            mBeacon.setRunningAverageRssi(runningAverage);
-            LogManager.d(TAG, "calculated new runningAverageRssi: %s", runningAverage);
+         if (!getFilter().noMeasurementsAvailable()) {
+             double runningAverage = getFilter().calculateRssi();
+             mBeacon.setRunningAverageRssi(runningAverage);
+             LogManager.d(TAG, "calculated new runningAverageRssi: %s", runningAverage);
         }
         else {
             LogManager.d(TAG, "No measurements available to calculate running average");
@@ -66,19 +63,6 @@ public class RangedBeacon implements Serializable {
             mTracked = true;
             lastTrackedTimeMillis = SystemClock.elapsedRealtime();
             getFilter().addMeasurement(rssi);
-        }
-    }
-
-    private RssiFilter getFilter() {
-        if (mFilter == null) {
-            //set RSSI filter
-            try {
-                Constructor cons = BeaconManager.getRssiFilterImplClass().getConstructors()[0];
-                mFilter = (RssiFilter)cons.newInstance();
-            } catch (Exception e) {
-                LogManager.e(TAG, "Could not construct RssiFilterImplClass %s", BeaconManager.getRssiFilterImplClass().getName());
-            }
-
         }
         return mFilter;
     }
@@ -102,6 +86,19 @@ public class RangedBeacon implements Serializable {
 
     public boolean isExpired() {
         return getTrackingAge() > maxTrackingAge;
+    }
+
+    private RssiFilter getFilter() {
+        if (mFilter == null) {
+            //set RSSI filter
+            try {
+            Constructor cons = BeaconManager.getRssiFilterImplClass().getConstructors()[0];
+                mFilter = (RssiFilter)cons.newInstance();
+            } catch (Exception e) {
+                LogManager.e(TAG, "Could not construct RssiFilterImplClass %s", BeaconManager.getRssiFilterImplClass().getName());
+            }
+        }
+        return mFilter;
     }
 
 }

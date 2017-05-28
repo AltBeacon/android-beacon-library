@@ -2,15 +2,19 @@ package org.altbeacon.beacon.utils;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 /**
  * Created by dyoung on 3/10/17.
+ *
+ * Internal class used to determine current process state in multi-process setups
+ * @hide
  */
 
 public class ProcessUtils {
     Context mContext;
 
-    public ProcessUtils(Context context) {
+    public ProcessUtils(@NonNull Context context) {
         mContext = context;
     }
 

@@ -293,26 +293,6 @@ public class BeaconManager {
         this.beaconParsers.add(new AltBeaconParser());
     }
 
-
-    public void setEnableScheduledScanJobs(boolean enabled) {
-        this.mScheduledScanJobsEnabled = enabled;
-    }
-    public boolean getBackgroundMode() {
-        return mBackgroundMode;
-    }
-    public long getBackgroundScanPeriod() {
-        return backgroundScanPeriod;
-    }
-    public long getBackgroundBetweenScanPeriod() {
-        return backgroundBetweenScanPeriod;
-    }
-    public long getForegroundScanPeriod() {
-        return foregroundScanPeriod;
-    }
-    public long getForegroundBetweenScanPeriod() {
-        return foregroundBetweenScanPeriod;
-    }
-
     /***
      * Determines if this BeaconManager instance is associated with the main application process that
      * hosts the user interface.  This is normally true unless the scanning service or another servide
@@ -513,7 +493,6 @@ public class BeaconManager {
             }
         }
     }
-    private boolean mScheduledScanJobsEnabled = false;
     public void setEnableScheduledScanJobs(boolean enabled) {
         this.mScheduledScanJobsEnabled = enabled;
     }

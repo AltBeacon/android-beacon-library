@@ -64,7 +64,6 @@ public class RangedBeacon implements Serializable {
             lastTrackedTimeMillis = SystemClock.elapsedRealtime();
             getFilter().addMeasurement(rssi);
         }
-        return mFilter;
     }
 
     //kept here for backward compatibility

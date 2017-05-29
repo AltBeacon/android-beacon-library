@@ -3,9 +3,11 @@ package org.altbeacon.beacon.startup;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.service.ScanJob;
 
 public class StartupBroadcastReceiver extends BroadcastReceiver
 {
@@ -21,6 +23,16 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());
         if (beaconManager.isAnyConsumerBound()) {
             if (intent.getBooleanExtra("wakeup", false)) {
+                LogManager.d(TAG, "got Android O background scan via intent");
+                Bundle bundle = intent.getExtras();
+                for (String key : bundle.keySet()) {
+                    LogManager.d(TAG, "Key found in Android O background scan delivery intent: "+key);
+                }
+                // TODO: figure out how to get the scan data out of the keys above so we can process
+                // Kick off a scan
+                ScanJob.scheduleAfterBackgroundWakeup(context);
+            }
+            else if (intent.getBooleanExtra("wakeup", false)) {
                 LogManager.d(TAG, "got wake up intent");
             }
             else {

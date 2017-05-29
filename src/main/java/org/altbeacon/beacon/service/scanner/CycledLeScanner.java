@@ -68,7 +68,8 @@ public abstract class CycledLeScanner {
     }
 
     public static CycledLeScanner createScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
-        boolean useAndroidLScanner;
+        boolean useAndroidLScanner = false;
+        boolean useAndroidOScanner = false;
         if (android.os.Build.VERSION.SDK_INT < 18) {
             LogManager.w(TAG, "Not supported prior to API 18.");
             return null;
@@ -77,7 +78,7 @@ public abstract class CycledLeScanner {
         if (android.os.Build.VERSION.SDK_INT < 21) {
             LogManager.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
             useAndroidLScanner = false;
-        } else {
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             if (BeaconManager.isAndroidLScanningDisabled()) {
                 LogManager.i(TAG, "This Android 5.0, but L scanning is disabled. We are using old scanning APIs");
                 useAndroidLScanner = false;
@@ -86,13 +87,19 @@ public abstract class CycledLeScanner {
                 useAndroidLScanner = true;
             }
         }
+        else {
+            LogManager.i(TAG, "Using Android O scanner");
+            useAndroidOScanner = true;
+        }
 
-        if (useAndroidLScanner) {
+        if (useAndroidOScanner) {
+            return new CycledLeScannerForAndroidO(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
+        }
+        else if (useAndroidLScanner) {
             return new CycledLeScannerForLollipop(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
         } else {
             return new CycledLeScannerForJellyBeanMr2(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
         }
-
     }
 
     /**

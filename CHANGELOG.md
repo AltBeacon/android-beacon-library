@@ -10,6 +10,8 @@ Bug Fixes:
 
 - Fix failure to stop scanning when unbinding from service or when the between scan period
   is nonzero. (#507, David G. Young)
+- Fix failure to restart scanning in some cases after bluetooth has been off but then is turned
+  back on. (#519, David G. Young)
 
 ### 2.10 / 2017-04-21
 

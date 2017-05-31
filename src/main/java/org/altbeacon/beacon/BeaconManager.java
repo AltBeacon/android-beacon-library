@@ -54,6 +54,7 @@ import org.altbeacon.beacon.utils.ProcessUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -925,11 +926,23 @@ public class BeaconManager {
     }
 
     /**
-     * @return the list of registered monitorNotifier
+     * Read-only access to the registered {@link MonitorNotifier} instances
+     * <p>
+     * This provides a thread-safe "read-only" view of the {@link Set} of registered monitor
+     * notifiers. Attempts to modify the returned set, or its iterator, will throw an
+     * {@link UnsupportedOperationException}. Modifications to the underlying set should be made
+     * through {@link #addMonitorNotifier(MonitorNotifier)} and
+     * {@link #removeMonitorNotifier(MonitorNotifier)}.
+     *
+     * @return a thread-safe {@linkplain Collections#unmodifiableSet(Set) unmodifiable view}
+     * providing "read-only" access to the registered {@link MonitorNotifier} instances
+     * @see #addMonitorNotifier(MonitorNotifier)
+     * @see #removeMonitorNotifier(MonitorNotifier)
+     * @see Collections#unmodifiableSet(Set)
      */
     @NonNull
     public Set<MonitorNotifier> getMonitoringNotifiers(){
-        return monitorNotifiers;
+        return Collections.unmodifiableSet(monitorNotifiers);
     }
 
     /**
@@ -947,11 +960,23 @@ public class BeaconManager {
     }
 
     /**
-     * @return the list of registered rangeNotifier
+     * Read-only access to the registered {@link RangeNotifier} instances
+     * <p>
+     * This provides a thread-safe "read-only" view of the {@link Set} of registered range
+     * notifiers. Attempts to modify the returned set, or its iterator, will throw an
+     * {@link UnsupportedOperationException}. Modifications to the underlying set should be made
+     * through {@link #addRangeNotifier(RangeNotifier)} and
+     * {@link #removeRangeNotifier(RangeNotifier)}.
+     *
+     * @return a thread-safe {@linkplain Collections#unmodifiableSet(Set) unmodifiable view}
+     * providing "read-only" access to the registered {@link RangeNotifier} instances
+     * @see #addRangeNotifier(RangeNotifier)
+     * @see #removeRangeNotifier(RangeNotifier)
+     * @see Collections#unmodifiableSet(Set)
      */
     @NonNull
     public Set<RangeNotifier> getRangingNotifiers() {
-        return rangeNotifiers;
+        return Collections.unmodifiableSet(rangeNotifiers);
     }
 
     /**

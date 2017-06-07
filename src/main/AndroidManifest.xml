@@ -5,47 +5,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:required="false"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:required="false"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <!--
-06-04 23:00:12.489 3894-3894/? E/AndroidRuntime: FATAL EXCEPTION: main
-                                                 Process: org.altbeacon.beaconreference, PID: 3894
-                                                 java.lang.RuntimeException: Unable to create application org.altbeacon.beaconreference.BeaconReferenceApplication: java.lang.IllegalArgumentException: Error: requested job be persisted without holding RECEIVE_BOOT_COMPLETED permission.
-                                                     at android.app.ActivityThread.handleBindApplication(ActivityThread.java:5788)
-                                                     at android.app.ActivityThread.-wrap1(Unknown Source:0)
-                                                     at android.app.ActivityThread$H.handleMessage(ActivityThread.java:1659)
-                                                     at android.os.Handler.dispatchMessage(Handler.java:105)
-                                                     at android.os.Looper.loop(Looper.java:164)
-                                                     at android.app.ActivityThread.main(ActivityThread.java:6535)
-                                                     at java.lang.reflect.Method.invoke(Native Method)
-                                                     at com.android.internal.os.Zygote$MethodAndArgsCaller.run(Zygote.java:240)
-                                                     at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:767)
-                                                  Caused by: java.lang.IllegalArgumentException: Error: requested job be persisted without holding RECEIVE_BOOT_COMPLETED permission.
-                                                     at android.os.Parcel.readException(Parcel.java:1940)
-                                                     at android.os.Parcel.readException(Parcel.java:1882)
-                                                     at android.app.job.IJobScheduler$Stub$Proxy.schedule(IJobScheduler.java:180)
-                                                     at android.app.JobSchedulerImpl.schedule(JobSchedulerImpl.java:44)
-                                                     at org.altbeacon.beacon.service.ScanJob.schedule(ScanJob.java:260)
-                                                     at org.altbeacon.beacon.service.ScanJob.applySettingsToScheduledJob(ScanJob.java:204)
-                                                     at org.altbeacon.beacon.service.ScanJob.applySettingsToScheduledJob(ScanJob.java:211)
-                                                     at org.altbeacon.beacon.BeaconManager.startMonitoringBeaconsInRegion(BeaconManager.java:874)
-                                                     at org.altbeacon.beacon.startup.RegionBootstrap$InternalBeaconConsumer.onBeaconServiceConnect(RegionBootstrap.java:155)
-                                                     at org.altbeacon.beacon.BeaconManager.bind(BeaconManager.java:378)
-                                                     at org.altbeacon.beacon.startup.RegionBootstrap.<init>(RegionBootstrap.java:58)
-                                                     at org.altbeacon.beaconreference.BeaconReferenceApplication.onCreate(BeaconReferenceApplication.java:60)
-                                                     at android.app.Instrumentation.callApplicationOnCreate(Instrumentation.java:1118)
-                                                     at android.app.ActivityThread.handleBindApplication(ActivityThread.java:5785)
-                                                     at android.app.ActivityThread.-wrap1(Unknown Source:0) 
-                                                     at android.app.ActivityThread$H.handleMessage(ActivityThread.java:1659) 
-                                                     at android.os.Handler.dispatchMessage(Handler.java:105) 
-                                                     at android.os.Looper.loop(Looper.java:164) 
-                                                     at android.app.ActivityThread.main(ActivityThread.java:6535) 
-                                                     at java.lang.reflect.Method.invoke(Native Method) 
-                                                     at com.android.internal.os.Zygote$MethodAndArgsCaller.run(Zygote.java:240) 
-                                                     at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:767) 
-
-    -->
-
-
-
     <uses-permission-sdk-23 android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application>

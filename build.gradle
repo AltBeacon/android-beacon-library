@@ -53,9 +53,10 @@ allprojects {
 android {
     // You cannot set a minSdk < Android O if targeting android-O.  Swap out the
     // commented lines below to test on Android O devices vs. earlier devices.
-    //compileSdkVersion 25
-    compileSdkVersion 'android-O'
-    buildToolsVersion '26.0.0-rc2'
+    //compileSdkVersion 'android-O'
+    //buildToolsVersion '26.0.0-rc2'
+    compileSdkVersion 25
+    buildToolsVersion "25.0.1"
 
     defaultConfig {
         // Unfortunately 'com.android.support:appcompat-v7:26.0.0-alpha1
@@ -63,8 +64,8 @@ android {
         minSdkVersion 14
         // You cannot set a minSdk < Android O if targeting android-O.  Swap out the
         // commented lines below to test on Android O devices vs. earlier devices.
-        //targetSdkVersion 25
-        targetSdkVersion 'O'
+        targetSdkVersion 23
+        //targetSdkVersion 'O'
         versionCode 1
         versionName version
         testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
@@ -91,8 +92,11 @@ android {
 
 dependencies {
     compile fileTree ( dir: 'libs', include: ['*.jar'] )
-    // Docs say to use com.android.support:appcompat-v7:26.0.0-beta1, but that is not available
-    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    // You cannot set a minSdk < Android O if targeting android-O.  Swap out the
+    // commented lines below to test on Android O devices vs. earlier devices.
+    // For Android O Docs say to use com.android.support:appcompat-v7:26.0.0-beta1, but that is not available
+    //compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    compile 'com.android.support:support-v4:25.1.0'
     compile 'com.android.support:support-annotations:24.2.1'
 
     testCompile('junit:junit:4.12') {

@@ -39,6 +39,7 @@ import android.os.RemoteException;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
+import org.altbeacon.beacon.service.Callback;
 import org.altbeacon.beacon.service.MonitoringStatus;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
@@ -496,6 +497,9 @@ public class BeaconManager {
     public void setEnableScheduledScanJobs(boolean enabled) {
         this.mScheduledScanJobsEnabled = enabled;
     }
+    public boolean getScheduledScanJobsEnabled() {
+        return this.mScheduledScanJobsEnabled;
+    }
     public boolean getBackgroundMode() {
         return mBackgroundMode;
     }
@@ -871,6 +875,7 @@ public class BeaconManager {
             return;
         }
         if (mScheduledScanJobsEnabled) {
+            MonitoringStatus.getInstanceForApplication(mContext).addRegion(region, new Callback(callbackPackageName()));
             ScanJob.applySettingsToScheduledJob(mContext, this);
         }
         else {
@@ -909,6 +914,7 @@ public class BeaconManager {
             return;
         }
         if (mScheduledScanJobsEnabled) {
+            MonitoringStatus.getInstanceForApplication(mContext).removeRegion(region);
             ScanJob.applySettingsToScheduledJob(mContext, this);
         }
         else {

@@ -101,16 +101,9 @@ public class ScanJob extends JobService {
                     LogManager.i(TAG, "Scan job runtime expired");
                     stopScanning();
                     mScanState.save();
-                    if (mScanState.getBackgroundMode()) {
-                        // TODO:  Ew. figure out a better way to know to call this
-                        if (mCycledScanner instanceof CycledLeScannerForAndroidO) {
-                            // We are in backround mode for Anrdoid O and the background scan cycle
-                            // has ended.  Now we kick off a background scan with a lower power
-                            // mode and set it to deliver an intent if it sees anything that will
-                            // wake us up and start this craziness all over again
-                            ((CycledLeScannerForAndroidO)mCycledScanner).startAndroidOBackgroundScan(mScanState.getBeaconParsers());
-                        }
-                    }
+
+                    startPassiveScanIfNeeded();
+
                     ScanJob.this.jobFinished(jobParameters , false);
                 }
             }, mScanState.getScanJobRuntimeMillis());
@@ -120,6 +113,35 @@ public class ScanJob extends JobService {
             ScanJob.this.jobFinished(jobParameters , false);
         }
         return true;
+    }
+
+    private void startPassiveScanIfNeeded() {
+        LogManager.d(TAG, "Checking to see if we need to start a passive scan");
+        boolean insideAnyRegion = false;
+        for (Region region : mScanState.getMonitoringStatus().regions()) {
+            RegionMonitoringState state = mScanState.getMonitoringStatus().stateOf(region);
+            if (state != null && state.getInside()) {
+                insideAnyRegion = true;
+            }
+        }
+        if (insideAnyRegion) {
+            // TODO: Set up a scan filter for not detecting a beacon pattern
+            LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
+        }
+        else {
+            LogManager.i(TAG, "We are outside all beacon regions.  We will scan between cycles.");
+            // TODO:  Ew. figure out a better way to know to call this
+            if (mCycledScanner instanceof CycledLeScannerForAndroidO) {
+                // We are in backround mode for Anrdoid O and the background scan cycle
+                // has ended.  Now we kick off a background scan with a lower power
+                // mode and set it to deliver an intent if it sees anything that will
+                // wake us up and start this craziness all over again
+                ((CycledLeScannerForAndroidO)mCycledScanner).startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+            }
+            else {
+                LogManager.d(TAG, "This is not an Android O scanner.  No scanning between cycles.");
+            }
+        }
     }
 
     @Override
@@ -133,6 +155,7 @@ public class ScanJob extends JobService {
         // Cancel the stop timer.  The OS is stopping prematurely
         mStopHandler.removeCallbacksAndMessages(null);
         stopScanning();
+        startPassiveScanIfNeeded();
         return false;
     }
 

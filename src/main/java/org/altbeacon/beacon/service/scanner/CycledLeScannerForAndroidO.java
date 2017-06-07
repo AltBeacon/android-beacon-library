@@ -37,15 +37,18 @@ public class CycledLeScannerForAndroidO extends CycledLeScannerForJellyBeanMr2 {
                 new ArrayList(beaconParsers));
         try {
             Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
-
+            intent.putExtra("o-scan", true);
             PendingIntent callbackIntent = PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             // We cannot build with a minSdk < Android O when using Android O preview APIs
             // so if you set an earlier minSdk to test against pre-O devices, you must comment out
             // the next few lines
-            //int result = getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, callbackIntent);
-            //if (result != 0) {
-            //    LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
-            //}
+            int result = getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, callbackIntent);
+            if (result != 0) {
+                LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
+            }
+            else {
+                LogManager.d(TAG, "Started passive beacon scan");
+            }
          }
         catch (SecurityException e) {
             LogManager.e(TAG, "SecurityException making Android O background scanner");

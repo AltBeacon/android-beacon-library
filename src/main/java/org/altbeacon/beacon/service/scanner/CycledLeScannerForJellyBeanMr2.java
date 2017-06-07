@@ -107,7 +107,9 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
                                              final byte[] scanRecord) {
                             LogManager.d(TAG, "got record");
                             mCycledLeScanCallback.onLeScan(device, rssi, scanRecord);
-                            mBluetoothCrashResolver.notifyScannedDevice(device, getLeScanCallback());
+                            if (mBluetoothCrashResolver != null) {
+                                mBluetoothCrashResolver.notifyScannedDevice(device, getLeScanCallback());
+                            }
                         }
                     };
         }

@@ -78,7 +78,7 @@ public abstract class CycledLeScanner {
         if (android.os.Build.VERSION.SDK_INT < 21) {
             LogManager.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
             useAndroidLScanner = false;
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        } else if (Build.VERSION.PREVIEW_SDK_INT != 2 /* Build.VERSION_CODES.O*/) {
             if (BeaconManager.isAndroidLScanningDisabled()) {
                 LogManager.i(TAG, "This Android 5.0, but L scanning is disabled. We are using old scanning APIs");
                 useAndroidLScanner = false;
@@ -342,7 +342,7 @@ public abstract class CycledLeScanner {
                 }
             }
             if (!mScanningEnabled) {
-                LogManager.d(TAG, "Scanning disabled.  No ranging or monitoring regions are active.");
+                LogManager.d(TAG, "Scanning disabled. ");
                 mScanCyclerStarted = false;
                 cancelWakeUpAlarm();
             }

@@ -55,21 +55,26 @@ android {
     // commented lines below to test on Android O devices vs. earlier devices.
     //compileSdkVersion 'android-O'
     //buildToolsVersion '26.0.0-rc2'
-    compileSdkVersion 25
-    buildToolsVersion "25.0.1"
+    compileSdkVersion 24
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         // Unfortunately 'com.android.support:appcompat-v7:26.0.0-alpha1
         // requires minSdkVersion 14, forcing a bump verson minSdkVersion 7
-        minSdkVersion 14
+        //minSdkVersion 14
+        minSdkVersion 7
         // You cannot set a minSdk < Android O if targeting android-O.  Swap out the
         // commented lines below to test on Android O devices vs. earlier devices.
         targetSdkVersion 23
         //targetSdkVersion 'O'
         versionCode 1
         versionName version
-        testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
         consumerProguardFiles 'proguard-rules.pro'
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testOptions {
+            // The test runner needs Espresso 2.2.2 which requires at least 8
+            minSdkVersion 8
+        }
     }
 
     compileOptions {
@@ -96,7 +101,7 @@ dependencies {
     // commented lines below to test on Android O devices vs. earlier devices.
     // For Android O Docs say to use com.android.support:appcompat-v7:26.0.0-beta1, but that is not available
     //compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
-    compile 'com.android.support:support-v4:25.1.0'
+    compile 'com.android.support:support-v4:24.1.0'
     compile 'com.android.support:support-annotations:24.2.1'
 
     testCompile('junit:junit:4.12') {
@@ -112,6 +117,17 @@ dependencies {
     testCompile('org.mockito:mockito-core:1.10.19') {
         exclude group: 'org.hamcrest'
     }
+    androidTestCompile('junit:junit:4.12') {
+        exclude group: 'org.hamcrest'
+    }
+    androidTestCompile('org.hamcrest:hamcrest-junit:2.0.0.0') {
+        exclude group: 'junit'
+    }
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'org.hamcrest'
+    })
+    androidTestCompile 'org.apache.commons:commons-math3:3.6.1'
 }
 
 apply plugin: 'idea'

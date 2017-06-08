@@ -41,7 +41,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void stopScan() {
-        postStopLeScan();
+        if (canScan()) {
+            postStopLeScan();
+        }
     }
 
     /*
@@ -158,24 +160,26 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void startScan() {
-        if (!isBluetoothOn()) {
-            LogManager.d(TAG, "Not starting scan because bluetooth is off");
-            return;
-        }
-        List<ScanFilter> filters = new ArrayList<ScanFilter>();
-        ScanSettings settings;
+        if (canScan()) {
+            if (!isBluetoothOn()) {
+                LogManager.d(TAG, "Not starting scan because bluetooth is off");
+                return;
+            }
+            List<ScanFilter> filters = new ArrayList<ScanFilter>();
+            ScanSettings settings;
 
-        if (mBackgroundFlag && !mMainScanCycleActive) {
-            LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
-            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
-            filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                    mBeaconManager.getBeaconParsers());
-        } else {
-            LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
-            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
-        }
+            if (mBackgroundFlag && !mMainScanCycleActive) {
+                LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
+                settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+                filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                        mBeaconManager.getBeaconParsers());
+            } else {
+                LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
+                settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+            }
 
-        postStartLeScan(filters, settings);
+            postStartLeScan(filters, settings);
+        }
     }
 
     @Override

@@ -1,13 +1,22 @@
 package org.altbeacon.beacon.startup;
 
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.service.ScanJob;
+import org.altbeacon.beacon.service.ScanJobScheduler;
+
+import java.util.ArrayList;
 
 public class StartupBroadcastReceiver extends BroadcastReceiver
 {
@@ -24,22 +33,6 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
         if (beaconManager.isAnyConsumerBound() || beaconManager.getScheduledScanJobsEnabled()) {
             if (intent.getBooleanExtra("wakeup", false)) {
                 LogManager.d(TAG, "got wake up intent");
-            }
-            else if (intent.getBooleanExtra("o-scan", false)) {
-                LogManager.d(TAG, "got Android O background scan via intent");
-                Bundle bundle = intent.getExtras();
-                /*
-06-05 22:31:14.277 7696-7696/org.altbeacon.beaconreference D/StartupBroadcastReceiver: Extra key found in Android O background scan delivery intent: o-scan
-06-05 22:31:14.278 7696-7696/org.altbeacon.beaconreference D/StartupBroadcastReceiver: Extra key found in Android O background scan delivery intent: android.bluetooth.le.extra.LIST_SCAN_RESULT
-06-05 22:31:14.278 7696-7696/org.altbeacon.beaconreference D/StartupBroadcastReceiver: Extra key found in Android O background scan delivery intent: android.bluetooth.le.extra.CALLBACK_TYPE
-                 */
-
-                for (String key : bundle.keySet()) {
-                    LogManager.d(TAG, "Extra key found in Android O background scan delivery intent: "+key);
-                }
-                // TODO: figure out how to get the scan data out of the keys above so we can process
-                // Kick off a scan
-                ScanJob.scheduleAfterBackgroundWakeup(context);
             }
             else {
                 LogManager.d(TAG, "Already started.  Ignoring intent: %s of type: %s", intent,

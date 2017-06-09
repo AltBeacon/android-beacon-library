@@ -7,6 +7,7 @@ import android.app.job.JobScheduler;
 import android.app.job.JobService;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.ComponentName;
 import android.content.Context;
@@ -58,6 +59,14 @@ import java.util.concurrent.RejectedExecutionException;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScanJob extends JobService {
     private static final String TAG = ScanJob.class.getSimpleName();
+    public static final int PERIODIC_SCAN_JOB_ID = 1;
+    /*
+        Periodic scan jobs are used in general, but they cannot be started immediately.  So we have
+        a second immediate scan job to kick off when scanning gets started or settings changed.
+        Once the periodic one gets run, the immediate is cancelled.
+     */
+    public static final int IMMMEDIATE_SCAN_JOB_ID = 2;
+
     private ScanState mScanState;
     private Handler mStopHandler = new Handler();
 
@@ -76,13 +85,27 @@ public class ScanJob extends JobService {
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
         JobScheduler jobScheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        if (jobParameters.getJobId() == sPeriodicScanJobId) {
-            LogManager.i(TAG, "Running periodic scan job: instance is "+this);
+        if (jobParameters.getJobId() == IMMMEDIATE_SCAN_JOB_ID) {
+            LogManager.i(TAG, "Running immdiate scan job: instance is "+this);
         }
         else {
-            LogManager.i(TAG, "Running immediate scan job: instance is "+this);
+            LogManager.i(TAG, "Running periodic scan job: instance is "+this);
         }
         mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        NonBeaconLeScanCallback nonBeaconLeScanCallback = BeaconManager.getInstanceForApplication(this).getNonBeaconLeScanCallback();
+
+        List<ScanResult> queuedScanResults = ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue();
+        LogManager.d(TAG, "Processing %d queued scan resuilts", queuedScanResults.size());
+        for (ScanResult result : queuedScanResults) {
+            try {
+                new ScanJob.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(mExecutor,
+                        new ScanJob.ScanData(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes()));
+            } catch (RejectedExecutionException e) {
+                LogManager.w(TAG, "Ignoring queued scan result because we cannot keep up.");
+            }
+        }
+        LogManager.d(TAG, "Done processing queued scan resuilts");
+
         boolean startedScan = false;
         if (mInitialized) {
             LogManager.d(TAG, "Scanning already started.  Resetting for current parameters");
@@ -146,7 +169,7 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters params) {
-        if (params.getJobId() == sPeriodicScanJobId) {
+        if (params.getJobId() == PERIODIC_SCAN_JOB_ID) {
             LogManager.i(TAG, "onStopJob called for periodic scan");
         }
         else {
@@ -211,105 +234,9 @@ public class ScanJob extends JobService {
         LogManager.d(TAG, "Scanning stopped");
     }
 
-    //TODO: Move this and the static methods below to its own utility class
 
-    /*
-        Periodic scan jobs are used in general, but they cannot be started immediately.  So we have
-        a second immediate scan job to kick off when scanning gets started or settings changed.
-        Once the periodic one gets run, the immediate is cancelled.
-     */
-    private static int sImmediateScanJobId = 1; // TODO: make this configurable
-    private static int sPeriodicScanJobId = 2; // TODO: make this configurable
 
-    private static void applySettingsToScheduledJob(Context context, BeaconManager beaconManager, ScanState scanState) {
-        scanState.applyChanges(beaconManager);
-        LogManager.d(TAG, "Applying scan job settings with background mode "+scanState.getBackgroundMode());
-        schedule(context, scanState, false);
-    }
 
-    public static void applySettingsToScheduledJob(Context context, BeaconManager beaconManager) {
-        LogManager.d(TAG, "Applying settings to ScanJob");
-        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        ScanState scanState = ScanState.restore(context);
-        applySettingsToScheduledJob(context, beaconManager, scanState);
-    }
-
-    public static void scheduleAfterBackgroundWakeup(Context context) {
-        ScanState scanState = ScanState.restore(context);
-        schedule(context, scanState, true);
-    }
-    /**
-     *
-     * @param context
-     */
-    public static void schedule(Context context, ScanState scanState, boolean backgroundWakeup) {
-        long betweenScanPeriod = scanState.getScanJobIntervalMillis() - scanState.getScanJobRuntimeMillis();
-
-        long millisToNextJobStart = scanState.getScanJobIntervalMillis();
-        if (backgroundWakeup) {
-            LogManager.d(TAG, "We just woke up in the background based on a new scan result.  Start scan job immediately.");
-            millisToNextJobStart = 0;
-        }
-        else {
-            if (betweenScanPeriod > 0) {
-                // If we pause between scans, then we need to start scanning on a normalized time
-                millisToNextJobStart = (SystemClock.elapsedRealtime() % scanState.getScanJobIntervalMillis());
-            }
-            else {
-                millisToNextJobStart = 0;
-            }
-
-            if (millisToNextJobStart < 50) {
-                // always wait a little bit to start scanning in case settings keep changing.
-                // by user restarting settings and scanning.  50ms should be fine
-                millisToNextJobStart = 50;
-            }
-        }
-
-        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-
-        if (backgroundWakeup || !scanState.getBackgroundMode()) {
-            // If we are in the foreground, and we want to start a scan soon, we will schedule an
-            // immediate job
-            if (millisToNextJobStart < scanState.getScanJobIntervalMillis() - 50) {
-                // If the next time we want to scan is less than 50ms from the periodic scan cycle, then]
-                // we schedule it for that specific time.
-                LogManager.d(TAG, "Scheduling immediate ScanJob to run in "+millisToNextJobStart+" millis");
-                JobInfo immediateJob = new JobInfo.Builder(sImmediateScanJobId, new ComponentName(context, ScanJob.class))
-                        .setPersisted(true) // This makes it restart after reboot
-                        .setExtras(new PersistableBundle())
-                        .setMinimumLatency(millisToNextJobStart)
-                        .setOverrideDeadline(millisToNextJobStart).build();
-                int error = jobScheduler.schedule(immediateJob);
-                if (error < 0) {
-                    LogManager.e(TAG, "Failed to schedule scan job.  Beacons will not be detected. Error: "+error);
-                }
-            }
-        }
-        else {
-            LogManager.d(TAG, "Not scheduling an immediate scan because we are in background mode.   Cancelling existing immediate scan.");
-            jobScheduler.cancel(sImmediateScanJobId);
-        }
-
-        JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(sPeriodicScanJobId, new ComponentName(context, ScanJob.class))
-                .setPersisted(true) // This makes it restart after reboot
-                .setExtras(new PersistableBundle());
-
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // ON Android N+ we specify a tolerance of 0ms (capped at 5% by the OS) to ensure
-            // our scans happen within 5% of the schduled time.
-            periodicJobBuilder.setPeriodic(scanState.getScanJobIntervalMillis(), 0l).build();
-        }
-        else {
-            periodicJobBuilder.setPeriodic(scanState.getScanJobIntervalMillis()).build();
-        }
-
-        LogManager.d(TAG, "Scheduling ScanJob to run every "+scanState.getScanJobIntervalMillis()+" millis");
-        int error = jobScheduler.schedule(periodicJobBuilder.build());
-        if (error < 0) {
-            LogManager.e(TAG, "Failed to schedule scan job.  Beacons will not be detected. Error: "+error);
-        }
-    }
 
   // ***********************
   // Code below here copied from BeaconService -- refactor to a common class

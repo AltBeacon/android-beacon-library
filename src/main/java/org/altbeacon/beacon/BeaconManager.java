@@ -48,6 +48,7 @@ import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.ScanJob;
+import org.altbeacon.beacon.service.ScanJobScheduler;
 import org.altbeacon.beacon.service.ScanState;
 import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
@@ -775,7 +776,7 @@ public class BeaconManager {
             rangedRegions.add(region);
         }
         if (mScheduledScanJobsEnabled) {
-            ScanJob.applySettingsToScheduledJob(mContext, this);
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
         }
         else {
             if (serviceMessenger == null) {
@@ -816,7 +817,7 @@ public class BeaconManager {
             rangedRegions.remove(regionToRemove);
         }
         if (mScheduledScanJobsEnabled) {
-            ScanJob.applySettingsToScheduledJob(mContext, this);
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
         }
         else {
             if (serviceMessenger == null) {
@@ -849,7 +850,7 @@ public class BeaconManager {
 
     protected void syncSettingsToService() {
         if (mScheduledScanJobsEnabled) {
-            ScanJob.applySettingsToScheduledJob(mContext, this);
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
             return;
         }
         if (serviceMessenger == null) {
@@ -889,7 +890,7 @@ public class BeaconManager {
         }
         if (mScheduledScanJobsEnabled) {
             MonitoringStatus.getInstanceForApplication(mContext).addRegion(region, new Callback(callbackPackageName()));
-            ScanJob.applySettingsToScheduledJob(mContext, this);
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
         }
         else {
             if (serviceMessenger == null) {
@@ -928,7 +929,7 @@ public class BeaconManager {
         }
         if (mScheduledScanJobsEnabled) {
             MonitoringStatus.getInstanceForApplication(mContext).removeRegion(region);
-            ScanJob.applySettingsToScheduledJob(mContext, this);
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
         }
         else {
             if (serviceMessenger == null) {
@@ -962,7 +963,7 @@ public class BeaconManager {
         LogManager.d(TAG, "updating background flag to %s", mBackgroundMode);
         LogManager.d(TAG, "updating scan period to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
         if (mScheduledScanJobsEnabled) {
-            ScanJob.applySettingsToScheduledJob(mContext, this);
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
         }
         else {
             if (serviceMessenger == null) {

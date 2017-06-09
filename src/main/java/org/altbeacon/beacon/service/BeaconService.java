@@ -39,6 +39,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.annotation.NonNull;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -93,7 +94,7 @@ public class BeaconService extends Service {
     private ExtraDataBeaconTracker mExtraDataBeaconTracker;
     private ExecutorService mExecutor;
     private final DistinctPacketDetector mDistinctPacketDetector = new DistinctPacketDetector();
-    
+
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
      * Each time we restart we only see the unique advertisements once (e.g. unique beacons)
@@ -476,16 +477,23 @@ public class BeaconService extends Service {
     }
 
 
-    private class ScanData {
-        public ScanData(BluetoothDevice device, int rssi, byte[] scanRecord) {
+    /**
+     * <strong>This class is not thread safe.</strong>
+     */
+    private static class ScanData {
+        ScanData(@NonNull BluetoothDevice device, int rssi, @NonNull byte[] scanRecord) {
             this.device = device;
             this.rssi = rssi;
             this.scanRecord = scanRecord;
         }
 
-        int rssi;
-        BluetoothDevice device;
-        byte[] scanRecord;
+        final int rssi;
+
+        @NonNull
+        final BluetoothDevice device;
+
+        @NonNull
+        final byte[] scanRecord;
     }
 
     private class ScanProcessor extends AsyncTask<ScanData, Void, Void> {
@@ -502,7 +510,7 @@ public class BeaconService extends Service {
             ScanData scanData = params[0];
             Beacon beacon = null;
 
-            for (BeaconParser parser : BeaconService.this.beaconParsers) {
+            for (BeaconParser parser : beaconParsers) {
                 beacon = parser.fromScanData(scanData.scanRecord,
                         scanData.rssi, scanData.device);
 
@@ -518,7 +526,7 @@ public class BeaconService extends Service {
                 if (!mCycledScanner.getDistinctPacketsDetectedPerScan()) {
                     if (!mDistinctPacketDetector.isPacketDistinct(scanData.device.getAddress(),
                             scanData.scanRecord)) {
-                        LogManager.i(TAG, "Non-distinct packets detected in a single scan.  Restarting scans unecessary.");
+                        LogManager.i(TAG, "Non-distinct packets detected in a single scan.  Restarting scans unnecessary.");
                         mCycledScanner.setDistinctPacketsDetectedPerScan(true);
                     }
                 }

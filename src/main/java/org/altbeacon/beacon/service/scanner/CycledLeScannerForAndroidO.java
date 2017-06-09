@@ -26,6 +26,8 @@ public class CycledLeScannerForAndroidO extends CycledLeScannerForJellyBeanMr2 {
 
     public CycledLeScannerForAndroidO(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
+        // We stop scanning here in case we were doing a passive background scan
+        getBluetoothAdapter().getBluetoothLeScanner().stopScan(getScanCallbackIntent());
     }
 
     /**
@@ -36,13 +38,10 @@ public class CycledLeScannerForAndroidO extends CycledLeScannerForJellyBeanMr2 {
         List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                 new ArrayList(beaconParsers));
         try {
-            Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
-            intent.putExtra("o-scan", true);
-            PendingIntent callbackIntent = PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             // We cannot build with a minSdk < Android O when using Android O preview APIs
             // so if you set an earlier minSdk to test against pre-O devices, you must comment out
             // the next few lines
-            int result = getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, callbackIntent);
+            int result = getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, getScanCallbackIntent());
             if (result != 0) {
                 LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
             }
@@ -53,6 +52,13 @@ public class CycledLeScannerForAndroidO extends CycledLeScannerForJellyBeanMr2 {
         catch (SecurityException e) {
             LogManager.e(TAG, "SecurityException making Android O background scanner");
          }
+    }
+
+    // Low power scan results in the background will be delivered via Intent
+    private PendingIntent getScanCallbackIntent() {
+        Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
+        intent.putExtra("o-scan", true);
+        return PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
 }

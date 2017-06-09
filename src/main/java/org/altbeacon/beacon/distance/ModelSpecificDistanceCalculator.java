@@ -189,8 +189,12 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             buildModelMapWithLock(sb.toString());
             return true;
         } catch (JSONException e) {
-            LogManager.e(TAG, "Cannot update distance models from online database at %s with JSON",
-                    e, mRemoteUpdateUrlString, sb.toString());
+            LogManager.e(
+                    e,
+                    TAG,
+                    "Cannot update distance models from online database at %s with JSON: %s",
+                    mRemoteUpdateUrlString, sb.toString()
+            );
             return false;
         }
     }

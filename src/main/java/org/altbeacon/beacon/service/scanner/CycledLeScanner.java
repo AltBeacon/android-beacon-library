@@ -382,6 +382,7 @@ public abstract class CycledLeScanner {
                         mLastScanCycleEndTime = SystemClock.elapsedRealtime();
                     } else {
                         LogManager.d(TAG, "Bluetooth is disabled.  Cannot scan for beacons.");
+                        mRestartNeeded = true;
                     }
                 }
                 mNextScanCycleStartTime = getNextScanStartTime();

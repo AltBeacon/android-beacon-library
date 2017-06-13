@@ -29,8 +29,6 @@ public class RangedBeacon {
         } catch (Exception e) {
             LogManager.e(TAG, "Could not construct RssiFilterImplClass %s", BeaconManager.getRssiFilterImplClass().getName());
         }
-
-        RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
         updateBeacon(beacon);
     }
 
@@ -76,6 +74,7 @@ public class RangedBeacon {
     //kept here for backward compatibility
     public static void setSampleExpirationMilliseconds(long milliseconds) {
         sampleExpirationMilliseconds = milliseconds;
+        RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
     }
 
     public static void setMaxTrackinAge(int maxTrackinAge) {

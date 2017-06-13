@@ -10,6 +10,8 @@ Bug Fixes:
 
 - Fix Google Play submission errors by no longer using uses-permission-sdk-23 in
   Manifest (#527, David G. Young)
+- Fix failure to restart scanning in some cases after bluetooth has been off but then is turned
+  back on. (#519, David G. Young)
 - Fix failure to stop scanning when unbinding from service or when the between scan period
   is nonzero. (#507, David G. Young)
 - Fix possible `NullPointerException` with `BackgroundPowerSaver` on devices
@@ -18,6 +20,8 @@ Bug Fixes:
   `BeaconManager#getMonitoringNotifier` and `BeaconManager#getRangingNotifier`
   where the notifier sets were modified external to `BeaconManager` by another
   thread (#516, Aaron Kromer)
+- Fix inability to use `RunningAverageRssiFilter.setSampleExpirationMilliseconds(...)` (#523,
+  David G. Young)
 
 ### 2.10 / 2017-04-21
 

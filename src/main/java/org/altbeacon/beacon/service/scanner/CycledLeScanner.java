@@ -1,7 +1,6 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -15,11 +14,16 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.support.annotation.AnyThread;
+import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
+
 import java.util.Date;
 
 @TargetApi(18)
@@ -41,8 +45,30 @@ public abstract class CycledLeScanner {
 
     protected long mBetweenScanPeriod;
 
+    /**
+     * Main thread handle for scheduling scan cycle tasks.
+     * <p>
+     * Use this to schedule deferred tasks such as the following:
+     * <ul>
+     *     <li>{@link #scheduleScanCycleStop()}</li>
+     *     <li>{@link #scanLeDevice(Boolean) scanLeDevice(true)} from {@link #deferScanIfNeeded()}</li>
+     * </ul>
+     */
+    @NonNull
     protected final Handler mHandler = new Handler(Looper.getMainLooper());
+
+    /**
+     * Handler to background thread for interacting with the low-level Android BLE scanner.
+     * <p>
+     * Use this to queue any potentially long running BLE scanner actions such as starts and stops.
+     */
+    @NonNull
     protected final Handler mScanHandler;
+
+    /**
+     * Worker thread hosting the internal scanner message queue.
+     */
+    @NonNull
     private final HandlerThread mScanThread;
 
     protected final BluetoothCrashResolver mBluetoothCrashResolver;
@@ -51,7 +77,22 @@ public abstract class CycledLeScanner {
     protected boolean mBackgroundFlag = false;
     protected boolean mRestartNeeded = false;
 
-    private boolean mDistinctPacketsDetectedPerScan = false;
+    /**
+     * Flag indicating device hardware supports detecting multiple identical packets per scan.
+     * <p>
+     * Restarting scanning (stopping and immediately restarting) is necessary on many older Android
+     * devices like the Nexus 4 and Moto G because once they detect a distinct BLE packet in a scan,
+     * subsequent detections do not get a scan callback. Stopping scanning and restarting clears
+     * this out, allowing subsequent detection of identical advertisements. On most newer device,
+     * this is not necessary, and multiple callbacks are given for identical packets detected in
+     * a single scan.
+     * <p>
+     * This is declared {@code volatile} because it may be set by a background scan thread while
+     * we are in a method on the main thread which will end up checking it. Using this modifier
+     * ensures that when we read the flag we'll always see the most recently written value. This is
+     * also true for background scan threads which may be running concurrently.
+     */
+    private volatile boolean mDistinctPacketsDetectedPerScan = false;
     private static final long ANDROID_N_MIN_SCAN_CYCLE_MILLIS = 6000l;
 
     protected CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
@@ -101,6 +142,7 @@ public abstract class CycledLeScanner {
      * between LOW_POWER_MODE vs. LOW_LATENCY_MODE
      * @param backgroundFlag
      */
+    @MainThread
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         LogManager.d(TAG, "Set scan periods called with %s, %s Background mode must have changed.",
                 scanPeriod, betweenScanPeriod);
@@ -141,6 +183,7 @@ public abstract class CycledLeScanner {
         }
     }
 
+    @MainThread
     public void start() {
         LogManager.d(TAG, "start called");
         mScanningEnabled = true;
@@ -151,7 +194,7 @@ public abstract class CycledLeScanner {
         }
     }
 
-    @SuppressLint("NewApi")
+    @MainThread
     public void stop() {
         LogManager.d(TAG, "stop called");
         mScanningEnabled = false;
@@ -162,26 +205,32 @@ public abstract class CycledLeScanner {
         }
     }
 
+    @AnyThread
     public boolean getDistinctPacketsDetectedPerScan() {
         return mDistinctPacketsDetectedPerScan;
     }
 
+    @AnyThread
     public void setDistinctPacketsDetectedPerScan(boolean detected) {
         mDistinctPacketsDetectedPerScan = detected;
     }
 
+    @MainThread
     public void destroy() {
         LogManager.d(TAG, "Destroying");
+
+        // Remove any postDelayed Runnables queued for the next scan cycle
+        mHandler.removeCallbacksAndMessages(null);
+
         // We cannot quit the thread used by the handler until queued Runnables have been processed,
         // because the handler is what stops scanning, and we do not want scanning left on.
         // So we stop the thread using the handler, so we make sure it happens after all other
         // waiting Runnables are finished.
-        mHandler.post(new Runnable() {
+        mScanHandler.post(new Runnable() {
+            @WorkerThread
             @Override
             public void run() {
                 LogManager.d(TAG, "Quitting scan thread");
-                // Remove any postDelayed Runnables queued for the next scan cycle
-                mHandler.removeCallbacksAndMessages(null);
                 mScanThread.quit();
             }
         });
@@ -193,14 +242,14 @@ public abstract class CycledLeScanner {
 
     protected abstract void startScan();
 
-    @SuppressLint("NewApi")
+    @MainThread
     protected void scanLeDevice(final Boolean enable) {
         try {
             mScanCyclerStarted = true;
             if (getBluetoothAdapter() == null) {
                 LogManager.e(TAG, "No Bluetooth adapter.  beaconService cannot scan.");
             }
-            if (enable) {
+            if (mScanningEnabled && enable) {
                 if (deferScanIfNeeded()) {
                     return;
                 }
@@ -253,6 +302,9 @@ public abstract class CycledLeScanner {
                 mScanCyclerStarted = false;
                 stopScan();
                 mLastScanCycleEndTime = SystemClock.elapsedRealtime();
+                // Clear any queued schedule tasks as we're done scanning
+                mScanHandler.removeCallbacksAndMessages(null);
+                finishScanCycle();
             }
         }
         catch (SecurityException e) {
@@ -260,16 +312,18 @@ public abstract class CycledLeScanner {
         }
     }
 
+    @MainThread
     protected void scheduleScanCycleStop() {
         // Stops scanning after a pre-defined scan period.
         long millisecondsUntilStop = mScanCycleStopTime - SystemClock.elapsedRealtime();
-        if (millisecondsUntilStop > 0) {
+        if (mScanningEnabled && millisecondsUntilStop > 0) {
             LogManager.d(TAG, "Waiting to stop scan cycle for another %s milliseconds",
                     millisecondsUntilStop);
             if (mBackgroundFlag) {
                 setWakeUpAlarm();
             }
             mHandler.postDelayed(new Runnable() {
+                @MainThread
                 @Override
                 public void run() {
                     scheduleScanCycleStop();
@@ -282,6 +336,7 @@ public abstract class CycledLeScanner {
 
     protected abstract void finishScan();
 
+    @MainThread
     private void finishScanCycle() {
         LogManager.d(TAG, "Done with scan cycle");
         try {
@@ -298,7 +353,7 @@ public abstract class CycledLeScanner {
                         // so it is best avoided.  If we know the device has detected to distinct
                         // packets in the same cycle, we will not restart scanning and just keep it
                         // going.
-                        if (!getDistinctPacketsDetectedPerScan() || mBetweenScanPeriod != 0) {
+                        if (!mDistinctPacketsDetectedPerScan || mBetweenScanPeriod != 0) {
                             long now = SystemClock.elapsedRealtime();
                             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                                     mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&

@@ -10,6 +10,8 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
+import android.support.annotation.MainThread;
+import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -134,6 +136,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 setWakeUpAlarm();
             }
             mHandler.postDelayed(new Runnable() {
+                @MainThread
                 @Override
                 public void run() {
                     scanLeDevice(true);
@@ -190,6 +193,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         final ScanCallback scanCallback = getNewLeScanCallback();
         mScanHandler.removeCallbacksAndMessages(null);
         mScanHandler.post(new Runnable() {
+            @WorkerThread
             @Override
             public void run() {
                 try {
@@ -198,7 +202,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     LogManager.w(TAG, "Cannot start scan. Bluetooth may be turned off.");
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.e(TAG, "Cannot start scan. Unexpected NPE.", npe);
+                    LogManager.e(npe, TAG, "Cannot start scan. Unexpected NPE.");
                 } catch (SecurityException e) {
                     // Thrown by Samsung Knox devices if bluetooth access denied for an app
                     LogManager.e(TAG, "Cannot start scan.  Security Exception");
@@ -220,6 +224,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         final ScanCallback scanCallback = getNewLeScanCallback();
         mScanHandler.removeCallbacksAndMessages(null);
         mScanHandler.post(new Runnable() {
+            @WorkerThread
             @Override
             public void run() {
                 try {
@@ -229,7 +234,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     LogManager.w(TAG, "Cannot stop scan. Bluetooth may be turned off.");
                 } catch (NullPointerException npe) {
                     // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
-                    LogManager.e(TAG, "Cannot stop scan. Unexpected NPE.", npe);
+                    LogManager.e(npe, TAG, "Cannot stop scan. Unexpected NPE.");
                 } catch (SecurityException e) {
                     // Thrown by Samsung Knox devices if bluetooth access denied for an app
                     LogManager.e(TAG, "Cannot stop scan.  Security Exception");
@@ -275,7 +280,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private ScanCallback getNewLeScanCallback() {
         if (leScanCallback == null) {
             leScanCallback = new ScanCallback() {
-
+                @MainThread
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
                     if (LogManager.isVerboseLoggingEnabled()) {
@@ -294,6 +299,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     }
                 }
 
+                @MainThread
                 @Override
                 public void onBatchScanResults(List<ScanResult> results) {
                     LogManager.d(TAG, "got batch records");
@@ -306,6 +312,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     }
                 }
 
+                @MainThread
                 @Override
                 public void onScanFailed(int errorCode) {
                     switch (errorCode) {

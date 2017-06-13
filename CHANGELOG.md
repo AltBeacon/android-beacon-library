@@ -8,10 +8,16 @@ Enhancements:
 
 Bug Fixes:
 
-- Fix failure to stop scanning when unbinding from service or when the between scan period
-  is nonzero. (#507, David G. Young)
 - Fix failure to restart scanning in some cases after bluetooth has been off but then is turned
   back on. (#519, David G. Young)
+- Fix failure to stop scanning when unbinding from service or when the between scan period
+  is nonzero. (#507, David G. Young)
+- Fix possible `NullPointerException` with `BackgroundPowerSaver` on devices
+  prior to Android 4.3 Jelly Bean MR 2 (API 18) (#516, Aaron Kromer)
+- Fix rare edge case causing `NoSuchElementException` when using the legacy
+  `BeaconManager#getMonitoringNotifier` and `BeaconManager#getRangingNotifier`
+  where the notifier sets were modified external to `BeaconManager` by another
+  thread (#516, Aaron Kromer)
 
 ### 2.10 / 2017-04-21
 

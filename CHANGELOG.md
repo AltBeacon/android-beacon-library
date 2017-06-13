@@ -18,6 +18,8 @@ Bug Fixes:
   `BeaconManager#getMonitoringNotifier` and `BeaconManager#getRangingNotifier`
   where the notifier sets were modified external to `BeaconManager` by another
   thread (#516, Aaron Kromer)
+- Fix inability to use `RunningAverageRssiFilter.setSampleExpirationMilliseconds(...)` (#523,
+  David G. Young)
 
 ### 2.10 / 2017-04-21
 

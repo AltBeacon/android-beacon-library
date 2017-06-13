@@ -8,6 +8,8 @@ Enhancements:
 
 Bug Fixes:
 
+- Fix failure to restart scanning in some cases after bluetooth has been off but then is turned
+  back on. (#519, David G. Young)
 - Fix failure to stop scanning when unbinding from service or when the between scan period
   is nonzero. (#507, David G. Young)
 - Fix possible `NullPointerException` with `BackgroundPowerSaver` on devices

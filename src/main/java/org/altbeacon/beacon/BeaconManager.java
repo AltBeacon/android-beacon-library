@@ -156,10 +156,9 @@ public class BeaconManager {
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
     private boolean mMainProcess = false;
-    private boolean mScheduledScanJobsEnabled = false;
     @Nullable
     private Boolean mScannerInSameProcess = null;
-
+    private boolean mScheduledScanJobsEnabled = false;
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
 
@@ -863,8 +862,7 @@ public class BeaconManager {
                 Message msg = Message.obtain(null, BeaconService.MSG_SYNC_SETTINGS, 0, 0);
                 msg.setData(new SettingsData().collect(mContext).toBundle());
                 serviceMessenger.send(msg);
-            }
-            catch (RemoteException e) {
+            } catch (RemoteException e) {
                 LogManager.e(TAG, "Failed to sync settings to service", e);
             }
         }

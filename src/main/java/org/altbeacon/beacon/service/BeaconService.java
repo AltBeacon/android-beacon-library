@@ -29,9 +29,12 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageItemInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
@@ -239,6 +242,14 @@ public class BeaconService extends Service {
             ProcessUtils processUtils = new ProcessUtils(this);
             LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
+
+        try {
+            PackageItemInfo info = this.getPackageManager().getServiceInfo(new ComponentName(this, BeaconService.class), PackageManager.GET_META_DATA);
+            if (info.metaData.get("longScanForcingEnabled").toString().equals("true")) {
+                LogManager.i(TAG, "longScanForcingEnabled from AndroidManifest");
+                mCycledScanner.setLongScanForcingEnabled(true);
+            }
+        } catch (PackageManager.NameNotFoundException e) {}
 
         reloadParsers();
 

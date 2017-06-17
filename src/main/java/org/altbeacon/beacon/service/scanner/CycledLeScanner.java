@@ -28,6 +28,7 @@ import java.util.Date;
 
 @TargetApi(18)
 public abstract class CycledLeScanner {
+    public static final long ANDROID_N_MAX_SCAN_DURATION = 30 * 60 * 1000l; // 30 minutes
     private static final String TAG = "CycledLeScanner";
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -35,7 +36,12 @@ public abstract class CycledLeScanner {
     private long mLastScanCycleEndTime = 0l;
     protected long mNextScanCycleStartTime = 0l;
     private long mScanCycleStopTime = 0l;
-
+    // This is the last time this class actually commanded the OS
+    // to start scanning.
+    private long mCurrentScanStartTime = 0l;
+    // True if the app has explicitly requested long running scans that
+    // may go beyond what is normally allowed on Android N.
+    private boolean mLongScanForcingEnabled = false;
     private boolean mScanning;
     protected boolean mScanningPaused;
     private boolean mScanCyclerStarted = false;
@@ -134,6 +140,15 @@ public abstract class CycledLeScanner {
             return new CycledLeScannerForJellyBeanMr2(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
         }
 
+    }
+
+    /**
+     * Enables the scanner to go to extra lengths to keep scans going for longer than would
+     * otherwise be allowed.  Useful only for Android N and higher.
+     * @param enabled
+     */
+    public void setLongScanForcingEnabled(boolean enabled) {
+        mLongScanForcingEnabled = enabled;
     }
 
     /**
@@ -272,6 +287,7 @@ public abstract class CycledLeScanner {
                                         }
                                         try {
                                             if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
+                                                mCurrentScanStartTime = SystemClock.elapsedRealtime();
                                                 startScan();
                                             }
                                         } catch (Exception e) {
@@ -301,6 +317,7 @@ public abstract class CycledLeScanner {
                 mScanning = false;
                 mScanCyclerStarted = false;
                 stopScan();
+                mCurrentScanStartTime = 0l;
                 mLastScanCycleEndTime = SystemClock.elapsedRealtime();
                 // Clear any queued schedule tasks as we're done scanning
                 mScanHandler.removeCallbacksAndMessages(null);
@@ -353,7 +370,9 @@ public abstract class CycledLeScanner {
                         // so it is best avoided.  If we know the device has detected to distinct
                         // packets in the same cycle, we will not restart scanning and just keep it
                         // going.
-                        if (!mDistinctPacketsDetectedPerScan || mBetweenScanPeriod != 0) {
+                        if (!mDistinctPacketsDetectedPerScan ||
+                                mBetweenScanPeriod != 0 ||
+                                mustStopScanToPreventAndroidNScanTimeout()) {
                             long now = SystemClock.elapsedRealtime();
                             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                                     mBetweenScanPeriod+mScanPeriod < ANDROID_N_MIN_SCAN_CYCLE_MILLIS &&
@@ -487,5 +506,35 @@ public abstract class CycledLeScanner {
 
     private boolean checkPermission(final String permission) {
         return mContext.checkPermission(permission, android.os.Process.myPid(), android.os.Process.myUid()) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * On Android N and later, a scan that runs for more than 30 minutes will be automatically
+     * stopped by the OS and converted to an "opportunistic" scan, meaning that they will only yield
+     * detections if another app is scanning.  This is inteneded to save battery.  This can be
+     * prevented by stopping scanning and restarting.  This method returns true if:
+     *   * this is Android N or later
+     *   * we are close to the 30 minute boundary since the last scan started
+     *   * The app developer has explicitly enabled long-running scans
+     * @return true if we must stop scanning to prevent
+     */
+    private boolean mustStopScanToPreventAndroidNScanTimeout() {
+        long timeOfNextScanCycleEnd = SystemClock.elapsedRealtime() +  mBetweenScanPeriod +
+                mScanPeriod;
+        boolean timeoutAtRisk = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                mCurrentScanStartTime > 0 &&
+                ( timeOfNextScanCycleEnd - mCurrentScanStartTime > ANDROID_N_MAX_SCAN_DURATION);
+        if (timeoutAtRisk) {
+            LogManager.d(TAG, "The next scan cycle would go over the Android N max duration.");
+        }
+        if (timeoutAtRisk && mLongScanForcingEnabled) {
+            LogManager.d(TAG, "Stopping scan to prevent Android N scan timeout.");
+            return true;
+        }
+        else {
+            LogManager.w(TAG, "Allowing a long running scan to be stopped by the OS.  To" +
+                    "prevent this, enable long running scans in the AndroidBeaconLibrary.");
+            return false;
+        }
     }
 }

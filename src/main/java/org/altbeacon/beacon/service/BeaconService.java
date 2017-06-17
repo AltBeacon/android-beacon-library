@@ -246,7 +246,7 @@ public class BeaconService extends Service {
         try {
             PackageItemInfo info = this.getPackageManager().getServiceInfo(new ComponentName(this, BeaconService.class), PackageManager.GET_META_DATA);
             if (info.metaData.get("longScanForcingEnabled").toString().equals("true")) {
-                LogManager.i(TAG, "longScanForcingEnabled from AndroidManifest");
+                LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
                 mCycledScanner.setLongScanForcingEnabled(true);
             }
         } catch (PackageManager.NameNotFoundException e) {}

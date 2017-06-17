@@ -28,7 +28,7 @@ import java.util.Date;
 
 @TargetApi(18)
 public abstract class CycledLeScanner {
-    public static final long ANDROID_N_MAX_SCAN_DURATION = 30 * 60 * 1000l; // 30 minutes
+    public static final long ANDROID_N_MAX_SCAN_DURATION_MILLIS = 30 * 60 * 1000l; // 30 minutes
     private static final String TAG = "CycledLeScanner";
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -306,7 +306,9 @@ public abstract class CycledLeScanner {
                         LogManager.e(e, TAG, "Exception starting Bluetooth scan.  Perhaps Bluetooth is disabled or unavailable?");
                     }
                 } else {
-                    LogManager.d(TAG, "We are already scanning");
+                    LogManager.d(TAG, "We are already scanning and have been for "+(
+                            SystemClock.elapsedRealtime() - mCurrentScanStartTime
+                            )+" millis");
                 }
                 mScanCycleStopTime = (SystemClock.elapsedRealtime() + mScanPeriod);
                 scheduleScanCycleStop();
@@ -523,18 +525,19 @@ public abstract class CycledLeScanner {
                 mScanPeriod;
         boolean timeoutAtRisk = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
                 mCurrentScanStartTime > 0 &&
-                ( timeOfNextScanCycleEnd - mCurrentScanStartTime > ANDROID_N_MAX_SCAN_DURATION);
+                (timeOfNextScanCycleEnd - mCurrentScanStartTime > ANDROID_N_MAX_SCAN_DURATION_MILLIS);
+
         if (timeoutAtRisk) {
             LogManager.d(TAG, "The next scan cycle would go over the Android N max duration.");
+            if  (mLongScanForcingEnabled) {
+                LogManager.d(TAG, "Stopping scan to prevent Android N scan timeout.");
+                return true;
+            }
+            else {
+                LogManager.w(TAG, "Allowing a long running scan to be stopped by the OS.  To " +
+                        "prevent this, set longScanForcingEnabled in the AndroidBeaconLibrary.");
+            }
         }
-        if (timeoutAtRisk && mLongScanForcingEnabled) {
-            LogManager.d(TAG, "Stopping scan to prevent Android N scan timeout.");
-            return true;
-        }
-        else {
-            LogManager.w(TAG, "Allowing a long running scan to be stopped by the OS.  To" +
-                    "prevent this, enable long running scans in the AndroidBeaconLibrary.");
-            return false;
-        }
+        return false;
     }
 }

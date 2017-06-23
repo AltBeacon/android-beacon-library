@@ -10,6 +10,8 @@ Enhancements:
 
 Bug Fixes:
 
+- Fix Google Play submission errors by no longer using uses-permission-sdk-23 in
+  Manifest (#527, David G. Young)
 - Fix failure to restart scanning in some cases after bluetooth has been off but then is turned
   back on. (#519, David G. Young)
 - Fix failure to stop scanning when unbinding from service or when the between scan period

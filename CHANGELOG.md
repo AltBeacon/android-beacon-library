@@ -3,6 +3,8 @@
 
 Enhancements:
 
+- Add ability to circumvent prohibition against scans running for > 30 minutes on Android N.
+  (#529, David G. Young)
 - Add support for running the beacon scanning service in a separate process and working with
   application setups that have more than one process. (#479, David G. Young)
 

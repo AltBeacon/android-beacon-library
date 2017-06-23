@@ -3,11 +3,15 @@
 
 Enhancements:
 
+- Add ability to circumvent prohibition against scans running for > 30 minutes on Android N.
+  (#529, David G. Young)
 - Add support for running the beacon scanning service in a separate process and working with
   application setups that have more than one process. (#479, David G. Young)
 
 Bug Fixes:
 
+- Fix Google Play submission errors by no longer using uses-permission-sdk-23 in
+  Manifest (#527, David G. Young)
 - Fix failure to restart scanning in some cases after bluetooth has been off but then is turned
   back on. (#519, David G. Young)
 - Fix failure to stop scanning when unbinding from service or when the between scan period

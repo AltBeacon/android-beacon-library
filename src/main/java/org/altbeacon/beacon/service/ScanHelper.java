@@ -1,11 +1,17 @@
 package org.altbeacon.beacon.service;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
+import android.support.annotation.RestrictTo;
+import android.support.annotation.RestrictTo.Scope;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -33,86 +39,77 @@ import java.util.concurrent.RejectedExecutionException;
 /**
  * Created by dyoung on 6/16/17.
  *
- * This is an internal untilty class and should not be called directly by library users.
+ * This is an internal utilty class and should not be called directly by library users.
  *
  * This encapsulates shared data and methods used by both ScanJob and BeaconService
+ * that deal with the specifics of beacon scanning.
+ *
  * @hide
  */
 
-public class ScanHelper {
+class ScanHelper {
     private static final String TAG = ScanHelper.class.getSimpleName();
     private ExecutorService mExecutor;
     private BeaconManager mBeaconManager;
     private CycledLeScanner mCycledScanner;
     private MonitoringStatus mMonitoringStatus;
-    private Map<Region, RangeState> mRangedRegionState = new HashMap<Region, RangeState>();
+    private final Map<Region, RangeState> mRangedRegionState = new HashMap<>();
     private DistinctPacketDetector mDistinctPacketDetector = new DistinctPacketDetector();
     private ExtraDataBeaconTracker mExtraDataBeaconTracker;
-    private Set<BeaconParser> mBeaconParsers  = new HashSet<BeaconParser>();
+    private Set<BeaconParser> mBeaconParsers  = new HashSet<>();
     private List<Beacon> mSimulatedScanData = null;
     private Context mContext;
 
-    public ScanHelper(Context context) {
+    ScanHelper(Context context) {
         mContext = context;
         mBeaconManager = BeaconManager.getInstanceForApplication(context);
         mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
     }
 
-    public CycledLeScanner getCycledScanner() {
+    CycledLeScanner getCycledScanner() {
         return mCycledScanner;
     }
 
-    public void setCycledScanner(CycledLeScanner cycledScanner) {
-        mCycledScanner = cycledScanner;
-    }
-
-    public MonitoringStatus getMonitoringStatus() {
+    MonitoringStatus getMonitoringStatus() {
         return mMonitoringStatus;
     }
 
-    public void setMonitoringStatus(MonitoringStatus monitoringStatus) {
+    void setMonitoringStatus(MonitoringStatus monitoringStatus) {
         mMonitoringStatus = monitoringStatus;
     }
 
-    public Map<Region, RangeState> getRangedRegionState() {
+    Map<Region, RangeState> getRangedRegionState() {
         return mRangedRegionState;
     }
 
-    public void setRangedRegionState(Map<Region, RangeState> rangedRegionState) {
-        mRangedRegionState = rangedRegionState;
+    void setRangedRegionState(Map<Region, RangeState> rangedRegionState) {
+        synchronized (mRangedRegionState) {
+            mRangedRegionState.clear();
+            mRangedRegionState.putAll(rangedRegionState);
+        }
     }
 
-    public DistinctPacketDetector getDistinctPacketDetector() {
-        return mDistinctPacketDetector;
-    }
-
-    public void setDistinctPacketDetector(DistinctPacketDetector distinctPacketDetector) {
-        mDistinctPacketDetector = distinctPacketDetector;
-    }
-
-    public ExtraDataBeaconTracker getExtraDataBeaconTracker() {
-        return mExtraDataBeaconTracker;
-    }
-
-    public void setExtraDataBeaconTracker(ExtraDataBeaconTracker extraDataBeaconTracker) {
+    void setExtraDataBeaconTracker(ExtraDataBeaconTracker extraDataBeaconTracker) {
         mExtraDataBeaconTracker = extraDataBeaconTracker;
     }
 
-    public Set<BeaconParser> getBeaconParsers() {
-        return mBeaconParsers;
-    }
-
-    public void setBeaconParsers(Set<BeaconParser> beaconParsers) {
+    void setBeaconParsers(Set<BeaconParser> beaconParsers) {
         mBeaconParsers = beaconParsers;
     }
 
-    public void createCycledLeScanner(boolean backgroundMode, BluetoothCrashResolver crashResolver) {
+    void setSimulatedScanData(List<Beacon> simulatedScanData) {
+        mSimulatedScanData = simulatedScanData;
+    }
+
+
+    void createCycledLeScanner(boolean backgroundMode, BluetoothCrashResolver crashResolver) {
         mCycledScanner = CycledLeScanner.createScanner(mContext, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
-                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, backgroundMode, mCycledLeScanCallback, null);
+                BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, backgroundMode,
+                mCycledLeScanCallback, crashResolver);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public void processScanResult(BluetoothDevice device, int rssi, byte[] scanRecord) {
+    void processScanResult(BluetoothDevice device, int rssi, byte[] scanRecord) {
         NonBeaconLeScanCallback nonBeaconLeScanCallback = mBeaconManager.getNonBeaconLeScanCallback();
 
         try {
@@ -124,31 +121,33 @@ public class ScanHelper {
         }
     }
 
-    protected void reloadParsers() {
-        HashSet<BeaconParser> newBeaconParsers = new HashSet<BeaconParser>();
+    void reloadParsers() {
+        HashSet<BeaconParser> newBeaconParsers = new HashSet<>();
         //flatMap all beacon parsers
         boolean matchBeaconsByServiceUUID = true;
-        if (mBeaconManager.getBeaconParsers() != null) {
-            newBeaconParsers.addAll(mBeaconManager.getBeaconParsers());
-            for (BeaconParser beaconParser : mBeaconManager.getBeaconParsers()) {
-                if (beaconParser.getExtraDataParsers().size() > 0) {
-                    matchBeaconsByServiceUUID = false;
-                    newBeaconParsers.addAll(beaconParser.getExtraDataParsers());
-                }
+        newBeaconParsers.addAll(mBeaconManager.getBeaconParsers());
+        for (BeaconParser beaconParser : mBeaconManager.getBeaconParsers()) {
+            if (beaconParser.getExtraDataParsers().size() > 0) {
+                matchBeaconsByServiceUUID = false;
+                newBeaconParsers.addAll(beaconParser.getExtraDataParsers());
             }
         }
         mBeaconParsers = newBeaconParsers;
         //initialize the extra data beacon tracker
         mExtraDataBeaconTracker = new ExtraDataBeaconTracker(matchBeaconsByServiceUUID);
     }
-    protected final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+
+    private final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
+        @MainThread
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             processScanResult(device, rssi, scanRecord);
         }
 
         @Override
+        @MainThread
+        @SuppressLint("WrongThread")
         public void onCycleEnd() {
             mDistinctPacketDetector.clearDetections();
             mMonitoringStatus.updateNewlyOutside();
@@ -161,6 +160,9 @@ public class ScanHelper {
 
                 if (0 != (mContext.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                     for (Beacon beacon : mSimulatedScanData) {
+                        // This is an expensive call and we do not want to block the main thread.
+                        // But here we are in debug/test mode so we allow it on the main thread.
+                        //noinspection WrongThread
                         processBeaconFromScan(beacon);
                     }
                 } else {
@@ -173,6 +175,9 @@ public class ScanHelper {
                 if (BeaconManager.getBeaconSimulator().getBeacons() != null) {
                     if (0 != (mContext.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                         for (Beacon beacon : BeaconManager.getBeaconSimulator().getBeacons()) {
+                            // This is an expensive call and we do not want to block the main thread.
+                            // But here we are in debug/test mode so we allow it on the main thread.
+                            //noinspection WrongThread
                             processBeaconFromScan(beacon);
                         }
                     } else {
@@ -185,6 +190,11 @@ public class ScanHelper {
         }
     };
 
+    @RestrictTo(Scope.TESTS)
+    CycledLeScanCallback getCycledLeScanCallback() {
+        return mCycledLeScanCallback;
+    }
+
     private void processRangeData() {
         synchronized (mRangedRegionState) {
             for (Region region : mRangedRegionState.keySet()) {
@@ -195,7 +205,15 @@ public class ScanHelper {
         }
     }
 
-    private void processBeaconFromScan(Beacon beacon) {
+    /**
+     * Helper for processing BLE beacons. This has been extracted from {@link ScanHelper.ScanProcessor} to
+     * support simulated scan data for test and debug environments.
+     * <p>
+     * Processing beacons is a frequent and expensive operation. It should not be run on the main
+     * thread to avoid UI contention.
+     */
+    @WorkerThread
+    private void processBeaconFromScan(@NonNull Beacon beacon) {
         if (Stats.getInstance().isEnabled()) {
             Stats.getInstance().log(beacon);
         }
@@ -216,7 +234,7 @@ public class ScanHelper {
 
             mMonitoringStatus.updateNewlyInsideInRegionsContaining(beacon);
 
-            List<Region> matchedRegions = null;
+            List<Region> matchedRegions;
             Iterator<Region> matchedRegionIterator;
             LogManager.d(TAG, "looking for ranging region matches for this beacon");
             synchronized (mRangedRegionState) {
@@ -234,16 +252,22 @@ public class ScanHelper {
         }
     }
 
-
+    /**
+     * <strong>This class is not thread safe.</strong>
+     */
     private class ScanData {
-        public ScanData(BluetoothDevice device, int rssi, byte[] scanRecord) {
+        ScanData(@NonNull BluetoothDevice device, int rssi, @NonNull byte[] scanRecord) {
             this.device = device;
             this.rssi = rssi;
             this.scanRecord = scanRecord;
         }
 
-        int rssi;
+        final int rssi;
+
+        @NonNull
         BluetoothDevice device;
+
+        @NonNull
         byte[] scanRecord;
     }
 
@@ -252,10 +276,11 @@ public class ScanHelper {
 
         private final NonBeaconLeScanCallback mNonBeaconLeScanCallback;
 
-        public ScanProcessor(NonBeaconLeScanCallback nonBeaconLeScanCallback) {
+        ScanProcessor(NonBeaconLeScanCallback nonBeaconLeScanCallback) {
             mNonBeaconLeScanCallback = nonBeaconLeScanCallback;
         }
 
+        @WorkerThread
         @Override
         protected Void doInBackground(ScanHelper.ScanData... params) {
             ScanHelper.ScanData scanData = params[0];
@@ -304,7 +329,7 @@ public class ScanHelper {
     }
 
     private List<Region> matchingRegions(Beacon beacon, Collection<Region> regions) {
-        List<Region> matched = new ArrayList<Region>();
+        List<Region> matched = new ArrayList<>();
         for (Region region : regions) {
             if (region.matchesBeacon(beacon)) {
                 matched.add(region);

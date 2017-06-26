@@ -29,17 +29,23 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageItemInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -145,9 +151,16 @@ public class BeaconService extends Service {
         private final WeakReference<BeaconService> mService;
 
         IncomingHandler(BeaconService service) {
+            /*
+             * Explicitly state this uses the main thread. Without this we defer to where the
+             * service instance is initialized/created; which is usually the main thread anyways.
+             * But by being explicit we document our code design expectations for where things run.
+             */
+            super(Looper.getMainLooper());
             mService = new WeakReference<BeaconService>(service);
         }
 
+        @MainThread
         @Override
         public void handleMessage(Message msg) {
             BeaconService service = mService.get();
@@ -206,7 +219,7 @@ public class BeaconService extends Service {
      */
     final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
-
+    @MainThread
     @Override
     public void onCreate() {
         bluetoothCrashResolver = new BluetoothCrashResolver(this);
@@ -229,6 +242,15 @@ public class BeaconService extends Service {
             ProcessUtils processUtils = new ProcessUtils(this);
             LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
+
+        try {
+            PackageItemInfo info = this.getPackageManager().getServiceInfo(new ComponentName(this, BeaconService.class), PackageManager.GET_META_DATA);
+            if (info != null && info.metaData != null && info.metaData.get("longScanForcingEnabled") != null &&
+                    info.metaData.get("longScanForcingEnabled").toString().equals("true")) {
+                LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
+                mCycledScanner.setLongScanForcingEnabled(true);
+            }
+        } catch (PackageManager.NameNotFoundException e) {}
 
         reloadParsers();
 
@@ -294,6 +316,7 @@ public class BeaconService extends Service {
         return false;
     }
 
+    @MainThread
     @Override
     public void onDestroy() {
         LogManager.e(TAG, "onDestroy()");
@@ -330,6 +353,7 @@ public class BeaconService extends Service {
     /**
      * methods for clients
      */
+    @MainThread
     public void startRangingBeaconsInRegion(Region region, Callback callback) {
         synchronized (rangedRegionState) {
             if (rangedRegionState.containsKey(region)) {
@@ -342,6 +366,7 @@ public class BeaconService extends Service {
         mCycledScanner.start();
     }
 
+    @MainThread
     public void stopRangingBeaconsInRegion(Region region) {
         int rangedRegionCount;
         synchronized (rangedRegionState) {
@@ -355,6 +380,7 @@ public class BeaconService extends Service {
         }
     }
 
+    @MainThread
     public void startMonitoringBeaconsInRegion(Region region, Callback callback) {
         LogManager.d(TAG, "startMonitoring called");
         monitoringStatus.addRegion(region, callback);
@@ -362,6 +388,7 @@ public class BeaconService extends Service {
         mCycledScanner.start();
     }
 
+    @MainThread
     public void stopMonitoringBeaconsInRegion(Region region) {
         LogManager.d(TAG, "stopMonitoring called");
         monitoringStatus.removeRegion(region);
@@ -371,11 +398,13 @@ public class BeaconService extends Service {
         }
     }
 
+    @MainThread
     public void setScanPeriods(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         mCycledScanner.setScanPeriods(scanPeriod, betweenScanPeriod, backgroundFlag);
     }
 
     protected final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+        @MainThread
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -390,6 +419,7 @@ public class BeaconService extends Service {
             }
         }
 
+        @MainThread
         @Override
         public void onCycleEnd() {
             mDistinctPacketDetector.clearDetections();
@@ -403,6 +433,9 @@ public class BeaconService extends Service {
 
                 if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                     for (Beacon beacon : simulatedScanData) {
+                        // This is an expensive call and we do not want to block the main thread.
+                        // But here we are in debug/test mode so we allow it on the main thread.
+                        //noinspection WrongThread
                         processBeaconFromScan(beacon);
                     }
                 } else {
@@ -415,6 +448,9 @@ public class BeaconService extends Service {
                 if (BeaconManager.getBeaconSimulator().getBeacons() != null) {
                     if (0 != (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
                         for (Beacon beacon : BeaconManager.getBeaconSimulator().getBeacons()) {
+                            // This is an expensive call and we do not want to block the main thread.
+                            // But here we are in debug/test mode so we allow it on the main thread.
+                            //noinspection WrongThread
                             processBeaconFromScan(beacon);
                         }
                     } else {
@@ -437,7 +473,15 @@ public class BeaconService extends Service {
         }
     }
 
-    private void processBeaconFromScan(Beacon beacon) {
+    /**
+     * Helper for processing BLE beacons. This has been extracted from {@link ScanProcessor} to
+     * support simulated scan data for test and debug environments.
+     * <p>
+     * Processing beacons is a frequent and expensive operation. It should not be run on the main
+     * thread to avoid UI contention.
+     */
+    @WorkerThread
+    private void processBeaconFromScan(@NonNull Beacon beacon) {
         if (Stats.getInstance().isEnabled()) {
             Stats.getInstance().log(beacon);
         }
@@ -505,6 +549,7 @@ public class BeaconService extends Service {
             mNonBeaconLeScanCallback = nonBeaconLeScanCallback;
         }
 
+        @WorkerThread
         @Override
         protected Void doInBackground(ScanData... params) {
             ScanData scanData = params[0];
@@ -538,18 +583,6 @@ public class BeaconService extends Service {
                 }
             }
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
         }
     }
 

@@ -69,6 +69,7 @@ public class RangedBeacon implements Serializable {
     //kept here for backward compatibility
     public static void setSampleExpirationMilliseconds(long milliseconds) {
         sampleExpirationMilliseconds = milliseconds;
+        RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
     }
 
     public static void setMaxTrackinAge(int maxTrackinAge) {

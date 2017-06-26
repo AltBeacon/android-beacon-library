@@ -48,7 +48,7 @@ public class BeaconServiceTest {
         beaconServiceServiceController.attach();
         BeaconService beaconService = beaconServiceServiceController.get();
         beaconService.onCreate();
-        CycledLeScanCallback callback = beaconService.mCycledLeScanCallback;
+        CycledLeScanCallback callback = beaconService.getCycledLeScanCallback();
 
         ThreadPoolExecutor executor = (ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR;
         int activeThreadCountBeforeScan = executor.getActiveCount();

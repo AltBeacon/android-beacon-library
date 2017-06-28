@@ -30,7 +30,6 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private ScanCallback leScanCallback;
     private long mBackgroundLScanStartTime = 0l;
     private long mBackgroundLScanFirstDetectionTime = 0l;
-    private boolean mScanDeferredBefore = false;
     private boolean mMainScanCycleActive = false;
     private final BeaconManager mBeaconManager;
 
@@ -79,51 +78,51 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     protected boolean deferScanIfNeeded() {
         // This method is called to see if it is time to start a scan
         long millisecondsUntilStart = mNextScanCycleStartTime - SystemClock.elapsedRealtime();
-        if (millisecondsUntilStart > 0) {
-            mMainScanCycleActive = false;
-            if (true) {
-                long secsSinceLastDetection = SystemClock.elapsedRealtime() -
-                        DetectionTracker.getInstance().getLastDetectionTime();
-                // If we have seen a device recently
-                // devices should behave like pre-Android L devices, because we don't want to drain battery
-                // by continuously delivering packets for beacons visible in the background
-                if (mScanDeferredBefore == false) {
-                    if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
-                        mBackgroundLScanStartTime = SystemClock.elapsedRealtime();
-                        mBackgroundLScanFirstDetectionTime = 0l;
-                        LogManager.d(TAG, "This is Android L. Doing a filtered scan for the background.");
+        final boolean deferScan = millisecondsUntilStart > 0;
+        final boolean scanActiveBefore = mMainScanCycleActive;
+        mMainScanCycleActive = !deferScan;
+        if (deferScan) {
+            long secsSinceLastDetection = SystemClock.elapsedRealtime() -
+                    DetectionTracker.getInstance().getLastDetectionTime();
+            // If we have seen a device recently
+            // devices should behave like pre-Android L devices, because we don't want to drain battery
+            // by continuously delivering packets for beacons visible in the background
+            if (scanActiveBefore) {
+                if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
+                    mBackgroundLScanStartTime = SystemClock.elapsedRealtime();
+                    mBackgroundLScanFirstDetectionTime = 0l;
+                    LogManager.d(TAG, "This is Android L. Doing a filtered scan for the background.");
 
-                        // On Android L, between scan cycles do a scan with a filter looking for any beacon
-                        // if we see one of those beacons, we need to deliver the results
-                        startScan();
-                    } else {
-                        // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
-                        // This API is now available in Android M
-                        LogManager.d(TAG, "This is Android L, but we last saw a beacon only %s "
-                                + "ago, so we will not keep scanning in background.",
-                                secsSinceLastDetection);
-                    }
+                    // On Android L, between scan cycles do a scan with a filter looking for any beacon
+                    // if we see one of those beacons, we need to deliver the results
+                    startScan();
+                } else {
+                    // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
+                    // This API is now available in Android M
+                    LogManager.d(TAG, "This is Android L, but we last saw a beacon only %s "
+                            + "ago, so we will not keep scanning in background.",
+                            secsSinceLastDetection);
                 }
-                if (mBackgroundLScanStartTime > 0l) {
-                    // if we are in here, we have detected beacons recently in a background L scan
-                    if (DetectionTracker.getInstance().getLastDetectionTime() > mBackgroundLScanStartTime) {
-                        if (mBackgroundLScanFirstDetectionTime == 0l) {
-                            mBackgroundLScanFirstDetectionTime = DetectionTracker.getInstance().getLastDetectionTime();
-                        }
-                        if (SystemClock.elapsedRealtime() - mBackgroundLScanFirstDetectionTime
-                                >= BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
-                            // if we are in here, it has been more than 10 seconds since we detected
-                            // a beacon in background L scanning mode.  We need to stop scanning
-                            // so we do not drain battery
-                            LogManager.d(TAG, "We've been detecting for a bit.  Stopping Android L background scanning");
-                            stopScan();
-                            mBackgroundLScanStartTime = 0l;
-                        }
-                        else {
-                            // report the results up the chain
-                            LogManager.d(TAG, "Delivering Android L background scanning results");
-                            mCycledLeScanCallback.onCycleEnd();
-                        }
+            }
+            if (mBackgroundLScanStartTime > 0l) {
+                // if we are in here, we have detected beacons recently in a background L scan
+                if (DetectionTracker.getInstance().getLastDetectionTime() > mBackgroundLScanStartTime) {
+                    if (mBackgroundLScanFirstDetectionTime == 0l) {
+                        mBackgroundLScanFirstDetectionTime = DetectionTracker.getInstance().getLastDetectionTime();
+                    }
+                    if (SystemClock.elapsedRealtime() - mBackgroundLScanFirstDetectionTime
+                            >= BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
+                        // if we are in here, it has been more than 10 seconds since we detected
+                        // a beacon in background L scanning mode.  We need to stop scanning
+                        // so we do not drain battery
+                        LogManager.d(TAG, "We've been detecting for a bit.  Stopping Android L background scanning");
+                        stopScan();
+                        mBackgroundLScanStartTime = 0l;
+                    }
+                    else {
+                        // report the results up the chain
+                        LogManager.d(TAG, "Delivering Android L background scanning results");
+                        mCycledLeScanCallback.onCycleEnd();
                     }
                 }
             }
@@ -132,7 +131,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // Don't actually wait until the next scan time -- only wait up to 1 second.  This
             // allows us to start scanning sooner if a consumer enters the foreground and expects
             // results more quickly.
-            if (mScanDeferredBefore == false && mBackgroundFlag) {
+            if (scanActiveBefore && mBackgroundFlag) {
                 setWakeUpAlarm();
             }
             mHandler.postDelayed(new Runnable() {
@@ -142,18 +141,13 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     scanLeDevice(true);
                 }
             }, millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart);
-            mScanDeferredBefore = true;
-            return true;
-        }
-        else {
+        } else {
             if (mBackgroundLScanStartTime > 0l) {
                 stopScan();
                 mBackgroundLScanStartTime = 0;
             }
-            mScanDeferredBefore = false;
-            mMainScanCycleActive = true;
         }
-        return false;
+        return deferScan;
     }
 
     @Override

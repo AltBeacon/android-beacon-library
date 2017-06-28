@@ -1,5 +1,7 @@
 
-### Development
+### 2.11 / 2017-06-28
+
+[Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.10...2.11)
 
 Enhancements:
 

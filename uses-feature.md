@@ -21,7 +21,7 @@ You can specify this in `AndroidManifest.xml`. Add the following two elements to
 <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 ```
 
-###Allowing devices without Bluetooth
+### Allowing devices without Bluetooth
 
 When detecting beacons isn't part of the essential functionality of your app you should specify that support for Bluetooth and Bluetooth Low Energy isn't required. An example of such an app is a museum guide app.
 

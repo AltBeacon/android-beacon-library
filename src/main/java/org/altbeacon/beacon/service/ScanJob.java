@@ -13,7 +13,6 @@ import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.service.scanner.CycledLeScannerForAndroidO;
 import org.altbeacon.beacon.utils.ProcessUtils;
 import java.util.List;
 
@@ -28,7 +27,7 @@ import java.util.List;
  * If the OS decides to create a new instance, it will call onStopJob() on the old instance
  *
  * Created by dyoung on 3/24/17.
- *
+ * @hide
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScanJob extends JobService {
@@ -112,17 +111,13 @@ public class ScanJob extends JobService {
             LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
         }
         else {
-            LogManager.i(TAG, "We are outside all beacon regions.  We will scan between cycles.");
-            // TODO:  Ew. figure out a better way to know to call this
-            if (mScanHelper.getCycledScanner() instanceof CycledLeScannerForAndroidO) {
-                // We are in backround mode for Anrdoid O and the background scan cycle
-                // has ended.  Now we kick off a background scan with a lower power
-                // mode and set it to deliver an intent if it sees anything that will
-                // wake us up and start this craziness all over again
-                ((CycledLeScannerForAndroidO)mScanHelper.getCycledScanner()).startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+            // TODO: Change this to >= Build.VERSION_CODES.O when the SDK is released
+            if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
+                LogManager.i(TAG, "We are outside all beacon regions.  We will scan between cycles.");
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
             }
             else {
-                LogManager.d(TAG, "This is not an Android O scanner.  No scanning between cycles.");
+                LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
             }
         }
     }

@@ -1,59 +1,28 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
-import android.app.PendingIntent;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.Intent;
-
-import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
+ * The scanner used for Android O is effectively the same as used for JellyBeaconMr2.  There is no
+ * point in using the low power scanning APIs introduced in Lollipop, because they only work when
+ * the app is running, effectively requiring a long running service, something newly disallowed
+ * by Android O.  The new strategy for Android O is to use a JobScheduler combined with background
+ * scans delivered by Intents.
+ *
+ * @see org.altbeacon.beacon.service.ScanJob
+ * @see org.altbeacon.beacon.service.ScanHelper#startAndroidOBackgroundScan(Set)
+ *
  * Created by dyoung on 5/28/17.
  */
 
 @TargetApi(25)
-public class CycledLeScannerForAndroidO extends CycledLeScannerForJellyBeanMr2 {
+class CycledLeScannerForAndroidO extends CycledLeScannerForJellyBeanMr2 {
     private static final String TAG = CycledLeScannerForAndroidO.class.getSimpleName();
 
-    public CycledLeScannerForAndroidO(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
+    CycledLeScannerForAndroidO(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
     }
-
-    /**
-     * @param beaconParsers
-     */
-    public void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers) {
-        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
-        List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                new ArrayList(beaconParsers));
-        try {
-            Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
-            intent.putExtra("o-scan", true);
-            PendingIntent callbackIntent = PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            // We cannot build with a minSdk < Android O when using Android O preview APIs
-            // so if you set an earlier minSdk to test against pre-O devices, you must comment out
-            // the next few lines
-            //int result = getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, callbackIntent);
-            //if (result != 0) {
-            //    LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
-            //}
-            //else {
-            //    LogManager.d(TAG, "Started passive beacon scan");
-            //}
-            // End of lines that must be commented out when not compiling against Android O
-         }
-        catch (SecurityException e) {
-            LogManager.e(TAG, "SecurityException making Android O background scanner");
-         }
-    }
-
 }

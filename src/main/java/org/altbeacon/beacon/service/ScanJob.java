@@ -2,10 +2,9 @@ package org.altbeacon.beacon.service;
 
 import android.annotation.TargetApi;
 import android.app.job.JobParameters;
-import android.app.job.JobScheduler;
 import android.app.job.JobService;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
-import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import org.altbeacon.beacon.Beacon;
@@ -14,21 +13,21 @@ import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.service.scanner.CycledLeScannerForAndroidO;
-import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.utils.ProcessUtils;
 import java.util.List;
 
-/**
- * Created by dyoung on 3/24/17.
- */
 
 /**
+ * Used to perform scans periodically using the JobScheduler
+ *
  * Only one instance of this will be active, even with multiple jobIds.  If one job
  * is already running when another is scheduled to start, onStartJob gets called again on the same
  * instance.
  *
  * If the OS decides to create a new instance, it will call onStopJob() on the old instance
+ *
+ * Created by dyoung on 3/24/17.
+ * @hide
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScanJob extends JobService {
@@ -43,30 +42,30 @@ public class ScanJob extends JobService {
 
     private ScanState mScanState;
     private Handler mStopHandler = new Handler();
-    private BeaconManager mBeaconManager;
     private ScanHelper mScanHelper;
     private boolean mInitialized = false;
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
         mScanHelper = new ScanHelper(this);
-        JobScheduler jobScheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         if (jobParameters.getJobId() == IMMMEDIATE_SCAN_JOB_ID) {
             LogManager.i(TAG, "Running immdiate scan job: instance is "+this);
         }
         else {
             LogManager.i(TAG, "Running periodic scan job: instance is "+this);
         }
-        NonBeaconLeScanCallback nonBeaconLeScanCallback = BeaconManager.getInstanceForApplication(this).getNonBeaconLeScanCallback();
 
         List<ScanResult> queuedScanResults = ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue();
         LogManager.d(TAG, "Processing %d queued scan resuilts", queuedScanResults.size());
         for (ScanResult result : queuedScanResults) {
-            mScanHelper.processScanResult(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes());
+            ScanRecord scanRecord = result.getScanRecord();
+            if (scanRecord != null) {
+                mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
+            }
         }
         LogManager.d(TAG, "Done processing queued scan resuilts");
 
-        boolean startedScan = false;
+        boolean startedScan;
         if (mInitialized) {
             LogManager.d(TAG, "Scanning already started.  Resetting for current parameters");
             startedScan = restartScanning();
@@ -112,17 +111,13 @@ public class ScanJob extends JobService {
             LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
         }
         else {
-            LogManager.i(TAG, "We are outside all beacon regions.  We will scan between cycles.");
-            // TODO:  Ew. figure out a better way to know to call this
-            if (mScanHelper.getCycledScanner() instanceof CycledLeScannerForAndroidO) {
-                // We are in backround mode for Anrdoid O and the background scan cycle
-                // has ended.  Now we kick off a background scan with a lower power
-                // mode and set it to deliver an intent if it sees anything that will
-                // wake us up and start this craziness all over again
-                ((CycledLeScannerForAndroidO)mScanHelper.getCycledScanner()).startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+            // TODO: Change this to >= Build.VERSION_CODES.O when the SDK is released
+            if (Build.VERSION.SDK_INT > 10000) {
+                LogManager.i(TAG, "We are outside all beacon regions.  We will scan between cycles.");
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
             }
             else {
-                LogManager.d(TAG, "This is not an Android O scanner.  No scanning between cycles.");
+                LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
             }
         }
     }
@@ -160,6 +155,10 @@ public class ScanJob extends JobService {
         if (mScanHelper.getCycledScanner() == null) {
             mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
         }
+        // TODO: Change this to >= Build.VERSION_CODES.O when the SDK is released
+        if (Build.VERSION.SDK_INT > 10000) {
+            mScanHelper.stopAndroidOBackgroundScan();
+        }
         mScanHelper.getCycledScanner().setScanPeriods(mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod(),
                                       mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod(),
                                       mScanState.getBackgroundMode());
@@ -176,9 +175,9 @@ public class ScanJob extends JobService {
 
     // Returns true of scanning actually was started, false if it did not need to be
     private boolean startScanning() {
-        mBeaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
-        mBeaconManager.setScannerInSameProcess(true);
-        if (mBeaconManager.isMainProcess()) {
+        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
+        beaconManager.setScannerInSameProcess(true);
+        if (beaconManager.isMainProcess()) {
             LogManager.i(TAG, "scanJob version %s is starting up on the main process", BuildConfig.VERSION_NAME);
         }
         else {

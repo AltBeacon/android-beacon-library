@@ -28,6 +28,7 @@ import static android.content.Context.MODE_PRIVATE;
  * for running from a scheduled job
  *
  * Created by dyoung on 3/26/17.
+ * @hide
  */
 
 public class ScanState implements Serializable {

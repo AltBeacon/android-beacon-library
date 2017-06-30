@@ -2,13 +2,20 @@ package org.altbeacon.beacon.service;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.WorkerThread;
 import android.support.annotation.RestrictTo;
 import android.support.annotation.RestrictTo.Scope;
@@ -22,6 +29,8 @@ import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
 import org.altbeacon.beacon.service.scanner.DistinctPacketDetector;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
+import org.altbeacon.beacon.service.scanner.ScanFilterUtils;
+import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.util.ArrayList;
@@ -39,7 +48,7 @@ import java.util.concurrent.RejectedExecutionException;
 /**
  * Created by dyoung on 6/16/17.
  *
- * This is an internal utilty class and should not be called directly by library users.
+ * This is an internal utility class and should not be called directly by library users.
  *
  * This encapsulates shared data and methods used by both ScanJob and BeaconService
  * that deal with the specifics of beacon scanning.
@@ -135,6 +144,56 @@ class ScanHelper {
         mBeaconParsers = newBeaconParsers;
         //initialize the extra data beacon tracker
         mExtraDataBeaconTracker = new ExtraDataBeaconTracker(matchBeaconsByServiceUUID);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers) {
+        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+        List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                new ArrayList<BeaconParser>(beaconParsers));
+        try {
+            final BluetoothManager bluetoothManager =
+                    (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+            if (bluetoothAdapter == null) {
+                LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+            }
+            else {
+                int result = bluetoothAdapter.getBluetoothLeScanner().startScan(filters, settings, getScanCallbackIntent());
+                if (result != 0) {
+                    LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
+                }
+                else {
+                    LogManager.d(TAG, "Started passive beacon scan");
+                }
+            }
+        }
+        catch (SecurityException e) {
+            LogManager.e(TAG, "SecurityException making Android O background scanner");
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    void stopAndroidOBackgroundScan() {
+        try {
+            final BluetoothManager bluetoothManager =
+                    (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+            if (bluetoothAdapter == null) {
+                LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+            } else {
+                bluetoothAdapter.getBluetoothLeScanner().stopScan(getScanCallbackIntent());
+            }
+        } catch (SecurityException e) {
+            LogManager.e(TAG, "SecurityException stopping Android O background scanner");
+        }
+    }
+
+    // Low power scan results in the background will be delivered via Intent
+    PendingIntent getScanCallbackIntent() {
+        Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
+        intent.putExtra("o-scan", true);
+        return PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
@@ -339,4 +398,5 @@ class ScanHelper {
         }
         return matched;
     }
+
 }

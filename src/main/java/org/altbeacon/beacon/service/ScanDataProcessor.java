@@ -25,6 +25,7 @@ import java.util.Set;
 
 /**
  * Created by dyoung on 3/24/17.
+ * @hice
  */
 
 public class ScanDataProcessor {
@@ -36,7 +37,6 @@ public class ScanDataProcessor {
     private ExtraDataBeaconTracker mExtraDataBeaconTracker;
     // TODO: implement this
     private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
-    // TODO: re-evaluate the need for this
     private DetectionTracker mDetectionTracker = DetectionTracker.getInstance();
 
     int trackedBeaconsPacketCount;

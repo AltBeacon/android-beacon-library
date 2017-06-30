@@ -159,6 +159,7 @@ class ScanHelper {
                 LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
             }
             else {
+                // commented out for this branch because this is only in Android O
                 //int result = bluetoothAdapter.getBluetoothLeScanner().startScan(filters, settings, getScanCallbackIntent());
                 //if (result != 0) {
                 //    LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
@@ -173,7 +174,7 @@ class ScanHelper {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @RequiresApi(api = Build.VERSION_CODES.N)
     void stopAndroidOBackgroundScan() {
         try {
             final BluetoothManager bluetoothManager =
@@ -182,7 +183,8 @@ class ScanHelper {
             if (bluetoothAdapter == null) {
                 LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
             } else {
-                bluetoothAdapter.getBluetoothLeScanner().stopScan(getScanCallbackIntent());
+                // Commented out for this branch because this is only in Android O
+                //bluetoothAdapter.getBluetoothLeScanner().stopScan(getScanCallbackIntent());
             }
         } catch (SecurityException e) {
                LogManager.e(TAG, "SecurityException stopping Android O background scanner");

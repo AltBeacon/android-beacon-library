@@ -39,6 +39,8 @@ public class ScanJob extends JobService {
         Once the periodic one gets run, the immediate is cancelled.
      */
     public static final int IMMMEDIATE_SCAN_JOB_ID = 2;
+    // TODO: Change this to Build.VERSION_CODES.O when the SDK is released
+    private static final int ANDROID_O_VERSION = 10000;
 
     private ScanState mScanState;
     private Handler mStopHandler = new Handler();
@@ -111,8 +113,7 @@ public class ScanJob extends JobService {
             LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
         }
         else {
-            // TODO: Change this to >= Build.VERSION_CODES.O when the SDK is released
-            if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
+            if (android.os.Build.VERSION.SDK_INT >= ANDROID_O_VERSION) {
                 LogManager.i(TAG, "We are outside all beacon regions.  We will scan between cycles.");
                 mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
             }
@@ -155,8 +156,7 @@ public class ScanJob extends JobService {
         if (mScanHelper.getCycledScanner() == null) {
             mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
         }
-        // TODO: Change this to >= Build.VERSION_CODES.O when the SDK is released
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
+        if (Build.VERSION.SDK_INT >= ANDROID_O_VERSION) {
             mScanHelper.stopAndroidOBackgroundScan();
         }
         mScanHelper.getCycledScanner().setScanPeriods(mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod(),

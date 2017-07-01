@@ -51,22 +51,12 @@ allprojects {
 }
 
 android {
-    // You cannot set a minSdk < Android O if targeting android-O.  Swap out the
-    // commented lines below to test on Android O devices vs. earlier devices.
-    //compileSdkVersion 'android-O'
-    //buildToolsVersion '26.0.0-rc2'
     compileSdkVersion 24
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        // Unfortunately 'com.android.support:appcompat-v7:26.0.0-alpha1
-        // requires minSdkVersion 14, forcing a bump verson minSdkVersion 7
-        //minSdkVersion 14
         minSdkVersion 7
-        // You cannot set a minSdk < Android O if targeting android-O.  Swap out the
-        // commented lines below to test on Android O devices vs. earlier devices.
         targetSdkVersion 23
-        //targetSdkVersion 'O'
         versionCode 1
         versionName version
         consumerProguardFiles 'proguard-rules.pro'
@@ -97,10 +87,6 @@ android {
 
 dependencies {
     compile fileTree ( dir: 'libs', include: ['*.jar'] )
-    // You cannot set a minSdk < Android O if targeting android-O.  Swap out the
-    // commented lines below to test on Android O devices vs. earlier devices.
-    // For Android O Docs say to use com.android.support:appcompat-v7:26.0.0-beta1, but that is not available
-    //compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
     compile 'com.android.support:support-v4:24.1.0'
     compile 'com.android.support:support-annotations:25.3.1'
 

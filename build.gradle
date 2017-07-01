@@ -55,7 +55,7 @@ android {
     // commented lines below to test on Android O devices vs. earlier devices.
     //compileSdkVersion 'android-O'
     //buildToolsVersion '26.0.0-rc2'
-    compileSdkVersion 25
+    compileSdkVersion 24
     buildToolsVersion "25.0.2"
 
     defaultConfig {

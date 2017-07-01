@@ -156,8 +156,7 @@ public class ScanJob extends JobService {
         if (mScanHelper.getCycledScanner() == null) {
             mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
         }
-        // TODO: Change this to >= Build.VERSION_CODES.O when the SDK is released
-        if (Build.VERSION.SDK_INT > 10000) {
+        if (Build.VERSION.SDK_INT >= ANDROID_O_VERSION) {
             mScanHelper.stopAndroidOBackgroundScan();
         }
         mScanHelper.getCycledScanner().setScanPeriods(mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod(),

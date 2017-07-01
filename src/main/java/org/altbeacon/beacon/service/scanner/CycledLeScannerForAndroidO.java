@@ -2,9 +2,7 @@ package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
-
 import java.util.Set;
 
 /**

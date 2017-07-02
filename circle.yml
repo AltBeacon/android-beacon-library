@@ -7,4 +7,3 @@ dependencies:
 general:
   branches:
     ignore:
-      - scheduled-job-scanning-android-o

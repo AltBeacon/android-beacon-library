@@ -26,12 +26,15 @@ buildscript {
     repositories {
         jcenter()
         maven {
+            url 'https://dl.google.com/dl/android/maven2/'
+        }
+        maven {
             url 'https://maven.google.com'
         }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.0'
+        classpath 'com.android.tools.build:gradle:3.0.0-alpha2'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.3'
     }
@@ -51,22 +54,18 @@ allprojects {
 }
 
 android {
-    compileSdkVersion 'android-O'
-    buildToolsVersion '26.0.0-rc2'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.0'
 
     defaultConfig {
         // Unfortunately 'com.android.support:appcompat-v7:26.0.0-alpha1
         // requires minSdkVersion 14, forcing a bump verson minSdkVersion 7
         minSdkVersion 14
-        targetSdkVersion 'O'
+        targetSdkVersion 26
         versionCode 1
         versionName version
         consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        testOptions {
-            // The test runner needs Espresso 2.2.2 which requires at least 8
-            minSdkVersion 8
-        }
     }
 
     compileOptions {
@@ -89,7 +88,7 @@ android {
 
 dependencies {
     compile fileTree ( dir: 'libs', include: ['*.jar'] )
-    compile 'com.android.support:support-v4:26.0.0'
+    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
     compile 'com.android.support:support-annotations:25.3.1'
 
     testCompile('junit:junit:4.12') {

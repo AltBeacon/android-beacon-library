@@ -290,7 +290,10 @@ public class Beacon implements Parcelable, Serializable {
      * @return double
      */
     public double getRunningAverageRssi() {
-        return mRunningAverageRssi;
+        if (mRunningAverageRssi != null){
+            return mRunningAverageRssi;
+        }
+        return mRssi;
     }
 
 

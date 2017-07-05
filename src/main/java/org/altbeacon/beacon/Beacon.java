@@ -286,7 +286,6 @@ public class Beacon implements Parcelable, Serializable {
 
     /**
      * Returns the running average rssi
-     * @param 
      * @return double
      */
     public double getRunningAverageRssi() {

@@ -285,6 +285,16 @@ public class Beacon implements Parcelable, Serializable {
     }
 
     /**
+     * @deprecated To be removed in a future release. Use
+     * {@link org.altbeacon.beacon.Beacon#getRunningAverageRssi()}
+     * instead.
+     */
+    @Deprecated
+    public double getRunningAverageRssi(double rssi) {
+        return mRunningAverageRssi = rssi;
+    }
+
+    /**
      * Returns the running average rssi
      * @return double
      */
@@ -294,7 +304,6 @@ public class Beacon implements Parcelable, Serializable {
         }
         return mRssi;
     }
-
 
     /**
      * Sets the most recently measured rssi for use in distance calculations if a running average is

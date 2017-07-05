@@ -122,18 +122,17 @@ public abstract class CycledLeScanner {
             return null;
         }
 
-        if (android.os.Build.VERSION.SDK_INT < 21) {
-            LogManager.i(TAG, "This is not Android 5.0.  We are using old scanning APIs");
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            LogManager.i(TAG, "This is pre Android 5.0.  We are using old scanning APIs");
             useAndroidLScanner = false;
 
         }
-        // TODO: change this to check for Android O version when SDK is released
-        else if (Build.VERSION.PREVIEW_SDK_INT == 0) {
+        else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             if (BeaconManager.isAndroidLScanningDisabled()) {
-                LogManager.i(TAG, "This Android 5.0, but L scanning is disabled. We are using old scanning APIs");
+                LogManager.i(TAG, "This is Android 5.0, but L scanning is disabled. We are using old scanning APIs");
                 useAndroidLScanner = false;
             } else {
-                LogManager.i(TAG, "This Android 5.0.  We are using new scanning APIs");
+                LogManager.i(TAG, "This is Android 5.0.  We are using new scanning APIs");
                 useAndroidLScanner = true;
             }
         }

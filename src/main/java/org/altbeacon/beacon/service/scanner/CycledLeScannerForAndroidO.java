@@ -18,7 +18,7 @@ import java.util.Set;
  * Created by dyoung on 5/28/17.
  */
 
-@TargetApi(25)
+@TargetApi(26)
 class CycledLeScannerForAndroidO extends CycledLeScannerForLollipop {
     private static final String TAG = CycledLeScannerForAndroidO.class.getSimpleName();
 

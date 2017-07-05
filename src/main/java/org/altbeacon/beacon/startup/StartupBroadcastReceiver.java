@@ -31,7 +31,18 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
         }
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());
         if (beaconManager.isAnyConsumerBound() || beaconManager.getScheduledScanJobsEnabled()) {
-            if (intent.getBooleanExtra("wakeup", false)) {
+            int bleCallbackType = intent.getIntExtra(BluetoothLeScanner.EXTRA_CALLBACK_TYPE, -1); // e.g. ScanSettings.CALLBACK_TYPE_FIRST_MATCH
+            if (bleCallbackType != -1) {
+                LogManager.d(TAG, "Passive background scan callback type: "+bleCallbackType);
+                LogManager.d(TAG, "got Android O background scan via intent");
+                int errorCode = intent.getIntExtra(BluetoothLeScanner.EXTRA_ERROR_CODE, -1); // e.g.  ScanCallback.SCAN_FAILED_INTERNAL_ERROR
+                if (errorCode != -1) {
+                    LogManager.w(TAG, "Passive background scan failed.  Code; "+errorCode);
+                }
+                ArrayList<ScanResult> scanResults = intent.getParcelableArrayListExtra(BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT);
+                ScanJobScheduler.getInstance().scheduleAfterBackgroundWakeup(context, scanResults);
+            }
+            else if (intent.getBooleanExtra("wakeup", false)) {
                 LogManager.d(TAG, "got wake up intent");
             }
             else {

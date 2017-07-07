@@ -1,3 +1,9 @@
+### Development
+
+Bug Fixes:
+
+ - Correct accessor method for Beacon#getRunningAverageRssi()
+   (#536, Pietro De Caro)
 
 ### 2.11 / 2017-06-28
 

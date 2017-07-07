@@ -1,5 +1,9 @@
 ### Development
 
+Enhancements:
+ - Add ScanJob for using JobScheudler to do scans instead of BeaconService, set as 
+   default for Android O. (#484, David G. Young)
+
 Bug Fixes:
 
  - Correct accessor method for Beacon#getRunningAverageRssi()

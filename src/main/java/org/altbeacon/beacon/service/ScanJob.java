@@ -111,9 +111,7 @@ public class ScanJob extends JobService {
             LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
         }
         else {
-            // TODO: change this to check for Android O version when SDK is released
-            if (Build.VERSION.PREVIEW_SDK_INT> 0) {
-                LogManager.i(TAG, "We are outside all beacon regions.  We will scan between cycles.");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
             }
             else {
@@ -155,8 +153,7 @@ public class ScanJob extends JobService {
         if (mScanHelper.getCycledScanner() == null) {
             mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
         }
-        // TODO: change this to check for Android O version when SDK is released
-        if (Build.VERSION.PREVIEW_SDK_INT > 0) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mScanHelper.stopAndroidOBackgroundScan();
         }
         mScanHelper.getCycledScanner().setScanPeriods(mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod(),

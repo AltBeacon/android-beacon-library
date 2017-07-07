@@ -146,12 +146,47 @@ class ScanHelper {
         mExtraDataBeaconTracker = new ExtraDataBeaconTracker(matchBeaconsByServiceUUID);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers) {
-        // Stub.  See full definition in other branch: scheduled-job-scanning-android-o
+        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+        List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                new ArrayList<BeaconParser>(beaconParsers));
+        try {
+            final BluetoothManager bluetoothManager =
+                    (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+            if (bluetoothAdapter == null) {
+                LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+            }
+            else {
+                int result = bluetoothAdapter.getBluetoothLeScanner().startScan(filters, settings, getScanCallbackIntent());
+                if (result != 0) {
+                    LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
+                }
+                else {
+                    LogManager.d(TAG, "Started passive beacon scan");
+                }
+            }
+        }
+        catch (SecurityException e) {
+            LogManager.e(TAG, "SecurityException making Android O background scanner");
+        }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     void stopAndroidOBackgroundScan() {
-        // Stub.  See full definition in other branch: scheduled-job-scanning-android-o
+        try {
+            final BluetoothManager bluetoothManager =
+                    (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+            if (bluetoothAdapter == null) {
+                LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+            } else {
+                bluetoothAdapter.getBluetoothLeScanner().stopScan(getScanCallbackIntent());
+            }
+        } catch (SecurityException e) {
+            LogManager.e(TAG, "SecurityException stopping Android O background scanner");
+        }
     }
 
     // Low power scan results in the background will be delivered via Intent

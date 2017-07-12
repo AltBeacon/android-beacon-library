@@ -34,7 +34,7 @@ import java.util.Map;
 
 public class RangeState implements Serializable {
     private static final String TAG = "RangeState";
-    private transient Callback mCallback;
+    private Callback mCallback;
     private Map<Beacon,RangedBeacon> mRangedBeacons = new HashMap<Beacon,RangedBeacon>();
     private static boolean sUseTrackingCache = false;
 

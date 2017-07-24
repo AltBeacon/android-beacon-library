@@ -321,8 +321,7 @@ public class BeaconManager {
            verifyServiceDeclaration();
          }
         this.beaconParsers.add(new AltBeaconParser());
-        // TODO: Change this to >= Build.VERSION_CODES.O when the SDK is released
-        mScheduledScanJobsEnabled = android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.N;
+        mScheduledScanJobsEnabled = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
     /***

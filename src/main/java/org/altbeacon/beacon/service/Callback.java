@@ -27,7 +27,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 
+import org.altbeacon.beacon.BeaconLocalBroadcastProcessor;
+import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
 import java.io.IOException;
@@ -35,23 +38,9 @@ import java.io.Serializable;
 
 public class Callback implements Serializable {
     private static final String TAG = "Callback";
-    private transient Intent mIntent;
-    private String mIntentPackageName;
 
+    //TODO: Remove this constructor in favor of an empty one, as the packae name is no longer needed
     public Callback(String intentPackageName) {
-        mIntentPackageName = intentPackageName;
-        initializeIntent();
-    }
-
-    private void initializeIntent() {
-        if (mIntentPackageName != null) {
-            mIntent = new Intent();
-            mIntent.setComponent(new ComponentName(mIntentPackageName, "org.altbeacon.beacon.BeaconIntentProcessor"));
-        }
-    }
-
-    public Intent getIntent() {
-        return mIntent;
     }
 
     /**
@@ -63,20 +52,34 @@ public class Callback implements Serializable {
      * @return false if it callback cannot be made
      */
     public boolean call(Context context, String dataName, Bundle data) {
-        if(mIntent == null){
-            initializeIntent();
-        }
+        boolean useLocalBroadcast = BeaconManager.getInstanceForApplication(context).getScheduledScanJobsEnabled();
         boolean success = false;
-        if (mIntent != null) {
-            LogManager.d(TAG, "attempting callback via intent: %s", mIntent.getComponent());
-            mIntent.putExtra(dataName, data);
+
+        if(useLocalBroadcast) {
+            String action = null;
+            if (dataName == "rangingData") {
+                action = BeaconLocalBroadcastProcessor.RANGE_NOTIFICATION;
+            }
+            else {
+                action = BeaconLocalBroadcastProcessor.MONITOR_NOTIFICATION;
+            }
+            Intent intent = new Intent(action);
+            intent.putExtra(dataName, data);
+            LogManager.d(TAG, "attempting callback via local broadcast intent: %s",action);
+            success = LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
+        else {
+            Intent intent = new Intent();
+            intent.setComponent(new ComponentName(context.getPackageName(), "org.altbeacon.beacon.BeaconIntentProcessor"));
+            intent.putExtra(dataName, data);
+            LogManager.d(TAG, "attempting callback via global broadcast intent: %s",intent.getComponent());
             try {
-                context.startService(mIntent);
+                context.startService(intent);
                 success = true;
             } catch (Exception e) {
                 LogManager.e(
                         TAG,
-                        "Failed attempting to start service: " + mIntent.getComponent().flattenToString(),
+                        "Failed attempting to start service: " + intent.getComponent().flattenToString(),
                         e
                 );
             }
@@ -88,6 +91,5 @@ public class Callback implements Serializable {
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        initializeIntent();
     }
 }

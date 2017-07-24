@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 
+import org.altbeacon.beacon.BeaconLocalBroadcastProcessor;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -42,6 +43,8 @@ public class ScanJobScheduler {
     private Long mScanJobScheduleTime = 0L;
     @NonNull
     private List<ScanResult> mBackgroundScanResultQueue = new ArrayList<>();
+    @Nullable
+    private BeaconLocalBroadcastProcessor mBeaconNotificationProcessor;
 
     @NonNull
     public static ScanJobScheduler getInstance() {
@@ -58,6 +61,13 @@ public class ScanJobScheduler {
     }
 
     private ScanJobScheduler() {
+    }
+
+    private void ensureNotificationProcessorSetup(Context context) {
+        if (mBeaconNotificationProcessor == null) {
+            mBeaconNotificationProcessor = new BeaconLocalBroadcastProcessor(context);
+            mBeaconNotificationProcessor.register();
+        }
     }
 
     /**
@@ -104,6 +114,8 @@ public class ScanJobScheduler {
     }
 
     private void schedule(Context context, ScanState scanState, boolean backgroundWakeup) {
+        ensureNotificationProcessorSetup(context);
+
         long betweenScanPeriod = scanState.getScanJobIntervalMillis() - scanState.getScanJobRuntimeMillis();
 
         long millisToNextJobStart;

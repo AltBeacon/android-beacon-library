@@ -118,7 +118,7 @@ public class ScanJob extends JobService {
                 mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
             }
             else {
-                LogManager.d(TAG, "This is not Android O (PREVIEW_SDK_INT="+ Build.VERSION.PREVIEW_SDK_INT+")  No scanning between cycles when using ScanJob");
+                LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
             }
         }
     }

@@ -358,7 +358,7 @@ class ScanHelper {
                     LogManager.d(TAG, "Beacon packet detected for: "+beacon+" with rssi "+beacon.getRssi());
                 }
                 mDetectionTracker.recordDetection();
-                if (!mCycledScanner.getDistinctPacketsDetectedPerScan()) {
+                if (mCycledScanner != null && !mCycledScanner.getDistinctPacketsDetectedPerScan()) {
                     if (!mDistinctPacketDetector.isPacketDistinct(scanData.device.getAddress(),
                             scanData.scanRecord)) {
                         LogManager.i(TAG, "Non-distinct packets detected in a single scan.  Restarting scans unecessary.");

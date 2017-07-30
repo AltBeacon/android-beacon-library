@@ -8,6 +8,7 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,6 +35,7 @@ import static android.content.Context.MODE_PRIVATE;
 public class ScanState implements Serializable {
     private static final String TAG = ScanState.class.getSimpleName();
     private static final String STATUS_PRESERVATION_FILE_NAME = "android-beacon-library-scan-state";
+    private static final String TEMP_STATUS_PRESERVATION_FILE_NAME = "android-beacon-library-scan-state-temp";
     public static int MIN_SCAN_JOB_INTERVAL_MILLIS = 300000; //  5 minutes
 
     private Map<Region, RangeState> mRangedRegionState = new HashMap<Region, RangeState>();
@@ -185,13 +187,22 @@ public class ScanState implements Serializable {
             FileOutputStream outputStream = null;
             ObjectOutputStream objectOutputStream = null;
             try {
-                outputStream = mContext.openFileOutput(STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
+                outputStream = mContext.openFileOutput(TEMP_STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(outputStream);
                 objectOutputStream.writeObject(this);
+                File file = new File(mContext.getFilesDir(), STATUS_PRESERVATION_FILE_NAME);
+                File tempFile = new File(mContext.getFilesDir(), TEMP_STATUS_PRESERVATION_FILE_NAME);
+                LogManager.d(TAG, "Temp file is "+tempFile.getAbsolutePath());
+                LogManager.d(TAG, "Perm file is "+file.getAbsolutePath());
 
+                if (!file.delete()) {
+                    LogManager.e(TAG, "Error while saving scan status to file: Cannot delete existing file.");
+                }
+                if (!tempFile.renameTo(file)) {
+                    LogManager.e(TAG, "Error while saving scan status to file: Cannot rename temp file.");
+                }
             } catch (IOException e) {
                 LogManager.e(TAG, "Error while saving scan status to file: ", e.getMessage());
-                Log.e(TAG, "error: ", e);
             } finally {
                 if (null != outputStream) {
                     try {

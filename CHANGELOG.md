@@ -1,8 +1,8 @@
-### Development
+### 2.12 / 2017-08-07
 
 Enhancements:
- - Add ScanJob for using JobScheudler to do scans instead of BeaconService, set as 
-   default for Android O. (#484, David G. Young)
+ - Add Android O support with ScanJob using  JobScheduler to do scans instead of BeaconService, 
+   set as default for Android O. (#484, David G. Young)
 
 Bug Fixes:
 

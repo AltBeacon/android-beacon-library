@@ -27,16 +27,12 @@ It allows Android devices to use beacons much like iOS devices do. An app can re
 ### What kinds of beacons does it detect?
 
 The library may be configured to detect a wide variety of beacons.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org), but it can be easily configured to work with the most popular beacon types on the market.  See the documentation for the
-[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for more info.
+[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for more info.  Eddystone is fully supported, with details shown in the Eddystone section below.
 
-### Eddystone Support
+### Android 8 Support
 
-**New:** Eddystone-EID Support is in the the 2.8.1-beta1 version.  Read more [here](./eddystone-eid.html).
-
-Library versions 2.3.5 and higher provide full support for Eddystone&trade;, the new beacon format from Google.
-The library will wake up your app when it detects Eddystone-compatible beacons in the background and provides regular
-ranging updates while they are in the vicinity.  Eddystone-UID (identifier frame), Eddystone-TLM (telemetry frame) and
-Eddystone-URL (URL frame) are all detected and decoded.  [Details are here.](eddystone-support.html)
+Library version 2.12 introduces a new scanning mechanism compatible with Android 8 power saving restrictions.  Apps that use the
+library will need to upgrade to version 2.12 in order to detect in the background on Android 8 devices.  Read more information [here.](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8)
 
 ### Who uses this library?
 
@@ -76,10 +72,13 @@ Eddystone-URL (URL frame) are all detected and decoded.  [Details are here.](edd
 
 ### What devices can detect beacons?
 
-Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of June 2015, this is approximately 56 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html) and growing quickly.
+Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of August 2017, this is approximately 92 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html).
 
-To transmit as a beacon, Android 5.0+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.  As of May 2015, only a few dozen devices are known to have firmware that supports Bluetooth Low Energy Peripheral Mode.
+To transmit as a beacon, Android 5.0+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.
 
-### Changes from the 0.x Library
+### Eddystone Support
 
-This library has changed significantly from the 0.x library version and is now designed to work with open AltBeacons which fully support Android without any intellectual property restrictions. For more information on how to migrate projects using the 0.x APIs to the 2.x APIs, see [API migration](api-migration.html).
+The library provides full support for the Eddystone&trade;, format from Google.
+The library will wake up your app when it detects Eddystone-compatible beacons in the background and provides regular
+ranging updates while they are in the vicinity.  Eddystone-UID (identifier frame), Eddystone-TLM (telemetry frame) and
+Eddystone-URL (URL frame) are all detected and decoded.  [Details are here.](eddystone-support.html)  Eddystone-EID Support is described [here](./eddystone-eid.html).

@@ -2,6 +2,7 @@ package org.altbeacon.beacon.service;
 
 import org.altbeacon.beacon.Beacon;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 /**
@@ -9,7 +10,7 @@ import java.util.HashMap;
  * merges them together depending on configured beacon parsers
  * Created by dyoung on 5/5/15.
  */
-public class ExtraDataBeaconTracker {
+public class ExtraDataBeaconTracker implements Serializable {
     private static final String TAG = "BeaconTracker";
     // This is a lookup table to find tracked beacons by the calculated beacon key
     private HashMap<String,HashMap<Integer,Beacon>> mBeaconsByKey = new HashMap<String,HashMap<Integer,Beacon>>();

@@ -25,10 +25,16 @@ def getVersionName = {
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url 'https://maven.google.com'
+        }
+        maven {
+            url 'https://dl.google.com/dl/android/maven2/'
+        }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.0'
+        classpath 'com.android.tools.build:gradle:3.0.0-alpha5'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.3'
     }
@@ -44,24 +50,30 @@ allprojects {
 
     repositories {
         jcenter()
+        maven {
+            url 'https://maven.google.com'
+        }
+        maven {
+            url 'https://dl.google.com/dl/android/maven2/'
+        }
     }
 }
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion '26.0.0'
 
     defaultConfig {
-        minSdkVersion 7
-        targetSdkVersion 23
+        // Unfortunately 'com.android.support:appcompat-v7:26.0.0-beta1'
+        // requires minSdkVersion 14, forcing a bump verson minSdkVersion 7
+        // But since only 0.8% of Android devices have < SDK 14 as of Une 2017, this will become
+        // the new min version for this library in order to target Android O
+        minSdkVersion 14
+        targetSdkVersion 26
         versionCode 1
         versionName version
         consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        testOptions {
-            // The test runner needs Espresso 2.2.2 which requires at least 8
-            minSdkVersion 8
-        }
     }
 
     compileOptions {
@@ -84,6 +96,7 @@ android {
 
 dependencies {
     compile fileTree ( dir: 'libs', include: ['*.jar'] )
+    compile 'com.android.support:appcompat-v7:26.0.0-beta2'
     compile 'com.android.support:support-annotations:25.3.1'
 
     testCompile('junit:junit:4.12') {

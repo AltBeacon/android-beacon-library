@@ -31,6 +31,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -41,11 +42,15 @@ import android.support.annotation.Nullable;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
+import org.altbeacon.beacon.service.Callback;
 import org.altbeacon.beacon.service.MonitoringStatus;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
+import org.altbeacon.beacon.service.ScanJob;
+import org.altbeacon.beacon.service.ScanJobScheduler;
+import org.altbeacon.beacon.service.ScanState;
 import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
@@ -63,6 +68,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import org.altbeacon.beacon.service.ScanJob;
+import org.altbeacon.beacon.service.ScanState;
 
 /**
  * A class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
@@ -149,10 +157,9 @@ public class BeaconManager {
     private boolean mBackgroundMode = false;
     private boolean mBackgroundModeUninitialized = true;
     private boolean mMainProcess = false;
-
     @Nullable
     private Boolean mScannerInSameProcess = null;
-
+    private boolean mScheduledScanJobsEnabled = false;
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
 
@@ -314,6 +321,7 @@ public class BeaconManager {
            verifyServiceDeclaration();
          }
         this.beaconParsers.add(new AltBeaconParser());
+        mScheduledScanJobsEnabled = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
     /***
@@ -395,6 +403,11 @@ public class BeaconManager {
         }
         if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             LogManager.w(TAG, "This device does not support bluetooth LE.  Will not start beacon scanning.");
+            return;
+        }
+        if (mScheduledScanJobsEnabled) {
+            LogManager.d(TAG, "Not starting beacon scanning service. Using scheduled jobs");
+            consumer.onBeaconServiceConnect();
             return;
         }
         synchronized (consumers) {
@@ -507,6 +520,55 @@ public class BeaconManager {
                 LogManager.e(TAG, "Cannot contact service to set scan periods");
             }
         }
+    }
+
+    /**
+     * Configures using a `ScanJob` run with the `JobScheduler` to perform scans rather than using a
+     * long-running `BeaconService` to do so.
+     *
+     * Calling with true on devices older than Android L (5.0) will not apply the change
+     * as the JobScheduler is not available.
+     *
+     * This value defaults to true on Android O+ and false on devices with older OS versions.
+     * Accepting the default value of false is recommended on Android N and earlier because
+     * otherwise beacon scans may be run only once every 15 minutes in the background, and no low
+     * power scans may be performed between scanning cycles.
+     *
+     * This method may only be called if bind() has not yet been called, otherwise an
+     * `IllegalStateException` is thown.
+     *
+     * @param enabled
+     */
+    public void setEnableScheduledScanJobs(boolean enabled) {
+        if (isAnyConsumerBound()) {
+            LogManager.e(TAG, "ScanJob may not be configured because a consumer is" +
+                    " already bound.");
+            throw new IllegalStateException("Method must be called before calling bind()");
+        }
+        if (enabled && android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            LogManager.e(TAG, "ScanJob may not be configured because JobScheduler is not" +
+                    " availble prior to Android 5.0");
+            return;
+        }
+        mScheduledScanJobsEnabled = enabled;
+    }
+    public boolean getScheduledScanJobsEnabled() {
+        return mScheduledScanJobsEnabled;
+    }
+    public boolean getBackgroundMode() {
+        return mBackgroundMode;
+    }
+    public long getBackgroundScanPeriod() {
+        return backgroundScanPeriod;
+    }
+    public long getBackgroundBetweenScanPeriod() {
+        return backgroundBetweenScanPeriod;
+    }
+    public long getForegroundScanPeriod() {
+        return foregroundScanPeriod;
+    }
+    public long getForegroundBetweenScanPeriod() {
+        return foregroundBetweenScanPeriod;
     }
 
     /**
@@ -734,15 +796,10 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
-        }
-        Message msg = Message.obtain(null, BeaconService.MSG_START_RANGING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
         synchronized (rangedRegions) {
             rangedRegions.add(region);
         }
+        applyChangesToServices(BeaconService.MSG_START_RANGING, region);
     }
 
     /**
@@ -764,12 +821,6 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
-        }
-        Message msg = Message.obtain(null, BeaconService.MSG_STOP_RANGING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
         synchronized (rangedRegions) {
             Region regionToRemove = null;
             for (Region rangedRegion : rangedRegions) {
@@ -779,6 +830,7 @@ public class BeaconManager {
             }
             rangedRegions.remove(regionToRemove);
         }
+        applyChangesToServices(BeaconService.MSG_STOP_RANGING, region);
     }
 
     /**
@@ -801,17 +853,14 @@ public class BeaconManager {
     }
 
     protected void syncSettingsToService() {
-        if (serviceMessenger == null) {
-            LogManager.e(TAG, "The BeaconManager is not bound to the service.  Settings synchronization will fail.");
+        if (mScheduledScanJobsEnabled) {
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
             return;
         }
         try {
-            Message msg = Message.obtain(null, BeaconService.MSG_SYNC_SETTINGS, 0, 0);
-            msg.setData(new SettingsData().collect(mContext).toBundle());
-            serviceMessenger.send(msg);
-        }
-        catch (RemoteException e) {
-            LogManager.e(e, TAG, "Failed to sync settings to service");
+            applyChangesToServices(BeaconService.MSG_SYNC_SETTINGS, null);
+        } catch (RemoteException e) {
+            LogManager.e(TAG, "Failed to sync settings to service", e);
         }
     }
 
@@ -835,13 +884,11 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+        if (mScheduledScanJobsEnabled) {
+            MonitoringStatus.getInstanceForApplication(mContext).addRegion(region, new Callback(callbackPackageName()));
         }
-        LogManager.d(TAG, "Starting monitoring region "+region+" with uniqueID: "+region.getUniqueId());
-        Message msg = Message.obtain(null, BeaconService.MSG_START_MONITORING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
+        applyChangesToServices(BeaconService.MSG_START_MONITORING, region);
+
         if (isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).addLocalRegion(region);
         }
@@ -868,17 +915,14 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+        if (mScheduledScanJobsEnabled) {
+            MonitoringStatus.getInstanceForApplication(mContext).removeRegion(region);
         }
-        Message msg = Message.obtain(null, BeaconService.MSG_STOP_MONITORING, 0, 0);
-        msg.setData(new StartRMData(region, callbackPackageName(), this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
-        serviceMessenger.send(msg);
+        applyChangesToServices(BeaconService.MSG_STOP_MONITORING, region);
         if (isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).removeLocalRegion(region);
         }
     }
-
 
     /**
      * Updates an already running scan with scanPeriod/betweenScanPeriod according to Background/Foreground state.
@@ -895,13 +939,30 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
+        LogManager.d(TAG, "updating background flag to %s", mBackgroundMode);
+        LogManager.d(TAG, "updating scan period to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
+        applyChangesToServices(BeaconService.MSG_SET_SCAN_PERIODS, null);
+    }
+
+    @TargetApi(18)
+    private void applyChangesToServices(int type, Region region) throws RemoteException {
+        if (mScheduledScanJobsEnabled) {
+            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
+            return;
+        }
         if (serviceMessenger == null) {
             throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
-        Message msg = Message.obtain(null, BeaconService.MSG_SET_SCAN_PERIODS, 0, 0);
-        LogManager.d(TAG, "updating background flag to %s", mBackgroundMode);
-        LogManager.d(TAG, "updating scan period to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
-        msg.setData(new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
+        Message msg = Message.obtain(null, type, 0, 0);
+        if (type == BeaconService.MSG_SET_SCAN_PERIODS) {
+            msg.setData(new StartRMData(this.getScanPeriod(), this.getBetweenScanPeriod(), this.mBackgroundMode).toBundle());
+        }
+        else if (type == BeaconService.MSG_SYNC_SETTINGS) {
+            msg.setData(new SettingsData().collect(mContext).toBundle());
+        }
+        else {
+            msg.setData(new StartRMData(region, callbackPackageName(), getScanPeriod(), getBetweenScanPeriod(), mBackgroundMode).toBundle());
+        }
         serviceMessenger.send(msg);
     }
 
@@ -1136,7 +1197,7 @@ public class BeaconManager {
         List<ResolveInfo> resolveInfo =
                 packageManager.queryIntentServices(intent,
                         PackageManager.MATCH_DEFAULT_ONLY);
-        if (resolveInfo != null && resolveInfo.size() == 0) {
+        if (resolveInfo != null && resolveInfo.isEmpty()) {
             throw new ServiceNotDeclaredException();
         }
     }

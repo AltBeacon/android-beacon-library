@@ -157,7 +157,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             return;
         }
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
-        ScanSettings settings;
+        ScanSettings settings = null;
 
         if (!mMainScanCycleActive) {
             // Only scan between cycles if the between can cycle time > 6 seconds.  A shorter low
@@ -170,14 +170,16 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                         mBeaconManager.getBeaconParsers());
             }
             else {
-                LogManager.d(TAG, "not scanning between cycles because the between scan cycle is too short.");
+                LogManager.d(TAG, "aborting scan between cycles because the between scan cycle is too short.");
             }
         } else {
             LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
         }
 
-        postStartLeScan(filters, settings);
+        if (settings != null) {
+            postStartLeScan(filters, settings);
+        }
     }
 
     @Override

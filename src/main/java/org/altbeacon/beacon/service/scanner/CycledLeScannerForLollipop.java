@@ -159,11 +159,19 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
         ScanSettings settings;
 
-        if (mBackgroundFlag && !mMainScanCycleActive) {
-            LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
-            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
-            filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                    mBeaconManager.getBeaconParsers());
+        if (!mMainScanCycleActive) {
+            // Only scan between cycles if the between can cycle time > 6 seconds.  A shorter low
+            // power scan is unlikely to be useful, and might trigger a "scanning too frequently"
+            // error on Android N.
+            if (mBetweenScanPeriod > 6000l) {
+                LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
+                settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+                filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                        mBeaconManager.getBeaconParsers());
+            }
+            else {
+                LogManager.d(TAG, "not scanning between cycles because the between scan cycle is too short.");
+            }
         } else {
             LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();

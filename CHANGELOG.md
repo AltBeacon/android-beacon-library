@@ -1,3 +1,15 @@
+### Development
+
+Enhancements:
+
+Bug Fixes:
+
+ - Fix "Scanning too frequently" error with non-zero betweenScanPeriod
+   and scanPeriod+betweenScanPeriod < 6000, and full-power scanning
+   staying on for foreground scans with a non-zero betweenScanPeriod
+   (#555, David G. Young)
+
+
 ### 2.12 / 2017-08-07
 
 Enhancements:

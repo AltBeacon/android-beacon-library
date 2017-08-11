@@ -91,11 +91,20 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
                     mBackgroundLScanStartTime = SystemClock.elapsedRealtime();
                     mBackgroundLScanFirstDetectionTime = 0l;
-                    LogManager.d(TAG, "This is Android L. Doing a filtered scan for the background.");
-
+                    LogManager.d(TAG, "This is Android L. Preparing to do a filtered scan for the background.");
                     // On Android L, between scan cycles do a scan with a filter looking for any beacon
                     // if we see one of those beacons, we need to deliver the results
-                    startScan();
+                    // Only scan between cycles if the between can cycle time > 6 seconds.  A shorter low
+                    // power scan is unlikely to be useful, and might trigger a "scanning too frequently"
+                    // error on Android N.
+                    if (mBetweenScanPeriod > 6000l) {
+                        startScan();
+                    }
+                    else {
+                        LogManager.d(TAG, "Suppressing scan between cycles because the between scan cycle is too short.");
+                    }
+
+
                 } else {
                     // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
                     // This API is now available in Android M
@@ -160,18 +169,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         ScanSettings settings = null;
 
         if (!mMainScanCycleActive) {
-            // Only scan between cycles if the between can cycle time > 6 seconds.  A shorter low
-            // power scan is unlikely to be useful, and might trigger a "scanning too frequently"
-            // error on Android N.
-            if (mBetweenScanPeriod > 6000l) {
-                LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
-                settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
-                filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                        mBeaconManager.getBeaconParsers());
-            }
-            else {
-                LogManager.d(TAG, "aborting scan between cycles because the between scan cycle is too short.");
-            }
+            LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
+            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+            filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                          mBeaconManager.getBeaconParsers());
         } else {
             LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();

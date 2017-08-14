@@ -157,8 +157,9 @@ class ScanHelper {
             BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
             if (bluetoothAdapter == null) {
                 LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
-            }
-            else {
+            } else if (!bluetoothAdapter.isEnabled()) {
+                LogManager.w(TAG, "Failed to start background scan on Android O: BluetoothAdapter is not enabled");
+            } else {
                 int result = bluetoothAdapter.getBluetoothLeScanner().startScan(filters, settings, getScanCallbackIntent());
                 if (result != 0) {
                     LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
@@ -181,6 +182,8 @@ class ScanHelper {
             BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
             if (bluetoothAdapter == null) {
                 LogManager.w(TAG, "Failed to construct a BluetoothAdapter");
+            } else if (!bluetoothAdapter.isEnabled()) {
+                LogManager.w(TAG, "BluetoothAdapter is not enabled");
             } else {
                 bluetoothAdapter.getBluetoothLeScanner().stopScan(getScanCallbackIntent());
             }

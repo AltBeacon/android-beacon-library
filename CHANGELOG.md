@@ -1,9 +1,8 @@
-### Development
-
-Enhancements:
+### 2.12.1 / 2017-08-16
 
 Bug Fixes:
-
+ - Fix crash on Android 8.0 background scan when bluetooth is off.
+   (#562 Juliane Lehmann)
  - Fix "Scanning too frequently" error with non-zero betweenScanPeriod
    and scanPeriod+betweenScanPeriod < 6000, and full-power scanning
    staying on for foreground scans with a non-zero betweenScanPeriod

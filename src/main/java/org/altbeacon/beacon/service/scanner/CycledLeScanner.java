@@ -48,6 +48,10 @@ public abstract class CycledLeScanner {
     private boolean mScanningEnabled = false;
     protected final Context mContext;
     private long mScanPeriod;
+    // indicates that we decided not to turn scanning off at the end of a scan cycle (e.g. to
+    // avoid doing too many scans in a limited time on Android 7.0 or because we are capable of
+    // multiple detections.  If true, it indicates scanning needs to be stopped when we finish.
+    private boolean mScanningLeftOn = false;
 
     protected long mBetweenScanPeriod;
 
@@ -224,6 +228,17 @@ public abstract class CycledLeScanner {
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
             scanLeDevice(false);
+            // If we have left scanning on between scan periods, now is the time to shut it off.
+            if (mScanningLeftOn) {
+                LogManager.d(TAG, "Stopping scanning previously left on.");
+                mScanningLeftOn = false;
+                try {
+                    LogManager.d(TAG, "stopping bluetooth le scan");
+                    finishScan();
+                } catch (Exception e) {
+                    LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
+                }
+            }
         } else {
             LogManager.d(TAG, "scanning already stopped");
         }
@@ -397,11 +412,13 @@ public abstract class CycledLeScanner {
                                 LogManager.d(TAG, "Not stopping scan because this is Android N and we" +
                                         " keep scanning for a minimum of 6 seconds at a time. "+
                                         "We will stop in "+(ANDROID_N_MIN_SCAN_CYCLE_MILLIS-(now-mLastScanCycleStartTime))+" millisconds.");
+                                mScanningLeftOn = true;
                             }
                             else {
                                 try {
                                     LogManager.d(TAG, "stopping bluetooth le scan");
                                     finishScan();
+                                    mScanningLeftOn = false;
                                 } catch (Exception e) {
                                     LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
                                 }
@@ -409,6 +426,7 @@ public abstract class CycledLeScanner {
                         }
                         else {
                             LogManager.d(TAG, "Not stopping scanning.  Device capable of multiple indistinct detections per scan.");
+                            mScanningLeftOn = true;
                         }
 
                         mLastScanCycleEndTime = SystemClock.elapsedRealtime();

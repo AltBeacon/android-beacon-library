@@ -1,3 +1,10 @@
+### Development
+
+Bug Fixes:
+ - Suppress error log on ScanState deserialization if file does not exist yet.
+   (#570, David G. Young)
+
+
 ### 2.12.1 / 2017-08-16
 
 Bug Fixes:

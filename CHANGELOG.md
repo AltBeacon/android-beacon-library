@@ -1,3 +1,10 @@
+### Development
+
+Bug Fixes:
+
+- Fix stack overflow caused by scan period of zero seconds, caused by 2.12 upgrade of existing
+  apps.  (#572, David G. Young)
+
 ### 2.12.1 / 2017-08-16
 
 Bug Fixes:

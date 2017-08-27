@@ -94,7 +94,7 @@ public class ScanJob extends JobService {
             }, mScanState.getScanJobRuntimeMillis());
         }
         else {
-            LogManager.i(TAG, "No monitored or ranged regions. Scan job complete.");
+            LogManager.i(TAG, "Scanning not started so Scan job is complete.");
             ScanJob.this.jobFinished(jobParameters , false);
         }
         return true;
@@ -159,10 +159,20 @@ public class ScanJob extends JobService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mScanHelper.stopAndroidOBackgroundScan();
         }
-        mScanHelper.getCycledScanner().setScanPeriods(mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod(),
-                                      mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod(),
-                                      mScanState.getBackgroundMode());
+
+        long scanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod();
+        long betweenScanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod();
+        mScanHelper.getCycledScanner().setScanPeriods(scanPeriod,
+                                                      betweenScanPeriod,
+                                                      mScanState.getBackgroundMode());
         mInitialized = true;
+        if (scanPeriod <= 0) {
+            LogManager.w(TAG, "Starting scan with scan period of zero.  Exiting ScanJob.");
+            mScanHelper.getCycledScanner().stop();
+            return false;
+        }
+        // to test
+        // delete file in data/data/org.altbeacon.beaconreference/files/android-beacon-library-scan-state
         if (mScanHelper.getRangedRegionState().size() > 0 || mScanHelper.getMonitoringStatus().regions().size() > 0) {
             mScanHelper.getCycledScanner().start();
             return true;

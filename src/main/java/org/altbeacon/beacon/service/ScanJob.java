@@ -171,8 +171,7 @@ public class ScanJob extends JobService {
             mScanHelper.getCycledScanner().stop();
             return false;
         }
-        // to test
-        // delete file in data/data/org.altbeacon.beaconreference/files/android-beacon-library-scan-state
+
         if (mScanHelper.getRangedRegionState().size() > 0 || mScanHelper.getMonitoringStatus().regions().size() > 0) {
             mScanHelper.getCycledScanner().start();
             return true;

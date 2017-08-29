@@ -1,3 +1,9 @@
+### Development
+
+Bug Fixes:
+- Turn off scanning after unbind, which was previously left on forever in some cases.
+  (#569, David G. Young)
+
 ### 2.12.1 / 2017-08-16
 
 Bug Fixes:

@@ -1,6 +1,8 @@
 ### Development
 
 Bug Fixes:
+ - Fix stack overflow caused by scan period of zero seconds, caused by 2.12 upgrade of existing
+  apps.  (#572, David G. Young)
  - Suppress error log on ScanState deserialization if file does not exist yet.
    (#570, David G. Young)
  - Turn off scanning after unbind, which was previously left on forever in some cases.

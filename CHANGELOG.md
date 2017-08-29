@@ -1,7 +1,9 @@
 ### Development
 
 Bug Fixes:
-- Turn off scanning after unbind, which was previously left on forever in some cases.
+ - Suppress error log on ScanState deserialization if file does not exist yet.
+   (#570, David G. Young)
+ - Turn off scanning after unbind, which was previously left on forever in some cases.
   (#569, David G. Young)
 
 ### 2.12.1 / 2017-08-16

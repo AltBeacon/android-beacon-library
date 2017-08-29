@@ -405,11 +405,6 @@ public class BeaconManager {
             LogManager.w(TAG, "This device does not support bluetooth LE.  Will not start beacon scanning.");
             return;
         }
-        if (mScheduledScanJobsEnabled) {
-            LogManager.d(TAG, "Not starting beacon scanning service. Using scheduled jobs");
-            consumer.onBeaconServiceConnect();
-            return;
-        }
         synchronized (consumers) {
             ConsumerInfo newConsumerInfo = new ConsumerInfo();
             ConsumerInfo alreadyBoundConsumerInfo = consumers.putIfAbsent(consumer, newConsumerInfo);
@@ -417,9 +412,16 @@ public class BeaconManager {
                 LogManager.d(TAG, "This consumer is already bound");
             }
             else {
-                LogManager.d(TAG, "This consumer is not bound.  binding: %s", consumer);
-                Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
-                consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
+                LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
+                if (mScheduledScanJobsEnabled) {
+                    LogManager.d(TAG, "Not starting beacon scanning service. Using scheduled jobs");
+                    consumer.onBeaconServiceConnect();
+                }
+                else {
+                    LogManager.d(TAG, "Binding to service");
+                    Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
+                    consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
+                }
                 LogManager.d(TAG, "consumer count is now: %s", consumers.size());
             }
         }
@@ -439,7 +441,12 @@ public class BeaconManager {
         synchronized (consumers) {
             if (consumers.containsKey(consumer)) {
                 LogManager.d(TAG, "Unbinding");
-                consumer.unbindService(consumers.get(consumer).beaconServiceConnection);
+                if (mScheduledScanJobsEnabled) {
+                    LogManager.d(TAG, "Not unbinding from scanning service as we are using scan jobs.");
+                }
+                else {
+                    consumer.unbindService(consumers.get(consumer).beaconServiceConnection);
+                }
                 consumers.remove(consumer);
                 if (consumers.size() == 0) {
                     // If this is the last consumer to disconnect, the service will exit
@@ -449,6 +456,11 @@ public class BeaconManager {
                     // This way when we restart ranging or monitoring it will always be in
                     // foreground mode
                     mBackgroundMode = false;
+                    // If we are using scan jobs, we cancel the active scan job
+                    if (mScheduledScanJobsEnabled) {
+                        // TODO: Cancel the active scan job.  Without this is keeps scanning as if
+                        // a consumer is bound.
+                    }
                 }
             }
             else {

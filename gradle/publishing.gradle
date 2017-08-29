@@ -14,10 +14,10 @@ publishing {
             version project.version
             artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
             artifact androidJavadocsJar {
-                classifier 'source'
+                classifier 'javadoc'
             }
             artifact androidSourcesJar {
-                classifier 'javadoc'
+                classifier 'source'
             }
 
             pom.withXml {

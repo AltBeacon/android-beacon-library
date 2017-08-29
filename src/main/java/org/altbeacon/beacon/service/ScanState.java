@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InvalidClassException;
+import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -143,8 +144,10 @@ public class ScanState implements Serializable {
                 objectInputStream = new ObjectInputStream(inputStream);
                 scanState = (ScanState) objectInputStream.readObject();
                 scanState.mContext = context;
-                ;
-            } catch (IOException | ClassNotFoundException | ClassCastException e) {
+            } catch (FileNotFoundException fnfe) {
+                LogManager.w(TAG, "Serialized ScanState does not exist.  This may be normal on first run.");
+            }
+            catch (IOException | ClassNotFoundException | ClassCastException e) {
                 if (e instanceof InvalidClassException) {
                     LogManager.d(TAG, "Serialized ScanState has wrong class. Just ignoring saved state...");
                 }

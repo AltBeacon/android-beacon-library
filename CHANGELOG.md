@@ -1,4 +1,6 @@
-### Development
+### 2.12.2 / 2017-08-31
+
+[Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.12.1...2.12.2)
 
 Bug Fixes:
  - Fix stack overflow caused by scan period of zero seconds, caused by 2.12 upgrade of existing
@@ -10,6 +12,9 @@ Bug Fixes:
 
 ### 2.12.1 / 2017-08-16
 
+[Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.12...2.12.1)
+
+
 Bug Fixes:
  - Fix crash on Android 8.0 background scan when bluetooth is off.
    (#562 Juliane Lehmann)
@@ -20,6 +25,8 @@ Bug Fixes:
 
 
 ### 2.12 / 2017-08-07
+
+[Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.11...2.12)
 
 Enhancements:
  - Add Android O support with ScanJob using  JobScheduler to do scans instead of BeaconService, 

@@ -1,3 +1,10 @@
+### Development
+
+Buf Fixes:
+ - Fix ConcurrentModificationException crashing app on Android 8 when monitored regions are
+   changed at the same time the app shifts from active scanning to passive scanning. 
+   (#578, David G. Young)
+
 ### 2.12.2 / 2017-08-31
 
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.12.1...2.12.2)

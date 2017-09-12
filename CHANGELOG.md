@@ -1,7 +1,7 @@
 ### Development
 
 Bug Fixes:
- - Fix ConcurrentModifictionExceptions starting ScanJobs.  (#584, David G. Young)
+ - Fix ConcurrentModifictionExceptions starting ScanJobs.  (#584, #588 David G. Young)
 
 ### 2.12.2 / 2017-08-31
 

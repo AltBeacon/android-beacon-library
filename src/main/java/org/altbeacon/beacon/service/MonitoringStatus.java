@@ -15,11 +15,11 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -141,7 +141,8 @@ public class MonitoringStatus {
 
     private void restoreOrInitializeMonitoringStatus() {
         long millisSinceLastMonitor = System.currentTimeMillis() - getLastMonitoringStatusUpdateTime();
-        mRegionsStatesMap = new HashMap<Region, RegionMonitoringState>();
+        mRegionsStatesMap = new ConcurrentHashMap<Region, RegionMonitoringState>() {
+        };
         if (!mStatePreservationIsOn) {
             LogManager.d(TAG, "Not restoring monitoring state because persistence is disabled");
         }

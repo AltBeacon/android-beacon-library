@@ -1,3 +1,8 @@
+### Development
+
+Bug Fixes:
+ - Fix ConcurrentModifictionExceptions starting ScanJobs.  (#584, David G. Young)
+
 ### 2.12.2 / 2017-08-31
 
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.12.1...2.12.2)

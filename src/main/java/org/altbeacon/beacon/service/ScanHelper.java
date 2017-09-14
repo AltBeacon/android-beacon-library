@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
@@ -185,7 +186,10 @@ class ScanHelper {
             } else if (!bluetoothAdapter.isEnabled()) {
                 LogManager.w(TAG, "BluetoothAdapter is not enabled");
             } else {
-                bluetoothAdapter.getBluetoothLeScanner().stopScan(getScanCallbackIntent());
+               BluetoothLeScanner scanner =  bluetoothAdapter.getBluetoothLeScanner();
+               if (scanner != null) {
+                   scanner.stopScan(getScanCallbackIntent());
+               }
             }
         } catch (SecurityException e) {
             LogManager.e(TAG, "SecurityException stopping Android O background scanner");

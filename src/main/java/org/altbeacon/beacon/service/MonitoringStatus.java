@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -141,7 +142,7 @@ public class MonitoringStatus {
 
     private void restoreOrInitializeMonitoringStatus() {
         long millisSinceLastMonitor = System.currentTimeMillis() - getLastMonitoringStatusUpdateTime();
-        mRegionsStatesMap = new HashMap<Region, RegionMonitoringState>();
+        mRegionsStatesMap = new ConcurrentHashMap<Region, RegionMonitoringState>();
         if (!mStatePreservationIsOn) {
             LogManager.d(TAG, "Not restoring monitoring state because persistence is disabled");
         }
@@ -179,10 +180,17 @@ public class MonitoringStatus {
             try {
                 outputStream = mContext.openFileOutput(STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(outputStream);
-                objectOutputStream.writeObject(getRegionsStateMap());
-
+                Map<Region,RegionMonitoringState> map = getRegionsStateMap();
+                // Must convert ConcurrentHashMap to HashMap becasue attempting to serialize
+                // ConcurrentHashMap throws a java.io.NotSerializableException
+                HashMap<Region,RegionMonitoringState> serializableMap = new HashMap<Region,RegionMonitoringState>();
+                for (Region region : map.keySet()) {
+                    serializableMap.put(region, map.get(region));
+                }
+                objectOutputStream.writeObject(serializableMap);
             } catch (IOException e) {
-                LogManager.e(TAG, "Error while saving monitored region states to file. %s ", e.getMessage());
+                LogManager.e(TAG, "Error while saving monitored region states to file ", e);
+                e.printStackTrace(System.err);
             } finally {
                 if (null != outputStream) {
                     try {

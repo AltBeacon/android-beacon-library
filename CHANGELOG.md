@@ -1,6 +1,7 @@
 ### Development
 
 Bug Fixes:
+ - Fix NullPointerException in ProcessUtils.  (#598, David G. Young)
  - Fix ConcurrentModificationException crashing app on Android 8 when monitored regions are
    changed at the same time the app shifts from active scanning to passive scanning. 
    (#578, David G. Young)

@@ -17,6 +17,8 @@ import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.utils.ProcessUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -103,7 +105,9 @@ public class ScanJob extends JobService {
     private void startPassiveScanIfNeeded() {
         LogManager.d(TAG, "Checking to see if we need to start a passive scan");
         boolean insideAnyRegion = false;
-        for (Region region : mScanState.getMonitoringStatus().regions()) {
+        // Clone the collection before iterating to prevent ConcurrentModificationException per #577
+        List<Region> regions = new ArrayList<>(mScanState.getMonitoringStatus().regions());
+        for (Region region : regions) {
             RegionMonitoringState state = mScanState.getMonitoringStatus().stateOf(region);
             if (state != null && state.getInside()) {
                 insideAnyRegion = true;

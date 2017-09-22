@@ -495,7 +495,7 @@ public class BeaconManager {
      */
     public boolean isAnyConsumerBound() {
         synchronized(consumers) {
-            return consumers.isEmpty() && (serviceMessenger != null);
+            return !consumers.isEmpty() && (serviceMessenger != null);
         }
     }
 

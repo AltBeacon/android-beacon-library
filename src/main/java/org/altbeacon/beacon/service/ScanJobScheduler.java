@@ -113,6 +113,11 @@ public class ScanJobScheduler {
         schedule(context, scanState, true);
     }
 
+    public void forceScheduleNextScan(Context context) {
+        ScanState scanState = ScanState.restore(context);
+        schedule(context, scanState, false);
+    }
+
     private void schedule(Context context, ScanState scanState, boolean backgroundWakeup) {
         ensureNotificationProcessorSetup(context);
 
@@ -148,7 +153,7 @@ public class ScanJobScheduler {
                 // If the next time we want to scan is less than 50ms from the periodic scan cycle, then]
                 // we schedule it for that specific time.
                 LogManager.d(TAG, "Scheduling immediate ScanJob to run in "+millisToNextJobStart+" millis");
-                JobInfo immediateJob = new JobInfo.Builder(ScanJob.IMMMEDIATE_SCAN_JOB_ID, new ComponentName(context, ScanJob.class))
+                JobInfo immediateJob = new JobInfo.Builder(ScanJob.IMMEDIATE_SCAN_JOB_ID, new ComponentName(context, ScanJob.class))
                         .setPersisted(true) // This makes it restart after reboot
                         .setExtras(new PersistableBundle())
                         .setMinimumLatency(millisToNextJobStart)
@@ -157,11 +162,13 @@ public class ScanJobScheduler {
                 if (error < 0) {
                     LogManager.e(TAG, "Failed to schedule scan job.  Beacons will not be detected. Error: "+error);
                 }
+            } else {
+                LogManager.d(TAG, "Not scheduling immediate scan, assuming periodic is about to run");
             }
         }
         else {
             LogManager.d(TAG, "Not scheduling an immediate scan because we are in background mode.   Cancelling existing immediate scan.");
-            jobScheduler.cancel(ScanJob.IMMMEDIATE_SCAN_JOB_ID);
+            jobScheduler.cancel(ScanJob.IMMEDIATE_SCAN_JOB_ID);
         }
 
         JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(ScanJob.PERIODIC_SCAN_JOB_ID, new ComponentName(context, ScanJob.class))
@@ -227,8 +234,9 @@ public class ScanJobScheduler {
 06-08 07:44:22.431 6455-6455/org.altbeacon.beaconreference I/ScanJob: Running periodic scan job: instance is org.altbeacon.beacon.service.ScanJob@4d2e9e6
          */
 
-        LogManager.d(TAG, "Scheduling ScanJob to run every "+scanState.getScanJobIntervalMillis()+" millis");
-        int error = jobScheduler.schedule(periodicJobBuilder.build());
+        final JobInfo jobInfo = periodicJobBuilder.build();
+        LogManager.d(TAG, "Scheduling ScanJob " + jobInfo + " to run every "+scanState.getScanJobIntervalMillis()+" millis");
+        int error = jobScheduler.schedule(jobInfo);
         if (error < 0) {
             LogManager.e(TAG, "Failed to schedule scan job.  Beacons will not be detected. Error: "+error);
         }

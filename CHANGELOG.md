@@ -1,4 +1,6 @@
-### Development
+### 2.12.3 / 2017-10-14
+
+[Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.12.2...2.12.3)
 
 Bug Fixes:
  - Fix NullPointerException in ProcessUtils.  (#598, David G. Young)

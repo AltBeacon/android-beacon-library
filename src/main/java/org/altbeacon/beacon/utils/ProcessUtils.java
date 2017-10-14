@@ -4,6 +4,8 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import java.util.List;
+
 /**
  * Created by dyoung on 3/10/17.
  *
@@ -20,9 +22,12 @@ public class ProcessUtils {
 
     public String getProcessName() {
         ActivityManager manager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningAppProcessInfo processInfo : manager.getRunningAppProcesses()) {
-            if (processInfo.pid == getPid()) {
-                return  processInfo.processName;
+        List<ActivityManager.RunningAppProcessInfo> processes = manager.getRunningAppProcesses();
+        if (processes != null) {
+            for (ActivityManager.RunningAppProcessInfo processInfo : processes) {
+                if (processInfo.pid == getPid()) {
+                    return  processInfo.processName;
+                }
             }
         }
         return null;

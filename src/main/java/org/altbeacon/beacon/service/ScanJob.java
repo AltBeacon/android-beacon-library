@@ -58,7 +58,7 @@ public class ScanJob extends JobService {
         mScanHelper.setBeaconParsers(mScanState.getBeaconParsers());
         mScanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
 
-        if (jobParameters.getJobId() == IMMMEDIATE_SCAN_JOB_ID) {
+        if (jobParameters.getJobId() == IMMEDIATE_SCAN_JOB_ID) {
             LogManager.i(TAG, "Running immdiate scan job: instance is "+this);
         }
         else {

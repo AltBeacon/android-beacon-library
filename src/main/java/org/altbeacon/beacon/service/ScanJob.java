@@ -51,8 +51,15 @@ public class ScanJob extends JobService {
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
         mScanHelper = new ScanHelper(this);
+        mScanState = ScanState.restore(ScanJob.this);
+        mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
+        mScanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
+        mScanHelper.setRangedRegionState(mScanState.getRangedRegionState());
+        mScanHelper.setBeaconParsers(mScanState.getBeaconParsers());
+        mScanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
+
         if (jobParameters.getJobId() == IMMEDIATE_SCAN_JOB_ID) {
-            LogManager.i(TAG, "Running immediate scan job: instance is "+this);
+            LogManager.i(TAG, "Running immdiate scan job: instance is "+this);
         }
         else {
             LogManager.i(TAG, "Running periodic scan job: instance is "+this);
@@ -166,12 +173,6 @@ public class ScanJob extends JobService {
 
     // Returns true of scanning actually was started, false if it did not need to be
     private boolean restartScanning() {
-        mScanState = ScanState.restore(ScanJob.this);
-        mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
-        mScanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
-        mScanHelper.setRangedRegionState(mScanState.getRangedRegionState());
-        mScanHelper.setBeaconParsers(mScanState.getBeaconParsers());
-        mScanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
         if (mScanHelper.getCycledScanner() == null) {
             mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
         }

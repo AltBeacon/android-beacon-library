@@ -3,6 +3,8 @@ package org.altbeacon.beacon;
 import android.annotation.TargetApi;
 import android.os.Build;
 
+import org.altbeacon.beacon.logging.LogManager;
+
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
@@ -315,17 +317,23 @@ public class Identifier implements Comparable<Identifier>, Serializable {
         return Arrays.equals(mValue, thatIdentifier.mValue);
     }
 
+    private static final char[] HEX_DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
     /**
      * Represents the value as a hexadecimal String. The String is prefixed with <code>0x</code>. For example 0x0034ab
      * @return value as hexadecimal String
      */
     public String toHexString() {
-        StringBuilder sb = new StringBuilder(2 + 2 * mValue.length);
-        sb.append("0x");
-        for (byte item : mValue) {
-            sb.append(String.format("%02x", item));
+        final int l = mValue.length;
+        final char[] out = new char[l*2+2];
+        out[0] = '0';
+        out[1] = 'x';
+        for( int i=0,j=2; i<l; i++ ){
+            out[j++] = HEX_DIGITS[(0xF0 & mValue[i]) >>> 4];
+            out[j++] = HEX_DIGITS[0x0F & mValue[i]];
         }
-        return sb.toString();
+        String s = new String(out);
+        return s;
     }
 
     /**

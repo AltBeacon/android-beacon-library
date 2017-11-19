@@ -113,6 +113,16 @@ public class Beacon implements Parcelable, Serializable {
     protected String mBluetoothAddress;
 
     /**
+     * The number of rssi samples available, if known
+     */
+    private int mRssiMeasurementCount = 0;
+
+    /**
+     * The number of packets detected in the last cycle
+     */
+    private int mPacketCount = 0;
+
+    /**
      * If multiple RSSI samples were available, this is the running average
      */
     private Double mRunningAverageRssi = null;
@@ -244,6 +254,9 @@ public class Beacon implements Parcelable, Serializable {
         mBluetoothName = in.readString();
         mParserIdentifier = in.readString();
         mMultiFrameBeacon = in.readByte() != 0;
+        mRunningAverageRssi = (Double) in.readValue(null);
+        mRssiMeasurementCount = in.readInt();
+        mPacketCount = in.readInt();
     }
 
     /**
@@ -257,6 +270,8 @@ public class Beacon implements Parcelable, Serializable {
         mExtraDataFields = new ArrayList<>(otherBeacon.mExtraDataFields);
         this.mDistance = otherBeacon.mDistance;
         this.mRunningAverageRssi = otherBeacon.mRunningAverageRssi;
+        this.mPacketCount = otherBeacon.mPacketCount;
+        this.mRssiMeasurementCount = otherBeacon.mRssiMeasurementCount;
         this.mRssi = otherBeacon.mRssi;
         this.mTxPower = otherBeacon.mTxPower;
         this.mBluetoothAddress = otherBeacon.mBluetoothAddress;
@@ -273,6 +288,38 @@ public class Beacon implements Parcelable, Serializable {
         mIdentifiers = new ArrayList<Identifier>(1);
         mDataFields = new ArrayList<Long>(1);
         mExtraDataFields = new ArrayList<Long>(1);
+    }
+
+
+    /**
+     * Sets the measurement count that went into the rssi sample
+     * @param rssiMeasurementCount
+     */
+    public void setRssiMeasurementCount(int rssiMeasurementCount) {
+        mRssiMeasurementCount = rssiMeasurementCount;
+    }
+
+    /**
+     * Returns the number of packet detections in the last ranging cycle
+     */
+    public int getPacketCount() {
+        return mPacketCount;
+    }
+
+    /**
+     * Sets the packet detections in the last ranging cycle
+     * @param packetCount
+     */
+    public void setPacketCount(int packetCount) {
+        mPacketCount = packetCount;
+    }
+
+    /**
+     * Returns the number of packet detections that went in to the runningAverageRssi, if known.
+     * If not known or inapplicable for the rssi filter used, this is zero.
+     */
+    public int getMeasurementCount() {
+        return mRssiMeasurementCount;
     }
 
     /**
@@ -584,6 +631,9 @@ public class Beacon implements Parcelable, Serializable {
         out.writeString(mBluetoothName);
         out.writeString(mParserIdentifier);
         out.writeByte((byte) (mMultiFrameBeacon ? 1: 0));
+        out.writeValue(mRunningAverageRssi);
+        out.writeInt(mRssiMeasurementCount);
+        out.writeInt(mPacketCount);
     }
 
     /**

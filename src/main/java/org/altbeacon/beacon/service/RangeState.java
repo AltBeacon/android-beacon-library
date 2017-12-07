@@ -49,11 +49,15 @@ public class RangeState implements Serializable {
     public void addBeacon(Beacon beacon) {
         if (mRangedBeacons.containsKey(beacon)) {
             RangedBeacon rangedBeacon = mRangedBeacons.get(beacon);
-            LogManager.d(TAG, "adding %s to existing range for: %s", beacon, rangedBeacon);
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "adding %s to existing range for: %s", beacon, rangedBeacon);
+            }
             rangedBeacon.updateBeacon(beacon);
         }
         else {
-            LogManager.d(TAG, "adding %s to new rangedBeacon", beacon);
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "adding %s to new rangedBeacon", beacon);
+            }
             mRangedBeacons.put(beacon, new RangedBeacon(beacon));
         }
     }

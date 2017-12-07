@@ -50,7 +50,6 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
-        mScanHelper = new ScanHelper(this);
         initialzeScanHelper();
         if (jobParameters.getJobId() == IMMEDIATE_SCAN_JOB_ID) {
             LogManager.i(TAG, "Running immediate scan job: instance is "+this);
@@ -166,6 +165,7 @@ public class ScanJob extends JobService {
     }
 
     private void initialzeScanHelper() {
+        mScanHelper = new ScanHelper(this);
         mScanState = ScanState.restore(ScanJob.this);
         mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
         mScanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());

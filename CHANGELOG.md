@@ -3,6 +3,7 @@
 Bug Fixes:
  - Fix performance problems when using identifiers 3-15 bytes caused by
    Identifier#toHexString(). (#615, David G. Young)
+ - Fix NPE on ExtraBeaconDataTracker (#626, David G. Young)
 
 ### 2.12.3 / 2017-10-14
 

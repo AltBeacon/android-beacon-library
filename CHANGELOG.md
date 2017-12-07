@@ -3,6 +3,7 @@
 Bug Fixes:
  - Fix performance problems when using identifiers 3-15 bytes caused by
    Identifier#toHexString(). (#615, David G. Young)
+ - Restore missing runningAverageRssi values  (#621, David G. Young)
 
 ### 2.12.3 / 2017-10-14
 

@@ -8,6 +8,7 @@ Bug Fixes:
  - Fix missing running average RSSI in callbacks when apps do not use the
    scheduled scan job feature. (#630, Aaron Kromer)
  - Fix copying of multi-frame beacon flag in `Beacon(Beacon)` constructor (#630, Aaron Kromer)
+ - Fix the `AltBeaon(Beacon)` copy constructor which omitted some data fields (#630, Aaron Kromer)
 
 ### 2.12.3 / 2017-10-14
 

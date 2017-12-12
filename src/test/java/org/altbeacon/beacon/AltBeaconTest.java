@@ -2,14 +2,19 @@ package org.altbeacon.beacon;
 
 import android.os.Parcel;
 
-import static org.junit.Assert.assertEquals;
-
-import org.altbeacon.beacon.logging.Loggers;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
+import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertEquals;
 
 @Config(sdk = 18)
 
@@ -26,6 +31,15 @@ HOW TO SEE DEBUG LINES FROM YOUR UNIT TESTS:
 4. Expand the System.err section
  */
 public class AltBeaconTest {
+    private Parcel aParcel = null;
+
+    @After
+    public void after() {
+        // Clean up any obtained parcel
+        if (null != aParcel) {
+            aParcel.recycle();
+        }
+    }
 
     public static byte[] hexStringToByteArray(String s) {
         int len = s.length();
@@ -48,13 +62,89 @@ public class AltBeaconTest {
     @Test
     public void testCanSerializeParcelable() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Parcel parcel = Parcel.obtain();
-        Beacon beacon = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
-                                               .setBeaconTypeCode(5).setTxPower(6)
-                                               .setBluetoothAddress("1:2:3:4:5:6").build();
-        beacon.writeToParcel(parcel, 0);
-        parcel.setDataPosition(0);
-        Beacon beacon2 = new AltBeacon(parcel);
-        assertEquals("beaconMfgReserved is same after deserialization", ((AltBeacon)beacon).getMfgReserved(), ((AltBeacon)beacon2).getMfgReserved());
+        final Beacon original = new AltBeacon.Builder().setMfgReserved(2)
+                                                       .setBluetoothAddress("aa:bb:cc:dd:ee:ff")
+                                                       .setBluetoothName("Any Bluetooth")
+                                                       .setBeaconTypeCode(1)
+                                                       .setExtraDataFields(Arrays.asList(4L, 5L))
+                                                       .setId1("6")
+                                                       .setId2("7")
+                                                       .setId3("8")
+                                                       .setManufacturer(10)
+                                                       .setMultiFrameBeacon(true)
+                                                       .setParserIdentifier("Any Parser ID")
+                                                       .setRssi(-11)
+                                                       .setRunningAverageRssi(-12.3)
+                                                       .setServiceUuid(13)
+                                                       .setTxPower(14)
+                                                       .build();
+
+        aParcel = Parcel.obtain();
+        original.writeToParcel(aParcel, 0);
+        aParcel.setDataPosition(0);
+        final AltBeacon parceled = AltBeacon.CREATOR.createFromParcel(aParcel);
+        assertThat(
+                parceled,
+                allOf(
+                        hasProperty("bluetoothAddress", equalTo("aa:bb:cc:dd:ee:ff")),
+                        hasProperty("bluetoothName", equalTo("Any Bluetooth")),
+                        hasProperty("beaconTypeCode", equalTo(1)),
+                        hasProperty("dataFields", equalTo(Arrays.asList(2L))),
+                        hasProperty("extraDataFields", equalTo(Arrays.asList(4L, 5L))),
+                        hasProperty("id1", equalTo(Identifier.fromInt(6))),
+                        hasProperty("id2", equalTo(Identifier.fromInt(7))),
+                        hasProperty("id3", equalTo(Identifier.fromInt(8))),
+                        hasProperty("manufacturer", equalTo(10)),
+                        hasProperty("multiFrameBeacon", equalTo(true)),
+                        hasProperty("parserIdentifier", equalTo("Any Parser ID")),
+                        hasProperty("rssi", equalTo(-11)),
+                        hasProperty("runningAverageRssi", equalTo(-12.3)),
+                        hasProperty("serviceUuid", equalTo(13)),
+                        hasProperty("txPower", equalTo(14)),
+                        hasProperty("mfgReserved", equalTo(2))
+                )
+        );
+    }
+
+
+    @Test
+    public void copyingBeaconTransfersAllFields() {
+        final Beacon original = new AltBeacon.Builder().setMfgReserved(2)
+                                                       .setBluetoothAddress("aa:bb:cc:dd:ee:ff")
+                                                       .setBluetoothName("Any Bluetooth")
+                                                       .setBeaconTypeCode(1)
+                                                       .setExtraDataFields(Arrays.asList(4L, 5L))
+                                                       .setId1("6")
+                                                       .setId2("7")
+                                                       .setId3("8")
+                                                       .setManufacturer(10)
+                                                       .setMultiFrameBeacon(true)
+                                                       .setParserIdentifier("Any Parser ID")
+                                                       .setRssi(-11)
+                                                       .setRunningAverageRssi(-12.3)
+                                                       .setServiceUuid(13)
+                                                       .setTxPower(14)
+                                                       .build();
+        final AltBeacon copied = new AltBeacon(original);
+        assertThat(
+                copied,
+                allOf(
+                        hasProperty("bluetoothAddress", equalTo("aa:bb:cc:dd:ee:ff")),
+                        hasProperty("bluetoothName", equalTo("Any Bluetooth")),
+                        hasProperty("beaconTypeCode", equalTo(1)),
+                        hasProperty("dataFields", equalTo(Arrays.asList(2L))),
+                        hasProperty("extraDataFields", equalTo(Arrays.asList(4L, 5L))),
+                        hasProperty("id1", equalTo(Identifier.fromInt(6))),
+                        hasProperty("id2", equalTo(Identifier.fromInt(7))),
+                        hasProperty("id3", equalTo(Identifier.fromInt(8))),
+                        hasProperty("manufacturer", equalTo(10)),
+                        hasProperty("multiFrameBeacon", equalTo(true)),
+                        hasProperty("parserIdentifier", equalTo("Any Parser ID")),
+                        hasProperty("rssi", equalTo(-11)),
+                        hasProperty("runningAverageRssi", equalTo(-12.3)),
+                        hasProperty("serviceUuid", equalTo(13)),
+                        hasProperty("txPower", equalTo(14))
+                )
+        );
     }
 }

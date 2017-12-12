@@ -7,6 +7,7 @@ Bug Fixes:
    being overwritten when committing ranged beacon measurements. (#629, Aaron Kromer)
  - Fix missing running average RSSI in callbacks when apps do not use the
    scheduled scan job feature. (#630, Aaron Kromer)
+ - Fix copying of multi-frame beacon flag in `Beacon(Beacon)` constructor (#630, Aaron Kromer)
 
 ### 2.12.3 / 2017-10-14
 

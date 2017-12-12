@@ -268,7 +268,49 @@ public class BeaconTest {
                 )
         );
     }
-    
+
+    @Test
+    public void copyingBeaconContainsAllFields() {
+        final Beacon original = new Beacon.Builder().setBluetoothAddress("aa:bb:cc:dd:ee:ff")
+                                                    .setBluetoothName("Any Bluetooth")
+                                                    .setBeaconTypeCode(1)
+                                                    .setDataFields(Arrays.asList(2L, 3L))
+                                                    .setExtraDataFields(Arrays.asList(4L, 5L))
+                                                    .setId1("6")
+                                                    .setId2("7")
+                                                    .setId3("8")
+                                                    .setManufacturer(10)
+                                                    .setMultiFrameBeacon(true)
+                                                    .setParserIdentifier("Any Parser ID")
+                                                    .setRssi(-11)
+                                                    .setRunningAverageRssi(-12.3)
+                                                    .setServiceUuid(13)
+                                                    .setTxPower(14)
+                                                    .build();
+
+        final Beacon copied = new Beacon(original);
+        assertThat(
+                copied,
+                allOf(
+                        hasProperty("bluetoothAddress", equalTo("aa:bb:cc:dd:ee:ff")),
+                        hasProperty("bluetoothName", equalTo("Any Bluetooth")),
+                        hasProperty("beaconTypeCode", equalTo(1)),
+                        hasProperty("dataFields", equalTo(Arrays.asList(2L, 3L))),
+                        hasProperty("extraDataFields", equalTo(Arrays.asList(4L, 5L))),
+                        hasProperty("id1", equalTo(Identifier.fromInt(6))),
+                        hasProperty("id2", equalTo(Identifier.fromInt(7))),
+                        hasProperty("id3", equalTo(Identifier.fromInt(8))),
+                        hasProperty("manufacturer", equalTo(10)),
+                        hasProperty("multiFrameBeacon", equalTo(true)),
+                        hasProperty("parserIdentifier", equalTo("Any Parser ID")),
+                        hasProperty("rssi", equalTo(-11)),
+                        hasProperty("runningAverageRssi", equalTo(-12.3)),
+                        hasProperty("serviceUuid", equalTo(13)),
+                        hasProperty("txPower", equalTo(14))
+                )
+        );
+    }
+
     // utilty methods for testing serialization
 
     private byte[] convertToBytes(Object object) throws IOException {

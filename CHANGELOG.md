@@ -5,6 +5,8 @@ Bug Fixes:
    Identifier#toHexString(). (#615, David G. Young)
  - Fix regression with `RunningAverageRssiFilter.setSampleExpirationMilliseconds`
    being overwritten when committing ranged beacon measurements. (#629, Aaron Kromer)
+ - Fix missing running average RSSI in callbacks when apps do not use the
+   scheduled scan job feature. (#630, Aaron Kromer)
 
 ### 2.12.3 / 2017-10-14
 
@@ -13,7 +15,7 @@ Bug Fixes:
 Bug Fixes:
  - Fix NullPointerException in ProcessUtils.  (#598, David G. Young)
  - Fix ConcurrentModificationException crashing app on Android 8 when monitored regions are
-   changed at the same time the app shifts from active scanning to passive scanning. 
+   changed at the same time the app shifts from active scanning to passive scanning.
    (#578, David G. Young)
  - Fix ConcurrentModifictionExceptions starting ScanJobs.  (#584, #588, David G. Young)
  - Fix NullPointerException when BluetoothLeScanner cannot be obtained.
@@ -50,7 +52,7 @@ Bug Fixes:
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.11...2.12)
 
 Enhancements:
- - Add Android O support with ScanJob using  JobScheduler to do scans instead of BeaconService, 
+ - Add Android O support with ScanJob using  JobScheduler to do scans instead of BeaconService,
    set as default for Android O. (#484, David G. Young)
 
 Bug Fixes:

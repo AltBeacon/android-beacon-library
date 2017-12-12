@@ -244,6 +244,8 @@ public class Beacon implements Parcelable, Serializable {
         mBluetoothName = in.readString();
         mParserIdentifier = in.readString();
         mMultiFrameBeacon = in.readByte() != 0;
+        double tmpAverageRssi = in.readDouble();
+        mRunningAverageRssi = tmpAverageRssi < Double.MAX_VALUE ? tmpAverageRssi : null;
     }
 
     /**
@@ -584,6 +586,7 @@ public class Beacon implements Parcelable, Serializable {
         out.writeString(mBluetoothName);
         out.writeString(mParserIdentifier);
         out.writeByte((byte) (mMultiFrameBeacon ? 1: 0));
+        out.writeDouble(null == mRunningAverageRssi ? Double.MAX_VALUE : mRunningAverageRssi);
     }
 
     /**

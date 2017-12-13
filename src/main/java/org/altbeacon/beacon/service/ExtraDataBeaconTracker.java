@@ -53,37 +53,34 @@ public class ExtraDataBeaconTracker implements Serializable {
      */
     @Nullable
     private Beacon trackGattBeacon(@NonNull Beacon beacon) {
-        Beacon trackedBeacon = null;
-        HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByKey.get(getBeaconKey(beacon));
-        if (matchingTrackedBeacons != null) {
-            for (Beacon matchingTrackedBeacon: matchingTrackedBeacons.values()) {
-                if (beacon.isExtraBeaconData()) {
-                    matchingTrackedBeacon.setRssi(beacon.getRssi());
-                    matchingTrackedBeacon.setExtraDataFields(beacon.getDataFields());
-                }
-                else {
-                    beacon.setExtraDataFields(matchingTrackedBeacon.getExtraDataFields());
-                    // replace the tracked beacon instance with this one so it has updated values
-                    trackedBeacon = beacon;
-                }
-            }
-        }
-        if (!beacon.isExtraBeaconData()) {
-            updateTrackingHashes(beacon, matchingTrackedBeacons);
+        if (beacon.isExtraBeaconData()) {
+            updateTrackedBeacons(beacon);
+            return null;
         }
 
-        if (trackedBeacon == null && !beacon.isExtraBeaconData()) {
-            trackedBeacon = beacon;
-        }
-        return trackedBeacon;
-    }
-
-    private void updateTrackingHashes(@NonNull Beacon trackedBeacon, @Nullable HashMap<Integer,Beacon> matchingTrackedBeacons) {
-        if (matchingTrackedBeacons == null) {
+        String key = getBeaconKey(beacon);
+        HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByKey.get(key);
+        if (null == matchingTrackedBeacons) {
             matchingTrackedBeacons = new HashMap<>();
         }
-        matchingTrackedBeacons.put(trackedBeacon.hashCode(), trackedBeacon);
-        mBeaconsByKey.put(getBeaconKey(trackedBeacon), matchingTrackedBeacons);
+        else {
+            Beacon trackedBeacon = matchingTrackedBeacons.values().iterator().next();
+            beacon.setExtraDataFields(trackedBeacon.getExtraDataFields());
+        }
+        matchingTrackedBeacons.put(beacon.hashCode(), beacon);
+        mBeaconsByKey.put(key, matchingTrackedBeacons);
+
+        return beacon;
+    }
+
+    private void updateTrackedBeacons(@NonNull Beacon beacon) {
+        HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByKey.get(getBeaconKey(beacon));
+        if (null != matchingTrackedBeacons) {
+            for (Beacon matchingTrackedBeacon : matchingTrackedBeacons.values()) {
+                matchingTrackedBeacon.setRssi(beacon.getRssi());
+                matchingTrackedBeacon.setExtraDataFields(beacon.getDataFields());
+            }
+        }
     }
 
     private String getBeaconKey(@NonNull Beacon beacon) {

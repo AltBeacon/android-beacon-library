@@ -50,7 +50,7 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
-        mScanHelper = new ScanHelper(this);
+        initialzeScanHelper();
         if (jobParameters.getJobId() == IMMEDIATE_SCAN_JOB_ID) {
             LogManager.i(TAG, "Running immediate scan job: instance is "+this);
         }
@@ -164,8 +164,8 @@ public class ScanJob extends JobService {
         LogManager.d(TAG, "Scanning stopped");
     }
 
-    // Returns true of scanning actually was started, false if it did not need to be
-    private boolean restartScanning() {
+    private void initialzeScanHelper() {
+        mScanHelper = new ScanHelper(this);
         mScanState = ScanState.restore(ScanJob.this);
         mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
         mScanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
@@ -175,10 +175,13 @@ public class ScanJob extends JobService {
         if (mScanHelper.getCycledScanner() == null) {
             mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
         }
+    }
+
+    // Returns true of scanning actually was started, false if it did not need to be
+    private boolean restartScanning() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mScanHelper.stopAndroidOBackgroundScan();
         }
-
         long scanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod();
         long betweenScanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod();
         mScanHelper.getCycledScanner().setScanPeriods(scanPeriod,

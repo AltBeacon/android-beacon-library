@@ -29,6 +29,21 @@ public class RunningAverageRssiFilterTest {
     }
 
     @Test
+    public void regressionCheckRangedBeaconCommitDoesNotOverrideSampleExpirationMilliseconds() {
+        RangedBeacon.setSampleExpirationMilliseconds(20000);
+        RunningAverageRssiFilter.setSampleExpirationMilliseconds(20000);
+        Beacon beacon = new Beacon.Builder().setId1("1").build();
+        RangedBeacon rb = new RangedBeacon(beacon);
+        RunningAverageRssiFilter.setSampleExpirationMilliseconds(33l);
+        rb.commitMeasurements();
+        assertEquals(
+                "RunningAverageRssiFilter sampleExprirationMilliseconds should not be altered by committing RangedBeacon",
+                33l,
+                RunningAverageRssiFilter.getSampleExpirationMilliseconds()
+        );
+    }
+
+    @Test
     public void legacySetSampleExpirationMillisecondsWorksText() {
         RangedBeacon.setSampleExpirationMilliseconds(20000);
         RunningAverageRssiFilter.setSampleExpirationMilliseconds(20000);

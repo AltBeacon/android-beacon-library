@@ -47,7 +47,6 @@ public class RangedBeacon implements Serializable {
 
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
-        RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
          if (!getFilter().noMeasurementsAvailable()) {
              double runningAverage = getFilter().calculateRssi();
              mBeacon.setRunningAverageRssi(runningAverage);

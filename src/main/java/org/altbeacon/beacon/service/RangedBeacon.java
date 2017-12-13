@@ -21,12 +21,14 @@ public class RangedBeacon implements Serializable {
     protected long lastTrackedTimeMillis = 0;
     Beacon mBeacon;
     protected transient RssiFilter mFilter = null;
+    private int packetCount = 0;
 
     public RangedBeacon(Beacon beacon) {
         updateBeacon(beacon);
     }
 
     public void updateBeacon(Beacon beacon) {
+        packetCount += 1;
         mBeacon = beacon;
         addMeasurement(mBeacon.getRssi());
     }
@@ -45,15 +47,17 @@ public class RangedBeacon implements Serializable {
 
     // Done at the end of each cycle before data are sent to the client
     public void commitMeasurements() {
-        RunningAverageRssiFilter.setSampleExpirationMilliseconds(sampleExpirationMilliseconds);
          if (!getFilter().noMeasurementsAvailable()) {
              double runningAverage = getFilter().calculateRssi();
              mBeacon.setRunningAverageRssi(runningAverage);
+             mBeacon.setRssiMeasurementCount(getFilter().getMeasurementCount());
              LogManager.d(TAG, "calculated new runningAverageRssi: %s", runningAverage);
         }
         else {
             LogManager.d(TAG, "No measurements available to calculate running average");
         }
+        mBeacon.setPacketCount(packetCount);
+        packetCount = 0;
     }
 
     public void addMeasurement(Integer rssi) {

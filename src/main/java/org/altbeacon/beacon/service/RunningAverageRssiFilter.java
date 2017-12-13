@@ -35,6 +35,10 @@ public class RunningAverageRssiFilter implements RssiFilter {
         return mMeasurements.size() == 0;
     }
 
+
+    @Override
+    public int getMeasurementCount() { return mMeasurements.size(); }
+
     @Override
     public double calculateRssi() {
         refreshMeasurements();

@@ -40,6 +40,9 @@ public class ArmaRssiFilter implements RssiFilter {
         LogManager.d(TAG, "armaMeasurement: %s", armaMeasurement);
     }
 
+    @Override
+    public int getMeasurementCount() { return 0; }
+
     public boolean noMeasurementsAvailable() {
         return false;
     }

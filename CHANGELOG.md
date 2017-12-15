@@ -3,6 +3,8 @@
 Bug Fixes:
  - Fix performance problems when using identifiers 3-15 bytes caused by
    Identifier#toHexString(). (#615, David G. Young)
+ - Restore missing runningAverageRssi values  (#621, David G. Young)
+ - Fix NPE on ExtraBeaconDataTracker (#626, David G. Young)
  - Fix regression with `RunningAverageRssiFilter.setSampleExpirationMilliseconds`
    being overwritten when committing ranged beacon measurements. (#629, Aaron Kromer)
  - Fix missing running average RSSI in callbacks when apps do not use the

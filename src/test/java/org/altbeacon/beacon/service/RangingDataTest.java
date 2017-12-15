@@ -47,6 +47,8 @@ public class RangingDataTest {
                                             .setTxPower(-50)
                                             .setBluetoothAddress("01:02:03:04:05:06")
                                             .build();
+        beacon.setRssiMeasurementCount(1);
+        beacon.setPacketCount(2);
         for (int i=0; i < 10; i++) {
             beacons.add(beacon);
         }
@@ -60,6 +62,8 @@ public class RangingDataTest {
         assertEquals("RSSI is restored", -1, restoredBeacon.getRssi());
         assertEquals("Average RSSI is restored", -2.0, restoredBeacon.getRunningAverageRssi(), 0.0);
         assertEquals("TXPower is restored", -50, restoredBeacon.getTxPower());
+        assertEquals("Measurement count is restored", 1, restoredBeacon.getMeasurementCount());
+        assertEquals("Packet count is restored", 2, restoredBeacon.getPacketCount());
     }
 
     @Test

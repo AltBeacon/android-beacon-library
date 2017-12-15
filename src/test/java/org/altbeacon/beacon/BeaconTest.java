@@ -242,6 +242,8 @@ public class BeaconTest {
                                                     .setServiceUuid(13)
                                                     .setTxPower(14)
                                                     .build();
+        original.setPacketCount(15);
+        original.setRssiMeasurementCount(16);
 
         aParcel = Parcel.obtain();
         original.writeToParcel(aParcel, 0);
@@ -264,7 +266,9 @@ public class BeaconTest {
                         hasProperty("rssi", equalTo(-11)),
                         hasProperty("runningAverageRssi", equalTo(-12.3)),
                         hasProperty("serviceUuid", equalTo(13)),
-                        hasProperty("txPower", equalTo(14))
+                        hasProperty("txPower", equalTo(14)),
+                        hasProperty("packetCount", equalTo(15)),
+                        hasProperty("measurementCount", equalTo(16))
                 )
         );
     }
@@ -287,6 +291,8 @@ public class BeaconTest {
                                                     .setServiceUuid(13)
                                                     .setTxPower(14)
                                                     .build();
+        original.setPacketCount(15);
+        original.setRssiMeasurementCount(16);
 
         final Beacon copied = new Beacon(original);
         assertThat(
@@ -306,7 +312,9 @@ public class BeaconTest {
                         hasProperty("rssi", equalTo(-11)),
                         hasProperty("runningAverageRssi", equalTo(-12.3)),
                         hasProperty("serviceUuid", equalTo(13)),
-                        hasProperty("txPower", equalTo(14))
+                        hasProperty("txPower", equalTo(14)),
+                        hasProperty("packetCount", equalTo(15)),
+                        hasProperty("measurementCount", equalTo(16))
                 )
         );
     }

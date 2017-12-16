@@ -1,5 +1,8 @@
 package org.altbeacon.beacon.service;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import org.altbeacon.beacon.Beacon;
 
 import java.io.Serializable;
@@ -12,11 +15,17 @@ import java.util.HashMap;
  */
 public class ExtraDataBeaconTracker implements Serializable {
     private static final String TAG = "BeaconTracker";
-    // This is a lookup table to find tracked beacons by the calculated beacon key
-    private HashMap<String,HashMap<Integer,Beacon>> mBeaconsByKey = new HashMap<String,HashMap<Integer,Beacon>>();
 
-    private boolean matchBeaconsByServiceUUID = true;
+    /**
+     * This is a lookup table to find tracked beacons by the calculated beacon key
+     */
+    @NonNull
+    private final HashMap<String,HashMap<Integer,Beacon>> mBeaconsByKey = new HashMap<>();
+
+    private final boolean matchBeaconsByServiceUUID;
+
     public ExtraDataBeaconTracker() {
+        this(true);
     }
 
     public ExtraDataBeaconTracker(boolean matchBeaconsByServiceUUID) {
@@ -25,12 +34,10 @@ public class ExtraDataBeaconTracker implements Serializable {
 
     /**
      * Tracks a beacon. For Gatt-based beacons, returns a merged copy of fields from multiple
-     * frames.  Returns null when passed a Gatt-based beacon that has is only extra beacon data.
-     *
-     * @param beacon
-     * @return
+     * frames. Returns null when passed a Gatt-based beacon that has is only extra beacon data.
      */
-    public synchronized Beacon track(Beacon beacon) {
+    @Nullable
+    public synchronized Beacon track(@NonNull Beacon beacon) {
         Beacon trackedBeacon = null;
         if (beacon.isMultiFrameBeacon() || beacon.getServiceUuid() != -1) {
             trackedBeacon = trackGattBeacon(beacon);
@@ -41,42 +48,42 @@ public class ExtraDataBeaconTracker implements Serializable {
         return trackedBeacon;
     }
 
-    // The following code is for dealing with merging data fields in beacons
-    private Beacon trackGattBeacon(Beacon beacon) {
-        Beacon trackedBeacon = null;
+    /**
+     * The following code is for dealing with merging data fields in beacons
+     */
+    @Nullable
+    private Beacon trackGattBeacon(@NonNull Beacon beacon) {
+        if (beacon.isExtraBeaconData()) {
+            updateTrackedBeacons(beacon);
+            return null;
+        }
+
+        String key = getBeaconKey(beacon);
+        HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByKey.get(key);
+        if (null == matchingTrackedBeacons) {
+            matchingTrackedBeacons = new HashMap<>();
+        }
+        else {
+            Beacon trackedBeacon = matchingTrackedBeacons.values().iterator().next();
+            beacon.setExtraDataFields(trackedBeacon.getExtraDataFields());
+        }
+        matchingTrackedBeacons.put(beacon.hashCode(), beacon);
+        mBeaconsByKey.put(key, matchingTrackedBeacons);
+
+        return beacon;
+    }
+
+    private void updateTrackedBeacons(@NonNull Beacon beacon) {
         HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByKey.get(getBeaconKey(beacon));
-        if (matchingTrackedBeacons != null) {
-            for (Beacon matchingTrackedBeacon: matchingTrackedBeacons.values()) {
-                if (beacon.isExtraBeaconData()) {
-                    matchingTrackedBeacon.setRssi(beacon.getRssi());
-                    matchingTrackedBeacon.setExtraDataFields(beacon.getDataFields());
-                }
-                else {
-                    beacon.setExtraDataFields(matchingTrackedBeacon.getExtraDataFields());
-                    // replace the tracked beacon instance with this one so it has updated values
-                    trackedBeacon = beacon;
-                }
+        if (null != matchingTrackedBeacons) {
+            for (Beacon matchingTrackedBeacon : matchingTrackedBeacons.values()) {
+                matchingTrackedBeacon.setRssi(beacon.getRssi());
+                matchingTrackedBeacon.setExtraDataFields(beacon.getDataFields());
             }
         }
-        if (!beacon.isExtraBeaconData()) {
-            updateTrackingHashes(beacon, matchingTrackedBeacons);
-        }
-
-        if (trackedBeacon == null && !beacon.isExtraBeaconData()) {
-            trackedBeacon = beacon;
-        }
-        return trackedBeacon;
     }
 
-    private void updateTrackingHashes(Beacon trackedBeacon, HashMap<Integer,Beacon> matchingTrackedBeacons) {
-        if (matchingTrackedBeacons == null) {
-            matchingTrackedBeacons = new HashMap<Integer,Beacon>();
-        }
-        matchingTrackedBeacons.put(trackedBeacon.hashCode(), trackedBeacon);
-        mBeaconsByKey.put(getBeaconKey(trackedBeacon), matchingTrackedBeacons);
-    }
-
-    private String getBeaconKey(Beacon beacon) {
+    private String getBeaconKey(@NonNull Beacon beacon) {
         if (matchBeaconsByServiceUUID) {
             return beacon.getBluetoothAddress() + beacon.getServiceUuid();
         } else {

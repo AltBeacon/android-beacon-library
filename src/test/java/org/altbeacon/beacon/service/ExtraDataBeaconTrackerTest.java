@@ -10,11 +10,9 @@ import org.robolectric.annotation.Config;
 import java.util.ArrayList;
 import java.util.List;
 
-import dalvik.annotation.TestTargetClass;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 18)
@@ -59,6 +57,7 @@ public class ExtraDataBeaconTrackerTest {
         return new Beacon.Builder()
                 .setBluetoothAddress("01:02:03:04:05:06")
                 .setServiceUuid(1234)
+                .setRssi(-25)
                 .setDataFields(getDataFields())
                 .build();
     }
@@ -67,6 +66,7 @@ public class ExtraDataBeaconTrackerTest {
         return new Beacon.Builder()
                 .setBluetoothAddress("01:02:03:04:05:06")
                 .setServiceUuid(1234)
+                .setRssi(-50)
                 .setDataFields(getDataFields2())
                 .build();
     }
@@ -119,32 +119,44 @@ public class ExtraDataBeaconTrackerTest {
         ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         tracker.track(beacon);
         tracker.track(extraDataBeacon);
-        tracker.track(extraDataBeacon2);
         Beacon trackedBeacon = tracker.track(beacon);
+        assertEquals("rssi should be updated", extraDataBeacon.getRssi(), trackedBeacon.getRssi());
+        assertEquals("extra data is updated", extraDataBeacon.getDataFields(), trackedBeacon.getExtraDataFields());
+
+        tracker.track(extraDataBeacon2);
+        trackedBeacon = tracker.track(beacon);
+        assertEquals("rssi should be updated", extraDataBeacon2.getRssi(), trackedBeacon.getRssi());
         assertEquals("extra data is updated", extraDataBeacon2.getDataFields(), trackedBeacon.getExtraDataFields());
     }
 
     @Test
-    public void gattBeaconExtraDataAreNotOverwritten() {
+    public void gattBeaconFieldsAreNotUpdated() {
         Beacon beacon = getGattBeacon();
-        Beacon extraDataBeacon = getGattBeaconExtraData();
+        final int originalRssi = beacon.getRssi();
+        final List<Long> originalData = beacon.getDataFields();
+        final List<Long> originalExtra = beacon.getExtraDataFields();
+        Beacon beaconUpdate = getGattBeaconUpdate();
         ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         tracker.track(beacon);
-        tracker.track(extraDataBeacon);
+        tracker.track(beaconUpdate);
         Beacon trackedBeacon = tracker.track(beacon);
-        assertEquals("extra data should not be overwritten", extraDataBeacon.getDataFields(), trackedBeacon.getExtraDataFields());
+        assertEquals("rssi should NOT be updated", originalRssi, trackedBeacon.getRssi());
+        assertEquals("data should NOT be updated", originalData, trackedBeacon.getDataFields());
+        assertEquals("extra data should NOT be updated", originalExtra, trackedBeacon.getExtraDataFields());
     }
 
     @Test
     public void gattBeaconFieldsGetUpdated() {
         Beacon beacon = getGattBeacon();
-        Beacon beaconUpdate = getGattBeaconUpdate();
         Beacon extraDataBeacon = getGattBeaconExtraData();
+        Beacon repeatBeacon = getGattBeacon();
+        repeatBeacon.setRssi(-100);
         ExtraDataBeaconTracker tracker = new ExtraDataBeaconTracker();
         tracker.track(beacon);
-        Beacon trackedBeacon = tracker.track(beaconUpdate);
-        assertEquals("rssi should be updated", beaconUpdate.getRssi(), trackedBeacon.getRssi());
-        assertEquals("data fields should be updated", beaconUpdate.getDataFields(), trackedBeacon.getDataFields());
+        tracker.track(extraDataBeacon);
+        Beacon trackedBeacon = tracker.track(repeatBeacon);
+        assertEquals("rssi should NOT be updated", -100, trackedBeacon.getRssi());
+        assertEquals("extra data fields should be updated", extraDataBeacon.getDataFields(), trackedBeacon.getExtraDataFields());
     }
 
     @Test

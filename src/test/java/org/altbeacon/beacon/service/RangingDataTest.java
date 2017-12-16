@@ -41,7 +41,14 @@ public class RangingDataTest {
         identifiers.add(Identifier.parse("2"));
         Region region = new Region("testRegion", identifiers);
         ArrayList<Beacon> beacons = new ArrayList<Beacon>();
-        Beacon beacon = new Beacon.Builder().setIdentifiers(identifiers).setRssi(-1).setRunningAverageRssi(-2).setTxPower(-50).setBluetoothAddress("01:02:03:04:05:06").build();
+        Beacon beacon = new Beacon.Builder().setIdentifiers(identifiers)
+                                            .setRssi(-1)
+                                            .setRunningAverageRssi(-2)
+                                            .setTxPower(-50)
+                                            .setBluetoothAddress("01:02:03:04:05:06")
+                                            .build();
+        beacon.setRssiMeasurementCount(1);
+        beacon.setPacketCount(2);
         for (int i=0; i < 10; i++) {
             beacons.add(beacon);
         }
@@ -49,8 +56,14 @@ public class RangingDataTest {
         Bundle bundle = data.toBundle();
         RangingData data2 = RangingData.fromBundle(bundle);
         assertEquals("beacon count shouild be restored", 10, data2.getBeacons().size());
-        assertEquals("beacon identifier 1 shouild be restored", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", data2.getBeacons().iterator().next().getId1().toString());
         assertEquals("region identifier 1 shouild be restored", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", data2.getRegion().getId1().toString());
+        Beacon restoredBeacon = data2.getBeacons().iterator().next();
+        assertEquals("beacon identifier 1 shouild be restored", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", restoredBeacon.getId1().toString());
+        assertEquals("RSSI is restored", -1, restoredBeacon.getRssi());
+        assertEquals("Average RSSI is restored", -2.0, restoredBeacon.getRunningAverageRssi(), 0.0);
+        assertEquals("TXPower is restored", -50, restoredBeacon.getTxPower());
+        assertEquals("Measurement count is restored", 1, restoredBeacon.getMeasurementCount());
+        assertEquals("Packet count is restored", 2, restoredBeacon.getPacketCount());
     }
 
     @Test

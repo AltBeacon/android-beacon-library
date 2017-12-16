@@ -279,6 +279,8 @@ public class Beacon implements Parcelable, Serializable {
         this.mServiceUuid = otherBeacon.getServiceUuid();
         this.mBluetoothName = otherBeacon.mBluetoothName;
         this.mParserIdentifier = otherBeacon.mParserIdentifier;
+        this.mMultiFrameBeacon = otherBeacon.mMultiFrameBeacon;
+        this.mManufacturer = otherBeacon.mManufacturer;
     }
 
     /**

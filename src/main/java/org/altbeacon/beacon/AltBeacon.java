@@ -64,20 +64,14 @@ public class AltBeacon extends Beacon {
      * @param beacon
      */
     protected AltBeacon(Beacon beacon) {
-        super();
-        this.mBluetoothAddress = beacon.mBluetoothAddress;
-        this.mIdentifiers = beacon.mIdentifiers;
-        this.mBeaconTypeCode = beacon.mBeaconTypeCode;
-        this.mDataFields = beacon.mDataFields;
-        this.mDistance = beacon.mDistance;
-        this.mRssi = beacon.mRssi;
-        this.mTxPower = beacon.mTxPower;
+        super(beacon);
     }
 
     /**
      * @see AltBeacon.Builder to make AltBeacon instances
      */
     protected AltBeacon() {
+        super();
     }
 
     /**

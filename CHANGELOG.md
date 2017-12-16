@@ -1,4 +1,4 @@
-### Development
+### 2.13.4 / 2017-12-16
 
 Bug Fixes:
  - Fix performance problems when using identifiers 3-15 bytes caused by

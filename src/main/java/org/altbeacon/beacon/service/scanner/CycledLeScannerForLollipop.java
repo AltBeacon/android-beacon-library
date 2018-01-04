@@ -176,6 +176,12 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         } else {
             LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+            // We create wildcard scan filters that match any advertisement so that we can detect
+            // beacons in foreground mode even if the screen is off.  This is a necessary workaround
+            // for a change in Android 8.1 that blocks scan results when the screen is off unless
+            // there is a scan filter associatd with the scan.  Prior to 8.1, filters could just be
+            // left null.  The wildcard filter matches everything.
+            filters = new ScanFilterUtils().createWildcardScanFilters();
         }
 
         if (settings != null) {

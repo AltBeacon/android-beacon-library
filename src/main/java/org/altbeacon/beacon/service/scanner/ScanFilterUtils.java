@@ -26,6 +26,13 @@ public class ScanFilterUtils {
         public byte[] mask;
     }
 
+    public List<ScanFilter> createWildcardScanFilters() {
+        List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
+        ScanFilter.Builder builder = new ScanFilter.Builder();
+        scanFilters.add(builder.build());
+        return scanFilters;
+    }
+
     public List<ScanFilterData> createScanFilterDataForBeaconParser(BeaconParser beaconParser) {
         ArrayList<ScanFilterData> scanFilters = new ArrayList<ScanFilterData>();
         for (int manufacturer : beaconParser.getHardwareAssistManufacturers()) {

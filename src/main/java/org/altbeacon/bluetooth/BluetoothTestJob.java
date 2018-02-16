@@ -30,7 +30,10 @@ public class BluetoothTestJob extends JobService {
     /**
      * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
      * will default to he value in the AndroidManifest.xml
+     *
      * WARNING:  If using this library in a multi-process application, this method may not work.
+     * This is considered a private API and may be removed at any time.
+     *
      * the preferred way of setting this is in the AndroidManifest.xml as so:
      * <code>
      * <service android:name="org.altbeacon.bluetooth.BluetoothTestJob">

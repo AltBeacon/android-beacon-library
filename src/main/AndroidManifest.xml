@@ -32,7 +32,6 @@
                 android:permission="android.permission.BIND_JOB_SERVICE" >
             <meta-data android:name="immmediateScanJobId" android:value="208352939" />
             <meta-data android:name="periodicScanJobId" android:value="208352940" />
-
         </service>
 
     </application>

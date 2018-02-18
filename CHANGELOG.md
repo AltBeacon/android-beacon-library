@@ -1,5 +1,7 @@
 ### Development
 
+Enhancements:
+ - Add BluetoothMedic to fix crashing bluetooth stacks.  (#644, David G. Young)
 Bug Fixes:
  - Allow scans with screen off on Android 8.1 (#637, David G. Young)
 

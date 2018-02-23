@@ -2,10 +2,12 @@
 
 Enhancements:
  - Add BluetoothMedic to fix crashing bluetooth stacks.  (#644, David G. Young)
-Bug Fixes:
+ - Allow configuring job ids (#645, David G. Young)
+
+ Bug Fixes:
  - Allow scans with screen off on Android 8.1 (#637, David G. Young)
 
-### 2.13.4 / 2017-12-16
+### 2.12.4 / 2017-12-16
 
 Bug Fixes:
  - Fix performance problems when using identifiers 3-15 bytes caused by

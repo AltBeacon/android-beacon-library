@@ -5,6 +5,10 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.pm.PackageItemInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 
@@ -35,13 +39,13 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScanJob extends JobService {
     private static final String TAG = ScanJob.class.getSimpleName();
-    public static final int PERIODIC_SCAN_JOB_ID = 1;
     /*
         Periodic scan jobs are used in general, but they cannot be started immediately.  So we have
         a second immediate scan job to kick off when scanning gets started or settings changed.
         Once the periodic one gets run, the immediate is cancelled.
      */
-    public static final int IMMEDIATE_SCAN_JOB_ID = 2;
+    private static int sOverrideImmediateScanJobId = -1;
+    private static int sOverridePeriodicScanJobId = -1;
 
     private ScanState mScanState;
     private Handler mStopHandler = new Handler();
@@ -51,7 +55,7 @@ public class ScanJob extends JobService {
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
         initialzeScanHelper();
-        if (jobParameters.getJobId() == IMMEDIATE_SCAN_JOB_ID) {
+        if (jobParameters.getJobId() == getImmediateScanJobId(this)) {
             LogManager.i(TAG, "Running immediate scan job: instance is "+this);
         }
         else {
@@ -143,7 +147,7 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters params) {
-        if (params.getJobId() == PERIODIC_SCAN_JOB_ID) {
+        if (params.getJobId() == getPeriodicScanJobId(this)) {
             LogManager.i(TAG, "onStopJob called for periodic scan " + this);
         }
         else {
@@ -219,5 +223,94 @@ public class ScanJob extends JobService {
         ModelSpecificDistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(ScanJob.this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
         return restartScanning();
+    }
+
+    /**
+     * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
+     * will default to the value in the AndroidManifest.xml
+     *
+     * WARNING:  If using this library in a multi-process application, this method may not work.
+     * This is considered a private API and may be removed at any time.
+     *
+     * the preferred way of setting this is in the AndroidManifest.xml as so:
+     * <code>
+     * <service android:name="org.altbeacon.beacon.service.ScanJob">
+     * </service>
+     * </code>
+     *
+     * @param id identifier to give the job
+     */
+    @SuppressWarnings("unused")
+    public static void setOverrideImmediateScanJobId(int id) {
+        sOverrideImmediateScanJobId = id;
+    }
+
+    /**
+     * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
+     * will default to the value in the AndroidManifest.xml
+     *
+     * WARNING:  If using this library in a multi-process application, this method may not work.
+     * This is considered a private API and may be removed at any time.
+     *
+     * the preferred way of setting this is in the AndroidManifest.xml as so:
+     * <code>
+     * <service android:name="org.altbeacon.beacon.service.ScanJob">
+     *   <meta-data android:name="immmediateScanJobId" android:value="1001" tools:replace="android:value"/>
+     *   <meta-data android:name="periodicScanJobId" android:value="1002" tools:replace="android:value"/>
+     * </service>
+     * </code>
+     *
+     * @param id identifier to give the job
+     */
+    @SuppressWarnings("unused")
+    public static void setOverridePeriodicScanJobId(int id) {
+        sOverridePeriodicScanJobId = id;
+    }
+
+    /**
+     * Returns the job id to be used to schedule this job.  This may be set in the
+     * AndroidManifest.xml or in single process applications by using #setOverrideJobId
+     * @param context the application context
+     * @return the job id
+     */
+    public static int getImmediateScanJobId(Context context) {
+        if (sOverrideImmediateScanJobId >= 0) {
+            LogManager.i(TAG, "Using ImmediateScanJobId from static override: "+
+                    sOverrideImmediateScanJobId);
+            return sOverrideImmediateScanJobId;
+        }
+        return getJobIdFromManifest(context, "immediateScanJobId");
+    }
+
+    /**
+     * Returns the job id to be used to schedule this job.  This may be set in the
+     * AndroidManifest.xml or in single process applications by using #setOverrideJobId
+     * @param context the application context
+     * @return the job id
+     */
+    public static int getPeriodicScanJobId(Context context) {
+        if (sOverrideImmediateScanJobId >= 0) {
+            LogManager.i(TAG, "Using PeriodicScanJobId from static override: "+
+                    sOverridePeriodicScanJobId);
+            return sOverridePeriodicScanJobId;
+        }
+        return getJobIdFromManifest(context, "periodicScanJobId");
+    }
+
+    private static int getJobIdFromManifest(Context context, String name) {
+        PackageItemInfo info = null;
+        try {
+            info = context.getPackageManager().getServiceInfo(new ComponentName(context,
+                    ScanJob.class), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) { /* do nothing here */ }
+        if (info != null && info.metaData != null && info.metaData.get(name) != null) {
+            int jobId = info.metaData.getInt(name);
+            LogManager.i(TAG, "Using "+name+" from manifest: "+jobId);
+            return jobId;
+        }
+        else {
+            throw new RuntimeException("Cannot get job id from manifest.  " +
+                    "Make sure that the "+name+" is configured in the manifest for the ScanJob.");
+        }
     }
 }

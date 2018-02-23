@@ -29,9 +29,14 @@
             />
 
         <service android:name=".service.ScanJob"
-                android:permission="android.permission.BIND_JOB_SERVICE" >
+                android:permission="android.permission.BIND_JOB_SERVICE">
             <meta-data android:name="immmediateScanJobId" android:value="208352939" />
             <meta-data android:name="periodicScanJobId" android:value="208352940" />
+        </service>
+  
+        <service android:name="org.altbeacon.bluetooth.BluetoothTestJob"
+            android:permission="android.permission.BIND_JOB_SERVICE" >
+            <meta-data android:name="jobId" android:value="1799803768"/>
         </service>
 
     </application>

@@ -8,10 +8,12 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.Intent;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -29,7 +31,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private BluetoothLeScanner mScanner;
     private ScanCallback leScanCallback;
     private long mBackgroundLScanStartTime = 0l;
-    private long mBackgroundLScanFirstDetectionTime = 0l;
+    private long mBackgroundLScanFirstDetectionTime = 0;
     private boolean mMainScanCycleActive = false;
     private final BeaconManager mBeaconManager;
 
@@ -326,6 +328,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 @MainThread
                 @Override
                 public void onScanFailed(int errorCode) {
+                    Intent intent = new Intent("onScanFailed");
+                    intent.putExtra("errorCode", errorCode);
+                    LocalBroadcastManager.getInstance(CycledLeScannerForLollipop.this.mContext).sendBroadcast(intent);
                     switch (errorCode) {
                         case SCAN_FAILED_ALREADY_STARTED:
                             LogManager.e(

@@ -1,6 +1,7 @@
 ### Development
 
 Enhancements:
+ - Add BluetoothMedic to fix crashing bluetooth stacks.  (#644, David G. Young)
  - Allow configuring job ids (#645, David G. Young)
 
  Bug Fixes:

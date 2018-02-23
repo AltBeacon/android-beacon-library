@@ -153,7 +153,7 @@ public class ScanJobScheduler {
                 // If the next time we want to scan is less than 50ms from the periodic scan cycle, then]
                 // we schedule it for that specific time.
                 LogManager.d(TAG, "Scheduling immediate ScanJob to run in "+millisToNextJobStart+" millis");
-                JobInfo immediateJob = new JobInfo.Builder(ScanJob.IMMEDIATE_SCAN_JOB_ID, new ComponentName(context, ScanJob.class))
+                JobInfo immediateJob = new JobInfo.Builder(ScanJob.getImmediateScanJobId(context), new ComponentName(context, ScanJob.class))
                         .setPersisted(true) // This makes it restart after reboot
                         .setExtras(new PersistableBundle())
                         .setMinimumLatency(millisToNextJobStart)
@@ -168,10 +168,10 @@ public class ScanJobScheduler {
         }
         else {
             LogManager.d(TAG, "Not scheduling an immediate scan because we are in background mode.   Cancelling existing immediate scan.");
-            jobScheduler.cancel(ScanJob.IMMEDIATE_SCAN_JOB_ID);
+            jobScheduler.cancel(ScanJob.getImmediateScanJobId(context));
         }
 
-        JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(ScanJob.PERIODIC_SCAN_JOB_ID, new ComponentName(context, ScanJob.class))
+        JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(ScanJob.getPeriodicScanJobId(context), new ComponentName(context, ScanJob.class))
                 .setPersisted(true) // This makes it restart after reboot
                 .setExtras(new PersistableBundle());
 

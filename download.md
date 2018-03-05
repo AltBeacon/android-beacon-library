@@ -9,15 +9,21 @@ Binary distributions are provided in two formats.  The aar format is recommended
 See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
 
-#### Latest Stable Release 2.12.4
+#### Latest Stable Release 2.13
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.13.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.13/android-beacon-library-2.13.aar)
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.13.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.13/android-beacon-library-2.13.tar.gz)
+
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.13)
+
+#### Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.12.4.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.12.4/android-beacon-library-2.12.4.aar)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.12.4.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.12.4/android-beacon-library-2.12.4.tar.gz)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.12.4)
-
-#### Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.12.3.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.12.3/android-beacon-library-2.12.3.aar)
 

@@ -484,7 +484,8 @@ public class BeaconManager {
         synchronized(consumers) {
             // Annotation doesn't guarantee we get a non-null, but raising an NPE here is excessive
             //noinspection ConstantConditions
-            return consumer != null && consumers.get(consumer) != null && (serviceMessenger != null);
+            return consumer != null && consumers.get(consumer) != null &&
+                    (mScheduledScanJobsEnabled || serviceMessenger != null);
         }
     }
 
@@ -495,7 +496,8 @@ public class BeaconManager {
      */
     public boolean isAnyConsumerBound() {
         synchronized(consumers) {
-            return consumers.isEmpty() && (serviceMessenger != null);
+            return !consumers.isEmpty() &&
+                    (mScheduledScanJobsEnabled || serviceMessenger != null);
         }
     }
 

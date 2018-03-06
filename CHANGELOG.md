@@ -1,3 +1,11 @@
+### 2.13.1 / 2018-03-05
+
+[Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.13.1...2.13)
+
+ Bug Fixes:
+ - Fix incorrect immediateScanJobId meta-data name in manifest causing crash  (#653, David G. Young)
+
+
 ### 2.13 / 2018-03-05
 
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.12.4...2.13)

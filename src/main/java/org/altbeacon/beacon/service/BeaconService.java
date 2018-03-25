@@ -25,6 +25,7 @@ package org.altbeacon.beacon.service;
 
 
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
@@ -216,14 +217,11 @@ public class BeaconService extends Service {
             LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
 
-        try {
-            PackageItemInfo info = this.getPackageManager().getServiceInfo(new ComponentName(this, BeaconService.class), PackageManager.GET_META_DATA);
-            if (info != null && info.metaData != null && info.metaData.get("longScanForcingEnabled") != null &&
-                    info.metaData.get("longScanForcingEnabled").toString().equals("true")) {
-                LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
-                mScanHelper.getCycledScanner().setLongScanForcingEnabled(true);
-            }
-        } catch (PackageManager.NameNotFoundException e) {}
+        String longScanForcingEnabled = getManifestMetadataValue("longScanForcingEnabled");
+        if (longScanForcingEnabled.equals("true")) {
+            LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
+            mScanHelper.getCycledScanner().setLongScanForcingEnabled(true);
+        }
 
         mScanHelper.reloadParsers();
 
@@ -240,6 +238,73 @@ public class BeaconService extends Service {
         } catch (Exception e) {
             LogManager.e(e, TAG, "Cannot get simulated Scan data.  Make sure your org.altbeacon.beacon.SimulatedScanData class defines a field with the signature 'public static List<Beacon> beacons'");
         }
+        this.startForegroundIfConfigured();
+    }
+
+    /*
+     * This starts the scanning service as a foreground service if it is so configured in the
+     * manifest
+     */
+    private void startForegroundIfConfigured() {
+        String foregroundServiceNotificationContentTitle  = getManifestMetadataValue("foregroundServiceNotificationContentTitle");
+        String foregroundServiceNotificationContentText  = getManifestMetadataValue("foregroundServiceNotificationContentText");
+        String foregroundServiceNotificationTicker  = getManifestMetadataValue("foregroundServiceNotificationTicker");
+        String foregroundServiceNotificationId  = getManifestMetadataValue("foregroundServiceNotificationId");
+        String foregroundServiceNotificationIconResourceName  = getManifestMetadataValue("foregroundServiceNotificationIconResourceName");
+        String foregroundServiceLaunchActivityName  = getManifestMetadataValue("foregroundServiceLaunchActivityName");
+        if (foregroundServiceNotificationId != null) {
+            int notificationId = 365739466;
+            try {
+                notificationId = Integer.parseInt(foregroundServiceNotificationId);
+            }
+            catch (NumberFormatException e) {
+                LogManager.e(e, TAG, "Illegal integer value present in AndroidManifest.xml for BeaconService metadata key foregroundServiceNotificationId");
+            }
+
+            Notification.Builder builder = new Notification.Builder(this);
+            if (foregroundServiceLaunchActivityName != null) {
+                Intent notificationIntent = new Intent(foregroundServiceLaunchActivityName);
+                PendingIntent pendingIntent =
+                        PendingIntent.getActivity(this, 0, notificationIntent, 0);
+                builder.setContentIntent(pendingIntent);
+            }
+            if (foregroundServiceNotificationIconResourceName != null) {
+                int iconId = getResources().getIdentifier(foregroundServiceNotificationIconResourceName, null, null);
+                if (iconId > 0) {
+                    builder.setSmallIcon(iconId);
+                }
+                else {
+                    LogManager.e(TAG, "Configured resource for foreground beacon service icon not found: "+foregroundServiceNotificationIconResourceName);
+                    return;
+                }
+            }
+            if (foregroundServiceNotificationContentTitle != null) {
+                builder.setContentTitle(foregroundServiceNotificationContentTitle);
+            }
+            if (foregroundServiceNotificationContentText != null) {
+                builder.setContentText(foregroundServiceNotificationContentText);
+            }
+            if (foregroundServiceNotificationTicker != null) {
+                builder.setTicker(foregroundServiceNotificationTicker);
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                this.startForeground(notificationId, builder.build());
+            }
+        }
+    }
+
+    private String getManifestMetadataValue(String key) {
+        String value = null;
+        try {
+            PackageItemInfo info = this.getPackageManager().getServiceInfo(new ComponentName(this, BeaconService.class), PackageManager.GET_META_DATA);
+            if (info != null && info.metaData != null) {
+                return info.metaData.get(key).toString();
+            }
+        }
+        catch (PackageManager.NameNotFoundException e) {
+        }
+        return null;
     }
 
     @Override
@@ -277,6 +342,7 @@ public class BeaconService extends Service {
             LogManager.w(TAG, "Not supported prior to API 18.");
             return;
         }
+        stopForeground(true);
         bluetoothCrashResolver.stop();
         LogManager.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);

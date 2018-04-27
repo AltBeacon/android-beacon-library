@@ -259,6 +259,11 @@ public class BeaconManager {
      */
     public void setBackgroundBetweenScanPeriod(long p) {
         backgroundBetweenScanPeriod = p;
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                backgroundBetweenScanPeriod < 15*60*1000 /* 15 min */) {
+            LogManager.w(TAG, "Setting a short backgroundBetweenScanPeriod has no effect on "+
+                    "Android 8+, which is limited to scanning every ~15 minutes");
+        }
     }
 
     /**

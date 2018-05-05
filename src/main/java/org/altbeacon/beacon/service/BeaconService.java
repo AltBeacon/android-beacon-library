@@ -246,51 +246,15 @@ public class BeaconService extends Service {
      * manifest
      */
     private void startForegroundIfConfigured() {
-        String foregroundServiceNotificationContentTitle  = getManifestMetadataValue("foregroundServiceNotificationContentTitle");
-        String foregroundServiceNotificationContentText  = getManifestMetadataValue("foregroundServiceNotificationContentText");
-        String foregroundServiceNotificationTicker  = getManifestMetadataValue("foregroundServiceNotificationTicker");
-        String foregroundServiceNotificationId  = getManifestMetadataValue("foregroundServiceNotificationId");
-        String foregroundServiceNotificationIconResourceName  = getManifestMetadataValue("foregroundServiceNotificationIconResourceName");
-        String foregroundServiceLaunchActivityName  = getManifestMetadataValue("foregroundServiceLaunchActivityName");
-        if (foregroundServiceNotificationId != null) {
-            int notificationId = 365739466;
-            try {
-                notificationId = Integer.parseInt(foregroundServiceNotificationId);
-            }
-            catch (NumberFormatException e) {
-                LogManager.e(e, TAG, "Illegal integer value present in AndroidManifest.xml for BeaconService metadata key foregroundServiceNotificationId");
-            }
-
-            Notification.Builder builder = new Notification.Builder(this);
-            if (foregroundServiceLaunchActivityName != null) {
-                Intent notificationIntent = new Intent(foregroundServiceLaunchActivityName);
-                PendingIntent pendingIntent =
-                        PendingIntent.getActivity(this, 0, notificationIntent, 0);
-                builder.setContentIntent(pendingIntent);
-            }
-            if (foregroundServiceNotificationIconResourceName != null) {
-                int iconId = getResources().getIdentifier(foregroundServiceNotificationIconResourceName, null, null);
-                if (iconId > 0) {
-                    builder.setSmallIcon(iconId);
-                }
-                else {
-                    LogManager.e(TAG, "Configured resource for foreground beacon service icon not found: "+foregroundServiceNotificationIconResourceName);
-                    return;
-                }
-            }
-            if (foregroundServiceNotificationContentTitle != null) {
-                builder.setContentTitle(foregroundServiceNotificationContentTitle);
-            }
-            if (foregroundServiceNotificationContentText != null) {
-                builder.setContentText(foregroundServiceNotificationContentText);
-            }
-            if (foregroundServiceNotificationTicker != null) {
-                builder.setTicker(foregroundServiceNotificationTicker);
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                this.startForeground(notificationId, builder.build());
-            }
+        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(
+                this.getApplicationContext());
+        Notification notification = beaconManager
+                .getForegroundServiceNotification();
+        int notificationId = beaconManager
+                .getForegroundServiceNotificationId();
+        if (notification != null &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            this.startForeground(notificationId, notification);
         }
     }
 

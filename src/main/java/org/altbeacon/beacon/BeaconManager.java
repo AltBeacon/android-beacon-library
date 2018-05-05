@@ -24,6 +24,7 @@
 package org.altbeacon.beacon;
 
 import android.annotation.TargetApi;
+import android.app.Notification;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -162,6 +163,10 @@ public class BeaconManager {
     private boolean mScheduledScanJobsEnabled = false;
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
+
+    @Nullable
+    private Notification mForegroundServiceNotification = null;
+    private int mForegroundServiceNotificationId = -1;
 
     /**
      * Private lock object for singleton initialization protecting against denial-of-service attack.
@@ -321,7 +326,7 @@ public class BeaconManager {
            verifyServiceDeclaration();
          }
         this.beaconParsers.add(new AltBeaconParser());
-        mScheduledScanJobsEnabled = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+        setScheduledScanJobsEnabledDefault();
     }
 
     /***
@@ -1319,6 +1324,81 @@ public class BeaconManager {
         return sManifestCheckingDisabled;
     }
 
+
+    /**
+     * Configures the library to use a foreground service for bacon scanning.  This allows nearly
+     * constant scanning on most Android versions to get around background limits, and displays an
+     * icon to the user to indicate that the app is doing something in the background, even on
+     * Android 8+.  This will disable the user of the JobScheduler on Android 8 to do scans.  Note
+     * that this method does not by itself enable constant scanning.  The scan intervals will work
+     * as normal and must be configurd to specific values depending on how often you wish to scan.
+     *
+     * @see #setForegroundScanPeriod(long)
+     * @see #setForegroundBetweenScanPeriod(long)
+     *
+     * This method requires a notification to display a message to the user about why the app is
+     * scanning in the background.  The notification must include an icon that will be displayed
+     * in the top bar whenever the scanning service is running.
+     *
+     * If the BeaconService is configured to run in a different process, this call will have no
+     * effect.
+     *
+     * @param notification - the notification that will be displayed when beacon scanning is active,
+     *                       along with the icon that shows up in the status bar.
+     *
+     * @throws IllegalStateException if called after consumers are already bound to the scanning
+     * service
+     */
+    public void enableForegroundServiceScanning(Notification notification, int notificationId)
+            throws IllegalStateException {
+        if (isAnyConsumerBound()) {
+            throw new IllegalStateException("May not be called after consumers are already bound.");
+        }
+        if (notification == null) {
+            throw new NullPointerException("Notification cannot be null");
+        }
+        setEnableScheduledScanJobs(false);
+        mForegroundServiceNotification = notification;
+        mForegroundServiceNotificationId = notificationId;
+    }
+
+    /**
+     * Disables a foreground scanning service, if previously configured.
+     *
+     * @see #enableForegroundServiceScanning
+     *
+     * In order to call this method to disable a foreground service, you must  unbind from the
+     * BeaconManager.  You can then rebind after this call is made.
+     *
+     * @throws IllegalStateException if called after consumers are already bound to the scanning
+     * service
+     */
+    public void disableForegroundServiceScanning() throws IllegalStateException {
+        if (isAnyConsumerBound()) {
+            throw new IllegalStateException("May not be called after consumers are already bound");
+        }
+        mForegroundServiceNotification = null;
+        setScheduledScanJobsEnabledDefault();
+    }
+
+    /**
+     * @see #enableForegroundServiceScanning
+     * @return The notification shown for the beacon scanning service, if so configured
+     */
+    public Notification getForegroundServiceNotification() {
+        return mForegroundServiceNotification;
+    }
+
+
+    /**
+     * @see #enableForegroundServiceScanning
+     * @return The notification shown for the beacon scanning service, if so configured
+     */
+    public int getForegroundServiceNotificationId() {
+        return mForegroundServiceNotificationId;
+    }
+
+
     private boolean determineIfCalledFromSeparateScannerProcess() {
         if (isScannerInDifferentProcess() && !isMainProcess()) {
             LogManager.w(TAG, "Ranging/Monitoring may not be controlled from a separate "+
@@ -1337,4 +1417,7 @@ public class BeaconManager {
         }
     }
 
+    private void setScheduledScanJobsEnabledDefault() {
+        mScheduledScanJobsEnabled = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
 }

@@ -1,3 +1,8 @@
+### Development
+
+Enhancements:
+ - Add warning about setting short scan periods on Android 8 (#677, David G. Young)
+
 ### 2.13.1 / 2018-03-05
 
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.13.1...2.13)

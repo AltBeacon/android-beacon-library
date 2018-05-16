@@ -1,8 +1,9 @@
 ### Development
 
 Enhancements:
+ - Add warnings about disabling scheduled scan jobs on Android 8+ (#674, David G. Young)
  - BeaconTransmitter advertisements may be configured as connectable (#683, Michael Harper)
-
+ 
 ### 2.13.1 / 2018-03-05
 
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.13.1...2.13)

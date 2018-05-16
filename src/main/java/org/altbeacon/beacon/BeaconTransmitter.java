@@ -1,21 +1,21 @@
 package org.altbeacon.beacon;
 
-import org.altbeacon.beacon.logging.LogManager;
-
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
-import java.nio.ByteOrder;
-import java.nio.ByteBuffer;
-import java.util.UUID;
 import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.content.pm.PackageManager;
-
 import android.os.ParcelUuid;
+
+import org.altbeacon.beacon.logging.LogManager;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.UUID;
 
 /**
  * Provides a mechanism for transmitting as a beacon.   Requires Android 5.0
@@ -41,6 +41,7 @@ public class BeaconTransmitter {
     private AdvertiseCallback mAdvertisingClientCallback;
     private boolean mStarted;
     private AdvertiseCallback mAdvertiseCallback;
+    private boolean mConnectable = false;
 
     /**
      * Creates a new beacon transmitter capable of transmitting beacons with the format
@@ -125,6 +126,22 @@ public class BeaconTransmitter {
     }
 
     /**
+     * Whether the advertisement should indicate the device is connectable.
+     * @param connectable
+     */
+    public void setConnectable(boolean connectable) {
+        this.mConnectable = connectable;
+    }
+
+    /**
+     * @see #setConnectable(boolean)
+     * @return connectable
+     */
+    public boolean isConnectable() {
+        return mConnectable;
+    }
+
+    /**
      * Starts advertising with fields from the passed beacon
      * @param beacon
      */
@@ -191,7 +208,7 @@ public class BeaconTransmitter {
 
             settingsBuilder.setAdvertiseMode(mAdvertiseMode);
             settingsBuilder.setTxPowerLevel(mAdvertiseTxPowerLevel);
-            settingsBuilder.setConnectable(false);
+            settingsBuilder.setConnectable(mConnectable);
 
             mBluetoothLeAdvertiser.startAdvertising(settingsBuilder.build(), dataBuilder.build(), getAdvertiseCallback());
             LogManager.d(TAG, "Started advertisement with callback: %s", getAdvertiseCallback());

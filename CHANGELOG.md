@@ -4,6 +4,9 @@ Enhancements:
  - Add warning about setting short scan periods on Android 8 (#677, David G. Young)
  - BeaconTransmitter advertisements may be configured as connectable (#683, Michael Harper)
 
+Bug Fixes:
+ - Fix crashes of BluetoothMedic caused by Bluetooth being turned off (#675, David g. Young) 
+
 ### 2.13.1 / 2018-03-05
 
 [Full Changelog](https://github.com/AltBeacon/android-beacon-library/compare/2.13.1...2.13)

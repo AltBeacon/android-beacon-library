@@ -1,4 +1,4 @@
-### Development
+### 2.14 / 2018-05-17
 
 Enhancements:
  - Add warning about setting short scan periods on Android 8 (#677, David G. Young)

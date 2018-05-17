@@ -8,6 +8,7 @@ Enhancements:
 
 Bug Fixes:
  - Fix crashes of BluetoothMedic caused by Bluetooth being turned off (#675, David G. Young) 
+ - Fix flawed in BeaconManager.isBound method on Android 8 (#655, David G. Young)
 
 ### 2.13.1 / 2018-03-05
 

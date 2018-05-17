@@ -15,7 +15,7 @@ See [configuring your project](configure.html) for more information on how to us
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.14.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.13/android-beacon-library-2.14.tar.gz)
 
-[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.13)
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.14)
 
 #### Archived Releases
 

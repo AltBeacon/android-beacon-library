@@ -264,6 +264,11 @@ public class BeaconManager {
      */
     public void setBackgroundBetweenScanPeriod(long p) {
         backgroundBetweenScanPeriod = p;
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                backgroundBetweenScanPeriod < 15*60*1000 /* 15 min */) {
+            LogManager.w(TAG, "Setting a short backgroundBetweenScanPeriod has no effect on "+
+                    "Android 8+, which is limited to scanning every ~15 minutes");
+        }
     }
 
     /**
@@ -553,6 +558,10 @@ public class BeaconManager {
      * otherwise beacon scans may be run only once every 15 minutes in the background, and no low
      * power scans may be performed between scanning cycles.
      *
+     * Setting this value to false will disable ScanJobs when the app is run on Android 8+, which
+     * can prohibit delivery of callbacks when the app is in the background unless the scanning
+     * process is running in a foreground service.
+     *
      * This method may only be called if bind() has not yet been called, otherwise an
      * `IllegalStateException` is thown.
      *
@@ -569,8 +578,13 @@ public class BeaconManager {
                     " availble prior to Android 5.0");
             return;
         }
+        if (enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            LogManager.w(TAG, "Disabling ScanJobs on Android 8+ may disable delivery of "+
+                    "beacon callbacks in the background unless a foreground service is active.");
+        }
         mScheduledScanJobsEnabled = enabled;
     }
+    
     public boolean getScheduledScanJobsEnabled() {
         return mScheduledScanJobsEnabled;
     }

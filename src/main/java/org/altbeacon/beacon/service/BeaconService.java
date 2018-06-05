@@ -218,7 +218,7 @@ public class BeaconService extends Service {
         }
 
         String longScanForcingEnabled = getManifestMetadataValue("longScanForcingEnabled");
-        if (longScanForcingEnabled.equals("true")) {
+        if (longScanForcingEnabled != null && longScanForcingEnabled.equals("true")) {
             LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
             mScanHelper.getCycledScanner().setLongScanForcingEnabled(true);
         }

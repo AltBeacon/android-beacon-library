@@ -1,3 +1,10 @@
+### Development
+
+Enhancements:
+
+ - Optional foreground beacon scanning service for faster background detections on Android 8+
+   (#663, David G. Young)
+
 ### 2.14 / 2018-05-17
 
 Enhancements:

@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.support.annotation.MainThread;
@@ -183,7 +184,11 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // for a change in Android 8.1 that blocks scan results when the screen is off unless
             // there is a scan filter associatd with the scan.  Prior to 8.1, filters could just be
             // left null.  The wildcard filter matches everything.
-            filters = new ScanFilterUtils().createWildcardScanFilters();
+            // We only add these filters on 8.1+ devices, because adding scan filters has been reported
+            // to cause scan failures on some Samsung devices with Android 5.x
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                filters = new ScanFilterUtils().createWildcardScanFilters();
+            }
         }
 
         if (settings != null) {

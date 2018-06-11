@@ -1,3 +1,8 @@
+### Development
+
+Bug Fixes:
+ - Fixes inability to detect on some 5.x Samsung Devices without scan filters. (#693, David G. Young)
+
 ### 2.14 / 2018-05-17
 
 Enhancements:

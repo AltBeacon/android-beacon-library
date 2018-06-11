@@ -2,6 +2,7 @@
 
 Bug Fixes:
  - Fixes inability to detect on some 5.x Samsung Devices without scan filters. (#693, David G. Young)
+ - Fix inverted logic for "disable ScanJob" warning (#700, Marcel Schnelle)
 
 ### 2.14 / 2018-05-17
 

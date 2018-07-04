@@ -51,9 +51,9 @@ beaconManager.setBackgroundScanPeriod(1100l);
 beaconManager.setBackgroundBetweenScanPeriod(3600000l);
 ```
 
-#### Fast background detections on Android 5.0+
+#### Background detections between scan cycles
 
-On Android 5.0, new scanning APIs allow for more efficient background scanning that saves provide similar
+On Android 5.0+, scanning APIs allow for more efficient background scanning that saves provide similar
 power savings to the technique described above, but with much faster beacon detection times.  Instead of
 it taking up to five minutes to detect a beacon (with the defaults described above), it detections of new beacons
 generally take place within a few seconds.
@@ -74,9 +74,9 @@ If you wish to disable use of Android 5.0 APIs for scanning, you may call:
 beaconManager.setAndroidLScanningDisabled(true);
 ```
 
-#### How does this affect Android 8.0?
+#### Android 8.0+ Scan Limitations
 
-Android 8.0 restricts background processes to run for at most 15 minutes after an app was
+Android versions 8+ restrict background processes to run for at most 15 minutes after an app was
 last in the foreground.  Beyond this, the JobScheduler must be used to execute periodic
 tasks like beacon scanning, which are limited to running once every 15 minutes.  This means
 that any betweenScanPeriod configured for < 15 minutes will be extended on Android 8 devices
@@ -85,3 +85,5 @@ the actual time between scans may be 10-25 minutes on Android 8.
 
 This does not mean that detections will take that long, as low-power scans as described in the
 fast detections section described above will still be active.
+
+If you use case needs frequent scanning in the background, you can [configure the library to use a Foreground Service](foreground-service.html).

@@ -1,0 +1,12 @@
+org.altbeacon.beacon
+org.altbeacon.beacon.client
+org.altbeacon.beacon.distance
+org.altbeacon.beacon.logging
+org.altbeacon.beacon.powersave
+org.altbeacon.beacon.service
+org.altbeacon.beacon.service.scanner
+org.altbeacon.beacon.simulator
+org.altbeacon.beacon.startup
+org.altbeacon.beacon.utils
+org.altbeacon.bluetooth
+

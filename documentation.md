@@ -30,6 +30,7 @@ layout: android-beacon-library
 ### Background Detection
 
 <ul>
+<li><a href='foreground-service.html'>Using a foreground service</a></li>
 <li><a href='background_launching.html'>Auto launching app on beacon detection</a></li>
 <li><a href='notifications.html'>Sending notifications on beacon detection</a></li>
 <li><a href='battery_manager.html'>Saving battery when your app is in the background</a></li>

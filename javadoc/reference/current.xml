@@ -1,0 +1,8199 @@
+<api>
+<package name="org.altbeacon.beacon"
+>
+<class name="AltBeacon"
+ extends="org.altbeacon.beacon.Beacon"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="AltBeacon"
+ type="org.altbeacon.beacon.AltBeacon"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</constructor>
+<constructor name="AltBeacon"
+ type="org.altbeacon.beacon.AltBeacon"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</constructor>
+<constructor name="AltBeacon"
+ type="org.altbeacon.beacon.AltBeacon"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="in" type="android.os.Parcel">
+</parameter>
+</constructor>
+<method name="getMfgReserved"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<field name="CREATOR"
+ type="android.os.Parcelable.Creator"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="AltBeacon.Builder"
+ extends="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="Builder"
+ type="org.altbeacon.beacon.AltBeacon.Builder"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="setMfgReserved"
+ return="org.altbeacon.beacon.AltBeacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="mfgReserved" type="int">
+</parameter>
+</method>
+</class>
+<class name="AltBeaconParser"
+ extends="org.altbeacon.beacon.BeaconParser"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="AltBeaconParser"
+ type="org.altbeacon.beacon.AltBeaconParser"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<field name="TAG"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;AltBeaconParser&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="Beacon"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="android.os.Parcelable">
+</implements>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="Beacon"
+ type="org.altbeacon.beacon.Beacon"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="protected"
+>
+<parameter name="in" type="android.os.Parcel">
+</parameter>
+</constructor>
+<constructor name="Beacon"
+ type="org.altbeacon.beacon.Beacon"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="otherBeacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</constructor>
+<constructor name="Beacon"
+ type="org.altbeacon.beacon.Beacon"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</constructor>
+<method name="calculateDistance"
+ return="java.lang.Double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="txPower" type="int">
+</parameter>
+<parameter name="bestRssiAvailable" type="double">
+</parameter>
+</method>
+<method name="describeContents"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBeaconTypeCode"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBluetoothAddress"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBluetoothName"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getDataFields"
+ return="java.util.List&lt;java.lang.Long&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getDistance"
+ return="double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getDistanceCalculator"
+ return="org.altbeacon.beacon.distance.DistanceCalculator"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getExtraDataFields"
+ return="java.util.List&lt;java.lang.Long&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getHardwareEqualityEnforced"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getId1"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getId2"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getId3"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getIdentifier"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="i" type="int">
+</parameter>
+</method>
+<method name="getIdentifiers"
+ return="java.util.List&lt;org.altbeacon.beacon.Identifier&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getManufacturer"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMeasurementCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getPacketCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getParserIdentifier"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRssi"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRunningAverageRssi"
+ return="double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="double">
+</parameter>
+</method>
+<method name="getRunningAverageRssi"
+ return="double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getServiceUuid"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getTxPower"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isExtraBeaconData"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isMultiFrameBeacon"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="requestData"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.BeaconDataNotifier">
+</parameter>
+</method>
+<method name="setDistanceCalculator"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="dc" type="org.altbeacon.beacon.distance.DistanceCalculator">
+</parameter>
+</method>
+<method name="setExtraDataFields"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="fields" type="java.util.List&lt;java.lang.Long&gt;">
+</parameter>
+</method>
+<method name="setHardwareEqualityEnforced"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="e" type="boolean">
+</parameter>
+</method>
+<method name="setPacketCount"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="packetCount" type="int">
+</parameter>
+</method>
+<method name="setRssi"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="int">
+</parameter>
+</method>
+<method name="setRssiMeasurementCount"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssiMeasurementCount" type="int">
+</parameter>
+</method>
+<method name="setRunningAverageRssi"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="double">
+</parameter>
+</method>
+<method name="writeToParcel"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="out" type="android.os.Parcel">
+</parameter>
+<parameter name="flags" type="int">
+</parameter>
+</method>
+<field name="CREATOR"
+ type="android.os.Parcelable.Creator"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="deprecated"
+ visibility="public"
+>
+</field>
+<field name="beaconDataFactory"
+ type="org.altbeacon.beacon.client.BeaconDataFactory"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mBeaconTypeCode"
+ type="int"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mBluetoothAddress"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mBluetoothName"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mDataFields"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mDistance"
+ type="java.lang.Double"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mExtraDataFields"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mIdentifiers"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mManufacturer"
+ type="int"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mMultiFrameBeacon"
+ type="boolean"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mParserIdentifier"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mRssi"
+ type="int"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mServiceUuid"
+ type="int"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mTxPower"
+ type="int"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="sDistanceCalculator"
+ type="org.altbeacon.beacon.distance.DistanceCalculator"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="sHardwareEqualityEnforced"
+ type="boolean"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+<class name="Beacon.Builder"
+ extends="java.lang.Object"
+ abstract="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="Builder"
+ type="org.altbeacon.beacon.Beacon.Builder"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="build"
+ return="org.altbeacon.beacon.Beacon"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="copyBeaconFields"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="setBeaconTypeCode"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconTypeCode" type="int">
+</parameter>
+</method>
+<method name="setBluetoothAddress"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="bluetoothAddress" type="java.lang.String">
+</parameter>
+</method>
+<method name="setBluetoothName"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="name" type="java.lang.String">
+</parameter>
+</method>
+<method name="setDataFields"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="dataFields" type="java.util.List&lt;java.lang.Long&gt;">
+</parameter>
+</method>
+<method name="setExtraDataFields"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="extraDataFields" type="java.util.List&lt;java.lang.Long&gt;">
+</parameter>
+</method>
+<method name="setId1"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="id1String" type="java.lang.String">
+</parameter>
+</method>
+<method name="setId2"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="id2String" type="java.lang.String">
+</parameter>
+</method>
+<method name="setId3"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="id3String" type="java.lang.String">
+</parameter>
+</method>
+<method name="setIdentifiers"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="identifiers" type="java.util.List&lt;org.altbeacon.beacon.Identifier&gt;">
+</parameter>
+</method>
+<method name="setManufacturer"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="manufacturer" type="int">
+</parameter>
+</method>
+<method name="setMultiFrameBeacon"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="multiFrameBeacon" type="boolean">
+</parameter>
+</method>
+<method name="setParserIdentifier"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="id" type="java.lang.String">
+</parameter>
+</method>
+<method name="setRssi"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="int">
+</parameter>
+</method>
+<method name="setRunningAverageRssi"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="double">
+</parameter>
+</method>
+<method name="setServiceUuid"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="serviceUuid" type="int">
+</parameter>
+</method>
+<method name="setTxPower"
+ return="org.altbeacon.beacon.Beacon.Builder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="txPower" type="int">
+</parameter>
+</method>
+<field name="mBeacon"
+ type="org.altbeacon.beacon.Beacon"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+<interface name="BeaconConsumer"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="bindService"
+ return="boolean"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="intent" type="android.content.Intent">
+</parameter>
+<parameter name="connection" type="android.content.ServiceConnection">
+</parameter>
+<parameter name="mode" type="int">
+</parameter>
+</method>
+<method name="getApplicationContext"
+ return="android.content.Context"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="onBeaconServiceConnect"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="unbindService"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="connection" type="android.content.ServiceConnection">
+</parameter>
+</method>
+</interface>
+<interface name="BeaconData"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="get"
+ return="java.lang.String"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="key" type="java.lang.String">
+</parameter>
+</method>
+<method name="getLatitude"
+ return="java.lang.Double"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getLongitude"
+ return="java.lang.Double"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isDirty"
+ return="boolean"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="set"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="key" type="java.lang.String">
+</parameter>
+<parameter name="value" type="java.lang.String">
+</parameter>
+</method>
+<method name="setLatitude"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="latitude" type="java.lang.Double">
+</parameter>
+</method>
+<method name="setLongitude"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="longitude" type="java.lang.Double">
+</parameter>
+</method>
+<method name="sync"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.BeaconDataNotifier">
+</parameter>
+</method>
+</interface>
+<interface name="BeaconDataNotifier"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="beaconDataUpdate"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+<parameter name="data" type="org.altbeacon.beacon.BeaconData">
+</parameter>
+<parameter name="exception" type="org.altbeacon.beacon.client.DataProviderException">
+</parameter>
+</method>
+</interface>
+<class name="BeaconManager"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BeaconManager"
+ type="org.altbeacon.beacon.BeaconManager"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</constructor>
+<method name="addMonitorNotifier"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.MonitorNotifier">
+</parameter>
+</method>
+<method name="addRangeNotifier"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.RangeNotifier">
+</parameter>
+</method>
+<method name="applySettings"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="bind"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="consumer" type="org.altbeacon.beacon.BeaconConsumer">
+</parameter>
+</method>
+<method name="checkAvailability"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<exception name="BleNotAvailableException" type="org.altbeacon.beacon.BleNotAvailableException">
+</exception>
+</method>
+<method name="checkIfMainProcess"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="disableForegroundServiceScanning"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<exception name="IllegalStateException" type="java.lang.IllegalStateException">
+</exception>
+</method>
+<method name="enableForegroundServiceScanning"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="notification" type="android.app.Notification">
+</parameter>
+<parameter name="notificationId" type="int">
+</parameter>
+<exception name="IllegalStateException" type="java.lang.IllegalStateException">
+</exception>
+</method>
+<method name="getBackgroundBetweenScanPeriod"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBackgroundMode"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBackgroundScanPeriod"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBeaconParsers"
+ return="java.util.List&lt;org.altbeacon.beacon.BeaconParser&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBeaconSimulator"
+ return="org.altbeacon.beacon.simulator.BeaconSimulator"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getDataRequestNotifier"
+ return="org.altbeacon.beacon.RangeNotifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="getDistanceModelUpdateUrl"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getForegroundBetweenScanPeriod"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getForegroundScanPeriod"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getForegroundServiceNotification"
+ return="android.app.Notification"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getForegroundServiceNotificationId"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getInstanceForApplication"
+ return="org.altbeacon.beacon.BeaconManager"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</method>
+<method name="getManifestCheckingDisabled"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMonitoredRegions"
+ return="java.util.Collection&lt;org.altbeacon.beacon.Region&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMonitoringNotifier"
+ return="org.altbeacon.beacon.MonitorNotifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMonitoringNotifiers"
+ return="java.util.Set&lt;org.altbeacon.beacon.MonitorNotifier&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getNonBeaconLeScanCallback"
+ return="org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRangedRegions"
+ return="java.util.Collection&lt;org.altbeacon.beacon.Region&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRangingNotifier"
+ return="org.altbeacon.beacon.RangeNotifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRangingNotifiers"
+ return="java.util.Set&lt;org.altbeacon.beacon.RangeNotifier&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRegionExitPeriod"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRssiFilterImplClass"
+ return="java.lang.Class"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getScheduledScanJobsEnabled"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isAndroidLScanningDisabled"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isAnyConsumerBound"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isBackgroundModeUninitialized"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isBound"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="consumer" type="org.altbeacon.beacon.BeaconConsumer">
+</parameter>
+</method>
+<method name="isMainProcess"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isRegionStatePersistenceEnabled"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isScannerInDifferentProcess"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="logDebug"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+</method>
+<method name="logDebug"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+</method>
+<method name="removeAllMonitorNotifiers"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="removeAllRangeNotifiers"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="removeMonitorNotifier"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.MonitorNotifier">
+</parameter>
+</method>
+<method name="removeMonitoreNotifier"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.MonitorNotifier">
+</parameter>
+</method>
+<method name="removeRangeNotifier"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.RangeNotifier">
+</parameter>
+</method>
+<method name="requestStateForRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="setAndroidLScanningDisabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="disabled" type="boolean">
+</parameter>
+</method>
+<method name="setBackgroundBetweenScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="p" type="long">
+</parameter>
+</method>
+<method name="setBackgroundMode"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="backgroundMode" type="boolean">
+</parameter>
+</method>
+<method name="setBackgroundScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="p" type="long">
+</parameter>
+</method>
+<method name="setBeaconSimulator"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconSimulator" type="org.altbeacon.beacon.simulator.BeaconSimulator">
+</parameter>
+</method>
+<method name="setDataRequestNotifier"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.RangeNotifier">
+</parameter>
+</method>
+<method name="setDebug"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="debug" type="boolean">
+</parameter>
+</method>
+<method name="setDistanceModelUpdateUrl"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="url" type="java.lang.String">
+</parameter>
+</method>
+<method name="setEnableScheduledScanJobs"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="setForegroundBetweenScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="p" type="long">
+</parameter>
+</method>
+<method name="setForegroundScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="p" type="long">
+</parameter>
+</method>
+<method name="setManifestCheckingDisabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="disabled" type="boolean">
+</parameter>
+</method>
+<method name="setMaxTrackingAge"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="maxTrackingAge" type="int">
+</parameter>
+</method>
+<method name="setMonitorNotifier"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.MonitorNotifier">
+</parameter>
+</method>
+<method name="setNonBeaconLeScanCallback"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="callback" type="org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback">
+</parameter>
+</method>
+<method name="setRangeNotifier"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="notifier" type="org.altbeacon.beacon.RangeNotifier">
+</parameter>
+</method>
+<method name="setRegionExitPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="regionExitPeriod" type="long">
+</parameter>
+</method>
+<method name="setRegionStatePeristenceEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="setRegionStatePersistenceEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="setRssiFilterImplClass"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="c" type="java.lang.Class">
+</parameter>
+</method>
+<method name="setUseTrackingCache"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="useTrackingCache" type="boolean">
+</parameter>
+</method>
+<method name="setsManifestCheckingDisabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="disabled" type="boolean">
+</parameter>
+</method>
+<method name="startMonitoringBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<exception name="RemoteException" type="android.os.RemoteException">
+</exception>
+</method>
+<method name="startRangingBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<exception name="RemoteException" type="android.os.RemoteException">
+</exception>
+</method>
+<method name="stopMonitoringBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<exception name="RemoteException" type="android.os.RemoteException">
+</exception>
+</method>
+<method name="stopRangingBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<exception name="RemoteException" type="android.os.RemoteException">
+</exception>
+</method>
+<method name="syncSettingsToService"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="unbind"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="consumer" type="org.altbeacon.beacon.BeaconConsumer">
+</parameter>
+</method>
+<method name="updateScanPeriods"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<exception name="RemoteException" type="android.os.RemoteException">
+</exception>
+</method>
+<field name="DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="300000L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="DEFAULT_BACKGROUND_SCAN_PERIOD"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="10000L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="DEFAULT_EXIT_PERIOD"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="10000L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="0L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="DEFAULT_FOREGROUND_SCAN_PERIOD"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="1100L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="beaconSimulator"
+ type="org.altbeacon.beacon.simulator.BeaconSimulator"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="dataRequestNotifier"
+ type="org.altbeacon.beacon.RangeNotifier"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="distanceModelUpdateUrl"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="monitorNotifiers"
+ type="java.util.Set"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="rangeNotifiers"
+ type="java.util.Set"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="rssiFilterImplClass"
+ type="java.lang.Class"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="sInstance"
+ type="org.altbeacon.beacon.BeaconManager"
+ transient="false"
+ volatile="true"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+<class name="BeaconManager.ServiceNotDeclaredException"
+ extends="java.lang.RuntimeException"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="ServiceNotDeclaredException"
+ type="org.altbeacon.beacon.BeaconManager.ServiceNotDeclaredException"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+</class>
+<class name="BeaconParser"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="BeaconParser"
+ type="org.altbeacon.beacon.BeaconParser"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<constructor name="BeaconParser"
+ type="org.altbeacon.beacon.BeaconParser"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="identifier" type="java.lang.String">
+</parameter>
+</constructor>
+<method name="addExtraDataParser"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="extraDataParser" type="org.altbeacon.beacon.BeaconParser">
+</parameter>
+</method>
+<method name="bytesToHex"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="bytes" type="byte[]">
+</parameter>
+</method>
+<method name="fromScanData"
+ return="org.altbeacon.beacon.Beacon"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="scanData" type="byte[]">
+</parameter>
+<parameter name="rssi" type="int">
+</parameter>
+<parameter name="device" type="android.bluetooth.BluetoothDevice">
+</parameter>
+</method>
+<method name="fromScanData"
+ return="org.altbeacon.beacon.Beacon"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="bytesToProcess" type="byte[]">
+</parameter>
+<parameter name="rssi" type="int">
+</parameter>
+<parameter name="device" type="android.bluetooth.BluetoothDevice">
+</parameter>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="getBeaconAdvertisementData"
+ return="byte[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="getDataFieldCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getExtraDataParsers"
+ return="java.util.List&lt;org.altbeacon.beacon.BeaconParser&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getHardwareAssistManufacturers"
+ return="int[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getIdentifier"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getIdentifierByteCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="identifierNum" type="int">
+</parameter>
+</method>
+<method name="getIdentifierCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getLayout"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMServiceUuidStartOffset"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMatchingBeaconTypeCode"
+ return="java.lang.Long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMatchingBeaconTypeCodeEndOffset"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMatchingBeaconTypeCodeStartOffset"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getPowerCorrection"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getServiceUuid"
+ return="java.lang.Long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getServiceUuidEndOffset"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="longToByteArray"
+ return="byte[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="longValue" type="long">
+</parameter>
+<parameter name="length" type="int">
+</parameter>
+</method>
+<method name="longToByteArray"
+ return="byte[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="longValue" type="long">
+</parameter>
+<parameter name="length" type="int">
+</parameter>
+<parameter name="bigEndian" type="boolean">
+</parameter>
+</method>
+<method name="setAllowPduOverflow"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="java.lang.Boolean">
+</parameter>
+</method>
+<method name="setBeaconLayout"
+ return="org.altbeacon.beacon.BeaconParser"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconLayout" type="java.lang.String">
+</parameter>
+</method>
+<method name="setHardwareAssistManufacturerCodes"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="manufacturers" type="int[]">
+</parameter>
+</method>
+<method name="setMatchingBeaconTypeCode"
+ return="org.altbeacon.beacon.BeaconParser"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="typeCode" type="java.lang.Long">
+</parameter>
+</method>
+<field name="ALTBEACON_LAYOUT"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="EDDYSTONE_TLM_LAYOUT"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="EDDYSTONE_UID_LAYOUT"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="EDDYSTONE_URL_LAYOUT"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-21v&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="URI_BEACON_LAYOUT"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;s:0-1=fed8,m:2-2=00,p:3-3:-41,i:4-21v&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="extraParsers"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mAllowPduOverflow"
+ type="java.lang.Boolean"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mBeaconLayout"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mDBmCorrection"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mDataEndOffsets"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mDataLittleEndianFlags"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mDataStartOffsets"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mExtraFrame"
+ type="java.lang.Boolean"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mHardwareAssistManufacturers"
+ type="int[]"
+ transient="false"
+ volatile="false"
+ value="null"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mIdentifier"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mIdentifierEndOffsets"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mIdentifierLittleEndianFlags"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mIdentifierStartOffsets"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mIdentifierVariableLengthFlags"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mLayoutSize"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mMatchingBeaconTypeCodeEndOffset"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mMatchingBeaconTypeCodeStartOffset"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mPowerEndOffset"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mPowerStartOffset"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mServiceUuid"
+ type="java.lang.Long"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mServiceUuidEndOffset"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mServiceUuidStartOffset"
+ type="java.lang.Integer"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+<class name="BeaconParser.BeaconLayoutException"
+ extends="java.lang.RuntimeException"
+ abstract="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BeaconLayoutException"
+ type="org.altbeacon.beacon.BeaconParser.BeaconLayoutException"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="s" type="java.lang.String">
+</parameter>
+</constructor>
+</class>
+<class name="BeaconTransmitter"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BeaconTransmitter"
+ type="org.altbeacon.beacon.BeaconTransmitter"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="parser" type="org.altbeacon.beacon.BeaconParser">
+</parameter>
+</constructor>
+<method name="checkTransmissionSupported"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</method>
+<method name="getAdvertiseMode"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getAdvertiseTxPowerLevel"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isConnectable"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isStarted"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setAdvertiseMode"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="mAdvertiseMode" type="int">
+</parameter>
+</method>
+<method name="setAdvertiseTxPowerLevel"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="mAdvertiseTxPowerLevel" type="int">
+</parameter>
+</method>
+<method name="setBeacon"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="setBeaconParser"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconParser" type="org.altbeacon.beacon.BeaconParser">
+</parameter>
+</method>
+<method name="setConnectable"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="connectable" type="boolean">
+</parameter>
+</method>
+<method name="startAdvertising"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="startAdvertising"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+<parameter name="callback" type="android.bluetooth.le.AdvertiseCallback">
+</parameter>
+</method>
+<method name="startAdvertising"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="stopAdvertising"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<field name="NOT_SUPPORTED_BLE"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="2"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="NOT_SUPPORTED_CANNOT_GET_ADVERTISER"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="4"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="5"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="NOT_SUPPORTED_MIN_SDK"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="1"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="3"
+ static="true"
+ final="true"
+ deprecated="deprecated"
+ visibility="public"
+>
+</field>
+<field name="SUPPORTED"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="0"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="BleNotAvailableException"
+ extends="java.lang.RuntimeException"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BleNotAvailableException"
+ type="org.altbeacon.beacon.BleNotAvailableException"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="message" type="java.lang.String">
+</parameter>
+</constructor>
+</class>
+<class name="Identifier"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.lang.Comparable">
+</implements>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="Identifier"
+ type="org.altbeacon.beacon.Identifier"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="identifier" type="org.altbeacon.beacon.Identifier">
+</parameter>
+</constructor>
+<constructor name="Identifier"
+ type="org.altbeacon.beacon.Identifier"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="value" type="byte[]">
+</parameter>
+</constructor>
+<method name="compareTo"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="that" type="org.altbeacon.beacon.Identifier">
+</parameter>
+</method>
+<method name="fromBytes"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="bytes" type="byte[]">
+</parameter>
+<parameter name="start" type="int">
+</parameter>
+<parameter name="end" type="int">
+</parameter>
+<parameter name="littleEndian" type="boolean">
+</parameter>
+</method>
+<method name="fromInt"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="intValue" type="int">
+</parameter>
+</method>
+<method name="fromLong"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="longValue" type="long">
+</parameter>
+<parameter name="desiredByteLength" type="int">
+</parameter>
+</method>
+<method name="fromUuid"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="uuid" type="java.util.UUID">
+</parameter>
+</method>
+<method name="getByteCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="parse"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="stringValue" type="java.lang.String">
+</parameter>
+</method>
+<method name="parse"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="stringValue" type="java.lang.String">
+</parameter>
+<parameter name="desiredByteLength" type="int">
+</parameter>
+</method>
+<method name="toByteArray"
+ return="byte[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="toByteArrayOfSpecifiedEndianness"
+ return="byte[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="bigEndian" type="boolean">
+</parameter>
+</method>
+<method name="toHexString"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="toInt"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="toUuid"
+ return="java.util.UUID"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="toUuidString"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<interface name="MonitorNotifier"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="didDetermineStateForRegion"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="state" type="int">
+</parameter>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="didEnterRegion"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="didExitRegion"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<field name="INSIDE"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="1"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="OUTSIDE"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="0"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</interface>
+<interface name="RangeNotifier"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="didRangeBeaconsInRegion"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacons" type="java.util.Collection&lt;org.altbeacon.beacon.Beacon&gt;">
+</parameter>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+</interface>
+<class name="Region"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="android.os.Parcelable">
+</implements>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="Region"
+ type="org.altbeacon.beacon.Region"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="uniqueId" type="java.lang.String">
+</parameter>
+<parameter name="id1" type="org.altbeacon.beacon.Identifier">
+</parameter>
+<parameter name="id2" type="org.altbeacon.beacon.Identifier">
+</parameter>
+<parameter name="id3" type="org.altbeacon.beacon.Identifier">
+</parameter>
+</constructor>
+<constructor name="Region"
+ type="org.altbeacon.beacon.Region"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="uniqueId" type="java.lang.String">
+</parameter>
+<parameter name="identifiers" type="java.util.List&lt;org.altbeacon.beacon.Identifier&gt;">
+</parameter>
+</constructor>
+<constructor name="Region"
+ type="org.altbeacon.beacon.Region"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="uniqueId" type="java.lang.String">
+</parameter>
+<parameter name="identifiers" type="java.util.List&lt;org.altbeacon.beacon.Identifier&gt;">
+</parameter>
+<parameter name="bluetoothAddress" type="java.lang.String">
+</parameter>
+</constructor>
+<constructor name="Region"
+ type="org.altbeacon.beacon.Region"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="uniqueId" type="java.lang.String">
+</parameter>
+<parameter name="bluetoothAddress" type="java.lang.String">
+</parameter>
+</constructor>
+<constructor name="Region"
+ type="org.altbeacon.beacon.Region"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="in" type="android.os.Parcel">
+</parameter>
+</constructor>
+<method name="clone"
+ return="org.altbeacon.beacon.Region"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+</method>
+<method name="describeContents"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBluetoothAddress"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getId1"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getId2"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getId3"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getIdentifier"
+ return="org.altbeacon.beacon.Identifier"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="i" type="int">
+</parameter>
+</method>
+<method name="getUniqueId"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="hasSameIdentifiers"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="matchesBeacon"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="writeToParcel"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="out" type="android.os.Parcel">
+</parameter>
+<parameter name="flags" type="int">
+</parameter>
+</method>
+<field name="CREATOR"
+ type="android.os.Parcelable.Creator"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="mBluetoothAddress"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mIdentifiers"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mUniqueId"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+</package>
+<package name="org.altbeacon.beacon.client"
+>
+<interface name="BeaconDataFactory"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="requestBeaconData"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+<parameter name="notifier" type="org.altbeacon.beacon.BeaconDataNotifier">
+</parameter>
+</method>
+</interface>
+<class name="DataProviderException"
+ extends="java.lang.Exception"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="DataProviderException"
+ type="org.altbeacon.beacon.client.DataProviderException"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<constructor name="DataProviderException"
+ type="org.altbeacon.beacon.client.DataProviderException"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="msg" type="java.lang.String">
+</parameter>
+</constructor>
+<constructor name="DataProviderException"
+ type="org.altbeacon.beacon.client.DataProviderException"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="msg" type="java.lang.String">
+</parameter>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+</constructor>
+</class>
+<class name="NullBeaconDataFactory"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="org.altbeacon.beacon.client.BeaconDataFactory">
+</implements>
+<constructor name="NullBeaconDataFactory"
+ type="org.altbeacon.beacon.client.NullBeaconDataFactory"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="requestBeaconData"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+<parameter name="notifier" type="org.altbeacon.beacon.BeaconDataNotifier">
+</parameter>
+</method>
+</class>
+</package>
+<package name="org.altbeacon.beacon.distance"
+>
+<class name="AndroidModel"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="AndroidModel"
+ type="org.altbeacon.beacon.distance.AndroidModel"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="version" type="java.lang.String">
+</parameter>
+<parameter name="buildNumber" type="java.lang.String">
+</parameter>
+<parameter name="model" type="java.lang.String">
+</parameter>
+<parameter name="manufacturer" type="java.lang.String">
+</parameter>
+</constructor>
+<method name="forThisDevice"
+ return="org.altbeacon.beacon.distance.AndroidModel"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBuildNumber"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getManufacturer"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getModel"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getVersion"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="matchScore"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="otherModel" type="org.altbeacon.beacon.distance.AndroidModel">
+</parameter>
+</method>
+<method name="setBuildNumber"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="mBuildNumber" type="java.lang.String">
+</parameter>
+</method>
+<method name="setManufacturer"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="mManufacturer" type="java.lang.String">
+</parameter>
+</method>
+<method name="setModel"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="mModel" type="java.lang.String">
+</parameter>
+</method>
+<method name="setVersion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="mVersion" type="java.lang.String">
+</parameter>
+</method>
+</class>
+<class name="CurveFittedDistanceCalculator"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="org.altbeacon.beacon.distance.DistanceCalculator">
+</implements>
+<constructor name="CurveFittedDistanceCalculator"
+ type="org.altbeacon.beacon.distance.CurveFittedDistanceCalculator"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="coefficient1" type="double">
+</parameter>
+<parameter name="coefficient2" type="double">
+</parameter>
+<parameter name="coefficient3" type="double">
+</parameter>
+</constructor>
+<method name="calculateDistance"
+ return="double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="txPower" type="int">
+</parameter>
+<parameter name="rssi" type="double">
+</parameter>
+</method>
+<field name="TAG"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;CurveFittedDistanceCalculator&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<interface name="DistanceCalculator"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="calculateDistance"
+ return="double"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="txPower" type="int">
+</parameter>
+<parameter name="rssi" type="double">
+</parameter>
+</method>
+</interface>
+<class name="DistanceConfigFetcher"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="DistanceConfigFetcher"
+ type="org.altbeacon.beacon.distance.DistanceConfigFetcher"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="urlString" type="java.lang.String">
+</parameter>
+<parameter name="userAgentString" type="java.lang.String">
+</parameter>
+</constructor>
+<method name="getException"
+ return="java.lang.Exception"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getResponseCode"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getResponseString"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="request"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<field name="mException"
+ type="java.lang.Exception"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mResponse"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+<class name="ModelSpecificDistanceCalculator"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="org.altbeacon.beacon.distance.DistanceCalculator">
+</implements>
+<constructor name="ModelSpecificDistanceCalculator"
+ type="org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="remoteUpdateUrlString" type="java.lang.String">
+</parameter>
+</constructor>
+<constructor name="ModelSpecificDistanceCalculator"
+ type="org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="remoteUpdateUrlString" type="java.lang.String">
+</parameter>
+<parameter name="model" type="org.altbeacon.beacon.distance.AndroidModel">
+</parameter>
+</constructor>
+<method name="calculateDistance"
+ return="double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="txPower" type="int">
+</parameter>
+<parameter name="rssi" type="double">
+</parameter>
+</method>
+<method name="getModel"
+ return="org.altbeacon.beacon.distance.AndroidModel"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRequestedModel"
+ return="org.altbeacon.beacon.distance.AndroidModel"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<class name="ModelSpecificDistanceUpdater"
+ extends="android.os.AsyncTask"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="ModelSpecificDistanceUpdater"
+ type="org.altbeacon.beacon.distance.ModelSpecificDistanceUpdater"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="urlString" type="java.lang.String">
+</parameter>
+<parameter name="completionHandler" type="org.altbeacon.beacon.distance.ModelSpecificDistanceUpdater.CompletionHandler">
+</parameter>
+</constructor>
+<method name="doInBackground"
+ return="java.lang.Void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="params" type="java.lang.Void...">
+</parameter>
+</method>
+<method name="onPostExecute"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+</class>
+</package>
+<package name="org.altbeacon.beacon.logging"
+>
+<class name="LogManager"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="d"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="d"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="e"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="e"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="getLogger"
+ return="org.altbeacon.beacon.logging.Logger"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="i"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="i"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="isVerboseLoggingEnabled"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setLogger"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="logger" type="org.altbeacon.beacon.logging.Logger">
+</parameter>
+</method>
+<method name="setVerboseLoggingEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="v"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="v"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="w"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="w"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+</class>
+<interface name="Logger"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="d"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="d"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="e"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="e"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="i"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="i"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="v"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="v"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="w"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+<method name="w"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="java.lang.Throwable">
+</parameter>
+<parameter name="tag" type="java.lang.String">
+</parameter>
+<parameter name="message" type="java.lang.String">
+</parameter>
+<parameter name="args" type="java.lang.Object...">
+</parameter>
+</method>
+</interface>
+<class name="Loggers"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="empty"
+ return="org.altbeacon.beacon.logging.Logger"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="infoLogger"
+ return="org.altbeacon.beacon.logging.Logger"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="verboseLogger"
+ return="org.altbeacon.beacon.logging.Logger"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="warningLogger"
+ return="org.altbeacon.beacon.logging.Logger"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+</package>
+<package name="org.altbeacon.beacon.powersave"
+>
+<class name="BackgroundPowerSaver"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="android.app.Application.ActivityLifecycleCallbacks">
+</implements>
+<constructor name="BackgroundPowerSaver"
+ type="org.altbeacon.beacon.powersave.BackgroundPowerSaver"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="countActiveActivityStrategy" type="boolean">
+</parameter>
+</constructor>
+<constructor name="BackgroundPowerSaver"
+ type="org.altbeacon.beacon.powersave.BackgroundPowerSaver"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</constructor>
+<method name="onActivityCreated"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="activity" type="android.app.Activity">
+</parameter>
+<parameter name="bundle" type="android.os.Bundle">
+</parameter>
+</method>
+<method name="onActivityDestroyed"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="activity" type="android.app.Activity">
+</parameter>
+</method>
+<method name="onActivityPaused"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="activity" type="android.app.Activity">
+</parameter>
+</method>
+<method name="onActivityResumed"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="activity" type="android.app.Activity">
+</parameter>
+</method>
+<method name="onActivitySaveInstanceState"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="activity" type="android.app.Activity">
+</parameter>
+<parameter name="bundle" type="android.os.Bundle">
+</parameter>
+</method>
+<method name="onActivityStarted"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="activity" type="android.app.Activity">
+</parameter>
+</method>
+<method name="onActivityStopped"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="activity" type="android.app.Activity">
+</parameter>
+</method>
+</class>
+</package>
+<package name="org.altbeacon.beacon.service"
+>
+<class name="ArmaRssiFilter"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="org.altbeacon.beacon.service.RssiFilter">
+</implements>
+<constructor name="ArmaRssiFilter"
+ type="org.altbeacon.beacon.service.ArmaRssiFilter"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="addMeasurement"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="java.lang.Integer">
+</parameter>
+</method>
+<method name="calculateRssi"
+ return="double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMeasurementCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="noMeasurementsAvailable"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setDEFAULT_ARMA_SPEED"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="default_arma_speed" type="double">
+</parameter>
+</method>
+</class>
+<class name="BeaconService"
+ extends="android.app.Service"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BeaconService"
+ type="org.altbeacon.beacon.service.BeaconService"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="getCycledLeScanCallback"
+ return="org.altbeacon.beacon.service.scanner.CycledLeScanCallback"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="onBind"
+ return="android.os.IBinder"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="intent" type="android.content.Intent">
+</parameter>
+</method>
+<method name="reloadParsers"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setScanPeriods"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="scanPeriod" type="long">
+</parameter>
+<parameter name="betweenScanPeriod" type="long">
+</parameter>
+<parameter name="backgroundFlag" type="boolean">
+</parameter>
+</method>
+<method name="startMonitoringBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<parameter name="callback" type="org.altbeacon.beacon.service.Callback">
+</parameter>
+</method>
+<method name="startRangingBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<parameter name="callback" type="org.altbeacon.beacon.service.Callback">
+</parameter>
+</method>
+<method name="stopMonitoringBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="stopRangingBeaconsInRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<field name="MSG_SET_SCAN_PERIODS"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="6"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="MSG_START_MONITORING"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="4"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="MSG_START_RANGING"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="2"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="MSG_STOP_MONITORING"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="5"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="MSG_STOP_RANGING"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="3"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="MSG_SYNC_SETTINGS"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="7"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="TAG"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;BeaconService&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="BeaconService.BeaconBinder"
+ extends="android.os.Binder"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BeaconBinder"
+ type="org.altbeacon.beacon.service.BeaconService.BeaconBinder"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="getService"
+ return="org.altbeacon.beacon.service.BeaconService"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<class name="Callback"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="Callback"
+ type="org.altbeacon.beacon.service.Callback"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="intentPackageName" type="java.lang.String">
+</parameter>
+</constructor>
+<method name="call"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="dataName" type="java.lang.String">
+</parameter>
+<parameter name="data" type="android.os.Bundle">
+</parameter>
+</method>
+</class>
+<class name="DetectionTracker"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="getInstance"
+ return="org.altbeacon.beacon.service.DetectionTracker"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getLastDetectionTime"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="recordDetection"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<class name="ExtraDataBeaconTracker"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="ExtraDataBeaconTracker"
+ type="org.altbeacon.beacon.service.ExtraDataBeaconTracker"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<constructor name="ExtraDataBeaconTracker"
+ type="org.altbeacon.beacon.service.ExtraDataBeaconTracker"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="matchBeaconsByServiceUUID" type="boolean">
+</parameter>
+</constructor>
+<method name="track"
+ return="org.altbeacon.beacon.Beacon"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+</class>
+<class name="MonitoringData"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="MonitoringData"
+ type="org.altbeacon.beacon.service.MonitoringData"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="inside" type="boolean">
+</parameter>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</constructor>
+<method name="fromBundle"
+ return="org.altbeacon.beacon.service.MonitoringData"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="bundle" type="android.os.Bundle">
+</parameter>
+</method>
+<method name="getRegion"
+ return="org.altbeacon.beacon.Region"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isInside"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="toBundle"
+ return="android.os.Bundle"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<class name="MonitoringStatus"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="MonitoringStatus"
+ type="org.altbeacon.beacon.service.MonitoringStatus"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</constructor>
+<method name="addLocalRegion"
+ return="org.altbeacon.beacon.service.RegionMonitoringState"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="addRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<parameter name="callback" type="org.altbeacon.beacon.service.Callback">
+</parameter>
+</method>
+<method name="clear"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getInstanceForApplication"
+ return="org.altbeacon.beacon.service.MonitoringStatus"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</method>
+<method name="getLastMonitoringStatusUpdateTime"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="isStatePreservationOn"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="regions"
+ return="java.util.Set&lt;org.altbeacon.beacon.Region&gt;"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="regionsCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="removeLocalRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="removeRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="restoreMonitoringStatus"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="saveMonitoringStatusIfOn"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="startStatusPreservation"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="stateOf"
+ return="org.altbeacon.beacon.service.RegionMonitoringState"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="stopStatusPreservation"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="updateLocalState"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+<parameter name="state" type="java.lang.Integer">
+</parameter>
+</method>
+<method name="updateMonitoringStatusTime"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="time" type="long">
+</parameter>
+</method>
+<method name="updateNewlyInsideInRegionsContaining"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="updateNewlyOutside"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<field name="STATUS_PRESERVATION_FILE_NAME"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;org.altbeacon.beacon.service.monitoring_status_state&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="RangeState"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="RangeState"
+ type="org.altbeacon.beacon.service.RangeState"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="c" type="org.altbeacon.beacon.service.Callback">
+</parameter>
+</constructor>
+<method name="addBeacon"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="finalizeBeacons"
+ return="java.util.Collection&lt;org.altbeacon.beacon.Beacon&gt;"
+ abstract="false"
+ native="false"
+ synchronized="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getCallback"
+ return="org.altbeacon.beacon.service.Callback"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getUseTrackingCache"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setUseTrackingCache"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="useTrackingCache" type="boolean">
+</parameter>
+</method>
+</class>
+<class name="RangedBeacon"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="RangedBeacon"
+ type="org.altbeacon.beacon.service.RangedBeacon"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</constructor>
+<method name="addMeasurement"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="java.lang.Integer">
+</parameter>
+</method>
+<method name="commitMeasurements"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBeacon"
+ return="org.altbeacon.beacon.Beacon"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getTrackingAge"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isExpired"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isTracked"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="noMeasurementsAvailable"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setMaxTrackinAge"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="maxTrackinAge" type="int">
+</parameter>
+</method>
+<method name="setSampleExpirationMilliseconds"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="milliseconds" type="long">
+</parameter>
+</method>
+<method name="setTracked"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="tracked" type="boolean">
+</parameter>
+</method>
+<method name="updateBeacon"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<field name="DEFAULT_MAX_TRACKING_AGE"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="5000L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="20000L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="lastTrackedTimeMillis"
+ type="long"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mFilter"
+ type="org.altbeacon.beacon.service.RssiFilter"
+ transient="true"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="maxTrackingAge"
+ type="long"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="RegionMonitoringState"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="RegionMonitoringState"
+ type="org.altbeacon.beacon.service.RegionMonitoringState"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="c" type="org.altbeacon.beacon.service.Callback">
+</parameter>
+</constructor>
+<method name="getCallback"
+ return="org.altbeacon.beacon.service.Callback"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getInside"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="markInside"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="markOutside"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="markOutsideIfExpired"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<interface name="RssiFilter"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="addMeasurement"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="java.lang.Integer">
+</parameter>
+</method>
+<method name="calculateRssi"
+ return="double"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMeasurementCount"
+ return="int"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="noMeasurementsAvailable"
+ return="boolean"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</interface>
+<class name="RunningAverageRssiFilter"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="org.altbeacon.beacon.service.RssiFilter">
+</implements>
+<constructor name="RunningAverageRssiFilter"
+ type="org.altbeacon.beacon.service.RunningAverageRssiFilter"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="addMeasurement"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rssi" type="java.lang.Integer">
+</parameter>
+</method>
+<method name="calculateRssi"
+ return="double"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMeasurementCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="noMeasurementsAvailable"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setSampleExpirationMilliseconds"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="newSampleExpirationMilliseconds" type="long">
+</parameter>
+</method>
+<field name="DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="20000L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="ScanDataProcessor"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="ScanDataProcessor"
+ type="org.altbeacon.beacon.service.ScanDataProcessor"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="scanService" type="android.app.Service">
+</parameter>
+<parameter name="scanState" type="org.altbeacon.beacon.service.ScanState">
+</parameter>
+</constructor>
+<method name="onCycleEnd"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="process"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="scanResult" type="android.bluetooth.le.ScanResult">
+</parameter>
+</method>
+<method name="process"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="scanData" type="org.altbeacon.beacon.service.ScanDataProcessor.ScanData">
+</parameter>
+</method>
+</class>
+<class name="ScanState"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="java.io.Serializable">
+</implements>
+<constructor name="ScanState"
+ type="org.altbeacon.beacon.service.ScanState"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</constructor>
+<method name="applyChanges"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconManager" type="org.altbeacon.beacon.BeaconManager">
+</parameter>
+</method>
+<method name="getBackgroundBetweenScanPeriod"
+ return="java.lang.Long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBackgroundMode"
+ return="java.lang.Boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBackgroundScanPeriod"
+ return="java.lang.Long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getBeaconParsers"
+ return="java.util.Set&lt;org.altbeacon.beacon.BeaconParser&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getExtraBeaconDataTracker"
+ return="org.altbeacon.beacon.service.ExtraDataBeaconTracker"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getForegroundBetweenScanPeriod"
+ return="java.lang.Long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getForegroundScanPeriod"
+ return="java.lang.Long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getLastScanStartTimeMillis"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getMonitoringStatus"
+ return="org.altbeacon.beacon.service.MonitoringStatus"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRangedRegionState"
+ return="java.util.Map&lt;org.altbeacon.beacon.Region, org.altbeacon.beacon.service.RangeState&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getScanJobIntervalMillis"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getScanJobRuntimeMillis"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="restore"
+ return="org.altbeacon.beacon.service.ScanState"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</method>
+<method name="save"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setBackgroundBetweenScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="backgroundBetweenScanPeriod" type="java.lang.Long">
+</parameter>
+</method>
+<method name="setBackgroundMode"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="backgroundMode" type="java.lang.Boolean">
+</parameter>
+</method>
+<method name="setBackgroundScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="backgroundScanPeriod" type="java.lang.Long">
+</parameter>
+</method>
+<method name="setBeaconParsers"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconParsers" type="java.util.Set&lt;org.altbeacon.beacon.BeaconParser&gt;">
+</parameter>
+</method>
+<method name="setExtraBeaconDataTracker"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="extraDataBeaconTracker" type="org.altbeacon.beacon.service.ExtraDataBeaconTracker">
+</parameter>
+</method>
+<method name="setForegroundBetweenScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="foregroundBetweenScanPeriod" type="java.lang.Long">
+</parameter>
+</method>
+<method name="setForegroundScanPeriod"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="foregroundScanPeriod" type="java.lang.Long">
+</parameter>
+</method>
+<method name="setLastScanStartTimeMillis"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="time" type="long">
+</parameter>
+</method>
+<method name="setMonitoringStatus"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="monitoringStatus" type="org.altbeacon.beacon.service.MonitoringStatus">
+</parameter>
+</method>
+<method name="setRangedRegionState"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="rangedRegionState" type="java.util.Map&lt;org.altbeacon.beacon.Region, org.altbeacon.beacon.service.RangeState&gt;">
+</parameter>
+</method>
+<field name="MIN_SCAN_JOB_INTERVAL_MILLIS"
+ type="int"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="Stats"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="clearSample"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="clearSamples"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getInstance"
+ return="org.altbeacon.beacon.service.Stats"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getSamples"
+ return="java.util.ArrayList&lt;org.altbeacon.beacon.service.Stats.Sample&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isEnabled"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="log"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="newSampleInterval"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="setHistoricalLoggingEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="setLoggingEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="setSampleIntervalMillis"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="interval" type="long">
+</parameter>
+</method>
+</class>
+<class name="Stats.Sample"
+ extends="java.lang.Object"
+ abstract="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="Sample"
+ type="org.altbeacon.beacon.service.Stats.Sample"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<field name="detectionCount"
+ type="long"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="firstDetectionTime"
+ type="java.util.Date"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="lastDetectionTime"
+ type="java.util.Date"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="maxMillisBetweenDetections"
+ type="long"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="sampleStartTime"
+ type="java.util.Date"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="sampleStopTime"
+ type="java.util.Date"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+</package>
+<package name="org.altbeacon.beacon.service.scanner"
+>
+<interface name="CycledLeScanCallback"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="onCycleEnd"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="onLeScan"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="device" type="android.bluetooth.BluetoothDevice">
+</parameter>
+<parameter name="rssi" type="int">
+</parameter>
+<parameter name="scanRecord" type="byte[]">
+</parameter>
+</method>
+</interface>
+<class name="CycledLeScanner"
+ extends="java.lang.Object"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="CycledLeScanner"
+ type="org.altbeacon.beacon.service.scanner.CycledLeScanner"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="scanPeriod" type="long">
+</parameter>
+<parameter name="betweenScanPeriod" type="long">
+</parameter>
+<parameter name="backgroundFlag" type="boolean">
+</parameter>
+<parameter name="cycledLeScanCallback" type="org.altbeacon.beacon.service.scanner.CycledLeScanCallback">
+</parameter>
+<parameter name="crashResolver" type="org.altbeacon.bluetooth.BluetoothCrashResolver">
+</parameter>
+</constructor>
+<method name="cancelWakeUpAlarm"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="createScanner"
+ return="org.altbeacon.beacon.service.scanner.CycledLeScanner"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="scanPeriod" type="long">
+</parameter>
+<parameter name="betweenScanPeriod" type="long">
+</parameter>
+<parameter name="backgroundFlag" type="boolean">
+</parameter>
+<parameter name="cycledLeScanCallback" type="org.altbeacon.beacon.service.scanner.CycledLeScanCallback">
+</parameter>
+<parameter name="crashResolver" type="org.altbeacon.bluetooth.BluetoothCrashResolver">
+</parameter>
+</method>
+<method name="deferScanIfNeeded"
+ return="boolean"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="destroy"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="finishScan"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="getBluetoothAdapter"
+ return="android.bluetooth.BluetoothAdapter"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="getDistinctPacketsDetectedPerScan"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getWakeUpOperation"
+ return="android.app.PendingIntent"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="scanLeDevice"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+<parameter name="enable" type="java.lang.Boolean">
+</parameter>
+</method>
+<method name="scheduleScanCycleStop"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="setDistinctPacketsDetectedPerScan"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="detected" type="boolean">
+</parameter>
+</method>
+<method name="setLongScanForcingEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+</method>
+<method name="setScanPeriods"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="scanPeriod" type="long">
+</parameter>
+<parameter name="betweenScanPeriod" type="long">
+</parameter>
+<parameter name="backgroundFlag" type="boolean">
+</parameter>
+</method>
+<method name="setWakeUpAlarm"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="start"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="startScan"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="stop"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="stopScan"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<field name="ANDROID_N_MAX_SCAN_DURATION_MILLIS"
+ type="long"
+ transient="false"
+ volatile="false"
+ value="1800000L"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="mBackgroundFlag"
+ type="boolean"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mBetweenScanPeriod"
+ type="long"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mBluetoothCrashResolver"
+ type="org.altbeacon.bluetooth.BluetoothCrashResolver"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mContext"
+ type="android.content.Context"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mCycledLeScanCallback"
+ type="org.altbeacon.beacon.service.scanner.CycledLeScanCallback"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mHandler"
+ type="android.os.Handler"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mNextScanCycleStartTime"
+ type="long"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mRestartNeeded"
+ type="boolean"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mScanHandler"
+ type="android.os.Handler"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+<field name="mScanningPaused"
+ type="boolean"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+<class name="CycledLeScannerForJellyBeanMr2"
+ extends="org.altbeacon.beacon.service.scanner.CycledLeScanner"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="CycledLeScannerForJellyBeanMr2"
+ type="org.altbeacon.beacon.service.scanner.CycledLeScannerForJellyBeanMr2"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="scanPeriod" type="long">
+</parameter>
+<parameter name="betweenScanPeriod" type="long">
+</parameter>
+<parameter name="backgroundFlag" type="boolean">
+</parameter>
+<parameter name="cycledLeScanCallback" type="org.altbeacon.beacon.service.scanner.CycledLeScanCallback">
+</parameter>
+<parameter name="crashResolver" type="org.altbeacon.bluetooth.BluetoothCrashResolver">
+</parameter>
+</constructor>
+<method name="deferScanIfNeeded"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="finishScan"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="startScan"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="stopScan"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+</class>
+<class name="CycledLeScannerForLollipop"
+ extends="org.altbeacon.beacon.service.scanner.CycledLeScanner"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="CycledLeScannerForLollipop"
+ type="org.altbeacon.beacon.service.scanner.CycledLeScannerForLollipop"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="scanPeriod" type="long">
+</parameter>
+<parameter name="betweenScanPeriod" type="long">
+</parameter>
+<parameter name="backgroundFlag" type="boolean">
+</parameter>
+<parameter name="cycledLeScanCallback" type="org.altbeacon.beacon.service.scanner.CycledLeScanCallback">
+</parameter>
+<parameter name="crashResolver" type="org.altbeacon.bluetooth.BluetoothCrashResolver">
+</parameter>
+</constructor>
+<method name="deferScanIfNeeded"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="finishScan"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="startScan"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+<method name="stopScan"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</method>
+</class>
+<class name="DistinctPacketDetector"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="DistinctPacketDetector"
+ type="org.altbeacon.beacon.service.scanner.DistinctPacketDetector"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="clearDetections"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isPacketDistinct"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="originMacAddress" type="java.lang.String">
+</parameter>
+<parameter name="scanRecord" type="byte[]">
+</parameter>
+</method>
+</class>
+<interface name="NonBeaconLeScanCallback"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="onNonBeaconLeScan"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="device" type="android.bluetooth.BluetoothDevice">
+</parameter>
+<parameter name="rssi" type="int">
+</parameter>
+<parameter name="scanRecord" type="byte[]">
+</parameter>
+</method>
+</interface>
+<class name="ScanFilterUtils"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="ScanFilterUtils"
+ type="org.altbeacon.beacon.service.scanner.ScanFilterUtils"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="createScanFilterDataForBeaconParser"
+ return="java.util.List&lt;org.altbeacon.beacon.service.scanner.ScanFilterUtils.ScanFilterData&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconParser" type="org.altbeacon.beacon.BeaconParser">
+</parameter>
+</method>
+<method name="createScanFiltersForBeaconParsers"
+ return="java.util.List&lt;android.bluetooth.le.ScanFilter&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beaconParsers" type="java.util.List&lt;org.altbeacon.beacon.BeaconParser&gt;">
+</parameter>
+</method>
+<method name="createWildcardScanFilters"
+ return="java.util.List&lt;android.bluetooth.le.ScanFilter&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<field name="TAG"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;ScanFilterUtils&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+</package>
+<package name="org.altbeacon.beacon.simulator"
+>
+<interface name="BeaconSimulator"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="getBeacons"
+ return="java.util.List&lt;org.altbeacon.beacon.Beacon&gt;"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</interface>
+<class name="StaticBeaconSimulator"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="org.altbeacon.beacon.simulator.BeaconSimulator">
+</implements>
+<constructor name="StaticBeaconSimulator"
+ type="org.altbeacon.beacon.simulator.StaticBeaconSimulator"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="getBeacons"
+ return="java.util.List&lt;org.altbeacon.beacon.Beacon&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="setBeacons"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacons" type="java.util.List&lt;org.altbeacon.beacon.Beacon&gt;">
+</parameter>
+</method>
+<field name="beacons"
+ type="java.util.List"
+ transient="false"
+ volatile="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+</package>
+<package name="org.altbeacon.beacon.startup"
+>
+<interface name="BootstrapNotifier"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<implements name="org.altbeacon.beacon.MonitorNotifier">
+</implements>
+<method name="getApplicationContext"
+ return="android.content.Context"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</interface>
+<class name="RegionBootstrap"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="RegionBootstrap"
+ type="org.altbeacon.beacon.startup.RegionBootstrap"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="application" type="org.altbeacon.beacon.startup.BootstrapNotifier">
+</parameter>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</constructor>
+<constructor name="RegionBootstrap"
+ type="org.altbeacon.beacon.startup.RegionBootstrap"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="application" type="org.altbeacon.beacon.startup.BootstrapNotifier">
+</parameter>
+<parameter name="regions" type="java.util.List&lt;org.altbeacon.beacon.Region&gt;">
+</parameter>
+</constructor>
+<method name="addRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<method name="disable"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="removeRegion"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="region" type="org.altbeacon.beacon.Region">
+</parameter>
+</method>
+<field name="TAG"
+ type="java.lang.String"
+ transient="false"
+ volatile="false"
+ value="&quot;AppStarter&quot;"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</field>
+</class>
+<class name="StartupBroadcastReceiver"
+ extends="android.content.BroadcastReceiver"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="StartupBroadcastReceiver"
+ type="org.altbeacon.beacon.startup.StartupBroadcastReceiver"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="onReceive"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="intent" type="android.content.Intent">
+</parameter>
+</method>
+</class>
+</package>
+<package name="org.altbeacon.beacon.utils"
+>
+<class name="EddystoneTelemetryAccessor"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="EddystoneTelemetryAccessor"
+ type="org.altbeacon.beacon.utils.EddystoneTelemetryAccessor"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="getBase64EncodedTelemetry"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+<method name="getTelemetryBytes"
+ return="byte[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="beacon" type="org.altbeacon.beacon.Beacon">
+</parameter>
+</method>
+</class>
+<class name="UrlBeaconUrlCompressor"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="UrlBeaconUrlCompressor"
+ type="org.altbeacon.beacon.utils.UrlBeaconUrlCompressor"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="compress"
+ return="byte[]"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="urlString" type="java.lang.String">
+</parameter>
+<exception name="MalformedURLException" type="java.net.MalformedURLException">
+</exception>
+</method>
+<method name="uncompress"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="compressedURL" type="byte[]">
+</parameter>
+</method>
+</class>
+</package>
+<package name="org.altbeacon.bluetooth"
+>
+<class name="BleAdvertisement"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BleAdvertisement"
+ type="org.altbeacon.bluetooth.BleAdvertisement"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="bytes" type="byte[]">
+</parameter>
+</constructor>
+<method name="getPdus"
+ return="java.util.List&lt;org.altbeacon.bluetooth.Pdu&gt;"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<class name="BluetoothCrashResolver"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="BluetoothCrashResolver"
+ type="org.altbeacon.bluetooth.BluetoothCrashResolver"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</constructor>
+<method name="crashDetected"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="disableDebug"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+</method>
+<method name="enableDebug"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="deprecated"
+ visibility="public"
+>
+</method>
+<method name="forceFlush"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getDetectedCrashCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getLastBluetoothCrashDetectionTime"
+ return="long"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getRecoveryAttemptCount"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isLastRecoverySucceeded"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="isRecoveryInProgress"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="notifyScannedDevice"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="device" type="android.bluetooth.BluetoothDevice">
+</parameter>
+<parameter name="scanner" type="android.bluetooth.BluetoothAdapter.LeScanCallback">
+</parameter>
+</method>
+<method name="setUpdateNotifier"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="updateNotifier" type="org.altbeacon.bluetooth.BluetoothCrashResolver.UpdateNotifier">
+</parameter>
+</method>
+<method name="start"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="stop"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</class>
+<interface name="BluetoothCrashResolver.UpdateNotifier"
+ abstract="true"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="dataUpdated"
+ return="void"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+</interface>
+<class name="BluetoothMedic"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="enablePeriodicTests"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+<parameter name="testType" type="int">
+</parameter>
+</method>
+<method name="enablePowerCycleOnFailures"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</method>
+<method name="getInstance"
+ return="org.altbeacon.bluetooth.BluetoothMedic"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="runScanTest"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</method>
+<method name="runTransmitterTest"
+ return="boolean"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="context" type="android.content.Context">
+</parameter>
+</method>
+<method name="setNotificationsEnabled"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="enabled" type="boolean">
+</parameter>
+<parameter name="icon" type="int">
+</parameter>
+</method>
+<field name="NO_TEST"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="0"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="SCAN_TEST"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="1"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="TRANSMIT_TEST"
+ type="int"
+ transient="false"
+ volatile="false"
+ value="2"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="Pdu"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="Pdu"
+ type="org.altbeacon.bluetooth.Pdu"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="getActualLength"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getDeclaredLength"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getEndIndex"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getStartIndex"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="getType"
+ return="byte"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<method name="parse"
+ return="org.altbeacon.bluetooth.Pdu"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="bytes" type="byte[]">
+</parameter>
+<parameter name="startIndex" type="int">
+</parameter>
+</method>
+<field name="GATT_SERVICE_UUID_PDU_TYPE"
+ type="byte"
+ transient="false"
+ volatile="false"
+ value="22"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="MANUFACTURER_DATA_PDU_TYPE"
+ type="byte"
+ transient="false"
+ volatile="false"
+ value="-1"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+</package>
+</api>

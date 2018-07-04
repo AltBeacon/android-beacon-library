@@ -1,4 +1,4 @@
-### Development
+### 2.15 / 2018-07-04
 
 Enhancements:
  - Optional foreground beacon scanning service for faster background detections on Android 8+

@@ -1,5 +1,9 @@
 ### Development
 
+Enhancements:
+ - Optional foreground beacon scanning service for faster background detections on Android 8+
+   (#663, David G. Young)
+
 Bug Fixes:
  - Fixes inability to detect on some 5.x Samsung Devices without scan filters. (#693, David G. Young)
  - Fix inverted logic for "disable ScanJob" warning (#700, Marcel Schnelle)

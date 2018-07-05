@@ -15,6 +15,7 @@ import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 
 @Config(sdk = 18)
 
@@ -156,6 +157,19 @@ public class GattBeaconTest {
         assertEquals("URL should be decompressed successfully", "https://goo.gl/hqBXE1", urlString);
     }
 
+
+    @Test
+    public void doesNotCrashOnMalformedEddystoneBeacon() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        LogManager.setLogger(Loggers.verboseLogger());
+        LogManager.setVerboseLoggingEnabled(true);
+        LogManager.d("GattBeaconTest", "Parsing malformed packet");
+        byte[] bytes = hexStringToByteArray("0201060303aafe0416aafe100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+        BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v");
+        LogManager.d("xxx", "------");
+        Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        assertNull("GattBeacon should be null when not parsed successfully", gattBeacon);
+    }
 
 
 

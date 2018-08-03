@@ -1,7 +1,7 @@
 ### Development
 
 Bug Fixes:
- - Fix intermittent NPE on ranging beacons (#716, David G. Young)
+ - Fix intermittent NPE on ranging beacons (#716, Federico Bertoli, David G. Young)
 
 ### 2.15 / 2018-07-04
 

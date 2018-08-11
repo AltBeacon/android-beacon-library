@@ -52,7 +52,7 @@ public class Callback implements Serializable {
      * @return false if it callback cannot be made
      */
     public boolean call(Context context, String dataName, Bundle data) {
-        boolean useLocalBroadcast = BeaconManager.getInstanceForApplication(context).getScheduledScanJobsEnabled();
+        boolean useLocalBroadcast = BeaconManager.getInstanceForApplication(context).isMainProcess();
         boolean success = false;
 
         if(useLocalBroadcast) {

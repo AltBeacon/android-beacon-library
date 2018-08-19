@@ -468,8 +468,10 @@ public class BeaconManager {
                     mBackgroundMode = false;
                     // If we are using scan jobs, we cancel the active scan job
                     if (mScheduledScanJobsEnabled) {
-                        // TODO: Cancel the active scan job.  Without this is keeps scanning as if
-                        // a consumer is bound.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            LogManager.i(TAG, "Cancelling scheduled jobs after unbind of last consumer.");
+                            ScanJobScheduler.getInstance().cancelSchedule(mContext);
+                        }
                     }
                 }
             }
@@ -980,7 +982,9 @@ public class BeaconManager {
     @TargetApi(18)
     private void applyChangesToServices(int type, Region region) throws RemoteException {
         if (mScheduledScanJobsEnabled) {
-            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
+            }
             return;
         }
         if (serviceMessenger == null) {

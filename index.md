@@ -22,17 +22,17 @@ The leading library for detecting beacons on Android.
 
 ### What Does This Library Do?
 
-It allows Android devices to use beacons much like iOS devices do. An app can request to get notifications when one or more beacons appear or disappear. An app can also request to get a ranging update from one or more beacons at a frequency of approximately 1Hz.  It also allows Android 5.0 devices to send beacon transmissions, even in the background.
+It allows Android devices to use beacons much like iOS devices do.  An app can request to get notifications when one or more beacons appear or disappear. An app can also request to get a ranging update from one or more beacons at a frequency of approximately 1Hz.  It also allows Android devices to send beacon transmissions, even in the background.
 
 ### What kinds of beacons does it detect?
 
 The library may be configured to detect a wide variety of beacons.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org), but it can be easily configured to work with the most popular beacon types on the market.  See the documentation for the
 [BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for more info.  Eddystone is fully supported, with details shown in the Eddystone section below.
 
-### Android 8 Support
+### Android 9 and 8 Support
 
-Library version 2.12 introduces a new scanning mechanism compatible with Android 8 power saving restrictions.  Apps that use the
-library will need to upgrade to version 2.12 in order to detect in the background on Android 8 devices.  Read more information [here.](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8)
+This library fully supports Android 9.  Existing apps that use older versions ofthis library version 2.12 older versions the
+library will need to upgrade to version 2.12+ in order to detect in the background on Android 8+ devices.  Read more information [here.](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8)
 
 ### Who uses this library?
 
@@ -72,9 +72,9 @@ library will need to upgrade to version 2.12 in order to detect in the backgroun
 
 ### What devices can detect beacons?
 
-Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of August 2017, this is approximately 92 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html).
+Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of September 2018, this is approximately 96 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html).
 
-To transmit as a beacon, Android 5.0+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.
+To transmit as a beacon, Android 5+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.
 
 ### Eddystone Support
 

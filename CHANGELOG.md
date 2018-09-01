@@ -2,6 +2,7 @@
 
 Bug Fixes:
  - Stop running scheduled jobs to do sscans after last consumer unbound. (#702, David G. Young)
+ - Prevent crash caused by internal Android exception when stopping scanning (#724, David G. Young)
 
 ### 2.15 / 2018-07-04
 

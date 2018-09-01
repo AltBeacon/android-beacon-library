@@ -196,6 +196,9 @@ class ScanHelper {
             }
         } catch (SecurityException e) {
             LogManager.e(TAG, "SecurityException stopping Android O background scanner");
+        } catch (RuntimeException e) {
+            // Needed to stop a crash caused by internal Android throw.  See issue #701
+            LogManager.e(TAG, "Unexpected runtime exception stopping Android O background scanner", e);
         }
     }
 

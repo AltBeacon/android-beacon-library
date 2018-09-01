@@ -1,7 +1,8 @@
 ### Development
 
 Bug Fixes:
- - Stop running scheduled jobs to do sscans after last consumer unbound. (#702, David G. Young)
+ - Fix Android 8 crashing apps on background monitoring/ranging data delivery (#720, David G. Young)
+ - Stop running scheduled jobs to do scans after last consumer unbound. (#702, David G. Young)
  - Prevent crash caused by internal Android exception when stopping scanning (#724, David G. Young)
 
 ### 2.15 / 2018-07-04

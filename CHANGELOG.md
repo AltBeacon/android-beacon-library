@@ -1,3 +1,8 @@
+### Development
+
+Bug Fixes:
+ - Stop running scheduled jobs to do sscans after last consumer unbound. (#702, David G. Young)
+
 ### 2.15 / 2018-07-04
 
 Enhancements:

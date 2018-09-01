@@ -45,6 +45,7 @@ import android.support.annotation.RestrictTo;
 import android.support.annotation.RestrictTo.Scope;
 
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.BeaconLocalBroadcastProcessor;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.BuildConfig;
@@ -75,6 +76,8 @@ public class BeaconService extends Service {
     private final Handler handler = new Handler();
     private BluetoothCrashResolver bluetoothCrashResolver;
     private ScanHelper mScanHelper;
+    private BeaconLocalBroadcastProcessor mBeaconNotificationProcessor;
+
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
      * Each time we restart we only see the unique advertisements once (e.g. unique beacons)
@@ -210,6 +213,8 @@ public class BeaconService extends Service {
         beaconManager.setScannerInSameProcess(true);
         if (beaconManager.isMainProcess()) {
             LogManager.i(TAG, "beaconService version %s is starting up on the main process", BuildConfig.VERSION_NAME);
+            // if we are on the main process, we use local broadcast notifications to deliver results.
+            ensureNotificationProcessorSetup();
         }
         else {
             LogManager.i(TAG, "beaconService version %s is starting up on a separate process", BuildConfig.VERSION_NAME);
@@ -240,6 +245,15 @@ public class BeaconService extends Service {
         }
         this.startForegroundIfConfigured();
     }
+
+
+    private void ensureNotificationProcessorSetup() {
+        if (mBeaconNotificationProcessor == null) {
+            mBeaconNotificationProcessor = new BeaconLocalBroadcastProcessor(this);
+            mBeaconNotificationProcessor.register();
+        }
+    }
+
 
     /*
      * This starts the scanning service as a foreground service if it is so configured in the

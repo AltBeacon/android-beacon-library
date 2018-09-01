@@ -40,10 +40,10 @@ import java.util.Set;
  * This is used with ScanJob and supports delivering intents even under Android O background
  * restrictions preventing starting a new IntentService.
  *
- * It is not used with the BeaconService, as local broadcast intents cannot be deliverd across
- * different processes which the BeaconService supports.
+ * It is not used with the BeaconService, if running in a separate process, as local broadcast
+ * intents cannot be deliverd across different processes which the BeaconService supports.
  *
- * @see BeaconIntentProcessor for the equivalent use with BeaconService.
+ * @see BeaconIntentProcessor for the equivalent use with BeaconService in a separate process.
  **
  * Internal library class.  Do not use directly from outside the library
  *

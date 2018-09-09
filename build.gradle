@@ -60,8 +60,8 @@ allprojects {
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.0'
 
     defaultConfig {
         // Unfortunately 'com.android.support:appcompat-v7:26.0.0'
@@ -69,7 +69,7 @@ android {
         // But since only 0.8% of Android devices have < SDK 14 as of Une 2017, this will become
         // the new min version for this library in order to target Android O
         minSdkVersion 14
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName version
         consumerProguardFiles 'proguard-rules.pro'
@@ -102,8 +102,8 @@ configurations {
 
 dependencies {
     compile fileTree ( dir: 'libs', include: ['*.jar'] )
-    compile 'com.android.support:support-v4:27.0.0'
-    compile 'com.android.support:support-annotations:26.0.0'
+    compile 'com.android.support:support-v4:28.0.0-rc02'
+    compile 'com.android.support:support-annotations:28.0.0-rc02'
 
     testCompile('junit:junit:4.12') {
         exclude group: 'org.hamcrest'

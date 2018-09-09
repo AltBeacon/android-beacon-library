@@ -2,5 +2,7 @@
 layout: android-beacon-library
 ---
 
-<img src="images/block-diagram.svg>
+The basic library architecture can be seen in the diagram below.  
+
+  <img src="images/block-diagram.svg>
 

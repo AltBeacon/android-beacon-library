@@ -21,7 +21,7 @@ add the library AAR as a dependency like so:
 
    ```
    dependencies {
-     compile 'org.altbeacon:android-beacon-library:2+'
+     implementation 'org.altbeacon:android-beacon-library:2+'
    }
    ```
 

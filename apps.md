@@ -378,6 +378,7 @@ AccorHotels Hotel booking
   <img src='./images/apps/radissonbleu.png' class="app-icon"/>
 Raddisson Blu 
 </a>
+</div>
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.h_hotels.app.prod'>
@@ -386,7 +387,6 @@ H Hotels
 </a>
 </div>
 
-</div>
 
 
 

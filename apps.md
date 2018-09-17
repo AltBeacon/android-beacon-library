@@ -139,7 +139,7 @@ The Crab Shack
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.ellecta.kfc>
+<a href='https://play.google.com/store/apps/details?id=com.ellecta.kfc'>
   <img src='./images/apps/kfc.png' class="app-icon"/>
 KFC 
 </a>

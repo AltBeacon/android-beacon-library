@@ -160,6 +160,13 @@ Air France
 </div>
 
 <div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.ubercab.driver'>
+  <img src='./images/apps/uber.png' class="app-icon"/>
+Uber 
+</a>
+</div>
+
+<div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.verisun.mobiett'>
   <img src='./images/apps/mobiett.png' class="app-icon"/>
 Mobiett Instanbul Subway 
@@ -170,13 +177,6 @@ Mobiett Instanbul Subway
 <a href='https://play.google.com/store/apps/details?id=de.berlinairport.app'>
   <img src='./images/apps/berlinairport.png' class="app-icon"/>
 Berlin Airport 
-</a>
-</div>
-
-<div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.hailocab.consumer'>
-  <img src='./images/apps/hailo.png' class="app-icon"/>
-Hailo 
 </a>
 </div>
 

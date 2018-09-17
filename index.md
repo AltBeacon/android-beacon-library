@@ -36,7 +36,7 @@ library will need to upgrade to version 2.12+ in order to detect in the backgrou
 
 ### Who uses this library?
 
-[Over 4,000 mobile applications](/android-beacon-library/apps.html) use the Android Beacon Library, including some of the world's biggest brands.  These apps have over 150 million installations.
+[Over 16,000 mobile applications](/android-beacon-library/apps.html) use the Android Beacon Library, including some of the world's biggest brands.  These apps have over 350 million installations.
 
 
 <div class="app-block">
@@ -53,13 +53,13 @@ library will need to upgrade to version 2.12+ in order to detect in the backgrou
 
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=me.doubledutch.hellokittyanniversary'>
-  <img src='./images/apps/hellokitty.png' class="app-icon"/>
+<a href='https://play.google.com/store/apps/details?id=com.disney.wdw.android'>
+  <img src='./images/apps/disney.png' class="app-icon"/>
 </a>
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.myorder.app.kfc'>
+<a href='https://play.google.com/store/apps/details?id=com.ellecta.kfc'>
   <img src='./images/apps/kfc.png' class="app-icon"/>
 </a>
 </div>

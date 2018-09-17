@@ -36,7 +36,7 @@ sup {
 </style>
 <h1>Android Beacon Library Apps</h1>
 
-<p>Over 4000 mobile applications use the Android Beacon Library<sup>1</sup>, including some of the world's biggest brands.  These apps have over 150 million installations.<sup>2</sup>  Below is just a sample of these
+<p>Over 16,000  mobile applications use the Android Beacon Library<sup>1</sup>, including some of the world's biggest brands.  These apps have over 350  million installations.<sup>2</sup>  Below is just a sample of these
 apps.</p>
 
 <h2>Retail</h2>
@@ -139,7 +139,7 @@ The Crab Shack
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.myorder.app.kfc'>
+<a href='https://play.google.com/store/apps/details?id=com.ellecta.kfc>
   <img src='./images/apps/kfc.png' class="app-icon"/>
 KFC 
 </a>
@@ -315,9 +315,9 @@ The Province
 <h2>Tourism</h2>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.cedarfair.kingsisland'>
-  <img src='./images/apps/kingsisland.png' class="app-icon"/>
-  Kings Island Park
+<a href='https://play.google.com/store/apps/details?id=com.disney.wdw.android'>
+  <img src='./images/apps/disney.png' class="app-icon"/>
+  Disney World
 </a>
 </div>
 
@@ -334,15 +334,6 @@ The Province
 Visit Carlsberg
 </a>
 </div>
-
-<!--
-<div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.proxiot.horti'>
-  <img src='./images/apps/hortibeacon.png' class="app-icon"/>
-HortiBeacon
-</a>
-</div>
--->
 
 <div class="app-block">
 <a href='https://play.google.com/store/apps/details?id=com.aqua.visitorguide'>
@@ -362,16 +353,23 @@ Key West Guide
 <h2>Hotels</h2>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=com.accor.appli.hybrid'>
-  <img src='./images/apps/accor.png' class="app-icon"/>
-AccorHotels Hotel booking
+<a href='https://play.google.com/store/apps/details?id=com.h_hotels.app.prod'>
+  <img src='./images/apps/caesars.png' class="app-icon"/>
+Caesars
 </a>
 </div>
 
 <div class="app-block">
-<a href='https://play.google.com/store/apps/details?id=intermaps.hotelpost'>
-  <img src='./images/apps/hotelpostischgl.png' class="app-icon"/>
-Hotel Post Ischgl 
+<a href='https://play.google.com/store/apps/details?id=com.bestapproach.trumpdoonbeg'>
+  <img src='./images/apps/trump.png' class="app-icon"/>
+Trump Ireland
+</a>
+</div>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.accor.appli.hybrid'>
+  <img src='./images/apps/accor.png' class="app-icon"/>
+AccorHotels Hotel booking
 </a>
 </div>
 
@@ -380,6 +378,14 @@ Hotel Post Ischgl
   <img src='./images/apps/radissonbleu.png' class="app-icon"/>
 Raddisson Blu 
 </a>
+
+<div class="app-block">
+<a href='https://play.google.com/store/apps/details?id=com.h_hotels.app.prod'>
+  <img src='./images/apps/h-hotels.png' class="app-icon"/>
+H Hotels 
+</a>
+</div>
+
 </div>
 
 
@@ -584,7 +590,7 @@ Avenches Opera
 
 
 <h3>Sources:</h3>
-<p>1. Based on unique app package identifiers, June 26, 2015</p>
-<p>2. Based on Google Play Store minimum downloads for each package identifier, June 28, 2015</p>
+<p>1. Based on unique app package identifiers, September 12, 2018</p>
+<p>2. Based on Google Play Store minimum downloads for each package identifier, September 12, 2018</p>
 
 <h2></h2>

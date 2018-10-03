@@ -320,6 +320,9 @@ public class BeaconService extends Service {
             LogManager.w(TAG, "Not supported prior to API 18.");
             return;
         }
+        if (mBeaconNotificationProcessor != null) {
+            mBeaconNotificationProcessor.unregister();
+        }
         stopForeground(true);
         bluetoothCrashResolver.stop();
         LogManager.i(TAG, "onDestroy called.  stopping scanning");

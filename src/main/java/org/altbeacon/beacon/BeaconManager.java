@@ -407,6 +407,7 @@ public class BeaconManager {
      * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
      */
     public void bind(@NonNull BeaconConsumer consumer) {
+        /*
         if (!isBleAvailable()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -415,6 +416,7 @@ public class BeaconManager {
             LogManager.w(TAG, "This device does not support bluetooth LE.  Will not start beacon scanning.");
             return;
         }
+        */
         synchronized (consumers) {
             ConsumerInfo newConsumerInfo = new ConsumerInfo();
             ConsumerInfo alreadyBoundConsumerInfo = consumers.putIfAbsent(consumer, newConsumerInfo);
@@ -430,7 +432,13 @@ public class BeaconManager {
                 else {
                     LogManager.d(TAG, "Binding to service");
                     Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
-                    consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                            this.getForegroundServiceNotification() != null) {
+                        mContext.startForegroundService(intent);
+                    }
+                    else {
+                        consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
+                    }
                 }
                 LogManager.d(TAG, "consumer count is now: %s", consumers.size());
             }

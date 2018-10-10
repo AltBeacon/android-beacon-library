@@ -408,7 +408,6 @@ public class BeaconManager {
      * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
      */
     public void bind(@NonNull BeaconConsumer consumer) {
-        /*
         if (!isBleAvailable()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -417,7 +416,6 @@ public class BeaconManager {
             LogManager.w(TAG, "This device does not support bluetooth LE.  Will not start beacon scanning.");
             return;
         }
-        */
         synchronized (consumers) {
             ConsumerInfo newConsumerInfo = new ConsumerInfo();
             ConsumerInfo alreadyBoundConsumerInfo = consumers.putIfAbsent(consumer, newConsumerInfo);

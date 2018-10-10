@@ -437,11 +437,10 @@ public class BeaconManager {
                             this.getForegroundServiceNotification() != null) {
                         LogManager.i(TAG, "Starting foreground beacon scanning service.");
                         mContext.startForegroundService(intent);
-                        consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
                     }
                     else {
-                        consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
                     }
+                    consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
                 }
                 LogManager.d(TAG, "consumer count is now: %s", consumers.size());
             }

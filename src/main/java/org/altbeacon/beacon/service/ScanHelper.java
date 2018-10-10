@@ -129,8 +129,9 @@ class ScanHelper {
             new ScanHelper.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(mExecutor,
                     new ScanHelper.ScanData(device, rssi, scanRecord));
         } catch (RejectedExecutionException e) {
-
             LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");
+        } catch (OutOfMemoryError e) {
+            LogManager.w(TAG, "Ignoring scan result because we cannot start a thread to keep up.");
         }
     }
 

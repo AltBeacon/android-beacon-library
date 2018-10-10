@@ -177,12 +177,13 @@ public class BeaconManager {
      * Set to true if you want to show library debugging.
      *
      * @param debug True turn on all logs for this library to be printed out to logcat. False turns
-     *              off all logging.
-     * @deprecated To be removed in a future release. Use
+     *              off detailed logging..
+     *
+     * This is a convenience method that calls setLogger to a verbose logger and enables verbose
+     * logging. For more fine grained control, use:
      * {@link org.altbeacon.beacon.logging.LogManager#setLogger(org.altbeacon.beacon.logging.Logger)}
      * instead.
      */
-    @Deprecated
     public static void setDebug(boolean debug) {
         if (debug) {
             LogManager.setLogger(Loggers.verboseLogger());
@@ -426,6 +427,13 @@ public class BeaconManager {
                 else {
                     LogManager.d(TAG, "Binding to service");
                     Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                            this.getForegroundServiceNotification() != null) {
+                        LogManager.i(TAG, "Starting foreground beacon scanning service.");
+                        mContext.startForegroundService(intent);
+                    }
+                    else {
+                    }
                     consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
                 }
                 LogManager.d(TAG, "consumer count is now: %s", consumers.size());

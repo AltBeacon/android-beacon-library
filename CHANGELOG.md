@@ -2,6 +2,7 @@
 
 - Prevent duplicate ranging/monitoring callbacks casued by bind/unbind with a service
   (#748, Adrián Nieto Rodríguez, #745, David G. Young)
+- Allow starting foreground service at boot (#746, David G. Young)
 
 ### 2.15.1 / 2018-09-01
 

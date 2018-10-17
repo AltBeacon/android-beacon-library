@@ -1,4 +1,4 @@
-### Development
+### 2.15.2 / 2018-10-17
 
 - Prevent infrequent out of memory crashes on Android 8+ (#750 Pappas Christodoulos, David G. Young)
 - Prevent duplicate ranging/monitoring callbacks casued by bind/unbind with a service

@@ -54,7 +54,10 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
-        initialzeScanHelper();
+        if (!initialzeScanHelper()) {
+            LogManager.e(TAG, "Cannot allocate a scanner to look for beacons.  System resources are low.");
+            return false;
+        }
         if (jobParameters.getJobId() == getImmediateScanJobId(this)) {
             LogManager.i(TAG, "Running immediate scan job: instance is "+this);
         }
@@ -168,7 +171,8 @@ public class ScanJob extends JobService {
         LogManager.d(TAG, "Scanning stopped");
     }
 
-    private void initialzeScanHelper() {
+    // Returns false if cycle thread cannot be allocated
+    private boolean initialzeScanHelper() {
         mScanHelper = new ScanHelper(this);
         mScanState = ScanState.restore(ScanJob.this);
         mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
@@ -177,8 +181,15 @@ public class ScanJob extends JobService {
         mScanHelper.setBeaconParsers(mScanState.getBeaconParsers());
         mScanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
         if (mScanHelper.getCycledScanner() == null) {
-            mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
+            try {
+                mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
+            }
+            catch (OutOfMemoryError e) {
+                LogManager.w(TAG, "Failed to create CycledLeScanner thread.");
+                return false;
+            }
         }
+        return true;
     }
 
     // Returns true of scanning actually was started, false if it did not need to be

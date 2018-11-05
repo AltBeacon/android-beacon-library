@@ -461,7 +461,9 @@ public class BeaconManager {
                 else {
                     consumer.unbindService(consumers.get(consumer).beaconServiceConnection);
                 }
+                LogManager.d(TAG, "Before unbind, consumer count is "+consumers.size());
                 consumers.remove(consumer);
+                LogManager.d(TAG, "After unbind, consumer count is "+consumers.size());
                 if (consumers.size() == 0) {
                     // If this is the last consumer to disconnect, the service will exit
                     // release the serviceMessenger.

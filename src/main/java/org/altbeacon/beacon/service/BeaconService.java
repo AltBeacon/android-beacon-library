@@ -306,9 +306,11 @@ public class BeaconService extends Service {
         return mMessenger.getBinder();
     }
 
+    // called when the last bound client calls unbind
     @Override
     public boolean onUnbind(Intent intent) {
-        LogManager.i(TAG, "unbinding");
+        LogManager.i(TAG, "unbinding so destroying self");
+        this.stopSelf();
         return false;
     }
 

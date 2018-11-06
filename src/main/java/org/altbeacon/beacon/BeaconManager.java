@@ -893,7 +893,9 @@ public class BeaconManager {
 
     protected void syncSettingsToService() {
         if (mScheduledScanJobsEnabled) {
-            ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
+            }
             return;
         }
         try {

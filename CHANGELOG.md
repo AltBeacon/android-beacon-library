@@ -1,3 +1,7 @@
+### Development
+
+- Prevent NPE on access CycledLEScanner after OOM on Android 8+.  (#766, David G. Young)
+
 ### 2.15.2 / 2018-10-17
 
 - Prevent infrequent out of memory crashes on Android 8+ (#750 Pappas Christodoulos, David G. Young)

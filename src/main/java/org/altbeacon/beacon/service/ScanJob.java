@@ -166,6 +166,9 @@ public class ScanJob extends JobService {
 
     private void stopScanning() {
         mInitialized = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mScanHelper.stopAndroidOBackgroundScan();
+        }
         mScanHelper.getCycledScanner().stop();
         mScanHelper.getCycledScanner().destroy();
         LogManager.d(TAG, "Scanning stopped");

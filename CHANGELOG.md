@@ -1,6 +1,7 @@
 ### Development
 
 - Fix bug preventing callbacks after unbind/bind when using ScanJobs.  (#765, David G. Young)
+- Prevent NPE on access CycledLEScanner after OOM on Android 8+.  (#766, David G. Young)
 
 ### 2.15.2 / 2018-10-17
 

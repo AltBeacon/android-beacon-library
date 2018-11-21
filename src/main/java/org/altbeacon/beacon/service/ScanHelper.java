@@ -167,12 +167,16 @@ class ScanHelper {
             } else if (!bluetoothAdapter.isEnabled()) {
                 LogManager.w(TAG, "Failed to start background scan on Android O: BluetoothAdapter is not enabled");
             } else {
-                int result = bluetoothAdapter.getBluetoothLeScanner().startScan(filters, settings, getScanCallbackIntent());
-                if (result != 0) {
-                    LogManager.e(TAG, "Failed to start background scan on Android O.  Code: "+result);
-                }
-                else {
-                    LogManager.d(TAG, "Started passive beacon scan");
+                BluetoothLeScanner scanner = bluetoothAdapter.getBluetoothLeScanner();
+                if (scanner != null) {
+                    int result = scanner.startScan(filters, settings, getScanCallbackIntent());
+                    if (result != 0) {
+                        LogManager.e(TAG, "Failed to start background scan on Android O.  Code: " + result);
+                    } else {
+                        LogManager.d(TAG, "Started passive beacon scan");
+                    }
+                } else {
+                    LogManager.e(TAG, "Failed to start background scan on Android O: scanner is null");
                 }
             }
         }

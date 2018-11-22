@@ -310,9 +310,12 @@ public class BeaconService extends Service {
         return mMessenger.getBinder();
     }
 
+    // called when the last bound client calls unbind
     @Override
     public boolean onUnbind(Intent intent) {
-        LogManager.i(TAG, "unbinding");
+        LogManager.i(TAG, "unbinding so destroying self");
+        this.stopForeground(true);
+        this.stopSelf();
         return false;
     }
 
@@ -327,7 +330,6 @@ public class BeaconService extends Service {
         if (mBeaconNotificationProcessor != null) {
             mBeaconNotificationProcessor.unregister();
         }
-        stopForeground(true);
         bluetoothCrashResolver.stop();
         LogManager.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);

@@ -1,5 +1,6 @@
 ### Development
 
+- Fix bug preventing callbacks after unbind/bind when using ScanJobs.  (#765, David G. Young)
 - Prevent NPE on access CycledLEScanner after OOM on Android 8+.  (#766, David G. Young)
 - Disable BluetoothCrashResolver on Android 5+ as a it is not helpful can can create log noise.
    (#768, David G. Young)

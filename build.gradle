@@ -102,8 +102,8 @@ configurations {
 
 dependencies {
     compile fileTree ( dir: 'libs', include: ['*.jar'] )
-    compile 'com.android.support:support-v4:28.0.0-rc02'
-    compile 'com.android.support:support-annotations:28.0.0-rc02'
+    compile 'com.android.support:support-v4:28.0.0'
+    compile 'com.android.support:support-annotations:28.0.0'
 
     testCompile 'com.google.android:android-test:4.1.1.4'
     testCompile('junit:junit:4.12') {

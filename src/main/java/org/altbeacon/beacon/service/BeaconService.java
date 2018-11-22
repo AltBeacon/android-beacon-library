@@ -197,8 +197,10 @@ public class BeaconService extends Service {
     @MainThread
     @Override
     public void onCreate() {
-        bluetoothCrashResolver = new BluetoothCrashResolver(this);
-        bluetoothCrashResolver.start();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            bluetoothCrashResolver = new BluetoothCrashResolver(this);
+            bluetoothCrashResolver.start();
+        }
 
         mScanHelper = new ScanHelper(this);
         if (mScanHelper.getCycledScanner() == null) {

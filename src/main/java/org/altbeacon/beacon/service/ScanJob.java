@@ -169,8 +169,10 @@ public class ScanJob extends JobService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mScanHelper.stopAndroidOBackgroundScan();
         }
-        mScanHelper.getCycledScanner().stop();
-        mScanHelper.getCycledScanner().destroy();
+        if (mScanHelper.getCycledScanner() != null) {
+            mScanHelper.getCycledScanner().stop();
+            mScanHelper.getCycledScanner().destroy();
+        }
         LogManager.d(TAG, "Scanning stopped");
     }
 
@@ -202,22 +204,30 @@ public class ScanJob extends JobService {
         }
         long scanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod();
         long betweenScanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod();
-        mScanHelper.getCycledScanner().setScanPeriods(scanPeriod,
-                                                      betweenScanPeriod,
-                                                      mScanState.getBackgroundMode());
+        if (mScanHelper.getCycledScanner() != null) {
+            mScanHelper.getCycledScanner().setScanPeriods(scanPeriod,
+                    betweenScanPeriod,
+                    mScanState.getBackgroundMode());
+        }
         mInitialized = true;
         if (scanPeriod <= 0) {
             LogManager.w(TAG, "Starting scan with scan period of zero.  Exiting ScanJob.");
-            mScanHelper.getCycledScanner().stop();
+            if (mScanHelper.getCycledScanner() != null) {
+                mScanHelper.getCycledScanner().stop();
+            }
             return false;
         }
 
         if (mScanHelper.getRangedRegionState().size() > 0 || mScanHelper.getMonitoringStatus().regions().size() > 0) {
-            mScanHelper.getCycledScanner().start();
+            if (mScanHelper.getCycledScanner() != null) {
+                mScanHelper.getCycledScanner().start();
+            }
             return true;
         }
         else {
-            mScanHelper.getCycledScanner().stop();
+            if (mScanHelper.getCycledScanner() != null) {
+                mScanHelper.getCycledScanner().stop();
+            }
             return false;
         }
     }

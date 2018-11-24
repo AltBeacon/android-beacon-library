@@ -2,6 +2,7 @@
 
 - Prevent NPE on access CycledLEScanner after OOM on Android 8+.  (#766, David G. Young)
 - Prevent NPE on start scan. (#780, Adrián Nieto Rodríguez)
+- Fix thread leak leading to OOM Exceptions when using ScanJobs (#785, David G. Young)
 
 ### 2.15.2 / 2018-10-17
 

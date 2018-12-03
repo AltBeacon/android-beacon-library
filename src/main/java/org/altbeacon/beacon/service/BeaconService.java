@@ -330,7 +330,9 @@ public class BeaconService extends Service {
         if (mBeaconNotificationProcessor != null) {
             mBeaconNotificationProcessor.unregister();
         }
-        bluetoothCrashResolver.stop();
+        if (bluetoothCrashResolver != null) {
+            bluetoothCrashResolver.stop();
+        }
         LogManager.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
 

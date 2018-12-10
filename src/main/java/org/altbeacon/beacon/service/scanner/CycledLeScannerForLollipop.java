@@ -177,17 +177,33 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                           mBeaconManager.getBeaconParsers());
         } else {
-            LogManager.d(TAG, "starting non-filtered scan in SCAN_MODE_LOW_LATENCY");
+            LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
-            // We create wildcard scan filters that match any advertisement so that we can detect
+            // We create scan filters that match so that we can detect
             // beacons in foreground mode even if the screen is off.  This is a necessary workaround
             // for a change in Android 8.1 that blocks scan results when the screen is off unless
-            // there is a scan filter associatd with the scan.  Prior to 8.1, filters could just be
-            // left null.  The wildcard filter matches everything.
+            // there is a scan filter associated with the scan.  Prior to 8.1, filters could just be
+            // left null.
             // We only add these filters on 8.1+ devices, because adding scan filters has been reported
             // to cause scan failures on some Samsung devices with Android 5.x
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                filters = new ScanFilterUtils().createWildcardScanFilters();
+                if (Build.MANUFACTURER.equalsIgnoreCase("samsung")) {
+                    // On the Samsung Galaxy Note 8.1, scans are blocked with screen off when the
+                    // scan filter is empty (wildcard).  We do a more detailed filter on Samsung only
+                    // because it might block detections of AltBeacon packets with non-standard
+                    // manufacturer codes.  See #769 for details.
+                    LogManager.d(TAG, "Using a non-empty scan filter since this is Samsung 8.1+");
+                    filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                            mBeaconManager.getBeaconParsers());
+                }
+                else {
+                    LogManager.d(TAG, "Using an empty scan filter since this is 8.1+ on Non-Samsung");
+                    // The wildcard filter matches everything.
+                    filters = new ScanFilterUtils().createWildcardScanFilters();
+                }
+            }
+            else {
+                LogManager.d(TAG, "Using no scan filter since this is pre-8.1");
             }
         }
 

@@ -160,6 +160,7 @@ public class ScanJob extends JobService {
         mStopHandler.removeCallbacksAndMessages(null);
         stopScanning();
         startPassiveScanIfNeeded();
+        mScanHelper.terminateThreads();
 
         return false;
     }

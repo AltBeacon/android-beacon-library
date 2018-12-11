@@ -339,6 +339,7 @@ public class BeaconService extends Service {
             mScanHelper.getCycledScanner().destroy();
         }
         mScanHelper.getMonitoringStatus().stopStatusPreservation();
+        mScanHelper.terminateThreads();
     }
 
     @Override

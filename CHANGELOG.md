@@ -8,6 +8,7 @@
 - Disable BluetoothCrashResolver on Android 5+ as a it is not helpful can can create log noise.
    (#768, David G. Young)
 - Prevent NPE on start scan. (#780, Adrián Nieto Rodríguez)
+- Fix thread leak leading to OOM Exceptions when using ScanJobs (#785, David G. Young)
 
 ### 2.15.2 / 2018-10-17
 

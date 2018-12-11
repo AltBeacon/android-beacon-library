@@ -1,6 +1,7 @@
 ### Development
 
 - Samsung screen-off scans on Android 8.1+ fixed.  (#798, David G. Young)
+- Fix crash on BluetoothCrashResolver (#790, mportersurge)
 - Fix bug preventing callbacks after unbind/bind when using ScanJobs.  (#765, David G. Young)
 - Prevent NPE on access CycledLEScanner after OOM on Android 8+.  (#766, David G. Young)
 - Make switching back and forth between a foreground service and scan jobs more reliable
@@ -8,6 +9,7 @@
 - Disable BluetoothCrashResolver on Android 5+ as a it is not helpful can can create log noise.
    (#768, David G. Young)
 - Prevent NPE on start scan. (#780, Adrián Nieto Rodríguez)
+- Fix thread leak leading to OOM Exceptions when using ScanJobs (#785, David G. Young)
 
 ### 2.15.2 / 2018-10-17
 

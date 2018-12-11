@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by dyoung on 6/16/17.
@@ -60,6 +61,7 @@ import java.util.concurrent.RejectedExecutionException;
 
 class ScanHelper {
     private static final String TAG = ScanHelper.class.getSimpleName();
+    @Nullable
     private ExecutorService mExecutor;
     private BeaconManager mBeaconManager;
     @Nullable
@@ -78,7 +80,34 @@ class ScanHelper {
     ScanHelper(Context context) {
         mContext = context;
         mBeaconManager = BeaconManager.getInstanceForApplication(context);
-        mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+    }
+
+    private ExecutorService getExecutor() {
+        if (mExecutor == null) {
+            mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        }
+        return mExecutor;
+    }
+
+    void terminateThreads() {
+        if (mExecutor != null) {
+            mExecutor.shutdown();
+            try {
+                if (!mExecutor.awaitTermination(10, TimeUnit.MILLISECONDS)) {
+                    LogManager.e(TAG, "Can't stop beacon parsing thread.");
+                }
+            }
+            catch (InterruptedException e) {
+                LogManager.e(TAG, "Interrupted waiting to stop beacon parsing thread.");
+            }
+            mExecutor = null;
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        terminateThreads();
     }
 
     @Nullable CycledLeScanner getCycledScanner() {
@@ -128,7 +157,7 @@ class ScanHelper {
         NonBeaconLeScanCallback nonBeaconLeScanCallback = mBeaconManager.getNonBeaconLeScanCallback();
 
         try {
-            new ScanHelper.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(mExecutor,
+            new ScanHelper.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(getExecutor(),
                     new ScanHelper.ScanData(device, rssi, scanRecord));
         } catch (RejectedExecutionException e) {
             LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");

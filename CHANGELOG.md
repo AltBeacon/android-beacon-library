@@ -1,4 +1,4 @@
-### Development
+### 2.15.3 / 2018-12-11
 
 - Samsung screen-off scans on Android 8.1+ fixed.  (#798, David G. Young)
 - Fix crash on BluetoothCrashResolver (#790, mportersurge)

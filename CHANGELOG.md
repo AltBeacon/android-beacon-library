@@ -1,7 +1,10 @@
+### 2.15.4 / 2018-12-11
+
+- Fix crash on BluetoothCrashResolver (#790, Michael Porter)
+
 ### 2.15.3 / 2018-12-11
 
 - Samsung screen-off scans on Android 8.1+ fixed.  (#798, David G. Young)
-- Fix crash on BluetoothCrashResolver (#790, mportersurge)
 - Fix bug preventing callbacks after unbind/bind when using ScanJobs.  (#765, David G. Young)
 - Prevent NPE on access CycledLEScanner after OOM on Android 8+.  (#766, David G. Young)
 - Make switching back and forth between a foreground service and scan jobs more reliable

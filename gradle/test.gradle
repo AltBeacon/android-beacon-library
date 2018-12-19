@@ -1,0 +1,37 @@
+android {
+
+    defaultConfig {
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+    }
+
+    testOptions {
+        execution 'ANDROID_TEST_ORCHESTRATOR'
+        animationsDisabled true
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
+dependencies {
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.robolectric:robolectric:4.1'
+    testImplementation 'com.google.android:android-test:4.1.1.4'
+    testImplementation 'com.squareup:fest-android:1.0.8@aar'
+    testImplementation 'org.mockito:mockito-core:2.23.4'
+
+    androidTestUtil 'com.android.support.test:orchestrator:1.0.2'
+
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'org.apache.commons:commons-math3:3.6.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+
+}

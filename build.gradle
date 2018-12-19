@@ -1,40 +1,16 @@
-ext {
-    isSnapshot = !project.hasProperty('release')
-    isSnapCi = System.getenv('SNAP_CI') != null
-    isSnapPullRequest = System.getenv('SNAP_PULL_REQUEST_NUMBER') != null
-}
-
-def getVersionName = {
-    def stdout = new ByteArrayOutputStream()
-    try {
-        exec {
-            commandLine 'git', 'describe', '--tags'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
-    catch (e) {
-        println("Can't get version from git: " + e);
-        return "adhoc"
-    }
-}
-
 buildscript {
     repositories {
         jcenter()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        //noinspection GradleDependency
+        classpath 'com.android.tools.build:gradle:3.3.0-rc02'
 
     }
 }
 
 allprojects {
-
-    version = "${getVersionName()}${isSnapshot ? "-SNAPSHOT" : ""}"
-    group = "org.altbeacon"
-
     repositories {
         jcenter()
         google()

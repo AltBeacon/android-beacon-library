@@ -1,9 +1,0 @@
-machine:
-  java:
-    version: openjdk8
-dependencies:
-  pre:
-    - echo y | android update sdk --no-ui --all --filter "tools,android-27,build-tools-27.0.3,platform-tools,extra-android-m2repository,extra-google-m2repository"
-general:
-  branches:
-    ignore:

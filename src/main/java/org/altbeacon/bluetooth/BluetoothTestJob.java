@@ -10,34 +10,36 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+
 import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.service.BeaconService;
 
 /**
- * @hide
- * Internal library class.  Do not use directly.
+ * @hide Internal library class.  Do not use directly.
  */
 @SuppressWarnings("javadoc")
 @RequiresApi(21)
 public class BluetoothTestJob extends JobService {
     private static final String TAG = BluetoothTestJob.class.getSimpleName();
+    private static int sOverrideJobId = -1;
     @Nullable
     private Handler mHandler = null;
     @Nullable
     private HandlerThread mHandlerThread = null;
-    private static int sOverrideJobId = -1;
+
+    public BluetoothTestJob() {
+    }
 
     /**
      * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
      * will default to he value in the AndroidManifest.xml
-     *
+     * <p>
      * WARNING:  If using this library in a multi-process application, this method may not work.
      * This is considered a private API and may be removed at any time.
-     *
+     * <p>
      * the preferred way of setting this is in the AndroidManifest.xml as so:
      * <code>
      * <service android:name="org.altbeacon.bluetooth.BluetoothTestJob">
-     *   <meta-data android:name="jobId" android:value="1001" tools:replace="android:value"/>
+     * <meta-data android:name="jobId" android:value="1001" tools:replace="android:value"/>
      * </service>
      * </code>
      *
@@ -50,12 +52,13 @@ public class BluetoothTestJob extends JobService {
     /**
      * Returns the job id to be used to schedule this job.  This may be set in the
      * AndroidManifest.xml or in single process applications by using #setOverrideJobId
+     *
      * @param context
      * @return
      */
     public static int getJobId(Context context) {
         if (sOverrideJobId >= 0) {
-            LogManager.i(TAG, "Using BluetoothTestJob JobId from static override: "+
+            LogManager.i(TAG, "Using BluetoothTestJob JobId from static override: " +
                     sOverrideJobId);
             return sOverrideJobId;
         }
@@ -66,25 +69,21 @@ public class BluetoothTestJob extends JobService {
         } catch (PackageManager.NameNotFoundException e) { /* do nothing here */ }
         if (info != null && info.metaData != null && info.metaData.get("jobId") != null) {
             int jobId = info.metaData.getInt("jobId");
-            LogManager.i(TAG, "Using BluetoothTestJob JobId from manifest: "+jobId);
+            LogManager.i(TAG, "Using BluetoothTestJob JobId from manifest: " + jobId);
             return jobId;
-        }
-        else {
+        } else {
             throw new RuntimeException("Cannot get job id from manifest.  " +
                     "Make sure that the BluetoothTestJob is configured in the manifest.");
         }
     }
 
-    public BluetoothTestJob() {
-    }
-
     public boolean onStartJob(final JobParameters params) {
-        if(this.mHandlerThread == null) {
+        if (this.mHandlerThread == null) {
             this.mHandlerThread = new HandlerThread("BluetoothTestThread");
             this.mHandlerThread.start();
         }
 
-        if(this.mHandler == null) {
+        if (this.mHandler == null) {
             this.mHandler = new Handler(this.mHandlerThread.getLooper());
         }
 
@@ -93,12 +92,12 @@ public class BluetoothTestJob extends JobService {
                 boolean found = false;
                 LogManager.i(BluetoothTestJob.TAG, "Bluetooth Test Job running");
                 int testType = params.getExtras().getInt("test_type");
-                if(testType == BluetoothMedic.NO_TEST) {
+                if (testType == BluetoothMedic.NO_TEST) {
                     found = true;
                     LogManager.d(BluetoothTestJob.TAG, "No test specified.  Done with job.");
                 }
 
-                if((testType & BluetoothMedic.SCAN_TEST) == BluetoothMedic.SCAN_TEST) {
+                if ((testType & BluetoothMedic.SCAN_TEST) == BluetoothMedic.SCAN_TEST) {
                     LogManager.d(BluetoothTestJob.TAG, "Scan test specified.");
                     found = true;
                     if (!BluetoothMedic.getInstance().runScanTest(BluetoothTestJob.this)) {
@@ -106,8 +105,8 @@ public class BluetoothTestJob extends JobService {
                     }
                 }
 
-                if((testType & BluetoothMedic.TRANSMIT_TEST) == BluetoothMedic.TRANSMIT_TEST) {
-                    if(found) {
+                if ((testType & BluetoothMedic.TRANSMIT_TEST) == BluetoothMedic.TRANSMIT_TEST) {
+                    if (found) {
                         try {
                             Thread.sleep(10000L);
                         } catch (InterruptedException e) {
@@ -122,7 +121,7 @@ public class BluetoothTestJob extends JobService {
                     }
                 }
 
-                if(!found) {
+                if (!found) {
                     LogManager.w(BluetoothTestJob.TAG, "Unknown test type:" + testType + "  Exiting.");
                 }
 

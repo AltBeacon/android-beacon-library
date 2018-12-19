@@ -1,20 +1,16 @@
 package org.altbeacon.beacon;
 
-import android.os.Parcel;
-
-import static android.test.MoreAsserts.assertNotEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 @Config(sdk = 18)
 @RunWith(RobolectricTestRunner.class)
@@ -87,6 +83,7 @@ public class IdentifierTest {
         assertEquals("first byte of hex is converted properly", 0x01, bytes[0] & 0xFF);
         assertEquals("last byte of hex is converted properly", 0x06, bytes[5] & 0xFF);
     }
+
     @Test
     public void testToByteArrayConvertsDecimal() {
         Identifier identifier1 = Identifier.parse("65534");
@@ -110,7 +107,7 @@ public class IdentifierTest {
 
     @Test
     public void testToByteArrayFromByteArray() {
-        byte[] value = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25};
+        byte[] value = new byte[]{(byte) 0xFF, (byte) 0xAB, 0x12, 0x25};
         Identifier identifier1 = Identifier.fromBytes(value, 0, value.length, false);
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
 
@@ -122,9 +119,9 @@ public class IdentifierTest {
 
     @Test
     public void testComparableDifferentLength() {
-        byte[] value1 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25};
+        byte[] value1 = new byte[]{(byte) 0xFF, (byte) 0xAB, 0x12, 0x25};
         Identifier identifier1 = Identifier.fromBytes(value1, 0, value1.length, false);
-        byte[] value2 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
+        byte[] value2 = new byte[]{(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
         Identifier identifier2 = Identifier.fromBytes(value2, 0, value2.length, false);
 
         assertEquals("identifier1 is smaller than identifier2", identifier1.compareTo(identifier2), -1);
@@ -133,9 +130,9 @@ public class IdentifierTest {
 
     @Test
     public void testComparableSameLength() {
-        byte[] value1 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x22, 0x25};
+        byte[] value1 = new byte[]{(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x22, 0x25};
         Identifier identifier1 = Identifier.fromBytes(value1, 0, value1.length, false);
-        byte[] value2 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
+        byte[] value2 = new byte[]{(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
         Identifier identifier2 = Identifier.fromBytes(value2, 0, value2.length, false);
 
         assertEquals("identifier1 is equal to identifier2", identifier1.compareTo(identifier1), 0);
@@ -190,34 +187,40 @@ public class IdentifierTest {
         Identifier id = Identifier.parse("123456789abcdef");
         assertEquals("Should parse and get prefixed hex value for big numbers", "0x0123456789abcdef", id.toString());
     }
+
     @Test
     public void testParseZeroPrefixedDecimalNumberAsHex() {
         Identifier id = Identifier.parse("0010");
         assertEquals("Should be treated as hex in parse, but converted back to decimal because it is small", "16", id.toString());
     }
+
     @Test
     public void testParseNonZeroPrefixedDecimalNumberAsDecimal() {
         Identifier id = Identifier.parse("10");
         assertEquals("Should be treated as decimal", "10", id.toString());
     }
+
     @Test
     public void testParseDecimalNumberWithSpecifiedLength() {
         Identifier id = Identifier.parse("10", 8);
         assertEquals("Should be treated as hex because it is long", "0x000000000000000a", id.toString());
         assertEquals("Byte count should be as specified", 8, id.getByteCount());
     }
+
     @Test
     public void testParseDecimalNumberWithSpecifiedShortLength() {
         Identifier id = Identifier.parse("10", 2);
         assertEquals("Should be treated as decimal because it is short", "10", id.toString());
         assertEquals("Byte count should be as specified", 2, id.getByteCount());
     }
+
     @Test
     public void testParseHexNumberWithSpecifiedLength() {
         Identifier id = Identifier.parse("2fffffffffffffffffff", 10);
         assertEquals("Should be treated as hex because it is long", "0x2fffffffffffffffffff", id.toString());
         assertEquals("Byte count should be as specified", 10, id.getByteCount());
     }
+
     @Test
     public void testParseZeroAsInteger() {
         Identifier id = Identifier.parse("0");

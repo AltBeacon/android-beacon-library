@@ -38,6 +38,7 @@ public class BeaconServiceTest {
     /**
      * This test verifies that processing a beacon in a scan (which starts its own thread) does not
      * affect the size of the available threads in the main Android AsyncTask.THREAD_POOL_EXECUTOR
+     *
      * @throws Exception
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)

@@ -24,17 +24,29 @@ package org.altbeacon.beacon.logging;
  * @since 2.2
  */
 public final class Loggers {
-    /** Empty Logger Singleton. */
+    /**
+     * Empty Logger Singleton.
+     */
     private static final Logger EMPTY_LOGGER = new EmptyLogger();
 
-    /** Debug Logger Singleton. */
+    /**
+     * Debug Logger Singleton.
+     */
     private static final Logger VERBOSE_ANDROID_LOGGER = new VerboseAndroidLogger();
 
-    /** Info Logger Singleton. */
+    /**
+     * Info Logger Singleton.
+     */
     private static final Logger INFO_ANDROID_LOGGER = new InfoAndroidLogger();
 
-    /** Warning Logger Singleton. */
+    /**
+     * Warning Logger Singleton.
+     */
     private static final Logger WARNING_ANDROID_LOGGER = new WarningAndroidLogger();
+
+    private Loggers() {
+        // No instances
+    }
 
     /**
      * @return Get a logger that does nothing.
@@ -65,9 +77,5 @@ public final class Loggers {
      */
     public static Logger warningLogger() {
         return WARNING_ANDROID_LOGGER;
-    }
-
-    private Loggers() {
-        // No instances
     }
 }

@@ -3,7 +3,7 @@
  * http://www.radiusnetworks.com
  *
  * @author David G. Young
- *
+ * <p>
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -11,9 +11,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -32,8 +32,6 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import org.altbeacon.beacon.logging.LogManager;
 
-import java.util.Set;
-
 /**
  * Converts internal intents to notifier callbacks
  *
@@ -50,27 +48,32 @@ import java.util.Set;
  * @hide
  */
 public class BeaconLocalBroadcastProcessor {
-    private static final String TAG = "BeaconLocalBroadcastProcessor";
-
     public static final String RANGE_NOTIFICATION = "org.altbeacon.beacon.range_notification";
     public static final String MONITOR_NOTIFICATION = "org.altbeacon.beacon.monitor_notification";
-
+    private static final String TAG = "BeaconLocalBroadcastProcessor";
+    static int registerCallCount = 0;
+    int registerCallCountForInstnace = 0;
     @NonNull
     private Context mContext;
+    private BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            new IntentHandler().convertIntentsToCallbacks(context, intent);
+        }
+    };
     private BeaconLocalBroadcastProcessor() {
 
     }
+
     public BeaconLocalBroadcastProcessor(Context context) {
         mContext = context;
 
     }
 
-    static int registerCallCount = 0;
-    int registerCallCountForInstnace = 0;
     public void register() {
         registerCallCount += 1;
         registerCallCountForInstnace += 1;
-        LogManager.d(TAG, "Register calls: global="+registerCallCount+" instance="+registerCallCountForInstnace);
+        LogManager.d(TAG, "Register calls: global=" + registerCallCount + " instance=" + registerCallCountForInstnace);
         unregister();
         LocalBroadcastManager.getInstance(mContext).registerReceiver(mLocalBroadcastReceiver,
                 new IntentFilter(RANGE_NOTIFICATION));
@@ -81,12 +84,4 @@ public class BeaconLocalBroadcastProcessor {
     public void unregister() {
         LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mLocalBroadcastReceiver);
     }
-
-
-    private BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            new IntentHandler().convertIntentsToCallbacks(context, intent);
-        }
-    };
 }

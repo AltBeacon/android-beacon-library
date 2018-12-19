@@ -8,6 +8,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -15,17 +24,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import org.robolectric.annotation.Config;
-
-import java.util.Arrays;
-import java.util.List;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 @Config(sdk = 18)
 
@@ -160,7 +158,7 @@ public class BeaconTest {
     public void testCalculateAccuracyWithRssiLessThanPower() {
         Beacon.setDistanceCalculator(new ModelSpecificDistanceCalculator(null, null));
         double accuracy = Beacon.calculateDistance(-55, -60);
-        assertTrue("Distance should be over one meter if mRssi is less negative than power. Accuracy was "+accuracy,  accuracy > 1.0);
+        assertTrue("Distance should be over one meter if mRssi is less negative than power. Accuracy was " + accuracy, accuracy > 1.0);
     }
 
     @Test
@@ -227,21 +225,21 @@ public class BeaconTest {
     @Test
     public void parcelingBeaconContainsAllFields() {
         final Beacon original = new Beacon.Builder().setBluetoothAddress("aa:bb:cc:dd:ee:ff")
-                                                    .setBluetoothName("Any Bluetooth")
-                                                    .setBeaconTypeCode(1)
-                                                    .setDataFields(Arrays.asList(2L, 3L))
-                                                    .setExtraDataFields(Arrays.asList(4L, 5L))
-                                                    .setId1("6")
-                                                    .setId2("7")
-                                                    .setId3("8")
-                                                    .setManufacturer(10)
-                                                    .setMultiFrameBeacon(true)
-                                                    .setParserIdentifier("Any Parser ID")
-                                                    .setRssi(-11)
-                                                    .setRunningAverageRssi(-12.3)
-                                                    .setServiceUuid(13)
-                                                    .setTxPower(14)
-                                                    .build();
+                .setBluetoothName("Any Bluetooth")
+                .setBeaconTypeCode(1)
+                .setDataFields(Arrays.asList(2L, 3L))
+                .setExtraDataFields(Arrays.asList(4L, 5L))
+                .setId1("6")
+                .setId2("7")
+                .setId3("8")
+                .setManufacturer(10)
+                .setMultiFrameBeacon(true)
+                .setParserIdentifier("Any Parser ID")
+                .setRssi(-11)
+                .setRunningAverageRssi(-12.3)
+                .setServiceUuid(13)
+                .setTxPower(14)
+                .build();
         original.setPacketCount(15);
         original.setRssiMeasurementCount(16);
 
@@ -276,21 +274,21 @@ public class BeaconTest {
     @Test
     public void copyingBeaconContainsAllFields() {
         final Beacon original = new Beacon.Builder().setBluetoothAddress("aa:bb:cc:dd:ee:ff")
-                                                    .setBluetoothName("Any Bluetooth")
-                                                    .setBeaconTypeCode(1)
-                                                    .setDataFields(Arrays.asList(2L, 3L))
-                                                    .setExtraDataFields(Arrays.asList(4L, 5L))
-                                                    .setId1("6")
-                                                    .setId2("7")
-                                                    .setId3("8")
-                                                    .setManufacturer(10)
-                                                    .setMultiFrameBeacon(true)
-                                                    .setParserIdentifier("Any Parser ID")
-                                                    .setRssi(-11)
-                                                    .setRunningAverageRssi(-12.3)
-                                                    .setServiceUuid(13)
-                                                    .setTxPower(14)
-                                                    .build();
+                .setBluetoothName("Any Bluetooth")
+                .setBeaconTypeCode(1)
+                .setDataFields(Arrays.asList(2L, 3L))
+                .setExtraDataFields(Arrays.asList(4L, 5L))
+                .setId1("6")
+                .setId2("7")
+                .setId3("8")
+                .setManufacturer(10)
+                .setMultiFrameBeacon(true)
+                .setParserIdentifier("Any Parser ID")
+                .setRssi(-11)
+                .setRunningAverageRssi(-12.3)
+                .setServiceUuid(13)
+                .setTxPower(14)
+                .build();
         original.setPacketCount(15);
         original.setRssiMeasurementCount(16);
 
@@ -328,6 +326,7 @@ public class BeaconTest {
             return bos.toByteArray();
         }
     }
+
     private Object convertFromBytes(byte[] bytes) throws IOException, ClassNotFoundException {
         try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
              ObjectInputStream in = new ObjectInputStream(bis)) {

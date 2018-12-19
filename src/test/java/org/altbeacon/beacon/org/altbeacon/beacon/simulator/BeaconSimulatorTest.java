@@ -1,26 +1,19 @@
 package org.altbeacon.beacon.org.altbeacon.beacon.simulator;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.altbeacon.beacon.AltBeacon;
 import org.altbeacon.beacon.AltBeaconParser;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.simulator.StaticBeaconSimulator;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.lang.Override;
-import java.util.ArrayList;
-import java.util.List;
-
-import dalvik.annotation.TestTarget;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.ArrayList;
+
+import static org.junit.Assert.assertEquals;
 
 @Config(sdk = 18)
 
@@ -32,7 +25,7 @@ public class BeaconSimulatorTest {
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i+1), 16));
+                    + Character.digit(s.charAt(i + 1), 16));
         }
         return data;
     }
@@ -47,7 +40,7 @@ public class BeaconSimulatorTest {
     }
 
     @Test
-    public void testSetBeacons(){
+    public void testSetBeacons() {
         StaticBeaconSimulator staticBeaconSimulator = new StaticBeaconSimulator();
         byte[] beaconBytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
         Beacon beacon = new AltBeaconParser().fromScanData(beaconBytes, -55, null);
@@ -58,7 +51,7 @@ public class BeaconSimulatorTest {
     }
 
     @Test
-    public void testSetBeaconsEmpty(){
+    public void testSetBeaconsEmpty() {
         StaticBeaconSimulator staticBeaconSimulator = new StaticBeaconSimulator();
         ArrayList<Beacon> beacons = new ArrayList<Beacon>();
         staticBeaconSimulator.setBeacons(beacons);
@@ -66,9 +59,9 @@ public class BeaconSimulatorTest {
     }
 
     @Test
-    public void testSetBeaconsNull(){
+    public void testSetBeaconsNull() {
         StaticBeaconSimulator staticBeaconSimulator = new StaticBeaconSimulator();
         staticBeaconSimulator.setBeacons(null);
-        assertEquals("getBeacons should return null",staticBeaconSimulator.getBeacons(), null);
+        assertEquals("getBeacons should return null", staticBeaconSimulator.getBeacons(), null);
     }
 }

@@ -21,27 +21,33 @@ import android.util.Log;
 /**
  * Android logger that only logs out warning and above to the {@link android.util.Log}.
  *
- * @since 2.2
  * @author Andrew Reitz
+ * @since 2.2
  */
 final class WarningAndroidLogger extends AbstractAndroidLogger {
     @Override
-    public void v(String tag, String message, Object... args) { }
+    public void v(String tag, String message, Object... args) {
+    }
 
     @Override
-    public void v(Throwable t, String tag, String message, Object... args) { }
+    public void v(Throwable t, String tag, String message, Object... args) {
+    }
 
     @Override
-    public void d(String tag, String message, Object... args) { }
+    public void d(String tag, String message, Object... args) {
+    }
 
     @Override
-    public void d(Throwable t, String tag, String message, Object... args) { }
+    public void d(Throwable t, String tag, String message, Object... args) {
+    }
 
     @Override
-    public void i(String tag, String message, Object... args) { }
+    public void i(String tag, String message, Object... args) {
+    }
 
     @Override
-    public void i(Throwable t, String tag, String message, Object... args) { }
+    public void i(Throwable t, String tag, String message, Object... args) {
+    }
 
     @Override
     public void w(String tag, String message, Object... args) {

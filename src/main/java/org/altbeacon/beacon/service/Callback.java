@@ -3,7 +3,7 @@
  * http://www.radiusnetworks.com
  *
  * @author David G. Young
- *
+ * <p>
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -11,9 +11,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -55,24 +55,22 @@ public class Callback implements Serializable {
         boolean useLocalBroadcast = BeaconManager.getInstanceForApplication(context).isMainProcess();
         boolean success = false;
 
-        if(useLocalBroadcast) {
+        if (useLocalBroadcast) {
             String action = null;
             if (dataName == "rangingData") {
                 action = BeaconLocalBroadcastProcessor.RANGE_NOTIFICATION;
-            }
-            else {
+            } else {
                 action = BeaconLocalBroadcastProcessor.MONITOR_NOTIFICATION;
             }
             Intent intent = new Intent(action);
             intent.putExtra(dataName, data);
-            LogManager.d(TAG, "attempting callback via local broadcast intent: %s",action);
+            LogManager.d(TAG, "attempting callback via local broadcast intent: %s", action);
             success = LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-        }
-        else {
+        } else {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(context.getPackageName(), "org.altbeacon.beacon.BeaconIntentProcessor"));
             intent.putExtra(dataName, data);
-            LogManager.d(TAG, "attempting callback via global broadcast intent: %s",intent.getComponent());
+            LogManager.d(TAG, "attempting callback via global broadcast intent: %s", intent.getComponent());
             try {
                 context.startService(intent);
                 success = true;

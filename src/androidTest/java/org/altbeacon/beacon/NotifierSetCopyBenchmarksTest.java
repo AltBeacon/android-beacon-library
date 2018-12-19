@@ -82,20 +82,20 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 @RunWith(AndroidJUnit4.class)
 public class NotifierSetCopyBenchmarksTest {
-    private static final Set<RangeNotifier> LARGE_SET  = buildSet(20);
+    private static final Set<RangeNotifier> LARGE_SET = buildSet(20);
 
     private static final Set<RangeNotifier> MEDIUM_SET = buildSet(10);
 
     private static final Set<RangeNotifier> SINGLE_SET = buildSet(1);
 
-    private static final Set<RangeNotifier> SMALL_SET  = buildSet(3);
+    private static final Set<RangeNotifier> SMALL_SET = buildSet(3);
 
     private static final String STAT_FORMAT =
             "| %15s | %4d | %4d | %7d | %7d | %7d | %#8.1f | %.5e |";
 
     private static final String STAT_HEADER =
             "|      Type       | Size |   N   |   Min   |   Max   |  Mean   | Std. Dev |  Variance   |\n" +
-            "|-----------------|------|-------|---------|---------|---------|----------|-------------|";
+                    "|-----------------|------|-------|---------|---------|---------|----------|-------------|";
 
     private static final String TAG = "BenchmarkTests";
 

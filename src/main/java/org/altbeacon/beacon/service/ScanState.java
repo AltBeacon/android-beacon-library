@@ -10,10 +10,10 @@ import org.altbeacon.beacon.logging.LogManager;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InvalidClassException;
-import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -28,8 +28,9 @@ import static android.content.Context.MODE_PRIVATE;
 /**
  * Stores the full state of scanning for the libary, including all settings so it can be ressurrected easily
  * for running from a scheduled job
- *
+ * <p>
  * Created by dyoung on 3/26/17.
+ *
  * @hide
  */
 
@@ -41,7 +42,7 @@ public class ScanState implements Serializable {
 
     private Map<Region, RangeState> mRangedRegionState = new HashMap<Region, RangeState>();
     private transient MonitoringStatus mMonitoringStatus;
-    private Set<BeaconParser> mBeaconParsers  = new HashSet<BeaconParser>();
+    private Set<BeaconParser> mBeaconParsers = new HashSet<BeaconParser>();
     private ExtraDataBeaconTracker mExtraBeaconDataTracker = new ExtraDataBeaconTracker();
     private long mForegroundBetweenScanPeriod;
     private long mBackgroundBetweenScanPeriod;
@@ -50,6 +51,57 @@ public class ScanState implements Serializable {
     private boolean mBackgroundMode;
     private long mLastScanStartTimeMillis = 0l;
     private transient Context mContext;
+
+    public ScanState(Context context) {
+        mContext = context;
+    }
+
+    public static ScanState restore(Context context) {
+        ScanState scanState = null;
+        synchronized (ScanState.class) {
+            FileInputStream inputStream = null;
+            ObjectInputStream objectInputStream = null;
+            try {
+                inputStream = context.openFileInput(STATUS_PRESERVATION_FILE_NAME);
+                objectInputStream = new ObjectInputStream(inputStream);
+                scanState = (ScanState) objectInputStream.readObject();
+                scanState.mContext = context;
+            } catch (FileNotFoundException fnfe) {
+                LogManager.w(TAG, "Serialized ScanState does not exist.  This may be normal on first run.");
+            } catch (IOException | ClassNotFoundException | ClassCastException e) {
+                if (e instanceof InvalidClassException) {
+                    LogManager.d(TAG, "Serialized ScanState has wrong class. Just ignoring saved state...");
+                } else {
+                    LogManager.e(TAG, "Deserialization exception");
+                    Log.e(TAG, "error: ", e);
+                }
+
+            } finally {
+                if (null != inputStream) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+                if (objectInputStream != null) {
+                    try {
+                        objectInputStream.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            }
+            if (scanState == null) {
+                scanState = new ScanState(context);
+
+            }
+            if (scanState.mExtraBeaconDataTracker == null) {
+                scanState.mExtraBeaconDataTracker = new ExtraDataBeaconTracker();
+            }
+            scanState.mMonitoringStatus = MonitoringStatus.getInstanceForApplication(context);
+            LogManager.d(TAG, "Scan state restore regions: monitored=" + scanState.getMonitoringStatus().regions().size() + " ranged=" + scanState.getRangedRegionState().keySet().size());
+            return scanState;
+        }
+    }
 
     public Boolean getBackgroundMode() {
         return mBackgroundMode;
@@ -91,10 +143,6 @@ public class ScanState implements Serializable {
         mForegroundScanPeriod = foregroundScanPeriod;
     }
 
-    public ScanState(Context context) {
-        mContext = context;
-    }
-
     public MonitoringStatus getMonitoringStatus() {
         return mMonitoringStatus;
     }
@@ -130,57 +178,9 @@ public class ScanState implements Serializable {
     public long getLastScanStartTimeMillis() {
         return mLastScanStartTimeMillis;
     }
+
     public void setLastScanStartTimeMillis(long time) {
         mLastScanStartTimeMillis = time;
-    }
-
-    public static ScanState restore(Context context) {
-        ScanState scanState = null;
-        synchronized (ScanState.class) {
-            FileInputStream inputStream = null;
-            ObjectInputStream objectInputStream = null;
-            try {
-                inputStream = context.openFileInput(STATUS_PRESERVATION_FILE_NAME);
-                objectInputStream = new ObjectInputStream(inputStream);
-                scanState = (ScanState) objectInputStream.readObject();
-                scanState.mContext = context;
-            } catch (FileNotFoundException fnfe) {
-                LogManager.w(TAG, "Serialized ScanState does not exist.  This may be normal on first run.");
-            }
-            catch (IOException | ClassNotFoundException | ClassCastException e) {
-                if (e instanceof InvalidClassException) {
-                    LogManager.d(TAG, "Serialized ScanState has wrong class. Just ignoring saved state...");
-                }
-                else {
-                    LogManager.e(TAG, "Deserialization exception");
-                    Log.e(TAG, "error: ", e);
-                }
-
-            } finally {
-                if (null != inputStream) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException ignored) {
-                    }
-                }
-                if (objectInputStream != null) {
-                    try {
-                        objectInputStream.close();
-                    } catch (IOException ignored) {
-                    }
-                }
-            }
-            if (scanState == null) {
-                scanState = new ScanState(context);
-
-            }
-            if (scanState.mExtraBeaconDataTracker == null) {
-                scanState.mExtraBeaconDataTracker = new ExtraDataBeaconTracker();
-            }
-            scanState.mMonitoringStatus = MonitoringStatus.getInstanceForApplication(context);
-            LogManager.d(TAG, "Scan state restore regions: monitored="+scanState.getMonitoringStatus().regions().size()+" ranged="+scanState.getRangedRegionState().keySet().size());
-            return scanState;
-        }
     }
 
     public void save() {
@@ -195,8 +195,8 @@ public class ScanState implements Serializable {
                 objectOutputStream.writeObject(this);
                 File file = new File(mContext.getFilesDir(), STATUS_PRESERVATION_FILE_NAME);
                 File tempFile = new File(mContext.getFilesDir(), TEMP_STATUS_PRESERVATION_FILE_NAME);
-                LogManager.d(TAG, "Temp file is "+tempFile.getAbsolutePath());
-                LogManager.d(TAG, "Perm file is "+file.getAbsolutePath());
+                LogManager.d(TAG, "Temp file is " + tempFile.getAbsolutePath());
+                LogManager.d(TAG, "Perm file is " + file.getAbsolutePath());
 
                 if (!file.delete()) {
                     LogManager.e(TAG, "Error while saving scan status to file: Cannot delete existing file.");
@@ -227,10 +227,9 @@ public class ScanState implements Serializable {
     public int getScanJobIntervalMillis() {
         long cyclePeriodMillis;
         if (getBackgroundMode()) {
-            cyclePeriodMillis = getBackgroundScanPeriod()+getBackgroundBetweenScanPeriod();
-        }
-        else {
-            cyclePeriodMillis = getForegroundScanPeriod()+getForegroundBetweenScanPeriod();
+            cyclePeriodMillis = getBackgroundScanPeriod() + getBackgroundBetweenScanPeriod();
+        } else {
+            cyclePeriodMillis = getForegroundScanPeriod() + getForegroundBetweenScanPeriod();
         }
         int scanJobIntervalMillis = MIN_SCAN_JOB_INTERVAL_MILLIS;
         if (cyclePeriodMillis > MIN_SCAN_JOB_INTERVAL_MILLIS) {
@@ -241,11 +240,10 @@ public class ScanState implements Serializable {
 
     public int getScanJobRuntimeMillis() {
         long scanPeriodMillis;
-        LogManager.d(TAG, "ScanState says background mode for ScanJob is "+getBackgroundMode());
+        LogManager.d(TAG, "ScanState says background mode for ScanJob is " + getBackgroundMode());
         if (getBackgroundMode()) {
             scanPeriodMillis = getBackgroundScanPeriod();
-        }
-        else {
+        } else {
             scanPeriodMillis = getForegroundScanPeriod();
         }
         if (!getBackgroundMode()) {
@@ -256,7 +254,6 @@ public class ScanState implements Serializable {
         }
         return (int) scanPeriodMillis;
     }
-
 
 
     public void applyChanges(BeaconManager beaconManager) {
@@ -271,22 +268,22 @@ public class ScanState implements Serializable {
         ArrayList<Region> existingRangedRegions = new ArrayList<>(mRangedRegionState.keySet());
         ArrayList<Region> newMonitoredRegions = new ArrayList<>(beaconManager.getMonitoredRegions());
         ArrayList<Region> newRangedRegions = new ArrayList<>(beaconManager.getRangedRegions());
-        LogManager.d(TAG, "ranged regions: old="+existingRangedRegions.size()+" new="+newRangedRegions.size());
-        LogManager.d(TAG, "monitored regions: old="+existingMonitoredRegions.size()+" new="+newMonitoredRegions.size());
+        LogManager.d(TAG, "ranged regions: old=" + existingRangedRegions.size() + " new=" + newRangedRegions.size());
+        LogManager.d(TAG, "monitored regions: old=" + existingMonitoredRegions.size() + " new=" + newMonitoredRegions.size());
 
-        for (Region newRangedRegion: newRangedRegions) {
+        for (Region newRangedRegion : newRangedRegions) {
             if (!existingRangedRegions.contains(newRangedRegion)) {
-                LogManager.d(TAG, "Starting ranging region: "+newRangedRegion);
+                LogManager.d(TAG, "Starting ranging region: " + newRangedRegion);
                 mRangedRegionState.put(newRangedRegion, new RangeState(new Callback(mContext.getPackageName())));
             }
         }
-        for (Region existingRangedRegion: existingRangedRegions) {
+        for (Region existingRangedRegion : existingRangedRegions) {
             if (!newRangedRegions.contains(existingRangedRegion)) {
-                LogManager.d(TAG, "Stopping ranging region: "+existingRangedRegion);
+                LogManager.d(TAG, "Stopping ranging region: " + existingRangedRegion);
                 mRangedRegionState.remove(existingRangedRegion);
             }
         }
-        LogManager.d(TAG, "Updated state with "+newRangedRegions.size()+" ranging regions and "+newMonitoredRegions.size()+" monitoring regions.");
+        LogManager.d(TAG, "Updated state with " + newRangedRegions.size() + " ranging regions and " + newMonitoredRegions.size() + " monitoring regions.");
 
         this.save();
     }

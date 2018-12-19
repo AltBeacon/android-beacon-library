@@ -3,8 +3,6 @@ package org.altbeacon.beacon;
 import android.annotation.TargetApi;
 import android.os.Build;
 
-import org.altbeacon.beacon.logging.LogManager;
-
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
@@ -27,41 +25,69 @@ public class Identifier implements Comparable<Identifier>, Serializable {
     // BUG: Dashes in UUIDs are not optional!
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9A-Fa-f]{8}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{12}$");
     private static final int MAX_INTEGER = 65535;
-
+    private static final char[] HEX_DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     private final byte[] mValue;
+
+    /**
+     * Creates a new copy of the specified Identifier.
+     *
+     * @param identifier identifier to copy
+     * @deprecated objects of this class are immutable and therefore don't have to be cloned when
+     * used from multiple threads
+     */
+    @Deprecated
+    public Identifier(Identifier identifier) {
+        if (identifier == null) {
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"identifier\" is null.");
+        }
+        mValue = identifier.mValue;
+    }
+
+    /**
+     * Creates a new instance of Identifier
+     *
+     * @param value value to use. This value isn't copied, so don't change the value after using it to create an instance!
+     */
+    protected Identifier(byte[] value) {
+        if (value == null) {
+            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"value\" is null.");
+        }
+        this.mValue = value;
+    }
 
     /**
      * Takes the passed string and tries to figure out what format it is in.
      * Then turns the string into plain bytes and constructs an Identifier.
-     *
+     * <p>
      * Known bug: This method happily parses UUIDs without dashes (normally
      * invalid). Although the bug is left unfixed for backward compatibility,
      * please check your UUIDs or even better, use
      * {@link #fromUuid(java.util.UUID)} directly, which is safe.
-     *
+     * <p>
      * Allowed formats:
      * <ul>
-     *   <li>UUID: 2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6 (16 bytes)</li>
-     *   <li>Hexadecimal: 0x000000000003 (variable length)</li>
-     *   <li>Decimal: 1337 (2 bytes)</li>
+     * <li>UUID: 2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6 (16 bytes)</li>
+     * <li>Hexadecimal: 0x000000000003 (variable length)</li>
+     * <li>Decimal: 1337 (2 bytes)</li>
      * </ul>
      *
-     * @param  stringValue string to parse
-     * @return             Identifier representing the specified value
-     * @throws             IllegalArgumentException if the passed string cannot be parsed
-     * @throws             NullPointerException if the passed string is <code>null</code>
-     * @see                <a href="https://www.ietf.org/rfc/rfc4122.txt">RFC 4122 on UUIDs</a>
+     * @param stringValue string to parse
+     * @return Identifier representing the specified value
+     * @throws IllegalArgumentException if the passed string cannot be parsed
+     * @throws NullPointerException     if the passed string is <code>null</code>
+     * @see <a href="https://www.ietf.org/rfc/rfc4122.txt">RFC 4122 on UUIDs</a>
      */
     public static Identifier parse(String stringValue) {
-       return parse(stringValue, -1);
+        return parse(stringValue, -1);
     }
 
     /**
      * Variant of the parse method that allows specifying the byte length of the identifier.
-     * @see #parse(String)
+     *
      * @param stringValue
      * @param desiredByteLength
      * @return
+     * @see #parse(String)
      */
     public static Identifier parse(String stringValue, int desiredByteLength) {
         if (stringValue == null) {
@@ -80,14 +106,12 @@ public class Identifier implements Comparable<Identifier>, Serializable {
             int value = -1;
             try {
                 value = Integer.valueOf(stringValue);
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
                 throw new IllegalArgumentException("Unable to parse Identifier in decimal format.", t);
             }
             if (desiredByteLength <= 0 || desiredByteLength == 2) {
                 return fromInt(value);
-            }
-            else {
+            } else {
                 return fromLong(value, desiredByteLength);
             }
         }
@@ -102,28 +126,29 @@ public class Identifier implements Comparable<Identifier>, Serializable {
     private static Identifier parseHex(String identifierString, int desiredByteLength) {
         String str = identifierString.length() % 2 == 0 ? "" : "0";
         str += identifierString.toUpperCase();
-        if (desiredByteLength > 0 && desiredByteLength < str.length()/2) {
+        if (desiredByteLength > 0 && desiredByteLength < str.length() / 2) {
             str = str.substring(str.length() - desiredByteLength * 2);
         }
-        if (desiredByteLength > 0 && desiredByteLength > str.length()/2) {
-            int extraCharsToAdd = desiredByteLength*2 - str.length();
+        if (desiredByteLength > 0 && desiredByteLength > str.length() / 2) {
+            int extraCharsToAdd = desiredByteLength * 2 - str.length();
             StringBuilder sb = new StringBuilder();
             while (sb.length() < extraCharsToAdd) {
                 sb.append("0");
             }
-            str = sb.toString()+str;
+            str = sb.toString() + str;
         }
 
         byte[] result = new byte[str.length() / 2];
         for (int i = 0; i < result.length; i++) {
-            result[i] = (byte)(Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16) & 0xFF);
+            result[i] = (byte) (Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16) & 0xFF);
         }
         return new Identifier(result);
     }
 
     /**
      * Creates an Identifer backed by an array of length desiredByteLength
-     * @param longValue a long to put into the identifier
+     *
+     * @param longValue         a long to put into the identifier
      * @param desiredByteLength how many bytes to make the identifier
      * @return
      */
@@ -132,7 +157,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
             throw new IllegalArgumentException("Identifier length must be > 0.");
         }
         byte[] newValue = new byte[desiredByteLength];
-        for (int i = desiredByteLength-1; i >= 0; i--) {
+        for (int i = desiredByteLength - 1; i >= 0; i--) {
             newValue[i] = (byte) (longValue & 0xff);
             longValue = longValue >> 8;
         }
@@ -141,6 +166,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
 
     /**
      * Creates an Identifier backed by a two byte Array (big endian).
+     *
      * @param intValue an integer between 0 and 65535 (inclusive)
      * @return an Identifier with the specified value
      */
@@ -159,14 +185,15 @@ public class Identifier implements Comparable<Identifier>, Serializable {
 
     /**
      * Creates an Identifier from the specified byte array.
-     * @param bytes array to copy from
-     * @param start the start index, inclusive
-     * @param end the end index, exclusive
+     *
+     * @param bytes        array to copy from
+     * @param start        the start index, inclusive
+     * @param end          the end index, exclusive
      * @param littleEndian whether the bytes are ordered in little endian
      * @return a new Identifier
-     * @throws java.lang.NullPointerException <code>bytes</code> must not be <code>null</code>
+     * @throws java.lang.NullPointerException           <code>bytes</code> must not be <code>null</code>
      * @throws java.lang.ArrayIndexOutOfBoundsException start or end are outside the bounds of the array
-     * @throws java.lang.IllegalArgumentException start is larger than end
+     * @throws java.lang.IllegalArgumentException       start is larger than end
      */
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public static Identifier fromBytes(byte[] bytes, int start, int end, boolean littleEndian) {
@@ -202,29 +229,13 @@ public class Identifier implements Comparable<Identifier>, Serializable {
         return new Identifier(buf.array());
     }
 
-    /**
-     * Creates a new copy of the specified Identifier.
-     * @param identifier identifier to copy
-     * @deprecated objects of this class are immutable and therefore don't have to be cloned when
-     * used from multiple threads
-     */
-    @Deprecated
-    public Identifier(Identifier identifier) {
-        if (identifier == null) {
-            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"identifier\" is null.");
+    private static void reverseArray(byte[] bytes) {
+        for (int i = 0; i < bytes.length / 2; i++) {
+            int mirroredIndex = bytes.length - i - 1;
+            byte tmp = bytes[i];
+            bytes[i] = bytes[mirroredIndex];
+            bytes[mirroredIndex] = tmp;
         }
-        mValue = identifier.mValue;
-    }
-
-    /**
-     * Creates a new instance of Identifier
-     * @param value value to use. This value isn't copied, so don't change the value after using it to create an instance!
-     */
-    protected Identifier(byte[] value) {
-        if (value == null) {
-            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"value\" is null.");
-        }
-        this.mValue = value;
     }
 
     /**
@@ -232,6 +243,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
      * <ul><li>When the value is 2 bytes long: decimal, for example 6536
      * <li>When the value is 16 bytes long: uuid, for example 2f234454-cf6d-4a0f-adf2-f4911ba9ffa6
      * <li>Else: hexadecimal prefixed with <code>0x</code>, for example 0x0012ab</ul>
+     *
      * @return string representation of the current value
      */
     public String toString() {
@@ -248,6 +260,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
 
     /**
      * Represents the value as an <code>int</code>.
+     *
      * @return value represented as int
      * @throws java.lang.UnsupportedOperationException when value length is longer than 2
      */
@@ -266,6 +279,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
 
     /**
      * Converts identifier to a byte array
+     *
      * @param bigEndian true if bytes are MSB first
      * @return a new byte array with a copy of the value
      */
@@ -280,17 +294,9 @@ public class Identifier implements Comparable<Identifier>, Serializable {
         return copy;
     }
 
-    private static void reverseArray(byte[] bytes) {
-        for (int i = 0; i < bytes.length / 2; i++) {
-            int mirroredIndex = bytes.length - i - 1;
-            byte tmp = bytes[i];
-            bytes[i] = bytes[mirroredIndex];
-            bytes[mirroredIndex] = tmp;
-        }
-    }
-
     /**
      * Returns the byte length of this identifier.
+     *
      * @return length of identifier
      */
     public int getByteCount() {
@@ -305,6 +311,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
     /**
      * Returns whether both Identifiers contain equal value. This is the case when the value is the same
      * and has the same length
+     *
      * @param that object to compare to
      * @return whether that equals this
      */
@@ -317,18 +324,17 @@ public class Identifier implements Comparable<Identifier>, Serializable {
         return Arrays.equals(mValue, thatIdentifier.mValue);
     }
 
-    private static final char[] HEX_DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
     /**
      * Represents the value as a hexadecimal String. The String is prefixed with <code>0x</code>. For example 0x0034ab
+     *
      * @return value as hexadecimal String
      */
     public String toHexString() {
         final int l = mValue.length;
-        final char[] out = new char[l*2+2];
+        final char[] out = new char[l * 2 + 2];
         out[0] = '0';
         out[1] = 'x';
-        for( int i=0,j=2; i<l; i++ ){
+        for (int i = 0, j = 2; i < l; i++) {
             out[j++] = HEX_DIGITS[(0xF0 & mValue[i]) >>> 4];
             out[j++] = HEX_DIGITS[0x0F & mValue[i]];
         }
@@ -338,11 +344,12 @@ public class Identifier implements Comparable<Identifier>, Serializable {
 
     /**
      * Returns the value of this Identifier in UUID format. For example 2f234454-cf6d-4a0f-adf2-f4911ba9ffa6
-     * @deprecated Replaced by stronger typed variant.
-     *    This mathod returns a string, therefore does not offer type safety on
-     *    the UUID per se. It was replaced by {@link #toUuid()}.
+     *
      * @return value in UUID format
      * @throws UnsupportedOperationException when value length is not 16 bytes
+     * @deprecated Replaced by stronger typed variant.
+     * This mathod returns a string, therefore does not offer type safety on
+     * the UUID per se. It was replaced by {@link #toUuid()}.
      */
     @Deprecated
     public String toUuidString() {
@@ -353,7 +360,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
      * Gives you the Identifier as a UUID if possible.
      *
      * @throws UnsupportedOperationException if the byte array backing this Identifier is not exactly
-     *         16 bytes long.
+     *                                       16 bytes long.
      */
     public UUID toUuid() {
         if (mValue.length != 16) {
@@ -378,10 +385,10 @@ public class Identifier implements Comparable<Identifier>, Serializable {
      * When the Identifiers don't have the same length, the Identifier having the shortest
      * array is considered smaller than the other.
      *
-     * @param  that the other identifier
-     * @return      0 if both identifiers are equal.  Otherwise returns -1 or 1 depending
-     *              on which is bigger than the other.
-     * @see         Comparable#compareTo
+     * @param that the other identifier
+     * @return 0 if both identifiers are equal.  Otherwise returns -1 or 1 depending
+     * on which is bigger than the other.
+     * @see Comparable#compareTo
      */
     @Override
     public int compareTo(Identifier that) {

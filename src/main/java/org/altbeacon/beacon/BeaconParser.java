@@ -35,27 +35,23 @@ import java.util.regex.Pattern;
  * For more information on how to set up parsing of a beacon,
  * {@link #setBeaconLayout(String) see setBeaconLayout(String)}
  * </p>
- *
  */
 public class BeaconParser implements Serializable {
-    private static final String TAG = "BeaconParser";
     public static final String ALTBEACON_LAYOUT = "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25";
     public static final String EDDYSTONE_TLM_LAYOUT = "x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15";
     public static final String EDDYSTONE_UID_LAYOUT = "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19";
     public static final String EDDYSTONE_URL_LAYOUT = "s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-21v";
     public static final String URI_BEACON_LAYOUT = "s:0-1=fed8,m:2-2=00,p:3-3:-41,i:4-21v";
+    private static final String TAG = "BeaconParser";
     private static final Pattern I_PATTERN = Pattern.compile("i\\:(\\d+)\\-(\\d+)([blv]*)?");
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]*)?");
     private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)\\:?([\\-\\d]+)?");
     private static final Pattern X_PATTERN = Pattern.compile("x");
-    private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    private static final char[] HEX_ARRAY = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     private static final String LITTLE_ENDIAN_SUFFIX = "l";
     private static final String VARIABLE_LENGTH_SUFFIX = "v";
-
-    protected String mBeaconLayout;
-    private Long mMatchingBeaconTypeCode;
     protected final List<Integer> mIdentifierStartOffsets = new ArrayList<Integer>();
     protected final List<Integer> mIdentifierEndOffsets = new ArrayList<Integer>();
     protected final List<Boolean> mIdentifierLittleEndianFlags = new ArrayList<Boolean>();
@@ -63,22 +59,22 @@ public class BeaconParser implements Serializable {
     protected final List<Integer> mDataEndOffsets = new ArrayList<Integer>();
     protected final List<Boolean> mDataLittleEndianFlags = new ArrayList<Boolean>();
     protected final List<Boolean> mIdentifierVariableLengthFlags = new ArrayList<Boolean>();
+    protected String mBeaconLayout;
     protected Integer mMatchingBeaconTypeCodeStartOffset;
     protected Integer mMatchingBeaconTypeCodeEndOffset;
     protected Integer mServiceUuidStartOffset;
     protected Integer mServiceUuidEndOffset;
     protected Long mServiceUuid;
     protected Boolean mExtraFrame;
-
     protected Integer mPowerStartOffset;
     protected Integer mPowerEndOffset;
     protected Integer mDBmCorrection;
     protected Integer mLayoutSize;
     protected Boolean mAllowPduOverflow = true;
     protected String mIdentifier;
-    protected int[] mHardwareAssistManufacturers = new int[] { 0x004c };
-
+    protected int[] mHardwareAssistManufacturers = new int[]{0x004c};
     protected List<BeaconParser> extraParsers = new ArrayList<BeaconParser>();
+    private Long mMatchingBeaconTypeCode;
 
 
     /**
@@ -93,6 +89,33 @@ public class BeaconParser implements Serializable {
      */
     public BeaconParser(String identifier) {
         mIdentifier = identifier;
+    }
+
+    protected static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        int v;
+        for (int j = 0; j < bytes.length; j++) {
+            v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    public static byte[] longToByteArray(long longValue, int length) {
+        return longToByteArray(longValue, length, true);
+    }
+
+    public static byte[] longToByteArray(long longValue, int length, boolean bigEndian) {
+        byte[] array = new byte[length];
+        for (int i = 0; i < length; i++) {
+            int adjustedI = bigEndian ? i : length - i - 1;
+            long mask = 0xffl << (length - adjustedI - 1) * 8;
+            long shift = (length - adjustedI - 1) * 8;
+            long value = ((longValue & mask) >> shift);
+            array[i] = (byte) value;
+        }
+        return array;
     }
 
     /**
@@ -139,14 +162,14 @@ public class BeaconParser implements Serializable {
      * <p>Example of a parser string for AltBeacon:</p>
      *
      * </pre>
-     *   "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
+     * "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
      * </pre>
      *
      * <p>This signifies that the beacon type will be decoded when an advertisement is found with
      * 0xbeac in bytes 2-3, and a three-part identifier will be pulled out of bytes 4-19, bytes
      * 20-21 and bytes 22-23, respectively.  A signed power calibration value will be pulled out of
      * byte 24, and a data field will be pulled out of byte 25.</p>
-     *
+     * <p>
      * Note: bytes 0-1 of the BLE manufacturer advertisements are the two byte manufacturer code.
      * Generally you should not match on these two bytes when using a BeaconParser, because it will
      * limit your parser to matching only a transmitter made by a specific manufacturer.  Software
@@ -158,19 +181,19 @@ public class BeaconParser implements Serializable {
      *
      * <p>
      * Extra layouts can also be added by using:
+     *
+     * @param beaconLayout
+     * @return the BeaconParser instance
      * @see #addExtraDataParser(BeaconParser)
      * This is the preferred method and matching BeaconLayouts by serviceUUID will be deprecated in
      * the future.
      * </p>
-     *
-     * @param beaconLayout
-     * @return the BeaconParser instance
      */
     public BeaconParser setBeaconLayout(String beaconLayout) {
         mBeaconLayout = beaconLayout;
-        Log.d(TAG, "Parsing beacon layout: "+beaconLayout);
+        Log.d(TAG, "Parsing beacon layout: " + beaconLayout);
 
-        String[] terms =  beaconLayout.split(",");
+        String[] terms = beaconLayout.split(",");
         mExtraFrame = false; // this is not an extra frame by default
 
         for (String term : terms) {
@@ -216,9 +239,9 @@ public class BeaconParser implements Serializable {
                     if (matcher.group(3) != null) {
                         dBmCorrection = Integer.parseInt(matcher.group(3));
                     }
-                    mDBmCorrection=dBmCorrection;
-                    mPowerStartOffset=startOffset;
-                    mPowerEndOffset=endOffset;
+                    mDBmCorrection = dBmCorrection;
+                    mPowerStartOffset = startOffset;
+                    mPowerEndOffset = endOffset;
                 } catch (NumberFormatException e) {
                     throw new BeaconLayoutException("Cannot parse integer power byte offset in term: " + term);
                 }
@@ -236,10 +259,9 @@ public class BeaconParser implements Serializable {
                 }
                 String hexString = matcher.group(3);
                 try {
-                    mMatchingBeaconTypeCode = Long.decode("0x"+hexString);
-                }
-                catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse beacon type code: "+hexString+" in term: " + term);
+                    mMatchingBeaconTypeCode = Long.decode("0x" + hexString);
+                } catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse beacon type code: " + hexString + " in term: " + term);
                 }
             }
             matcher = S_PATTERN.matcher(term);
@@ -255,10 +277,9 @@ public class BeaconParser implements Serializable {
                 }
                 String hexString = matcher.group(3);
                 try {
-                    mServiceUuid = Long.decode("0x"+hexString);
-                }
-                catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse serviceUuid: "+hexString+" in term: " + term);
+                    mServiceUuid = Long.decode("0x" + hexString);
+                } catch (NumberFormatException e) {
+                    throw new BeaconLayoutException("Cannot parse serviceUuid: " + hexString + " in term: " + term);
                 }
             }
             matcher = X_PATTERN.matcher(term);
@@ -303,9 +324,9 @@ public class BeaconParser implements Serializable {
     /**
      * Gets a list of extra parsers configured for this <code>BeaconParser</code>.
      *
+     * @return
      * @see #addExtraDataParser
      * @see #setBeaconLayout
-     * @return
      */
     public List<BeaconParser> getExtraDataParsers() {
         return new ArrayList<>(extraParsers);
@@ -314,6 +335,7 @@ public class BeaconParser implements Serializable {
     /**
      * Gets an optional identifier field that may be used to identify this parser.  If set, it will
      * be passed along to any beacons decoded with this parser.
+     *
      * @return
      */
     public String getIdentifier() {
@@ -323,7 +345,7 @@ public class BeaconParser implements Serializable {
     /**
      * Returns a list of Bluetooth manufacturer codes which will be used for hardware-assisted
      * accelerated looking for this beacon type
-     *
+     * <p>
      * The possible codes are defined on this list:
      * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
      *
@@ -336,10 +358,9 @@ public class BeaconParser implements Serializable {
     /**
      * Sets a list of Bluetooth manufacturer codes which will be used for hardware-assisted
      * accelerated looking for this beacon type
-     *
+     * <p>
      * The possible codes are defined on this list:
      * https://www.bluetooth.org/en-us/specification/assigned-numbers/company-identifiers
-     *
      */
     public void setHardwareAssistManufacturerCodes(int[] manufacturers) {
         mHardwareAssistManufacturers = manufacturers;
@@ -349,6 +370,7 @@ public class BeaconParser implements Serializable {
      * Setting to true indicates that packets should be rejected if the PDU length is too short for
      * the fields.  Some beacons transmit malformed PDU packets that understate their length, so
      * this defaults to false.
+     *
      * @param enabled
      */
     public void setAllowPduOverflow(Boolean enabled) {
@@ -356,15 +378,21 @@ public class BeaconParser implements Serializable {
     }
 
     /**
-     * @see #mMatchingBeaconTypeCode
      * @return
+     * @see #mMatchingBeaconTypeCode
      */
     public Long getMatchingBeaconTypeCode() {
         return mMatchingBeaconTypeCode;
     }
 
+    public BeaconParser setMatchingBeaconTypeCode(Long typeCode) {
+        mMatchingBeaconTypeCode = typeCode;
+        return this;
+    }
+
     /**
      * see #mMatchingBeaconTypeCodeStartOffset
+     *
      * @return
      */
     public int getMatchingBeaconTypeCodeStartOffset() {
@@ -373,16 +401,16 @@ public class BeaconParser implements Serializable {
 
     /**
      * see #mMatchingBeaconTypeCodeEndOffset
+     *
      * @return
      */
     public int getMatchingBeaconTypeCodeEndOffset() {
         return mMatchingBeaconTypeCodeEndOffset;
     }
 
-
     /**
-     * @see #mServiceUuid
      * @return
+     * @see #mServiceUuid
      */
     public Long getServiceUuid() {
         return mServiceUuid;
@@ -390,6 +418,7 @@ public class BeaconParser implements Serializable {
 
     /**
      * see #mServiceUuidStartOffset
+     *
      * @return
      */
     public int getMServiceUuidStartOffset() {
@@ -398,20 +427,20 @@ public class BeaconParser implements Serializable {
 
     /**
      * see #mServiceUuidEndOffset
+     *
      * @return
      */
     public int getServiceUuidEndOffset() {
         return mServiceUuidEndOffset;
     }
 
-
     /**
      * Construct a Beacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
      * including the raw Bluetooth device info
      *
      * @param scanData The actual packet bytes
-     * @param rssi The measured signal strength of the packet
-     * @param device The Bluetooth device that was detected
+     * @param rssi     The measured signal strength of the packet
+     * @param device   The Bluetooth device that was detected
      * @return An instance of a <code>Beacon</code>
      */
     public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
@@ -426,7 +455,7 @@ public class BeaconParser implements Serializable {
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         ArrayList<Long> dataFields = new ArrayList<Long>();
 
-        for (Pdu pdu: advert.getPdus()) {
+        for (Pdu pdu : advert.getPdus()) {
             if (pdu.getType() == Pdu.GATT_SERVICE_UUID_PDU_TYPE ||
                     pdu.getType() == Pdu.MANUFACTURER_DATA_PDU_TYPE) {
                 pduToParse = pdu;
@@ -434,8 +463,7 @@ public class BeaconParser implements Serializable {
                     LogManager.d(TAG, "Processing pdu type %02X: %s with startIndex: %d, endIndex: %d", pdu.getType(), bytesToHex(bytesToProcess), pdu.getStartIndex(), pdu.getEndIndex());
                 }
                 break;
-            }
-            else {
+            } else {
                 if (LogManager.isVerboseLoggingEnabled()) {
                     LogManager.d(TAG, "Ignoring pdu type %02X", pdu.getType());
                 }
@@ -446,8 +474,7 @@ public class BeaconParser implements Serializable {
                 LogManager.d(TAG, "No PDUs to process in this packet.");
             }
             parseFailed = true;
-        }
-        else {
+        } else {
             byte[] serviceUuidBytes = null;
             byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset - mMatchingBeaconTypeCodeStartOffset + 1);
             if (getServiceUuid() != null) {
@@ -488,7 +515,7 @@ public class BeaconParser implements Serializable {
                     }
                 }
                 parseFailed = true;
-                beacon =  null;
+                beacon = null;
             } else {
                 if (LogManager.isVerboseLoggingEnabled()) {
                     LogManager.d(TAG, "This is a recognized beacon advertisement -- %s seen",
@@ -498,41 +525,39 @@ public class BeaconParser implements Serializable {
             }
 
             if (patternFound) {
-                if (bytesToProcess.length <= startByte+mLayoutSize && mAllowPduOverflow) {
+                if (bytesToProcess.length <= startByte + mLayoutSize && mAllowPduOverflow) {
                     // If the layout size is bigger than this PDU, and we allow overflow.  Make sure
                     // the byte buffer is big enough by zero padding the end so we don't try to read
                     // outside the byte array of the advertisement
                     if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "Expanding buffer because it is too short to parse: "+bytesToProcess.length+", needed: "+(startByte+mLayoutSize));
+                        LogManager.d(TAG, "Expanding buffer because it is too short to parse: " + bytesToProcess.length + ", needed: " + (startByte + mLayoutSize));
                     }
-                    bytesToProcess = ensureMaxSize(bytesToProcess, startByte+mLayoutSize);
+                    bytesToProcess = ensureMaxSize(bytesToProcess, startByte + mLayoutSize);
                 }
                 for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
                     int endIndex = mIdentifierEndOffsets.get(i) + startByte;
 
                     if (endIndex > pduToParse.getEndIndex() && mIdentifierVariableLengthFlags.get(i)) {
                         if (LogManager.isVerboseLoggingEnabled()) {
-                            LogManager.d(TAG, "Need to truncate identifier by "+(endIndex-pduToParse.getEndIndex()));
+                            LogManager.d(TAG, "Need to truncate identifier by " + (endIndex - pduToParse.getEndIndex()));
                         }
                         // If this is a variable length identifier, we truncate it to the size that
                         // is available in the packet
                         int start = mIdentifierStartOffsets.get(i) + startByte;
-                        int end = pduToParse.getEndIndex()+1;
+                        int end = pduToParse.getEndIndex() + 1;
                         if (end <= start) {
                             LogManager.d(TAG, "PDU is too short for identifer.  Packet is malformed");
                             return null;
                         }
                         Identifier identifier = Identifier.fromBytes(bytesToProcess, start, end, mIdentifierLittleEndianFlags.get(i));
                         identifiers.add(identifier);
-                    }
-                    else if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
+                    } else if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
                         parseFailed = true;
                         if (LogManager.isVerboseLoggingEnabled()) {
-                            LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                            LogManager.d(TAG, "Cannot parse identifier " + i + " because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
                         }
-                    }
-                    else {
-                        Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex+1, mIdentifierLittleEndianFlags.get(i));
+                    } else {
+                        Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex + 1, mIdentifierLittleEndianFlags.get(i));
                         identifiers.add(identifier);
                     }
                 }
@@ -540,11 +565,10 @@ public class BeaconParser implements Serializable {
                     int endIndex = mDataEndOffsets.get(i) + startByte;
                     if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
                         if (LogManager.isVerboseLoggingEnabled()) {
-                            LogManager.d(TAG, "Cannot parse data field "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex()+".  Setting value to 0");
+                            LogManager.d(TAG, "Cannot parse data field " + i + " because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex() + ".  Setting value to 0");
                         }
                         dataFields.add(new Long(0l));
-                    }
-                    else {
+                    } else {
                         String dataString = byteArrayToFormattedString(bytesToProcess, mDataStartOffsets.get(i) + startByte, endIndex, mDataLittleEndianFlags.get(i));
                         dataFields.add(Long.decode(dataString));
                     }
@@ -559,21 +583,18 @@ public class BeaconParser implements Serializable {
                             if (LogManager.isVerboseLoggingEnabled()) {
                                 LogManager.d(TAG, "Cannot parse power field because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
                             }
-                        }
-                        else {
+                        } else {
                             String powerString = byteArrayToFormattedString(bytesToProcess, mPowerStartOffset + startByte, mPowerEndOffset + startByte, false);
-                            txPower = Integer.parseInt(powerString)+mDBmCorrection;
+                            txPower = Integer.parseInt(powerString) + mDBmCorrection;
                             // make sure it is a signed integer
                             if (txPower > 127) {
                                 txPower -= 256;
                             }
                             beacon.mTxPower = txPower;
                         }
-                    }
-                    catch (NumberFormatException e1) {
+                    } catch (NumberFormatException e1) {
                         // keep default value
-                    }
-                    catch (NullPointerException e2) {
+                    } catch (NullPointerException e2) {
                         // keep default value
                     }
                 }
@@ -582,15 +603,14 @@ public class BeaconParser implements Serializable {
 
         if (parseFailed) {
             beacon = null;
-        }
-        else {
+        } else {
             int beaconTypeCode = 0;
-            String beaconTypeString = byteArrayToFormattedString(bytesToProcess, mMatchingBeaconTypeCodeStartOffset+startByte, mMatchingBeaconTypeCodeEndOffset+startByte, false);
+            String beaconTypeString = byteArrayToFormattedString(bytesToProcess, mMatchingBeaconTypeCodeStartOffset + startByte, mMatchingBeaconTypeCodeEndOffset + startByte, false);
             beaconTypeCode = Integer.parseInt(beaconTypeString);
             // TODO: error handling needed on the parse
 
             int manufacturer = 0;
-            String manufacturerString = byteArrayToFormattedString(bytesToProcess, startByte, startByte+1, true);
+            String manufacturerString = byteArrayToFormattedString(bytesToProcess, startByte, startByte + 1, true);
             manufacturer = Integer.parseInt(manufacturerString);
 
             String macAddress = null;
@@ -606,13 +626,12 @@ public class BeaconParser implements Serializable {
             beacon.mBeaconTypeCode = beaconTypeCode;
             if (mServiceUuid != null) {
                 beacon.mServiceUuid = (int) mServiceUuid.longValue();
-            }
-            else {
+            } else {
                 beacon.mServiceUuid = -1;
             }
 
             beacon.mBluetoothAddress = macAddress;
-            beacon.mBluetoothName= name;
+            beacon.mBluetoothName = name;
             beacon.mManufacturer = manufacturer;
             beacon.mParserIdentifier = mIdentifier;
             beacon.mMultiFrameBeacon = extraParsers.size() > 0 || mExtraFrame;
@@ -622,6 +641,7 @@ public class BeaconParser implements Serializable {
 
     /**
      * Get BLE advertisement bytes for a Beacon
+     *
      * @param beacon the beacon containing the data to be transmitted
      * @return the byte array of the advertisement
      */
@@ -630,7 +650,7 @@ public class BeaconParser implements Serializable {
         byte[] advertisingBytes;
 
         if (beacon.getIdentifiers().size() != getIdentifierCount()) {
-            throw new IllegalArgumentException("Beacon has "+beacon.getIdentifiers().size()+" identifiers but format requires "+getIdentifierCount());
+            throw new IllegalArgumentException("Beacon has " + beacon.getIdentifiers().size() + " identifiers but format requires " + getIdentifierCount());
         }
 
         int lastIndex = -1;
@@ -655,7 +675,7 @@ public class BeaconParser implements Serializable {
         int adjustedIdentifiersLength = 0;
         for (int identifierNum = 0; identifierNum < this.mIdentifierStartOffsets.size(); identifierNum++) {
             if (mIdentifierVariableLengthFlags.get(identifierNum)) {
-                int declaredIdentifierLength = (this.mIdentifierEndOffsets.get(identifierNum) - this.mIdentifierStartOffsets.get(identifierNum)+1);
+                int declaredIdentifierLength = (this.mIdentifierEndOffsets.get(identifierNum) - this.mIdentifierStartOffsets.get(identifierNum) + 1);
                 int actualIdentifierLength = beacon.getIdentifier(identifierNum).getByteCount();
                 adjustedIdentifiersLength += actualIdentifierLength;
                 adjustedIdentifiersLength -= declaredIdentifierLength;
@@ -663,13 +683,13 @@ public class BeaconParser implements Serializable {
         }
         lastIndex += adjustedIdentifiersLength;
 
-        advertisingBytes = new byte[lastIndex+1-2];
+        advertisingBytes = new byte[lastIndex + 1 - 2];
         long beaconTypeCode = this.getMatchingBeaconTypeCode();
 
         // set type code
         for (int index = this.mMatchingBeaconTypeCodeStartOffset; index <= this.mMatchingBeaconTypeCodeEndOffset; index++) {
-            byte value = (byte) (this.getMatchingBeaconTypeCode() >> (8*(this.mMatchingBeaconTypeCodeEndOffset-index)) & 0xff);
-            advertisingBytes[index-2] = value;
+            byte value = (byte) (this.getMatchingBeaconTypeCode() >> (8 * (this.mMatchingBeaconTypeCodeEndOffset - index)) & 0xff);
+            advertisingBytes[index - 2] = value;
         }
 
         // set identifiers
@@ -683,41 +703,37 @@ public class BeaconParser implements Serializable {
                     // Pad it, but only if this is not a variable length identifier
                     if (mIdentifierLittleEndianFlags.get(identifierNum)) {
                         // this is little endian.  Pad at the end of the array
-                        identifierBytes = Arrays.copyOf(identifierBytes,getIdentifierByteCount(identifierNum));
-                    }
-                    else {
+                        identifierBytes = Arrays.copyOf(identifierBytes, getIdentifierByteCount(identifierNum));
+                    } else {
                         // this is big endian.  Pad at the beginning of the array
                         byte[] newIdentifierBytes = new byte[getIdentifierByteCount(identifierNum)];
-                        System.arraycopy(identifierBytes, 0, newIdentifierBytes, getIdentifierByteCount(identifierNum)-identifierBytes.length, identifierBytes.length);
+                        System.arraycopy(identifierBytes, 0, newIdentifierBytes, getIdentifierByteCount(identifierNum) - identifierBytes.length, identifierBytes.length);
                         identifierBytes = newIdentifierBytes;
                     }
                 }
-                LogManager.d(TAG, "Expanded identifier because it is too short.  It is now: "+byteArrayToString(identifierBytes));
-            }
-            else if (identifierBytes.length > getIdentifierByteCount(identifierNum)) {
+                LogManager.d(TAG, "Expanded identifier because it is too short.  It is now: " + byteArrayToString(identifierBytes));
+            } else if (identifierBytes.length > getIdentifierByteCount(identifierNum)) {
                 if (mIdentifierLittleEndianFlags.get(identifierNum)) {
                     // Truncate it at the beginning for big endian
-                    identifierBytes = Arrays.copyOfRange(identifierBytes, getIdentifierByteCount(identifierNum)-identifierBytes.length, getIdentifierByteCount(identifierNum));
-                }
-                else {
+                    identifierBytes = Arrays.copyOfRange(identifierBytes, getIdentifierByteCount(identifierNum) - identifierBytes.length, getIdentifierByteCount(identifierNum));
+                } else {
                     // Truncate it at the end for little endian
-                    identifierBytes = Arrays.copyOf(identifierBytes,getIdentifierByteCount(identifierNum));
+                    identifierBytes = Arrays.copyOf(identifierBytes, getIdentifierByteCount(identifierNum));
                 }
-                LogManager.d(TAG, "Truncated identifier because it is too long.  It is now: "+byteArrayToString(identifierBytes));
+                LogManager.d(TAG, "Truncated identifier because it is too long.  It is now: " + byteArrayToString(identifierBytes));
+            } else {
+                LogManager.d(TAG, "Identifier size is just right: " + byteArrayToString(identifierBytes));
             }
-            else {
-                LogManager.d(TAG, "Identifier size is just right: "+byteArrayToString(identifierBytes));
-            }
-            for (int index = this.mIdentifierStartOffsets.get(identifierNum); index <= this.mIdentifierStartOffsets.get(identifierNum)+identifierBytes.length-1; index ++) {
-                advertisingBytes[index-2] = (byte) identifierBytes[index-this.mIdentifierStartOffsets.get(identifierNum)];
+            for (int index = this.mIdentifierStartOffsets.get(identifierNum); index <= this.mIdentifierStartOffsets.get(identifierNum) + identifierBytes.length - 1; index++) {
+                advertisingBytes[index - 2] = (byte) identifierBytes[index - this.mIdentifierStartOffsets.get(identifierNum)];
             }
         }
 
         // set power
 
         if (this.mPowerStartOffset != null && this.mPowerEndOffset != null) {
-            for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
-                advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
+            for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index++) {
+                advertisingBytes[index - 2] = (byte) (beacon.getTxPower() >> (8 * (index - this.mPowerStartOffset)) & 0xff);
             }
         }
 
@@ -725,24 +741,20 @@ public class BeaconParser implements Serializable {
         for (int dataFieldNum = 0; dataFieldNum < this.mDataStartOffsets.size(); dataFieldNum++) {
             long dataField = beacon.getDataFields().get(dataFieldNum);
             int dataFieldLength = this.mDataEndOffsets.get(dataFieldNum) - this.mDataStartOffsets.get(dataFieldNum);
-            for (int index = 0; index <= dataFieldLength; index ++) {
+            for (int index = 0; index <= dataFieldLength; index++) {
                 int endianCorrectedIndex = index;
                 if (!this.mDataLittleEndianFlags.get(dataFieldNum)) {
-                    endianCorrectedIndex = dataFieldLength-index;
+                    endianCorrectedIndex = dataFieldLength - index;
                 }
-                advertisingBytes[this.mDataStartOffsets.get(dataFieldNum)-2+endianCorrectedIndex] = (byte) (dataField >> (8*index) & 0xff);
+                advertisingBytes[this.mDataStartOffsets.get(dataFieldNum) - 2 + endianCorrectedIndex] = (byte) (dataField >> (8 * index) & 0xff);
             }
         }
         return advertisingBytes;
     }
 
-    public BeaconParser setMatchingBeaconTypeCode(Long typeCode) {
-        mMatchingBeaconTypeCode = typeCode;
-        return this;
-    }
-
     /**
      * Caclculates the byte size of the specified identifier in this format
+     *
      * @param identifierNum
      * @return bytes
      */
@@ -775,40 +787,10 @@ public class BeaconParser implements Serializable {
      * @return the correction value in dBm to apply to the calibrated txPower to get a 1m calibrated value.
      * Some formats like Eddystone use a 0m calibrated value, which requires this correction
      */
-    public int getPowerCorrection() { return mDBmCorrection; }
-
-    protected static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        int v;
-        for ( int j = 0; j < bytes.length; j++ ) {
-            v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars);
+    public int getPowerCorrection() {
+        return mDBmCorrection;
     }
 
-    public static class BeaconLayoutException extends RuntimeException {
-        public BeaconLayoutException(String s) {
-        super(s);
-        }
-    }
-
-    public static byte[] longToByteArray(long longValue, int length) {
-        return longToByteArray(longValue, length, true);
-    }
-
-    public static byte[] longToByteArray(long longValue, int length, boolean bigEndian) {
-        byte[] array = new byte[length];
-        for (int i = 0; i < length; i++){
-            int adjustedI = bigEndian ? i : length - i -1;
-            long mask = 0xffl << (length-adjustedI-1)*8;
-            long shift = (length-adjustedI-1)*8;
-            long value = ((longValue & mask)  >> shift);
-            array[i] = (byte) value;
-        }
-        return array;
-    }
     private int calculateLayoutSize() {
         int lastEndOffset = 0;
         if (mIdentifierEndOffsets != null) {
@@ -825,13 +807,13 @@ public class BeaconParser implements Serializable {
                 }
             }
         }
-        if (mPowerEndOffset != null && mPowerEndOffset > lastEndOffset ) {
+        if (mPowerEndOffset != null && mPowerEndOffset > lastEndOffset) {
             lastEndOffset = mPowerEndOffset;
         }
         if (mServiceUuidEndOffset != null && mServiceUuidEndOffset > lastEndOffset) {
             lastEndOffset = mServiceUuidEndOffset;
         }
-        return lastEndOffset+1;
+        return lastEndOffset + 1;
     }
 
     private boolean byteArraysMatch(byte[] source, int offset, byte[] expected) {
@@ -839,7 +821,7 @@ public class BeaconParser implements Serializable {
         if (source.length - offset < length) {
             return false;
         }
-        for (int i = 0; i <  length; i++) {
+        for (int i = 0; i < length; i++) {
             if (source[offset + i] != expected[i]) {
                 return false;
             }
@@ -857,27 +839,26 @@ public class BeaconParser implements Serializable {
     }
 
     private String byteArrayToFormattedString(byte[] byteBuffer, int startIndex, int endIndex, boolean littleEndian) {
-        byte[] bytes = new byte[endIndex-startIndex+1];
+        byte[] bytes = new byte[endIndex - startIndex + 1];
         if (littleEndian) {
-            for (int i = 0; i <= endIndex-startIndex; i++) {
-                bytes[i] = byteBuffer[startIndex+bytes.length-1-i];
+            for (int i = 0; i <= endIndex - startIndex; i++) {
+                bytes[i] = byteBuffer[startIndex + bytes.length - 1 - i];
             }
-        }
-        else {
-            for (int i = 0; i <= endIndex-startIndex; i++) {
-                bytes[i] = byteBuffer[startIndex+i];
+        } else {
+            for (int i = 0; i <= endIndex - startIndex; i++) {
+                bytes[i] = byteBuffer[startIndex + i];
             }
         }
 
 
-        int length = endIndex-startIndex +1;
+        int length = endIndex - startIndex + 1;
         // We treat a 1-4 byte number as decimal string
         if (length < 5) {
             long number = 0l;
-            for (int i = 0; i < bytes.length; i++)  {
-                long byteValue = (long) (bytes[bytes.length - i-1] & 0xff);
-                long positionValue = (long) Math.pow(256.0,i*1.0);
-                long calculatedValue =  (byteValue * positionValue);
+            for (int i = 0; i < bytes.length; i++) {
+                long byteValue = (long) (bytes[bytes.length - i - 1] & 0xff);
+                long positionValue = (long) Math.pow(256.0, i * 1.0);
+                long calculatedValue = (byteValue * positionValue);
                 number += calculatedValue;
             }
             return Long.toString(number);
@@ -889,18 +870,18 @@ public class BeaconParser implements Serializable {
         // And if it is a 12 byte number we add dashes to it to make it look like a standard UUID
         if (bytes.length == 16) {
             StringBuilder sb = new StringBuilder();
-            sb.append(hexString.substring(0,8));
+            sb.append(hexString.substring(0, 8));
             sb.append("-");
-            sb.append(hexString.substring(8,12));
+            sb.append(hexString.substring(8, 12));
             sb.append("-");
-            sb.append(hexString.substring(12,16));
+            sb.append(hexString.substring(12, 16));
             sb.append("-");
-            sb.append(hexString.substring(16,20));
+            sb.append(hexString.substring(16, 20));
             sb.append("-");
-            sb.append(hexString.substring(20,32));
+            sb.append(hexString.substring(20, 32));
             return sb.toString();
         }
-        return "0x"+hexString;
+        return "0x" + hexString;
     }
 
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
@@ -913,30 +894,30 @@ public class BeaconParser implements Serializable {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[] {
-                mMatchingBeaconTypeCode,
-                mIdentifierStartOffsets,
-                mIdentifierEndOffsets,
-                mIdentifierLittleEndianFlags,
-                mDataStartOffsets,
-                mDataEndOffsets,
-                mDataLittleEndianFlags,
-                mIdentifierVariableLengthFlags,
-                mMatchingBeaconTypeCodeStartOffset,
-                mMatchingBeaconTypeCodeEndOffset,
-                mServiceUuidStartOffset,
-                mServiceUuidEndOffset,
-                mServiceUuid,
-                mExtraFrame,
-                mPowerStartOffset,
-                mPowerEndOffset,
-                mDBmCorrection,
-                mLayoutSize,
-                mAllowPduOverflow,
-                mIdentifier,
-                mHardwareAssistManufacturers,
-                extraParsers
-            }
+        return Arrays.hashCode(new Object[]{
+                        mMatchingBeaconTypeCode,
+                        mIdentifierStartOffsets,
+                        mIdentifierEndOffsets,
+                        mIdentifierLittleEndianFlags,
+                        mDataStartOffsets,
+                        mDataEndOffsets,
+                        mDataLittleEndianFlags,
+                        mIdentifierVariableLengthFlags,
+                        mMatchingBeaconTypeCodeStartOffset,
+                        mMatchingBeaconTypeCodeEndOffset,
+                        mServiceUuidStartOffset,
+                        mServiceUuidEndOffset,
+                        mServiceUuid,
+                        mExtraFrame,
+                        mPowerStartOffset,
+                        mPowerEndOffset,
+                        mDBmCorrection,
+                        mLayoutSize,
+                        mAllowPduOverflow,
+                        mIdentifier,
+                        mHardwareAssistManufacturers,
+                        extraParsers
+                }
         );
     }
 
@@ -950,9 +931,15 @@ public class BeaconParser implements Serializable {
                     return true;
                 }
             }
+        } catch (ClassCastException e) {
         }
-        catch (ClassCastException e ) { }
         return false;
+    }
+
+    public static class BeaconLayoutException extends RuntimeException {
+        public BeaconLayoutException(String s) {
+            super(s);
+        }
     }
 
 }

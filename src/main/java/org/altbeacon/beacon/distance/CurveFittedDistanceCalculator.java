@@ -1,17 +1,16 @@
 package org.altbeacon.beacon.distance;
 
-import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
 /**
  * This class estimates the distance between the mobile device and a BLE beacon based on the measured
  * RSSI and a txPower calibration value that represents the expected RSSI for an iPhone 5 receiving
  * the signal when it is 1 meter away.
- *
+ * <p>
  * This class uses a best-fit curve equation with configurable coefficients.  The coefficients must
  * be supplied by the caller and are specific to the Android device being used.  See the
  * <code>ModelSpecificDistanceCalculator</code> for more information on the coefficients.
- *
+ * <p>
  * Created by dyoung on 8/28/14.
  */
 public class CurveFittedDistanceCalculator implements DistanceCalculator {
@@ -51,13 +50,12 @@ public class CurveFittedDistanceCalculator implements DistanceCalculator {
         LogManager.d(TAG, "calculating distance based on mRssi of %s and txPower of %s", rssi, txPower);
 
 
-        double ratio = rssi*1.0/txPower;
+        double ratio = rssi * 1.0 / txPower;
         double distance;
         if (ratio < 1.0) {
-            distance =  Math.pow(ratio,10);
-        }
-        else {
-            distance =  (mCoefficient1)*Math.pow(ratio,mCoefficient2) + mCoefficient3;
+            distance = Math.pow(ratio, 10);
+        } else {
+            distance = (mCoefficient1) * Math.pow(ratio, mCoefficient2) + mCoefficient3;
         }
         LogManager.d(TAG, "avg mRssi: %s distance: %s", rssi, distance);
         return distance;

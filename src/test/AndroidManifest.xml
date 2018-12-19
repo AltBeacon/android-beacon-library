@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.altbeacon.beacon"
+          package="org.altbeacon.beacon"
     >
 
     <uses-permission android:name="android.permission.BLUETOOTH"/>
@@ -15,14 +15,16 @@
             </intent-filter>
         </receiver>
 
-        <service android:enabled="true"
+        <service
+            android:name=".service.BeaconService"
+            android:enabled="true"
             android:exported="false"
             android:isolatedProcess="false"
             android:label="beacon"
-            android:name=".service.BeaconService"
             />
 
-        <service android:name=".BeaconIntentProcessor"
+        <service
+            android:name=".BeaconIntentProcessor"
             android:enabled="true"
             android:exported="false"
             />

@@ -27,34 +27,34 @@ import java.util.concurrent.locks.ReentrantLock;
  * Obtains a <code>DistanceCalculator</code> appropriate for a specific Android model.  Each model
  * may have a different Bluetooth chipset, radio and antenna and sees a different signal level
  * at the same distance, therefore requiring a different equation coefficients for each model.
- *
+ * <p>
  * This class uses a configuration table to look for a matching Android device model for which
  * coefficients are known.  If an exact match cannot be found, this class will attempt to find the
  * closest match possible based on the assumption that an unknown model made by Samsung, for example
  * might have a different signal response as a known device model also made by Samsung.
- *
+ * <p>
  * If no match can be found at all, the device model marked as the default will be used for the
  * calculation.
- *
+ * <p>
  * The configuration table is stored in model-distance-calculations.json
- *
+ * <p>
  * For information on how to get new Android device models added to this table, please
  * see <a href='http://altbeacon.github.io/android-beacon-library/distance-calculations.html'
  * Optimizing Distance Calculations</a>
- *
+ * <p>
  * Created by dyoung on 8/28/14.
  */
 public class ModelSpecificDistanceCalculator implements DistanceCalculator {
-    Map<AndroidModel,DistanceCalculator> mModelMap;
     private static final String CONFIG_FILE = "model-distance-calculations.json";
     private static final String TAG = "ModelSpecificDistanceCalculator";
+    private final ReentrantLock mLock = new ReentrantLock();
+    Map<AndroidModel, DistanceCalculator> mModelMap;
     private AndroidModel mDefaultModel;
     private DistanceCalculator mDistanceCalculator;
     private AndroidModel mModel;
     private AndroidModel mRequestedModel;
     private String mRemoteUpdateUrlString = null;
     private Context mContext;
-    private final ReentrantLock mLock = new ReentrantLock();
 
     /**
      * Obtains the best possible <code>DistanceCalculator</code> for the Android device calling
@@ -168,21 +168,24 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             while ((line = reader.readLine()) != null) {
                 sb.append(line).append("\n");
             }
-        }
-        catch (FileNotFoundException fnfe){
+        } catch (FileNotFoundException fnfe) {
             //This occurs on the first time the app is run, no error message necessary.
             return false;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             LogManager.e(e, TAG, "Cannot open distance model file %s", file);
             return false;
-        }
-        finally {
+        } finally {
             if (reader != null) {
-                try { reader.close(); } catch (Exception e2) {}
+                try {
+                    reader.close();
+                } catch (Exception e2) {
+                }
             }
             if (inputStream != null) {
-                try { inputStream.close(); } catch (Exception e2) {}
+                try {
+                    inputStream.close();
+                } catch (Exception e2) {
+                }
             }
         }
         try {
@@ -210,12 +213,11 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         } catch (Exception e) {
             LogManager.w(e, TAG, "Cannot write updated distance model to local storage");
             return false;
-        }
-        finally {
+        } finally {
             try {
                 if (outputStream != null) outputStream.close();
+            } catch (Exception e) {
             }
-            catch (Exception e) {}
         }
         LogManager.i(TAG, "Successfully saved new distance model file");
         return true;
@@ -231,32 +233,30 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
 
         new ModelSpecificDistanceUpdater(mContext, mRemoteUpdateUrlString,
                 new ModelSpecificDistanceUpdater.CompletionHandler() {
-            @Override
-            public void onComplete(String body, Exception ex, int code) {
-                if (ex != null) {
-                    LogManager.w(TAG, "Cannot updated distance models from online database at %s",
-                            ex, mRemoteUpdateUrlString);
-                }
-                else if (code != 200) {
-                    LogManager.w(TAG, "Cannot updated distance models from online database at %s "
-                            + "due to HTTP status code %s", mRemoteUpdateUrlString, code);
-                }
-                else {
-                    LogManager.d(TAG,
-                            "Successfully downloaded distance models from online database");
-                    try {
-                        buildModelMapWithLock(body);
-                        if (saveJson(body)) {
-                            loadModelMapFromFile();
-                            mDistanceCalculator = findCalculatorForModelWithLock(mRequestedModel);
-                            LogManager.i(TAG, "Successfully updated distance model with latest from online database");
+                    @Override
+                    public void onComplete(String body, Exception ex, int code) {
+                        if (ex != null) {
+                            LogManager.w(TAG, "Cannot updated distance models from online database at %s",
+                                    ex, mRemoteUpdateUrlString);
+                        } else if (code != 200) {
+                            LogManager.w(TAG, "Cannot updated distance models from online database at %s "
+                                    + "due to HTTP status code %s", mRemoteUpdateUrlString, code);
+                        } else {
+                            LogManager.d(TAG,
+                                    "Successfully downloaded distance models from online database");
+                            try {
+                                buildModelMapWithLock(body);
+                                if (saveJson(body)) {
+                                    loadModelMapFromFile();
+                                    mDistanceCalculator = findCalculatorForModelWithLock(mRequestedModel);
+                                    LogManager.i(TAG, "Successfully updated distance model with latest from online database");
+                                }
+                            } catch (JSONException e) {
+                                LogManager.w(e, TAG, "Cannot parse json from downloaded distance model");
+                            }
                         }
-                    } catch (JSONException e) {
-                        LogManager.w(e, TAG, "Cannot parse json from downloaded distance model");
                     }
-                }
-            }
-        }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     void buildModelMapWithLock(String jsonString) throws JSONException {
@@ -287,7 +287,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             String manufacturer = modelObject.getString("manufacturer");
 
             CurveFittedDistanceCalculator distanceCalculator =
-                    new CurveFittedDistanceCalculator(coefficient1,coefficient2,coefficient3);
+                    new CurveFittedDistanceCalculator(coefficient1, coefficient2, coefficient3);
 
             AndroidModel androidModel = new AndroidModel(version, buildNumber, model, manufacturer);
             map.put(androidModel, distanceCalculator);
@@ -301,8 +301,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private void loadDefaultModelMap() {
         try {
             buildModelMap(stringFromFilePath(CONFIG_FILE));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             mModelMap = new HashMap<AndroidModel, DistanceCalculator>();
             LogManager.e(e, TAG, "Cannot build model distance calculations");
         }
@@ -323,12 +322,12 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
             }
             bufferedReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
             String line = bufferedReader.readLine();
-            while(line != null){
-                inputStringBuilder.append(line);inputStringBuilder.append('\n');
+            while (line != null) {
+                inputStringBuilder.append(line);
+                inputStringBuilder.append('\n');
                 line = bufferedReader.readLine();
             }
-        }
-        finally {
+        } finally {
             if (bufferedReader != null) {
                 bufferedReader.close();
             }

@@ -3,7 +3,7 @@
  * http://www.radiusnetworks.com
  *
  * @author David G. Young
- *
+ * <p>
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -11,9 +11,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,7 +24,6 @@
 package org.altbeacon.beacon;
 
 import android.bluetooth.BluetoothDevice;
-import android.util.Log;
 
 /**
  * A specific beacon parser designed to parse only AltBeacons from raw BLE packets detected by
@@ -53,6 +52,7 @@ public class AltBeaconParser extends BeaconParser {
         this.setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT);
         this.mIdentifier = "altbeacon";
     }
+
     /**
      * Construct an AltBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
      * including the raw Bluetooth device info

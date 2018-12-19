@@ -14,16 +14,16 @@ import java.util.Set;
  * Converts internal Intents for ranging/monitoring to notifier callbacks.
  * These may be local broadcast intents from BeaconLocalBroadcastProcessor or
  * global broadcast intents fro BeaconIntentProcessor
- *
+ * <p>
  * Internal library class.  Do not use directly from outside the library
  *
- * @hide
- * Created by dyoung on 7/20/17.
+ * @hide Created by dyoung on 7/20/17.
  */
 
 /* package private*/
 class IntentHandler {
     private static final String TAG = IntentHandler.class.getSimpleName();
+
     public void convertIntentsToCallbacks(Context context, Intent intent) {
         MonitoringData monitoringData = null;
         RangingData rangingData = null;
@@ -45,11 +45,10 @@ class IntentHandler {
             Set<RangeNotifier> notifiers = BeaconManager.getInstanceForApplication(context).getRangingNotifiers();
             java.util.Collection<Beacon> beacons = rangingData.getBeacons();
             if (notifiers != null) {
-                for(RangeNotifier notifier : notifiers){
+                for (RangeNotifier notifier : notifiers) {
                     notifier.didRangeBeaconsInRegion(beacons, rangingData.getRegion());
                 }
-            }
-            else {
+            } else {
                 LogManager.d(TAG, "but ranging notifier is null, so we're dropping it.");
             }
             RangeNotifier dataNotifier = BeaconManager.getInstanceForApplication(context).getDataRequestNotifier();
@@ -62,7 +61,7 @@ class IntentHandler {
             LogManager.d(TAG, "got monitoring data");
             Set<MonitorNotifier> notifiers = BeaconManager.getInstanceForApplication(context).getMonitoringNotifiers();
             if (notifiers != null) {
-                for(MonitorNotifier notifier : notifiers) {
+                for (MonitorNotifier notifier : notifiers) {
                     LogManager.d(TAG, "Calling monitoring notifier: %s", notifier);
                     Region region = monitoringData.getRegion();
                     Integer state = monitoringData.isInside() ? MonitorNotifier.INSIDE :

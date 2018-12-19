@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Created by dyoung on 3/10/17.
- *
+ * <p>
  * Internal class used to transfer settings between the BeaconService and the client
  *
  * @hide
@@ -38,11 +38,6 @@ public class SettingsData implements Serializable {
     //        BeaconManager.setBeaconSimulator(...)
     //        beaconManager.setNonBeaconLeScanCallback(...)
 
-    public Bundle toBundle() {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(SETTINGS_DATA_KEY, this);
-        return bundle;
-    }
     public static SettingsData fromBundle(@NonNull Bundle bundle) {
         bundle.setClassLoader(Region.class.getClassLoader());
         SettingsData settingsData = null;
@@ -50,6 +45,12 @@ public class SettingsData implements Serializable {
             settingsData = (SettingsData) bundle.getSerializable(SETTINGS_DATA_KEY);
         }
         return settingsData;
+    }
+
+    public Bundle toBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(SETTINGS_DATA_KEY, this);
+        return bundle;
     }
 
     public void apply(@NonNull BeaconService scanService) {
@@ -60,13 +61,12 @@ public class SettingsData implements Serializable {
         if (beaconParsers.size() == mBeaconParsers.size()) {
             for (int i = 0; i < beaconParsers.size(); i++) {
                 if (!beaconParsers.get(i).equals(mBeaconParsers.get(i))) {
-                    LogManager.d(TAG, "Beacon parsers have changed to: "+mBeaconParsers.get(i).getLayout());
+                    LogManager.d(TAG, "Beacon parsers have changed to: " + mBeaconParsers.get(i).getLayout());
                     beaconParsersChanged = true;
                     break;
                 }
             }
-        }
-        else {
+        } else {
             beaconParsersChanged = true;
             LogManager.d(TAG, "Beacon parsers have been added or removed.");
         }
@@ -75,16 +75,14 @@ public class SettingsData implements Serializable {
             beaconManager.getBeaconParsers().clear();
             beaconManager.getBeaconParsers().addAll(mBeaconParsers);
             scanService.reloadParsers();
-        }
-        else {
+        } else {
             LogManager.d(TAG, "Beacon parsers unchanged.");
         }
         MonitoringStatus monitoringStatus = MonitoringStatus.getInstanceForApplication(scanService);
         if (monitoringStatus.isStatePreservationOn() &&
                 !mRegionStatePersistenceEnabled) {
             monitoringStatus.stopStatusPreservation();
-        }
-        else if (!monitoringStatus.isStatePreservationOn() &&
+        } else if (!monitoringStatus.isStatePreservationOn() &&
                 mRegionStatePersistenceEnabled) {
             monitoringStatus.startStatusPreservation();
         }

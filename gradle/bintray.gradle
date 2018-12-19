@@ -16,7 +16,7 @@ bintray {
     pkg {
         repo = attr 'project_bintray_repo'
         name = attr 'name'
-        userOrg =  attr 'project_bintray_org'
+        userOrg = attr 'project_bintray_org'
         desc = attr 'project_description'
         licenses = ['Apache-2.0']
         labels = ['android', 'beacon', 'BLE', 'bluetooth']

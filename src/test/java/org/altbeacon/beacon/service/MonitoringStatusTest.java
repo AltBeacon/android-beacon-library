@@ -26,6 +26,7 @@ import static org.junit.Assert.assertEquals;
 @Config(sdk = 18)
 public class MonitoringStatusTest {
     private static final String TAG = MonitoringStatusTest.class.getSimpleName();
+
     @Before
     public void before() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -40,7 +41,7 @@ public class MonitoringStatusTest {
         Context context = ShadowApplication.getInstance().getApplicationContext();
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 50; i++) {
-            Region region = new Region(""+i, null, null, null);
+            Region region = new Region("" + i, null, null, null);
             monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
@@ -54,7 +55,7 @@ public class MonitoringStatusTest {
         Context context = ShadowApplication.getInstance().getApplicationContext();
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 51; i++) {
-            Region region = new Region(""+i, null, null, null);
+            Region region = new Region("" + i, null, null, null);
             monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
@@ -68,12 +69,12 @@ public class MonitoringStatusTest {
         Context context = ShadowApplication.getInstance().getApplicationContext();
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 50; i++) {
-            Region region = new Region(""+i, null, null, null);
+            Region region = new Region("" + i, null, null, null);
             monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
         // Set update time to one hour ago
-        monitoringStatus.updateMonitoringStatusTime(System.currentTimeMillis() - 1000*3600l);
+        monitoringStatus.updateMonitoringStatusTime(System.currentTimeMillis() - 1000 * 3600l);
         MonitoringStatus monitoringStatus2 = new MonitoringStatus(context);
         assertEquals("restored regions should be none", 0, monitoringStatus2.regions().size());
     }
@@ -86,7 +87,7 @@ public class MonitoringStatusTest {
         MonitoringStatus.getInstanceForApplication(context).clear();
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 50; i++) {
-            Region region = new Region(""+i, null, null, null);
+            Region region = new Region("" + i, null, null, null);
             monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();

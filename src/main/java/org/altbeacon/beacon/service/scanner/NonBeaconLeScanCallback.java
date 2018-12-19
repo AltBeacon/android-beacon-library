@@ -29,9 +29,9 @@ public interface NonBeaconLeScanCallback {
     /**
      * NOTE: This method is NOT called on the main UI thread.
      *
-     * @param device Identifies the remote device
-     * @param rssi The RSSI value for the remote device as reported by the
-     *             Bluetooth hardware. 0 if no RSSI value is available.
+     * @param device     Identifies the remote device
+     * @param rssi       The RSSI value for the remote device as reported by the
+     *                   Bluetooth hardware. 0 if no RSSI value is available.
      * @param scanRecord The content of the advertisement record offered by
      *                   the remote device.
      */

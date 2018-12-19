@@ -4,7 +4,7 @@ package org.altbeacon.beacon.distance;
  * Interface for a class that can estimate the distance between a mobile
  * device and a beacon based on the measured RSSI and a reference txPower
  * calibration value.
- *
+ * <p>
  * Created by dyoung on 8/28/14.
  */
 public interface DistanceCalculator {

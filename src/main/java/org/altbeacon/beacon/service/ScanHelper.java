@@ -18,9 +18,9 @@ import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.annotation.WorkerThread;
 import android.support.annotation.RestrictTo;
 import android.support.annotation.RestrictTo.Scope;
+import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -50,9 +50,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by dyoung on 6/16/17.
- *
+ * <p>
  * This is an internal utility class and should not be called directly by library users.
- *
+ * <p>
  * This encapsulates shared data and methods used by both ScanJob and BeaconService
  * that deal with the specifics of beacon scanning.
  *
@@ -61,21 +61,62 @@ import java.util.concurrent.TimeUnit;
 
 class ScanHelper {
     private static final String TAG = ScanHelper.class.getSimpleName();
+    private final Map<Region, RangeState> mRangedRegionState = new HashMap<>();
     @Nullable
     private ExecutorService mExecutor;
     private BeaconManager mBeaconManager;
     @Nullable
     private CycledLeScanner mCycledScanner;
     private MonitoringStatus mMonitoringStatus;
-    private final Map<Region, RangeState> mRangedRegionState = new HashMap<>();
     private DistinctPacketDetector mDistinctPacketDetector = new DistinctPacketDetector();
 
     @NonNull
     private ExtraDataBeaconTracker mExtraDataBeaconTracker = new ExtraDataBeaconTracker();
 
-    private Set<BeaconParser> mBeaconParsers  = new HashSet<>();
+    private Set<BeaconParser> mBeaconParsers = new HashSet<>();
     private List<Beacon> mSimulatedScanData = null;
     private Context mContext;
+    private final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
+        @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+        @Override
+        @MainThread
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            processScanResult(device, rssi, scanRecord);
+        }
+
+        @Override
+        @MainThread
+        @SuppressLint("WrongThread")
+        public void onCycleEnd() {
+            if (BeaconManager.getBeaconSimulator() != null) {
+                LogManager.d(TAG, "Beacon simulator enabled");
+                // if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
+                // it will not be used if we are not in debug mode
+                if (BeaconManager.getBeaconSimulator().getBeacons() != null) {
+                    if (0 != (mContext.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
+                        LogManager.d(TAG, "Beacon simulator returns " + BeaconManager.getBeaconSimulator().getBeacons().size() + " beacons.");
+                        for (Beacon beacon : BeaconManager.getBeaconSimulator().getBeacons()) {
+                            // This is an expensive call and we do not want to block the main thread.
+                            // But here we are in debug/test mode so we allow it on the main thread.
+                            //noinspection WrongThread
+                            processBeaconFromScan(beacon);
+                        }
+                    } else {
+                        LogManager.w(TAG, "Beacon simulations provided, but ignored because we are not running in debug mode.  Please remove beacon simulations for production.");
+                    }
+                } else {
+                    LogManager.w(TAG, "getBeacons is returning null. No simulated beacons to report.");
+                }
+            } else {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "Beacon simulator not enabled");
+                }
+            }
+            mDistinctPacketDetector.clearDetections();
+            mMonitoringStatus.updateNewlyOutside();
+            processRangeData();
+        }
+    };
 
     ScanHelper(Context context) {
         mContext = context;
@@ -96,8 +137,7 @@ class ScanHelper {
                 if (!mExecutor.awaitTermination(10, TimeUnit.MILLISECONDS)) {
                     LogManager.e(TAG, "Can't stop beacon parsing thread.");
                 }
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 LogManager.e(TAG, "Interrupted waiting to stop beacon parsing thread.");
             }
             mExecutor = null;
@@ -110,7 +150,8 @@ class ScanHelper {
         terminateThreads();
     }
 
-    @Nullable CycledLeScanner getCycledScanner() {
+    @Nullable
+    CycledLeScanner getCycledScanner() {
         return mCycledScanner;
     }
 
@@ -144,7 +185,6 @@ class ScanHelper {
     void setSimulatedScanData(List<Beacon> simulatedScanData) {
         mSimulatedScanData = simulatedScanData;
     }
-
 
     void createCycledLeScanner(boolean backgroundMode, BluetoothCrashResolver crashResolver) {
         mCycledScanner = CycledLeScanner.createScanner(mContext, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
@@ -208,8 +248,7 @@ class ScanHelper {
                     LogManager.e(TAG, "Failed to start background scan on Android O: scanner is null");
                 }
             }
-        }
-        catch (SecurityException e) {
+        } catch (SecurityException e) {
             LogManager.e(TAG, "SecurityException making Android O background scanner");
         }
     }
@@ -225,10 +264,10 @@ class ScanHelper {
             } else if (!bluetoothAdapter.isEnabled()) {
                 LogManager.w(TAG, "BluetoothAdapter is not enabled");
             } else {
-               BluetoothLeScanner scanner =  bluetoothAdapter.getBluetoothLeScanner();
-               if (scanner != null) {
-                   scanner.stopScan(getScanCallbackIntent());
-               }
+                BluetoothLeScanner scanner = bluetoothAdapter.getBluetoothLeScanner();
+                if (scanner != null) {
+                    scanner.stopScan(getScanCallbackIntent());
+                }
             }
         } catch (SecurityException e) {
             LogManager.e(TAG, "SecurityException stopping Android O background scanner");
@@ -242,51 +281,8 @@ class ScanHelper {
     PendingIntent getScanCallbackIntent() {
         Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
         intent.putExtra("o-scan", true);
-        return PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
-
-    private final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {
-        @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-        @Override
-        @MainThread
-        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            processScanResult(device, rssi, scanRecord);
-        }
-
-        @Override
-        @MainThread
-        @SuppressLint("WrongThread")
-        public void onCycleEnd() {
-            if (BeaconManager.getBeaconSimulator() != null) {
-                LogManager.d(TAG, "Beacon simulator enabled");
-                // if simulatedScanData is provided, it will be seen every scan cycle.  *in addition* to anything actually seen in the air
-                // it will not be used if we are not in debug mode
-                if (BeaconManager.getBeaconSimulator().getBeacons() != null) {
-                    if (0 != (mContext.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
-                        LogManager.d(TAG, "Beacon simulator returns "+BeaconManager.getBeaconSimulator().getBeacons().size()+" beacons.");
-                        for (Beacon beacon : BeaconManager.getBeaconSimulator().getBeacons()) {
-                            // This is an expensive call and we do not want to block the main thread.
-                            // But here we are in debug/test mode so we allow it on the main thread.
-                            //noinspection WrongThread
-                            processBeaconFromScan(beacon);
-                        }
-                    } else {
-                        LogManager.w(TAG, "Beacon simulations provided, but ignored because we are not running in debug mode.  Please remove beacon simulations for production.");
-                    }
-                } else {
-                    LogManager.w(TAG, "getBeacons is returning null. No simulated beacons to report.");
-                }
-            }
-            else {
-                if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "Beacon simulator not enabled");
-                }
-            }
-            mDistinctPacketDetector.clearDetections();
-            mMonitoringStatus.updateNewlyOutside();
-            processRangeData();
-        }
-    };
 
     @RestrictTo(Scope.TESTS)
     CycledLeScanCallback getCycledLeScanCallback() {
@@ -350,23 +346,33 @@ class ScanHelper {
         }
     }
 
+    private List<Region> matchingRegions(Beacon beacon, Collection<Region> regions) {
+        List<Region> matched = new ArrayList<>();
+        for (Region region : regions) {
+            if (region.matchesBeacon(beacon)) {
+                matched.add(region);
+            } else {
+                LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
+            }
+        }
+        return matched;
+    }
+
     /**
      * <strong>This class is not thread safe.</strong>
      */
     private class ScanData {
+        final int rssi;
+        @NonNull
+        BluetoothDevice device;
+        @NonNull
+        byte[] scanRecord;
+
         ScanData(@NonNull BluetoothDevice device, int rssi, @NonNull byte[] scanRecord) {
             this.device = device;
             this.rssi = rssi;
             this.scanRecord = scanRecord;
         }
-
-        final int rssi;
-
-        @NonNull
-        BluetoothDevice device;
-
-        @NonNull
-        byte[] scanRecord;
     }
 
     private class ScanProcessor extends AsyncTask<ScanHelper.ScanData, Void, Void> {
@@ -394,7 +400,7 @@ class ScanHelper {
             }
             if (beacon != null) {
                 if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "Beacon packet detected for: "+beacon+" with rssi "+beacon.getRssi());
+                    LogManager.d(TAG, "Beacon packet detected for: " + beacon + " with rssi " + beacon.getRssi());
                 }
                 mDetectionTracker.recordDetection();
                 if (mCycledScanner != null && !mCycledScanner.getDistinctPacketsDetectedPerScan()) {
@@ -424,18 +430,6 @@ class ScanHelper {
         @Override
         protected void onProgressUpdate(Void... values) {
         }
-    }
-
-    private List<Region> matchingRegions(Beacon beacon, Collection<Region> regions) {
-        List<Region> matched = new ArrayList<>();
-        for (Region region : regions) {
-            if (region.matchesBeacon(beacon)) {
-                matched.add(region);
-            } else {
-                LogManager.d(TAG, "This region (%s) does not match beacon: %s", region, beacon);
-            }
-        }
-        return matched;
     }
 
 }

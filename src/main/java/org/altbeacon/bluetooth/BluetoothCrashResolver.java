@@ -21,22 +21,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
  * This class provides relief for Android Bug 67272.  This bug in the Bluedroid stack causes crashes
  * in Android's BluetoothService when scanning for BLE devices encounters a large number of unique
  * devices.  It is rare for most users but can be problematic for those with apps scanning for
  * Bluetooth LE devices in the background (e.g. beacon-enabled apps), especially when these users
  * are around Bluetooth LE devices that randomize their mac address like Gimbal beacons.
- *
+ * <p>
  * This class can both recover from crashes and prevent crashes from happening in the first place.
- *
+ * <p>
  * More details on the bug can be found at the following URLs:
- *
+ * <p>
  * https://code.google.com/p/android/issues/detail?id=67272
  * https://github.com/RadiusNetworks/android-ibeacon-service/issues/16
- *
+ * <p>
  * Version 1.0
- *
+ * <p>
  * Created by dyoung on 3/24/14.
  */
 public class BluetoothCrashResolver {
@@ -46,34 +45,20 @@ public class BluetoothCrashResolver {
      * This is not the same file that Bluedroid uses.  This is just to maintain state of this module.
      */
     private static final String DISTINCT_BLUETOOTH_ADDRESSES_FILE = "BluetoothCrashResolverState.txt";
-    private boolean recoveryInProgress = false;
-    private boolean discoveryStartConfirmed = false;
-
-    private long lastBluetoothOffTime = 0l;
-    private long lastBluetoothTurningOnTime = 0l;
-    private long lastBluetoothCrashDetectionTime = 0l;
-    private int detectedCrashCount = 0;
-    private int recoveryAttemptCount = 0;
-    private boolean lastRecoverySucceeded = false;
-    private long lastStateSaveTime = 0l;
     private static final long MIN_TIME_BETWEEN_STATE_SAVES_MILLIS = 60000l;
-
-    private Context context = null;
-    private UpdateNotifier updateNotifier;
-    private final Set<String> distinctBluetoothAddresses = new HashSet<String>();
     /**
-     // It is very likely a crash if Bluetooth turns off and comes
-     // back on in an extremely short interval.  Testing on a Nexus 4 shows
-     // that when the BluetoothService crashes, the time between the STATE_OFF
-     // and the STATE_TURNING_ON ranges from 0ms-684ms
-     // Out of 3614 samples:
-     //  99.4% (3593) < 600 ms
-     //  84.7% (3060) < 500 ms
-     // So we will assume any power off sequence of < 600ms to be a crash
-     //
-     // While it is possible to manually turn Bluetooth off then back on in
-     // about 600ms, but it is pretty hard to do.
-     //
+     * // It is very likely a crash if Bluetooth turns off and comes
+     * // back on in an extremely short interval.  Testing on a Nexus 4 shows
+     * // that when the BluetoothService crashes, the time between the STATE_OFF
+     * // and the STATE_TURNING_ON ranges from 0ms-684ms
+     * // Out of 3614 samples:
+     * //  99.4% (3593) < 600 ms
+     * //  84.7% (3060) < 500 ms
+     * // So we will assume any power off sequence of < 600ms to be a crash
+     * //
+     * // While it is possible to manually turn Bluetooth off then back on in
+     * // about 600ms, but it is pretty hard to do.
+     * //
      */
     private static final long SUSPICIOUSLY_SHORT_BLUETOOTH_OFF_INTERVAL_MILLIS = 600l;
     /**
@@ -92,6 +77,68 @@ public class BluetoothCrashResolver {
      * sure.
      */
     private static final int TIME_TO_LET_DISCOVERY_RUN_MILLIS = 5000;  /* if 0, it means forever */
+    private final Set<String> distinctBluetoothAddresses = new HashSet<String>();
+    private boolean recoveryInProgress = false;
+    private boolean discoveryStartConfirmed = false;
+    private long lastBluetoothOffTime = 0l;
+    private long lastBluetoothTurningOnTime = 0l;
+    private long lastBluetoothCrashDetectionTime = 0l;
+    private int detectedCrashCount = 0;
+    private int recoveryAttemptCount = 0;
+    private boolean lastRecoverySucceeded = false;
+    private long lastStateSaveTime = 0l;
+    private Context context = null;
+    private UpdateNotifier updateNotifier;
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
+                if (recoveryInProgress) {
+                    LogManager.d(TAG, "Bluetooth discovery finished");
+                    finishRecovery();
+                } else {
+                    LogManager.d(TAG, "Bluetooth discovery finished (external)");
+                }
+            }
+            if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
+                if (recoveryInProgress) {
+                    discoveryStartConfirmed = true;
+                    LogManager.d(TAG, "Bluetooth discovery started");
+                } else {
+                    LogManager.d(TAG, "Bluetooth discovery started (external)");
+                }
+            }
+
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                        BluetoothAdapter.ERROR);
+                switch (state) {
+                    case BluetoothAdapter.ERROR:
+                        LogManager.d(TAG, "Bluetooth state is ERROR");
+                        break;
+                    case BluetoothAdapter.STATE_OFF:
+                        LogManager.d(TAG, "Bluetooth state is OFF");
+                        lastBluetoothOffTime = SystemClock.elapsedRealtime();
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        LogManager.d(TAG, "Bluetooth state is ON");
+                        LogManager.d(TAG, "Bluetooth was turned off for %s milliseconds", lastBluetoothTurningOnTime - lastBluetoothOffTime);
+                        if (lastBluetoothTurningOnTime - lastBluetoothOffTime < SUSPICIOUSLY_SHORT_BLUETOOTH_OFF_INTERVAL_MILLIS) {
+                            crashDetected();
+                        }
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        lastBluetoothTurningOnTime = SystemClock.elapsedRealtime();
+                        LogManager.d(TAG, "Bluetooth state is TURNING_ON");
+                        break;
+                }
+            }
+        }
+    };
 
     /**
      * Constructor should be called only once per long-running process that does Bluetooth LE
@@ -132,11 +179,12 @@ public class BluetoothCrashResolver {
 
     /**
      * Enable debug logging.  By default no debug lines are logged.
+     *
+     * @see org.altbeacon.beacon.logging.LogManager
+     * @see org.altbeacon.beacon.logging.Loggers
      * @deprecated Since the default logger used by the android-beacon-library only logs warnings and
      * above, this method is no logger used. To log debug messages use the
      * {@link org.altbeacon.beacon.logging.Loggers#verboseLogger()}
-     * @see org.altbeacon.beacon.logging.LogManager
-     * @see org.altbeacon.beacon.logging.Loggers
      */
     @Deprecated
     public void enableDebug() {
@@ -145,28 +193,30 @@ public class BluetoothCrashResolver {
 
     /**
      * Disable debug logging.
+     *
+     * @see org.altbeacon.beacon.logging.LogManager
+     * @see org.altbeacon.beacon.logging.Loggers
      * @deprecated Since the default logger used by the android-beacon-library only logs warnings and
      * above, this method is no logger used. To log debug messages use the
      * {@link org.altbeacon.beacon.logging.Loggers#verboseLogger()}
-     * @see org.altbeacon.beacon.logging.LogManager
-     * @see org.altbeacon.beacon.logging.Loggers
      */
     @Deprecated
-    public void disableDebug() { }
+    public void disableDebug() {
+    }
 
     /**
      * Call this method from your BluetoothAdapter.LeScanCallback method.
      * Doing so is optional, but if you do, this class will be able to count the number of
      * distinct Bluetooth devices scanned, and prevent crashes before they happen.
-     *
+     * <p>
      * This works very well if the app containing this class is the only one running bluetooth
      * LE scans on the device, or it is constantly doing scans (e.g. is in the foreground for
      * extended periods of time.)
-     *
+     * <p>
      * This will not work well if the application using this class is only scanning periodically
      * (e.g. when in the background to save battery) and another application is also scanning on
      * the same device, because this class will only get the counts from this application.
-     *
+     * <p>
      * Future augmentation of this class may improve this by somehow centralizing the list of
      * unique scanned devices.
      *
@@ -178,7 +228,7 @@ public class BluetoothCrashResolver {
 
         oldSize = distinctBluetoothAddresses.size();
 
-        synchronized(distinctBluetoothAddresses) {
+        synchronized (distinctBluetoothAddresses) {
             distinctBluetoothAddresses.add(device.getAddress());
         }
 
@@ -186,10 +236,10 @@ public class BluetoothCrashResolver {
         if (oldSize != newSize && newSize % 100 == 0) {
             LogManager.d(TAG, "Distinct Bluetooth devices seen: %s", distinctBluetoothAddresses.size());
         }
-        if (distinctBluetoothAddresses.size()  > getCrashRiskDeviceCount()) {
+        if (distinctBluetoothAddresses.size() > getCrashRiskDeviceCount()) {
             if (PREEMPTIVE_ACTION_ENABLED && !recoveryInProgress) {
                 LogManager.w(TAG, "Large number of Bluetooth devices detected: %s Proactively "
-                        + "attempting to clear out address list to prevent a crash",
+                                + "attempting to clear out address list to prevent a crash",
                         distinctBluetoothAddresses.size());
                 LogManager.w(TAG, "Stopping LE Scan");
                 BluetoothAdapter.getDefaultAdapter().stopLeScan(scanner);
@@ -215,8 +265,7 @@ public class BluetoothCrashResolver {
 
         if (recoveryInProgress) {
             LogManager.d(TAG, "Ignoring Bluetooth crash because recovery is already in progress.");
-        }
-        else {
+        } else {
             startRecovery();
         }
         processStateChange();
@@ -226,19 +275,21 @@ public class BluetoothCrashResolver {
     public long getLastBluetoothCrashDetectionTime() {
         return lastBluetoothCrashDetectionTime;
     }
+
     public int getDetectedCrashCount() {
         return detectedCrashCount;
     }
+
     public int getRecoveryAttemptCount() {
         return recoveryAttemptCount;
     }
+
     public boolean isLastRecoverySucceeded() {
         return lastRecoverySucceeded;
     }
-    public boolean isRecoveryInProgress() { return recoveryInProgress; }
 
-    public interface UpdateNotifier {
-        public void dataUpdated();
+    public boolean isRecoveryInProgress() {
+        return recoveryInProgress;
     }
 
     public void setUpdateNotifier(UpdateNotifier updateNotifier) {
@@ -246,7 +297,7 @@ public class BluetoothCrashResolver {
     }
 
     /**
-     Used to force a recovery operation
+     * Used to force a recovery operation
      */
     public void forceFlush() {
         startRecovery();
@@ -259,7 +310,7 @@ public class BluetoothCrashResolver {
         // than the number tracked by Bluedroid because the number we track does not include its
         // initial state.  We therefore assume that there are some devices being tracked by Bluedroid
         // after a recovery operation or on startup
-        return BLUEDROID_MAX_BLUETOOTH_MAC_COUNT-BLUEDROID_POST_DISCOVERY_ESTIMATED_BLUETOOTH_MAC_COUNT;
+        return BLUEDROID_MAX_BLUETOOTH_MAC_COUNT - BLUEDROID_POST_DISCOVERY_ESTIMATED_BLUETOOTH_MAC_COUNT;
     }
 
     private void processStateChange() {
@@ -290,80 +341,25 @@ public class BluetoothCrashResolver {
             // We don't actually need to do a discovery -- we just need to kick one off so the
             // mac list will be pared back to 256.  Because discovery is an expensive operation in
             // terms of battery, we will cancel it.
-            if (TIME_TO_LET_DISCOVERY_RUN_MILLIS > 0 ) {
+            if (TIME_TO_LET_DISCOVERY_RUN_MILLIS > 0) {
                 LogManager.d(TAG, "We will be cancelling this discovery in %s milliseconds.", TIME_TO_LET_DISCOVERY_RUN_MILLIS);
                 cancelDiscovery();
-            }
-            else {
+            } else {
                 LogManager.d(TAG, "We will let this discovery run its course.");
             }
-        }
-        else {
+        } else {
             LogManager.w(TAG, "Already discovering.  Recovery attempt abandoned.");
         }
 
     }
+
     private void finishRecovery() {
         LogManager.w(TAG, "Recovery attempt finished");
-        synchronized(distinctBluetoothAddresses) {
+        synchronized (distinctBluetoothAddresses) {
             distinctBluetoothAddresses.clear();
         }
         recoveryInProgress = false;
     }
-
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
-                if (recoveryInProgress) {
-                    LogManager.d(TAG, "Bluetooth discovery finished");
-                    finishRecovery();
-                }
-                else {
-                    LogManager.d(TAG, "Bluetooth discovery finished (external)");
-                }
-            }
-            if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
-                if (recoveryInProgress) {
-                    discoveryStartConfirmed = true;
-                    LogManager.d(TAG, "Bluetooth discovery started");
-                }
-                else {
-                    LogManager.d(TAG, "Bluetooth discovery started (external)");
-                }
-            }
-
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                        BluetoothAdapter.ERROR);
-                switch (state) {
-                    case BluetoothAdapter.ERROR:
-                        LogManager.d(TAG, "Bluetooth state is ERROR");
-                        break;
-                    case BluetoothAdapter.STATE_OFF:
-                        LogManager.d(TAG, "Bluetooth state is OFF");
-                        lastBluetoothOffTime = SystemClock.elapsedRealtime();
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_OFF:
-                        break;
-                    case BluetoothAdapter.STATE_ON:
-                        LogManager.d(TAG, "Bluetooth state is ON");
-                        LogManager.d(TAG, "Bluetooth was turned off for %s milliseconds", lastBluetoothTurningOnTime - lastBluetoothOffTime);
-                        if (lastBluetoothTurningOnTime - lastBluetoothOffTime < SUSPICIOUSLY_SHORT_BLUETOOTH_OFF_INTERVAL_MILLIS) {
-                            crashDetected();
-                        }
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_ON:
-                        lastBluetoothTurningOnTime = SystemClock.elapsedRealtime();
-                        LogManager.d(TAG, "Bluetooth state is TURNING_ON");
-                        break;
-                }
-            }
-        }
-    };
-
 
     private void saveState() {
         FileOutputStream outputStream;
@@ -373,9 +369,9 @@ public class BluetoothCrashResolver {
         try {
             outputStream = context.openFileOutput(DISTINCT_BLUETOOTH_ADDRESSES_FILE, Context.MODE_PRIVATE);
             writer = new OutputStreamWriter(outputStream);
-            writer.write(lastBluetoothCrashDetectionTime+"\n");
-            writer.write(detectedCrashCount+"\n");
-            writer.write(recoveryAttemptCount+"\n");
+            writer.write(lastBluetoothCrashDetectionTime + "\n");
+            writer.write(detectedCrashCount + "\n");
+            writer.write(recoveryAttemptCount + "\n");
             writer.write(lastRecoverySucceeded ? "1\n" : "0\n");
             synchronized (distinctBluetoothAddresses) {
                 for (String mac : distinctBluetoothAddresses) {
@@ -385,12 +381,12 @@ public class BluetoothCrashResolver {
             }
         } catch (IOException e) {
             LogManager.w(TAG, "Can't write macs to %s", DISTINCT_BLUETOOTH_ADDRESSES_FILE);
-        }
-        finally {
+        } finally {
             if (writer != null) {
                 try {
                     writer.close();
-                } catch (IOException e1) { }
+                } catch (IOException e1) {
+                }
             }
         }
         LogManager.d(TAG, "Wrote %s Bluetooth addresses", distinctBluetoothAddresses.size());
@@ -434,12 +430,12 @@ public class BluetoothCrashResolver {
             LogManager.w(TAG, "Can't read macs from %s", DISTINCT_BLUETOOTH_ADDRESSES_FILE);
         } catch (NumberFormatException e) {
             LogManager.w(TAG, "Can't parse file %s", DISTINCT_BLUETOOTH_ADDRESSES_FILE);
-        }
-        finally {
+        } finally {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (IOException e1) { }
+                } catch (IOException e1) {
+                }
             }
         }
         LogManager.d(TAG, "Read %s Bluetooth addresses", distinctBluetoothAddresses.size());
@@ -456,13 +452,16 @@ public class BluetoothCrashResolver {
             if (adapter.isDiscovering()) {
                 LogManager.d(TAG, "Cancelling discovery");
                 adapter.cancelDiscovery();
-            }
-            else {
+            } else {
                 LogManager.d(TAG, "Discovery not running.  Won't cancel it");
             }
         } catch (InterruptedException e) {
             LogManager.d(TAG, "DiscoveryCanceller sleep interrupted.");
         }
+    }
+
+    public interface UpdateNotifier {
+        public void dataUpdated();
     }
 }
 

@@ -1,10 +1,7 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanRecord;
-import android.bluetooth.le.ScanResult;
 import android.os.ParcelUuid;
 
 import org.altbeacon.beacon.BeaconParser;
@@ -19,12 +16,6 @@ import java.util.List;
 @TargetApi(21)
 public class ScanFilterUtils {
     public static final String TAG = "ScanFilterUtils";
-    class ScanFilterData {
-        public Long serviceUuid = null;
-        public int manufacturer;
-        public byte[] filter;
-        public byte[] mask;
-    }
 
     public List<ScanFilter> createWildcardScanFilters() {
         List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
@@ -46,14 +37,14 @@ public class ScanFilterUtils {
             // from the start of the two byte code
             byte[] filter = new byte[endOffset + 1 - 2];
             byte[] mask = new byte[endOffset + 1 - 2];
-            byte[] typeCodeBytes = BeaconParser.longToByteArray(typeCode, endOffset-startOffset+1);
+            byte[] typeCodeBytes = BeaconParser.longToByteArray(typeCode, endOffset - startOffset + 1);
             for (int layoutIndex = 2; layoutIndex <= endOffset; layoutIndex++) {
-                int filterIndex = layoutIndex-2;
+                int filterIndex = layoutIndex - 2;
                 if (layoutIndex < startOffset) {
                     filter[filterIndex] = 0;
                     mask[filterIndex] = 0;
                 } else {
-                    filter[filterIndex] = typeCodeBytes[layoutIndex-startOffset];
+                    filter[filterIndex] = typeCodeBytes[layoutIndex - startOffset];
                     mask[filterIndex] = (byte) 0xff;
                 }
             }
@@ -72,9 +63,9 @@ public class ScanFilterUtils {
         List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
         // for each beacon parser, make a filter expression that includes all its desired
         // hardware manufacturers
-        for (BeaconParser beaconParser: beaconParsers) {
+        for (BeaconParser beaconParser : beaconParsers) {
             List<ScanFilterData> sfds = createScanFilterDataForBeaconParser(beaconParser);
-            for (ScanFilterData sfd: sfds) {
+            for (ScanFilterData sfd : sfds) {
                 ScanFilter.Builder builder = new ScanFilter.Builder();
                 if (sfd.serviceUuid != null) {
                     // Use a 16 bit service UUID in a 128 bit form
@@ -83,23 +74,29 @@ public class ScanFilterUtils {
                     ParcelUuid parcelUuid = ParcelUuid.fromString(serviceUuidString);
                     ParcelUuid parcelUuidMask = ParcelUuid.fromString(serviceUuidMaskString);
                     if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "making scan filter for service: "+serviceUuidString+" "+parcelUuid);
-                        LogManager.d(TAG, "making scan filter with service mask: "+serviceUuidMaskString+" "+parcelUuidMask);
+                        LogManager.d(TAG, "making scan filter for service: " + serviceUuidString + " " + parcelUuid);
+                        LogManager.d(TAG, "making scan filter with service mask: " + serviceUuidMaskString + " " + parcelUuidMask);
                     }
                     builder.setServiceUuid(parcelUuid, parcelUuidMask);
-                }
-                else {
+                } else {
                     builder.setServiceUuid(null);
                     builder.setManufacturerData((int) sfd.manufacturer, sfd.filter, sfd.mask);
                 }
                 ScanFilter scanFilter = builder.build();
                 if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "Set up a scan filter: "+scanFilter);
+                    LogManager.d(TAG, "Set up a scan filter: " + scanFilter);
                 }
                 scanFilters.add(scanFilter);
             }
         }
         return scanFilters;
+    }
+
+    class ScanFilterData {
+        public Long serviceUuid = null;
+        public int manufacturer;
+        public byte[] filter;
+        public byte[] mask;
     }
 
 }

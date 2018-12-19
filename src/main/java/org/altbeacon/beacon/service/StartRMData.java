@@ -3,7 +3,7 @@
  * http://www.radiusnetworks.com
  *
  * @author David G. Young
- *
+ * <p>
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -11,9 +11,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -39,12 +39,21 @@ import java.io.Serializable;
  * @hide
  */
 public class StartRMData implements Serializable, Parcelable {
+    public static final Parcelable.Creator<StartRMData> CREATOR
+            = new Parcelable.Creator<StartRMData>() {
+        public StartRMData createFromParcel(Parcel in) {
+            return new StartRMData(in);
+        }
+
+        public StartRMData[] newArray(int size) {
+            return new StartRMData[size];
+        }
+    };
     private static final String SCAN_PERIOD_KEY = "scanPeriod";
     private static final String BETWEEN_SCAN_PERIOD_KEY = "betweenScanPeriod";
     private static final String BACKGROUND_FLAG_KEY = "backgroundFlag";
     private static final String CALLBACK_PACKAGE_NAME_KEY = "callbackPackageName";
     private static final String REGION_KEY = "region";
-
     private Region mRegion;
     private long mScanPeriod;
     private long mBetweenScanPeriod;
@@ -58,11 +67,13 @@ public class StartRMData implements Serializable, Parcelable {
         this.mRegion = region;
         this.mCallbackPackageName = callbackPackageName;
     }
+
     public StartRMData(long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         this.mScanPeriod = scanPeriod;
         this.mBetweenScanPeriod = betweenScanPeriod;
         this.mBackgroundFlag = backgroundFlag;
     }
+
 
     public StartRMData(@NonNull Region region, @NonNull String callbackPackageName, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag) {
         this.mScanPeriod = scanPeriod;
@@ -72,39 +83,6 @@ public class StartRMData implements Serializable, Parcelable {
         this.mBackgroundFlag = backgroundFlag;
     }
 
-
-    public long getScanPeriod() { return mScanPeriod; }
-    public long getBetweenScanPeriod() { return mBetweenScanPeriod; }
-    public Region getRegionData() {
-        return mRegion;
-    }
-    public String getCallbackPackageName() {
-        return mCallbackPackageName;
-    }
-    public boolean getBackgroundFlag() { return mBackgroundFlag; }
-    public int describeContents() {
-        return 0;
-    }
-
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeParcelable(mRegion, flags);
-        out.writeString(mCallbackPackageName);
-        out.writeLong(mScanPeriod);
-        out.writeLong(mBetweenScanPeriod);
-        out.writeByte((byte) (mBackgroundFlag ? 1 : 0));
-    }
-
-    public static final Parcelable.Creator<StartRMData> CREATOR
-            = new Parcelable.Creator<StartRMData>() {
-        public StartRMData createFromParcel(Parcel in) {
-            return new StartRMData(in);
-        }
-
-        public StartRMData[] newArray(int size) {
-            return new StartRMData[size];
-        }
-    };
-
     private StartRMData(Parcel in) {
         mRegion = in.readParcelable(StartRMData.class.getClassLoader());
         mCallbackPackageName = in.readString();
@@ -113,24 +91,12 @@ public class StartRMData implements Serializable, Parcelable {
         mBackgroundFlag = in.readByte() != 0;
     }
 
-    public Bundle toBundle() {
-        Bundle bundle = new Bundle();
-        bundle.putLong(SCAN_PERIOD_KEY, this.mScanPeriod);
-        bundle.putLong(BETWEEN_SCAN_PERIOD_KEY, this.mBetweenScanPeriod);
-        bundle.putBoolean(BACKGROUND_FLAG_KEY, this.mBackgroundFlag);
-        bundle.putString(CALLBACK_PACKAGE_NAME_KEY, this.mCallbackPackageName);
-        if (mRegion != null) {
-            bundle.putSerializable(REGION_KEY, mRegion);
-        }
-        return bundle;
-    }
-
     public static StartRMData fromBundle(@NonNull Bundle bundle) {
         bundle.setClassLoader(Region.class.getClassLoader());
         boolean valid = false;
         StartRMData data = new StartRMData();
         if (bundle.containsKey(REGION_KEY)) {
-            data.mRegion = (Region)bundle.getSerializable(REGION_KEY);
+            data.mRegion = (Region) bundle.getSerializable(REGION_KEY);
             valid = true;
         }
         if (bundle.containsKey(SCAN_PERIOD_KEY)) {
@@ -148,10 +114,53 @@ public class StartRMData implements Serializable, Parcelable {
         }
         if (valid) {
             return data;
-        }
-        else {
+        } else {
             return null;
         }
+    }
+
+    public long getScanPeriod() {
+        return mScanPeriod;
+    }
+
+    public long getBetweenScanPeriod() {
+        return mBetweenScanPeriod;
+    }
+
+    public Region getRegionData() {
+        return mRegion;
+    }
+
+    public String getCallbackPackageName() {
+        return mCallbackPackageName;
+    }
+
+    public boolean getBackgroundFlag() {
+        return mBackgroundFlag;
+    }
+
+    public int describeContents() {
+        return 0;
+    }
+
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeParcelable(mRegion, flags);
+        out.writeString(mCallbackPackageName);
+        out.writeLong(mScanPeriod);
+        out.writeLong(mBetweenScanPeriod);
+        out.writeByte((byte) (mBackgroundFlag ? 1 : 0));
+    }
+
+    public Bundle toBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putLong(SCAN_PERIOD_KEY, this.mScanPeriod);
+        bundle.putLong(BETWEEN_SCAN_PERIOD_KEY, this.mBetweenScanPeriod);
+        bundle.putBoolean(BACKGROUND_FLAG_KEY, this.mBackgroundFlag);
+        bundle.putString(CALLBACK_PACKAGE_NAME_KEY, this.mCallbackPackageName);
+        if (mRegion != null) {
+            bundle.putSerializable(REGION_KEY, mRegion);
+        }
+        return bundle;
     }
 
 }

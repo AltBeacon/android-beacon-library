@@ -17,10 +17,19 @@ import java.util.Iterator;
  */
 public class RunningAverageRssiFilter implements RssiFilter {
 
-    private static final String TAG = "RunningAverageRssiFilter";
     public static final long DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS = 20000; /* 20 seconds */
+    private static final String TAG = "RunningAverageRssiFilter";
     private static long sampleExpirationMilliseconds = DEFAULT_SAMPLE_EXPIRATION_MILLISECONDS;
     private ArrayList<Measurement> mMeasurements = new ArrayList<Measurement>();
+
+    @RestrictTo(Scope.TESTS)
+    static long getSampleExpirationMilliseconds() {
+        return sampleExpirationMilliseconds;
+    }
+
+    public static void setSampleExpirationMilliseconds(long newSampleExpirationMilliseconds) {
+        sampleExpirationMilliseconds = newSampleExpirationMilliseconds;
+    }
 
     @Override
     public void addMeasurement(Integer rssi) {
@@ -35,26 +44,27 @@ public class RunningAverageRssiFilter implements RssiFilter {
         return mMeasurements.size() == 0;
     }
 
-
     @Override
-    public int getMeasurementCount() { return mMeasurements.size(); }
+    public int getMeasurementCount() {
+        return mMeasurements.size();
+    }
 
     @Override
     public double calculateRssi() {
         refreshMeasurements();
         int size = mMeasurements.size();
         int startIndex = 0;
-        int endIndex = size -1;
+        int endIndex = size - 1;
         if (size > 2) {
-            startIndex = size/10+1;
-            endIndex = size-size/10-2;
+            startIndex = size / 10 + 1;
+            endIndex = size - size / 10 - 2;
         }
 
         double sum = 0;
         for (int i = startIndex; i <= endIndex; i++) {
             sum += mMeasurements.get(i).rssi;
         }
-        double runningAverage = sum/(endIndex-startIndex+1);
+        double runningAverage = sum / (endIndex - startIndex + 1);
 
         LogManager.d(TAG, "Running average mRssi based on %s measurements: %s",
                 size, runningAverage);
@@ -66,7 +76,7 @@ public class RunningAverageRssiFilter implements RssiFilter {
         Iterator<Measurement> iterator = mMeasurements.iterator();
         while (iterator.hasNext()) {
             Measurement measurement = iterator.next();
-            if (SystemClock.elapsedRealtime() - measurement.timestamp < sampleExpirationMilliseconds ) {
+            if (SystemClock.elapsedRealtime() - measurement.timestamp < sampleExpirationMilliseconds) {
                 newMeasurements.add(measurement);
             }
         }
@@ -77,18 +87,10 @@ public class RunningAverageRssiFilter implements RssiFilter {
     private class Measurement implements Comparable<Measurement> {
         Integer rssi;
         long timestamp;
+
         @Override
         public int compareTo(Measurement arg0) {
             return rssi.compareTo(arg0.rssi);
         }
-    }
-
-    public static void setSampleExpirationMilliseconds(long newSampleExpirationMilliseconds) {
-        sampleExpirationMilliseconds = newSampleExpirationMilliseconds;
-    }
-
-    @RestrictTo(Scope.TESTS)
-    static long getSampleExpirationMilliseconds() {
-        return sampleExpirationMilliseconds;
     }
 }

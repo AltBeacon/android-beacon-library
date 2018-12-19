@@ -3,7 +3,7 @@
  * http://www.radiusnetworks.com
  *
  * @author David G. Young
- *
+ * <p>
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -11,9 +11,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,7 +25,6 @@ package org.altbeacon.beacon;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -39,11 +38,9 @@ import java.util.ArrayList;
  * group beacons and the third identifier Id3 is used to uniquely identify a specific beacon (in
  * combination with the other two identifiers.)
  *
- * @author  David G. Young
+ * @author David G. Young
  */
 public class AltBeacon extends Beacon {
-    private static final String TAG = "AltBeacon";
-
     /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
@@ -58,6 +55,7 @@ public class AltBeacon extends Beacon {
             return new AltBeacon[size];
         }
     };
+    private static final String TAG = "AltBeacon";
 
     /**
      * Copy constructor from base class
@@ -104,7 +102,7 @@ public class AltBeacon extends Beacon {
     /**
      * Required for making object Parcelable
      **/
-     @Override
+    @Override
     public void writeToParcel(Parcel out, int flags) {
         super.writeToParcel(out, flags);
     }
@@ -130,11 +128,12 @@ public class AltBeacon extends Beacon {
         public Beacon build() {
             return new AltBeacon(super.build());
         }
+
         public Builder setMfgReserved(int mfgReserved) {
             if (mBeacon.mDataFields.size() != 0) {
                 mBeacon.mDataFields = new ArrayList<Long>();
             }
-            mBeacon.mDataFields.add((long)mfgReserved);
+            mBeacon.mDataFields.add((long) mfgReserved);
             return this;
         }
     }

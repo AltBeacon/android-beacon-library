@@ -101,7 +101,7 @@ configurations {
 
 
 dependencies {
-    compile fileTree ( dir: 'libs', include: ['*.jar'] )
+    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:support-v4:28.0.0'
     compile 'com.android.support:support-annotations:28.0.0'
 

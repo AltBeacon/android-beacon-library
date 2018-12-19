@@ -19,10 +19,10 @@ import java.util.List;
  * to start on Android device startup.  If a matching beacon is detected, the BootstrapNotifier
  * didEnterRegion method will be called, allowing the application to launch an Activity, send a
  * local notification, or perform any other action desired.
- *
+ * <p>
  * Using this class as described above will also cause beacon scanning to start back up after power
  * is connected or disconnected from a device if the user has force terminated the app.
- *
+ * <p>
  * IMPORTANT NOTE:  The RegionBootstrap class registers an internal MonitorNotifier with the
  * BeaconManager.  If you use the RegionBootstrap, your application must not manually register
  * a second MonitorNotifier, otherwise it will unregister the one configured by the RegionBootstrap,
@@ -61,6 +61,7 @@ public class RegionBootstrap {
 
     /**
      * Constructor to bootstrap your Application on an entry/exit from multiple regions
+     *
      * @param application
      * @param regions
      */
@@ -110,7 +111,7 @@ public class RegionBootstrap {
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't add bootstrap region");
                 }
-            }else{
+            } else {
                 LogManager.w(TAG, "Adding a region: service not yet Connected");
             }
             regions.add(region);
@@ -130,7 +131,7 @@ public class RegionBootstrap {
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't stop bootstrap region");
                 }
-            }else{
+            } else {
                 LogManager.w(TAG, "Removing a region: service not yet Connected");
             }
             regions.remove(region);

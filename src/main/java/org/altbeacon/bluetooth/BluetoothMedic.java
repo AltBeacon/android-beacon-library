@@ -9,11 +9,11 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.AdvertiseSettings.Builder;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.AdvertiseSettings.Builder;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -27,38 +27,37 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import java.util.List;
 
 import org.altbeacon.beacon.logging.LogManager;
 
+import java.util.List;
+
 /**
- *
  * Utility class for checking the health of the bluetooth stack on the device by running two kinds
  * of tests: scanning and transmitting.  The class looks for specific failure codes from these
  * tests to determine if the bluetooth stack is in a bad state and if so, optionally cycle power to
  * bluetooth to try and fix the problem.  This is known to work well on some Android devices.
- *
+ * <p>
  * The tests may be called directly, or set up to run automatically approximately every 15 minutes.
  * To set up in an automated way:
  *
  * <code>
- *   BluetoothMedic medic = BluetoothMedic.getInstance();
- *   medic.enablePowerCycleOnFailures(context);
- *   medic.enablePeriodicTests(context, BluetoothMedic.SCAN_TEST | BluetoothMedic.TRANSMIT_TEST);
+ * BluetoothMedic medic = BluetoothMedic.getInstance();
+ * medic.enablePowerCycleOnFailures(context);
+ * medic.enablePeriodicTests(context, BluetoothMedic.SCAN_TEST | BluetoothMedic.TRANSMIT_TEST);
  * </code>
- *
+ * <p>
  * To set up in a manual way:
  *
  * <code>
- *   BluetoothMedic medic = BluetoothMedic.getInstance();
- *   medic.enablePowerCycleOnFailures(context);
- *   if (!medic.runScanTest(context)) {
- *     // Bluetooth stack is in a bad state
- *   }
- *   if (!medic.runTransmitterTest(context)) {
- *     // Bluetooth stack is in a bad state
- *   }
- *
+ * BluetoothMedic medic = BluetoothMedic.getInstance();
+ * medic.enablePowerCycleOnFailures(context);
+ * if (!medic.runScanTest(context)) {
+ * // Bluetooth stack is in a bad state
+ * }
+ * if (!medic.runTransmitterTest(context)) {
+ * // Bluetooth stack is in a bad state
+ * }
  */
 
 @SuppressWarnings("javadoc")
@@ -80,6 +79,9 @@ public class BluetoothMedic {
     @SuppressWarnings("WeakerAccess")
     public static final int SCAN_TEST = 1;
     private static final String TAG = BluetoothMedic.class.getSimpleName();
+    private static final long MIN_MILLIS_BETWEEN_BLUETOOTH_POWER_CYCLES = 60000L;
+    @Nullable
+    private static BluetoothMedic sInstance;
     @Nullable
     private BluetoothAdapter mAdapter;
     @Nullable
@@ -94,9 +96,6 @@ public class BluetoothMedic {
     private boolean mNotificationsEnabled = false;
     private int mNotificationIcon = 0;
     private long mLastBluetoothPowerCycleTime = 0L;
-    private static final long MIN_MILLIS_BETWEEN_BLUETOOTH_POWER_CYCLES = 60000L;
-    @Nullable
-    private static BluetoothMedic sInstance;
     @RequiresApi(21)
     private BroadcastReceiver mBluetoothEventReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -104,24 +103,24 @@ public class BluetoothMedic {
             int errorCode;
             String action = intent.getAction();
             if (action != null) {
-                if(action.equalsIgnoreCase("onScanFailed")) {
+                if (action.equalsIgnoreCase("onScanFailed")) {
                     errorCode = intent.getIntExtra("errorCode", -1);
-                    if(errorCode == 2) {
+                    if (errorCode == 2) {
                         BluetoothMedic.this.sendNotification(context, "scan failed",
                                 "Power cycling bluetooth");
                         LogManager.d(BluetoothMedic.TAG,
                                 "Detected a SCAN_FAILED_APPLICATION_REGISTRATION_FAILED.  We need to cycle bluetooth to recover");
-                        if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
+                        if (!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
                             BluetoothMedic.this.sendNotification(context, "scan failed", "" +
                                     "Cannot power cycle bluetooth again");
                         }
                     }
-                } else if(action.equalsIgnoreCase("onStartFailed")) {
+                } else if (action.equalsIgnoreCase("onStartFailed")) {
                     errorCode = intent.getIntExtra("errorCode", -1);
-                    if(errorCode == 4) {
+                    if (errorCode == 4) {
                         BluetoothMedic.this.sendNotification(context, "advertising failed",
                                 "Expected failure.  Power cycling.");
-                        if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
+                        if (!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
                             BluetoothMedic.this.sendNotification(context, "advertising failed",
                                     "Cannot power cycle bluetooth again");
                         }
@@ -134,25 +133,26 @@ public class BluetoothMedic {
     };
 
 
+    private BluetoothMedic() {
+    }
+
     /**
      * Get a singleton instance of the BluetoothMedic
+     *
      * @return
      */
     public static BluetoothMedic getInstance() {
-        if(sInstance == null) {
+        if (sInstance == null) {
             sInstance = new BluetoothMedic();
         }
         return sInstance;
     }
 
-    private BluetoothMedic() {
-    }
-
     @RequiresApi(21)
     private void initializeWithContext(Context context) {
         if (this.mAdapter == null || this.mLocalBroadcastManager == null) {
-            BluetoothManager manager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
-            if(manager == null) {
+            BluetoothManager manager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+            if (manager == null) {
                 throw new NullPointerException("Cannot get BluetoothManager");
             } else {
                 this.mAdapter = manager.getAdapter();
@@ -202,14 +202,14 @@ public class BluetoothMedic {
     /**
      * Starts up a brief blueooth scan with the intent of seeing if it results in an error condition
      * indicating the bluetooth stack may be in a bad state.
-     *
+     * <p>
      * If the failure error code matches a pattern known to be associated with a bad bluetooth stack
      * state, then the bluetooth stack is turned off and then back on after a short delay in order
      * to try to recover.
      *
      * @return false if the test indicates a failure indicating a bad state of the bluetooth stack
      */
-    @SuppressWarnings({"unused","WeakerAccess"})
+    @SuppressWarnings({"unused", "WeakerAccess"})
     @RequiresApi(21)
     public boolean runScanTest(final Context context) {
         initializeWithContext(context);
@@ -225,8 +225,7 @@ public class BluetoothMedic {
                     LogManager.i(BluetoothMedic.TAG, "Scan test succeeded");
                     try {
                         scanner.stopScan(this);
-                    }
-                    catch (IllegalStateException e) { /* do nothing */ } // caught if bluetooth is off here
+                    } catch (IllegalStateException e) { /* do nothing */ } // caught if bluetooth is off here
                 }
 
                 public void onBatchScanResults(List<ScanResult> results) {
@@ -244,7 +243,7 @@ public class BluetoothMedic {
                     }
                     LogManager.d(BluetoothMedic.TAG, "broadcast: " + intent +
                             " should be received by " + BluetoothMedic.this.mBluetoothEventReceiver);
-                    if(errorCode == 2) {
+                    if (errorCode == 2) {
                         LogManager.w(BluetoothMedic.TAG,
                                 "Scan test failed in a way we consider a failure");
                         BluetoothMedic.this.sendNotification(context,
@@ -258,7 +257,7 @@ public class BluetoothMedic {
 
                 }
             };
-            if(scanner != null) {
+            if (scanner != null) {
                 try {
                     scanner.startScan(callback);
                     while (this.mScanTestResult == null) {
@@ -277,8 +276,7 @@ public class BluetoothMedic {
                 } catch (IllegalStateException e) {
                     LogManager.d(TAG, "Bluetooth is off.  Cannot run scan test.");
                 }
-            }
-            else {
+            } else {
                 LogManager.d(TAG, "Cannot get scanner");
             }
         }
@@ -290,14 +288,14 @@ public class BluetoothMedic {
     /**
      * Starts up a beacon transmitter with the intent of seeing if it results in an error condition
      * indicating the bluetooth stack may be in a bad state.
-     *
+     * <p>
      * If the failure error code matches a pattern known to be associated with a bad bluetooth stack
      * state, then the bluetooth stack is turned off and then back on after a short delay in order
      * to try to recover.
      *
      * @return false if the test indicates a failure indicating a bad state of the bluetooth stack
      */
-    @SuppressWarnings({"unused","WeakerAccess"})
+    @SuppressWarnings({"unused", "WeakerAccess"})
     @RequiresApi(21)
     public boolean runTransmitterTest(final Context context) {
         initializeWithContext(context);
@@ -305,7 +303,7 @@ public class BluetoothMedic {
         long testStartTime = System.currentTimeMillis();
         if (mAdapter != null) {
             final BluetoothLeAdvertiser advertiser = getAdvertiserSafely(mAdapter);
-            if(advertiser != null) {
+            if (advertiser != null) {
                 AdvertiseSettings settings = (new Builder()).setAdvertiseMode(0).build();
                 AdvertiseData data = (new android.bluetooth.le.AdvertiseData.Builder())
                         .addManufacturerData(0, new byte[]{0}).build();
@@ -327,7 +325,7 @@ public class BluetoothMedic {
                         if (BluetoothMedic.this.mLocalBroadcastManager != null) {
                             BluetoothMedic.this.mLocalBroadcastManager.sendBroadcast(intent);
                         }
-                        if(errorCode == 4) {
+                        if (errorCode == 4) {
                             BluetoothMedic.this.mTransmitterTestResult = false;
                             LogManager.w(BluetoothMedic.TAG,
                                     "Transmitter test failed in a way we consider a test failure");
@@ -344,14 +342,14 @@ public class BluetoothMedic {
             } else {
                 LogManager.d(TAG, "Cannot get advertiser");
             }
-            while(this.mTransmitterTestResult == null) {
+            while (this.mTransmitterTestResult == null) {
                 LogManager.d(TAG, "Waiting for transmitter test to complete...");
 
                 try {
                     Thread.sleep(1000L);
                 } catch (InterruptedException e) { /* do nothing */ }
 
-                if(System.currentTimeMillis() - testStartTime > 5000L) {
+                if (System.currentTimeMillis() - testStartTime > 5000L) {
                     LogManager.d(TAG, "Timeout running transmitter test");
                     break;
                 }
@@ -363,11 +361,10 @@ public class BluetoothMedic {
     }
 
     /**
-     *
      * Configure whether to send user-visible notification warnings when bluetooth power is cycled.
      *
      * @param enabled if true, a user-visible notification is sent to tell the user when
-     * @param icon the icon drawable to use in notifications (e.g. R.drawable.notification_icon)
+     * @param icon    the icon drawable to use in notifications (e.g. R.drawable.notification_icon)
      */
     @SuppressWarnings("unused")
     @RequiresApi(21)
@@ -379,7 +376,7 @@ public class BluetoothMedic {
     @RequiresApi(21)
     private boolean cycleBluetoothIfNotTooSoon() {
         long millisSinceLastCycle = System.currentTimeMillis() - this.mLastBluetoothPowerCycleTime;
-        if(millisSinceLastCycle < MIN_MILLIS_BETWEEN_BLUETOOTH_POWER_CYCLES) {
+        if (millisSinceLastCycle < MIN_MILLIS_BETWEEN_BLUETOOTH_POWER_CYCLES) {
             LogManager.d(TAG, "Not cycling bluetooth because we just did so " +
                     millisSinceLastCycle + " milliseconds ago.");
             return false;
@@ -405,8 +402,7 @@ public class BluetoothMedic {
                     }
                 }
             }, 1000L);
-        }
-        else {
+        } else {
             LogManager.w(TAG, "Cannot cycle bluetooth.  Manager is null.");
         }
     }
@@ -414,7 +410,7 @@ public class BluetoothMedic {
     @RequiresApi(21)
     private void sendNotification(Context context, String message, String detail) {
         initializeWithContext(context);
-        if(this.mNotificationsEnabled) {
+        if (this.mNotificationsEnabled) {
             NotificationCompat.Builder builder =
                     (new NotificationCompat.Builder(context, "err"))
                             .setContentTitle("BluetoothMedic: " + message)
@@ -429,7 +425,7 @@ public class BluetoothMedic {
             );
             builder.setContentIntent(resultPendingIntent);
             NotificationManager notificationManager =
-                    (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (notificationManager != null) {
                 notificationManager.notify(1, builder.build());
             }
@@ -462,8 +458,7 @@ public class BluetoothMedic {
             // This can sometimes throw a NullPointerException as reported here:
             // https://github.com/AltBeacon/android-beacon-library/issues/672
             return adapter.getBluetoothLeAdvertiser();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LogManager.w(TAG, "Cannot get bluetoothLeAdvertiser", e);
         }
         return null;

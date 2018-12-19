@@ -27,33 +27,40 @@ public class Stats {
     private boolean mEnabled;
     private Sample mSample;
 
-    public static Stats getInstance() {
-        return INSTANCE;
-    }
-
     private Stats() {
         mSampleIntervalMillis = 0l;
         clearSamples();
     }
+
+    public static Stats getInstance() {
+        return INSTANCE;
+    }
+
     public ArrayList<Sample> getSamples() {
         rollSampleIfNeeded();
         return mSamples;
     }
-    public void setEnabled(boolean enabled) {
-        mEnabled = enabled;
-    }
+
     public boolean isEnabled() {
         return mEnabled;
     }
+
+    public void setEnabled(boolean enabled) {
+        mEnabled = enabled;
+    }
+
     public void setLoggingEnabled(boolean enabled) {
         mEnableLogging = enabled;
     }
+
     public void setHistoricalLoggingEnabled(boolean enabled) {
         mEnableHistoricalLogging = enabled;
     }
+
     public void setSampleIntervalMillis(long interval) {
         mSampleIntervalMillis = interval;
     }
+
     public void log(Beacon beacon) {
         rollSampleIfNeeded();
         mSample.detectionCount++;
@@ -69,6 +76,7 @@ public class Stats {
         }
         mSample.lastDetectionTime = new Date();
     }
+
     public void clearSample() {
         mSample = null;
     }
@@ -76,7 +84,7 @@ public class Stats {
     public void newSampleInterval() {
         Date boundaryTime = new Date();
         if (mSample != null) {
-            boundaryTime = new Date(mSample.sampleStartTime.getTime()+mSampleIntervalMillis);
+            boundaryTime = new Date(mSample.sampleStartTime.getTime() + mSampleIntervalMillis);
             mSample.sampleStopTime = boundaryTime;
             if (!mEnableHistoricalLogging && mEnableLogging) {
                 logSample(mSample, true);
@@ -124,6 +132,7 @@ public class Stats {
             firstPass = false;
         }
     }
+
     private void rollSampleIfNeeded() {
         if (mSample == null || (mSampleIntervalMillis > 0 && (new Date().getTime() - mSample.sampleStartTime.getTime()) >=
                 mSampleIntervalMillis)) {
@@ -133,7 +142,7 @@ public class Stats {
 
 
     public static class Sample {
-        public long detectionCount  = 0l;
+        public long detectionCount = 0l;
         public long maxMillisBetweenDetections;
         public Date firstDetectionTime;
         public Date lastDetectionTime;

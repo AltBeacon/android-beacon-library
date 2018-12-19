@@ -21,7 +21,6 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
-import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,12 +28,12 @@ import java.util.List;
 public class CycledLeScannerForLollipop extends CycledLeScanner {
     private static final String TAG = "CycledLeScannerForLollipop";
     private static final long BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS = 10000l;
+    private final BeaconManager mBeaconManager;
     private BluetoothLeScanner mScanner;
     private ScanCallback leScanCallback;
     private long mBackgroundLScanStartTime = 0l;
     private long mBackgroundLScanFirstDetectionTime = 0;
     private boolean mMainScanCycleActive = false;
-    private final BeaconManager mBeaconManager;
 
     public CycledLeScannerForLollipop(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
@@ -102,8 +101,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     // error on Android N.
                     if (mBetweenScanPeriod > 6000l) {
                         startScan();
-                    }
-                    else {
+                    } else {
                         LogManager.d(TAG, "Suppressing scan between cycles because the between scan cycle is too short.");
                     }
 
@@ -112,7 +110,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
                     // This API is now available in Android M
                     LogManager.d(TAG, "This is Android L, but we last saw a beacon only %s "
-                            + "ago, so we will not keep scanning in background.",
+                                    + "ago, so we will not keep scanning in background.",
                             secsSinceLastDetection);
                 }
             }
@@ -130,8 +128,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                         LogManager.d(TAG, "We've been detecting for a bit.  Stopping Android L background scanning");
                         stopScan();
                         mBackgroundLScanStartTime = 0l;
-                    }
-                    else {
+                    } else {
                         // report the results up the chain
                         LogManager.d(TAG, "Delivering Android L background scanning results");
                         mCycledLeScanCallback.onCycleEnd();
@@ -175,7 +172,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                          mBeaconManager.getBeaconParsers());
+                    mBeaconManager.getBeaconParsers());
         } else {
             LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
@@ -195,14 +192,12 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     LogManager.d(TAG, "Using a non-empty scan filter since this is Samsung 8.1+");
                     filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                             mBeaconManager.getBeaconParsers());
-                }
-                else {
+                } else {
                     LogManager.d(TAG, "Using an empty scan filter since this is 8.1+ on Non-Samsung");
                     // The wildcard filter matches everything.
                     filters = new ScanFilterUtils().createWildcardScanFilters();
                 }
-            }
-            else {
+            } else {
                 LogManager.d(TAG, "Using no scan filter since this is pre-8.1");
             }
         }
@@ -247,7 +242,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     }
 
     private void postStopLeScan() {
-        if (!isBluetoothOn()){
+        if (!isBluetoothOn()) {
             LogManager.d(TAG, "Not stopping scan because bluetooth is off");
             return;
         }
@@ -285,8 +280,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 return (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON);
             }
             LogManager.w(TAG, "Cannot get bluetooth adapter");
-        }
-        catch (SecurityException e) {
+        } catch (SecurityException e) {
             LogManager.w(TAG, "SecurityException checking if bluetooth is on");
         }
         return false;
@@ -304,8 +298,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     LogManager.w(TAG, "Failed to make new Android L scanner");
                 }
             }
-        }
-        catch (SecurityException e) {
+        } catch (SecurityException e) {
             LogManager.w(TAG, "SecurityException making new Android L scanner");
         }
         return mScanner;
@@ -322,7 +315,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                         List<ParcelUuid> uuids = scanResult.getScanRecord().getServiceUuids();
                         if (uuids != null) {
                             for (ParcelUuid uuid : uuids) {
-                                LogManager.d(TAG, "with service uuid: "+uuid);
+                                LogManager.d(TAG, "with service uuid: " + uuid);
                             }
                         }
                     }

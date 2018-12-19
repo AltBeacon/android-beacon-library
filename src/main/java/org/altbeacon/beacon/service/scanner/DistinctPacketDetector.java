@@ -30,15 +30,14 @@ public class DistinctPacketDetector {
 
     public boolean isPacketDistinct(@NonNull String originMacAddress, @NonNull byte[] scanRecord) {
         byte[] macBytes = originMacAddress.getBytes();
-        ByteBuffer buffer = ByteBuffer.allocate(macBytes.length+scanRecord.length);
+        ByteBuffer buffer = ByteBuffer.allocate(macBytes.length + scanRecord.length);
         buffer.put(macBytes);
         buffer.put(scanRecord);
         buffer.rewind(); // rewind puts position back to beginning so .equals and .hashCode work
 
         if (mDistinctPacketsDetected.size() == MAX_PACKETS_TO_TRACK) {
             return mDistinctPacketsDetected.contains(buffer);
-        }
-        else {
+        } else {
             return mDistinctPacketsDetected.add(buffer);
         }
     }

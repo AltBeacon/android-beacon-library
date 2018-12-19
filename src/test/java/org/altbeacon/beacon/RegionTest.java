@@ -1,25 +1,22 @@
 package org.altbeacon.beacon;
 
-import static android.test.MoreAsserts.assertNotEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @Config(sdk = 18)
 
@@ -80,9 +77,9 @@ public class RegionTest {
     public void testBeaconMatchesRegionWithSingleNullIdentifierList() {
         Beacon beacon = new AltBeacon.Builder().setId1("1").setId2("2").setId3("3").setRssi(4)
                 .setBeaconTypeCode(5).setTxPower(6).setBluetoothAddress("1:2:3:4:5:6").build();
-        ArrayList<Identifier> identifiers=new ArrayList<>();
+        ArrayList<Identifier> identifiers = new ArrayList<>();
         identifiers.add(null);
-        Region region=new Region("all-beacons-region",identifiers);
+        Region region = new Region("all-beacons-region", identifiers);
         assertTrue("Beacon should match region with first identifier null and shorter Identifier list", region.matchesBeacon(beacon));
     }
 
@@ -126,7 +123,7 @@ public class RegionTest {
         identifiers.add(Identifier.parse("1"));
         identifiers.add(Identifier.parse("2"));
         identifiers.add(Identifier.parse("3"));
-        Region region = new Region("myRegion", identifiers , "01:02:03:04:05:06");
+        Region region = new Region("myRegion", identifiers, "01:02:03:04:05:06");
         assertTrue("Beacon should match region with mac the same", region.matchesBeacon(beacon));
     }
 
@@ -161,8 +158,7 @@ public class RegionTest {
         try {
             Region region = new Region("myRegion", "this string is not a valid mac address!");
             assertTrue("IllegalArgumentException should have been thrown", false);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             assertEquals("Error message should be as expected",
                     "Invalid mac address: 'this string is not a valid mac address!' Must be 6 hex bytes separated by colons.",
                     e.getMessage());
@@ -193,6 +189,7 @@ public class RegionTest {
             return bos.toByteArray();
         }
     }
+
     private Object convertFromBytes(byte[] bytes) throws IOException, ClassNotFoundException {
         try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
              ObjectInputStream in = new ObjectInputStream(bis)) {

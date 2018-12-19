@@ -1,14 +1,10 @@
 package org.altbeacon.beacon.distance;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.provider.Settings;
-import android.util.Log;
 
 import org.altbeacon.beacon.BuildConfig;
-import org.json.JSONObject;
 
 /**
  * Created by dyoung on 9/12/14.
@@ -23,6 +19,12 @@ public class ModelSpecificDistanceUpdater extends AsyncTask<Void, Void, Void> {
     private DistanceConfigFetcher mDistanceConfigFetcher;
     private CompletionHandler mCompletionHandler;
 
+    public ModelSpecificDistanceUpdater(Context context, String urlString, CompletionHandler completionHandler) {
+        mContext = context;
+        mDistanceConfigFetcher = new DistanceConfigFetcher(urlString, getUserAgentString());
+        mCompletionHandler = completionHandler;
+    }
+
     @Override
     protected Void doInBackground(Void... params) {
         mDistanceConfigFetcher.request();
@@ -35,24 +37,22 @@ public class ModelSpecificDistanceUpdater extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute() {
     }
 
-    public ModelSpecificDistanceUpdater(Context context, String urlString, CompletionHandler completionHandler) {
-        mContext = context;
-        mDistanceConfigFetcher = new DistanceConfigFetcher(urlString, getUserAgentString());
-        mCompletionHandler = completionHandler;
+    private String getUserAgentString() {
+        return "Android Beacon Library;" + getVersion() + ";" + getPackage() + ";" + getInstallId() + ";" + getModel();
     }
 
-    private String getUserAgentString() {
-        return "Android Beacon Library;"+getVersion()+";"+getPackage()+";"+getInstallId()+";"+getModel();
-    }
     private String getPackage() {
         return mContext.getPackageName();
     }
+
     private String getModel() {
         return AndroidModel.forThisDevice().toString();
     }
+
     private String getInstallId() {
         return Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
+
     private String getVersion() {
         return BuildConfig.VERSION_NAME;
     }

@@ -8,10 +8,9 @@ import android.os.Build;
  * Created by dyoung on 4/14/15.
  */
 public class Pdu {
-    private static final String  TAG = "Pdu";
     public static final byte MANUFACTURER_DATA_PDU_TYPE = (byte) 0xff;
     public static final byte GATT_SERVICE_UUID_PDU_TYPE = (byte) 0x16;
-
+    private static final String TAG = "Pdu";
     private byte mType;
     private int mDeclaredLength;
     private int mStartIndex;
@@ -20,6 +19,7 @@ public class Pdu {
 
     /**
      * Parse a PDU from a byte array looking offset by startIndex
+     *
      * @param bytes
      * @param startIndex
      * @return
@@ -28,7 +28,7 @@ public class Pdu {
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public static Pdu parse(byte[] bytes, int startIndex) {
         Pdu pdu = null;
-        if (bytes.length-startIndex >= 2) {
+        if (bytes.length - startIndex >= 2) {
             byte length = bytes[startIndex];
             if (length > 0) {
                 byte type = bytes[startIndex + 1];
@@ -54,6 +54,7 @@ public class Pdu {
 
     /**
      * PDU type field
+     *
      * @return
      */
     public byte getType() {
@@ -62,6 +63,7 @@ public class Pdu {
 
     /**
      * PDU length from header
+     *
      * @return
      */
     public int getDeclaredLength() {
@@ -70,6 +72,7 @@ public class Pdu {
 
     /**
      * Actual PDU length (may be less than declared length if fewer bytes are actually available.)
+     *
      * @return
      */
     public int getActualLength() {
@@ -80,6 +83,7 @@ public class Pdu {
      * Start index within byte buffer of PDU
      * This is the start of the payload data that starts after the length and the type, so the PDU
      * actually starts two bytes earlier
+     *
      * @return
      */
     public int getStartIndex() {
@@ -88,6 +92,7 @@ public class Pdu {
 
     /**
      * End index within byte buffer of PDU
+     *
      * @return
      */
     public int getEndIndex() {

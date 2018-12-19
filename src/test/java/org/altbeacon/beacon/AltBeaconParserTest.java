@@ -1,16 +1,14 @@
 package org.altbeacon.beacon;
 
+import org.altbeacon.beacon.logging.LogManager;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.logging.Loggers;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
-import org.junit.Test;
-import org.robolectric.annotation.Config;
 
 @Config(sdk = 18)
 @RunWith(RobolectricTestRunner.class)
@@ -30,17 +28,18 @@ public class AltBeaconParserTest {
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i+1), 16));
+                    + Character.digit(s.charAt(i + 1), 16));
         }
         return data;
     }
+
     @Test
     public void testRecognizeBeacon() {
         BeaconManager.setDebug(true);
         byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c50900");
         AltBeaconParser parser = new AltBeaconParser();
         Beacon beacon = parser.fromScanData(bytes, -55, null);
-        assertEquals ("Beacon should have one data field", 1, beacon.getDataFields().size());
+        assertEquals("Beacon should have one data field", 1, beacon.getDataFields().size());
         assertEquals("manData should be parsed", 9, ((AltBeacon) beacon).getMfgReserved());
     }
 
@@ -52,6 +51,7 @@ public class AltBeaconParserTest {
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         assertNotNull("Beacon should be not null if parsed successfully", beacon);
     }
+
     @Test
     public void testDetectsAlternateBeconType() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -61,6 +61,7 @@ public class AltBeaconParserTest {
         Beacon beacon = parser.fromScanData(bytes, -55, null);
         assertNotNull("Beacon should be not null if parsed successfully", beacon);
     }
+
     @Test
     public void testParseWrongFormatReturnsNothing() {
         BeaconManager.setDebug(true);
@@ -85,7 +86,7 @@ public class AltBeaconParserTest {
         assertEquals("id2 should be parsed", "1", beacon.getIdentifier(1).toString());
         assertEquals("id3 should be parsed", "2", beacon.getIdentifier(2).toString());
         assertEquals("txPower should be parsed", -59, beacon.getTxPower());
-        assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
+        assertEquals("manufacturer should be parsed", 0x118, beacon.getManufacturer());
         assertEquals("missing data field zero should be zero", new Long(0l), beacon.getDataFields().get(0));
     }
 }

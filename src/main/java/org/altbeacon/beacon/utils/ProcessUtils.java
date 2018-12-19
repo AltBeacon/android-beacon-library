@@ -8,8 +8,9 @@ import java.util.List;
 
 /**
  * Created by dyoung on 3/10/17.
- *
+ * <p>
  * Internal class used to determine current process state in multi-process setups
+ *
  * @hide
  */
 
@@ -26,7 +27,7 @@ public class ProcessUtils {
         if (processes != null) {
             for (ActivityManager.RunningAppProcessInfo processInfo : processes) {
                 if (processInfo.pid == getPid()) {
-                    return  processInfo.processName;
+                    return processInfo.processName;
                 }
             }
         }

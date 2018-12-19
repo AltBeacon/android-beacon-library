@@ -2,7 +2,9 @@ package org.altbeacon.beacon.service.scanner;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
+
 import java.util.Set;
 
 /**
@@ -14,7 +16,7 @@ import java.util.Set;
  *
  * @see org.altbeacon.beacon.service.ScanJob
  * @see org.altbeacon.beacon.service.ScanHelper#startAndroidOBackgroundScan(Set)
- *
+ * <p>
  * Created by dyoung on 5/28/17.
  */
 

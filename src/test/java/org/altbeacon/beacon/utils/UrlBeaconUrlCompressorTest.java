@@ -1,22 +1,31 @@
 package org.altbeacon.beacon.utils;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+
 import java.net.MalformedURLException;
 import java.util.Arrays;
 
-import org.junit.Test;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
-import org.robolectric.annotation.Config;
-
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @Config(sdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class UrlBeaconUrlCompressorTest {
 
-    final protected static char[] hexArray = "0123456789ABCDEF" .toCharArray();
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    private static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
 
     /**
      * URLs to test:
@@ -221,16 +230,6 @@ public class UrlBeaconUrlCompressorTest {
         String testURL = "http://google.info";
         byte[] testBytes = {0x02, 'g', 'o', 'o', 'g', 'l', 'e', 0x0b};
         assertEquals(testURL, UrlBeaconUrlCompressor.uncompress(testBytes));
-    }
-
-    private static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
     }
 
 

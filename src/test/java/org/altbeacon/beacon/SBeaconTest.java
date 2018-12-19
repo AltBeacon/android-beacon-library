@@ -5,16 +5,13 @@ import android.bluetooth.BluetoothDevice;
 import android.os.Build;
 import android.os.Parcel;
 
-
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.logging.Loggers;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import org.robolectric.annotation.Config;
 
 @Config(sdk = 18)
 
@@ -22,6 +19,16 @@ import org.robolectric.annotation.Config;
  * Created by dyoung on 7/22/14.
  */
 public class SBeaconTest {
+
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
+    }
 
     @Test
     public void testDetectsSBeacon() {
@@ -34,16 +41,6 @@ public class SBeaconTest {
         assertEquals("group should be parsed", 1, sBeacon.getGroup());
         assertEquals("time should be parsed", 2, sBeacon.getTime());
         assertEquals("txPower should be parsed", -59, sBeacon.getTxPower());
-    }
-
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i+1), 16));
-        }
-        return data;
     }
 
     class SBeacon extends Beacon {
@@ -63,12 +60,18 @@ public class SBeaconTest {
             //BeaconManager.logDebug(TAG, "constructed a new sbeacon with id2: " + getIdentifier(2));
         }
 
+        protected SBeacon(Parcel in) {
+            // TODO: Implement me
+        }
+
         public int getGroup() {
             return mIdentifiers.get(0).toInt();
         }
+
         public int getTime() {
             return mTime;
         }
+
         public String getId() {
             return mIdentifiers.get(1).toString();
         }
@@ -82,22 +85,19 @@ public class SBeaconTest {
         public void writeToParcel(Parcel dest, int flags) {
             // TODO: Implement me
         }
-
-        protected SBeacon(Parcel in) {
-            // TODO: Implement me
-        }
     }
 
     class SBeaconParser extends BeaconParser {
         private static final String TAG = "SBeaconParser";
+
         @TargetApi(Build.VERSION_CODES.ECLAIR)
         @Override
         public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
             int startByte = 2;
             while (startByte <= 5) {
                 // "m:2-3=0203,i:2-2,i:7-8,i:14-19,d:10-13,p:9-9"
-                if (((int)scanData[startByte+3] & 0xff) == 0x03 &&
-                        ((int)scanData[startByte+4] & 0xff) == 0x15) {
+                if (((int) scanData[startByte + 3] & 0xff) == 0x03 &&
+                        ((int) scanData[startByte + 4] & 0xff) == 0x15) {
                     //BeaconManager.logDebug(TAG, "This is a SBeacon beacon advertisement");
                     // startByte+0 company id (2 bytes)
                     // startByte+2 = 02 (1) byte header
@@ -108,17 +108,17 @@ public class SBeaconTest {
                     // startByte+9 = Tx Power => Tx Power
                     // startByte+10 = Timestamp (4 bytes) => Minor (2 LSBs) little endian
                     // startByte+14 = Beacon ID (6 bytes) -> UUID little endian
-                    int group = (scanData[startByte+8] & 0xff) * 0x100 + (scanData[startByte+7] & 0xff);
-                    int clock = (scanData[startByte+13] & 0xff) * 0x1000000 + (scanData[startByte+12] & 0xff) * 0x10000 + (scanData[startByte+11] & 0xff) * 0x100 + (scanData[startByte+10] & 0xff);
-                    int txPower = (int)scanData[startByte+9]; // this one is signed
+                    int group = (scanData[startByte + 8] & 0xff) * 0x100 + (scanData[startByte + 7] & 0xff);
+                    int clock = (scanData[startByte + 13] & 0xff) * 0x1000000 + (scanData[startByte + 12] & 0xff) * 0x10000 + (scanData[startByte + 11] & 0xff) * 0x100 + (scanData[startByte + 10] & 0xff);
+                    int txPower = (int) scanData[startByte + 9]; // this one is signed
 
                     byte[] beaconId = new byte[6];
-                    System.arraycopy(scanData, startByte+14, beaconId, 0, 6);
+                    System.arraycopy(scanData, startByte + 14, beaconId, 0, 6);
                     String hexString = bytesToHex(beaconId);
                     StringBuilder sb = new StringBuilder();
-                    sb.append(hexString.substring(0,12));
+                    sb.append(hexString.substring(0, 12));
                     String id = "0x" + sb.toString();
-                    int beaconTypeCode = (scanData[startByte+3] & 0xff) * 0x100 + (scanData[startByte+2] & 0xff);
+                    int beaconTypeCode = (scanData[startByte + 3] & 0xff) * 0x100 + (scanData[startByte + 2] & 0xff);
 
 
                     String mac = null;

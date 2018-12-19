@@ -14,9 +14,11 @@ import org.altbeacon.beacon.BeaconParser;
  */
 public class EddystoneTelemetryAccessor {
     private static final String TAG = "EddystoneTLMAccessor";
+
     /**
      * Extracts the raw Eddystone telemetry bytes from the extra data fields of an associated beacon.
      * This is useful for passing the telemetry to Google's backend services.
+     *
      * @param beacon
      * @return the bytes of the telemetry frame
      */
@@ -30,8 +32,7 @@ public class EddystoneTelemetryAccessor {
             byte[] telemetryBytes = telemetryParser.getBeaconAdvertisementData(telemetryBeacon);
             Log.d(TAG, "Rehydrated telemetry bytes are :" + byteArrayToString(telemetryBytes));
             return telemetryBytes;
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -40,6 +41,7 @@ public class EddystoneTelemetryAccessor {
      * Extracts the raw Eddystone telemetry bytes from the extra data fields of an associated beacon
      * and base64 encodes them.  This is useful for passing the telemetry to Google's backend
      * services.
+     *
      * @param beacon
      * @return base64 encoded telemetry bytes
      */
@@ -50,10 +52,9 @@ public class EddystoneTelemetryAccessor {
             String base64EncodedTelemetry = Base64.encodeToString(bytes, Base64.DEFAULT);
             // 12-21 00:17:18.844 20180-20180/? D/EddystoneTLMAccessor: Rehydrated telemetry bytes are :20 00 00 00 88 29 18 4d 00 00 18 4d 00 00
             // 12-21 00:17:18.844 20180-20180/? D/EddystoneTLMAccessor: Base64 telemetry bytes are :IAAAAIgpGE0AABhNAAA=
-            Log.d(TAG, "Base64 telemetry bytes are :"+base64EncodedTelemetry);
+            Log.d(TAG, "Base64 telemetry bytes are :" + base64EncodedTelemetry);
             return base64EncodedTelemetry;
-        }
-        else {
+        } else {
             return null;
         }
     }

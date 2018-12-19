@@ -25,22 +25,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import static android.content.Context.MODE_PRIVATE;
 
 public class MonitoringStatus {
-    private static volatile MonitoringStatus sInstance;
+    public static final String STATUS_PRESERVATION_FILE_NAME =
+            "org.altbeacon.beacon.service.monitoring_status_state";
     private static final int MAX_REGIONS_FOR_STATUS_PRESERVATION = 50;
     private static final int MAX_STATUS_PRESERVATION_FILE_AGE_TO_RESTORE_SECS = 60 * 15;
     private static final String TAG = MonitoringStatus.class.getSimpleName();
-    public static final String STATUS_PRESERVATION_FILE_NAME =
-            "org.altbeacon.beacon.service.monitoring_status_state";
-    private Map<Region, RegionMonitoringState> mRegionsStatesMap;
-
-    private Context mContext;
-
-    private boolean mStatePreservationIsOn = true;
-
     /**
      * Private lock object for singleton initialization protecting against denial-of-service attack.
      */
     private static final Object SINGLETON_LOCK = new Object();
+    private static volatile MonitoringStatus sInstance;
+    private Map<Region, RegionMonitoringState> mRegionsStatesMap;
+    private Context mContext;
+    private boolean mStatePreservationIsOn = true;
+
+    public MonitoringStatus(Context context) {
+        this.mContext = context;
+    }
 
     public static MonitoringStatus getInstanceForApplication(Context context) {
         /*
@@ -66,10 +67,6 @@ public class MonitoringStatus {
             }
         }
         return instance;
-    }
-
-    public MonitoringStatus(Context context) {
-        this.mContext = context;
     }
 
     public synchronized void addRegion(Region region, Callback callback) {
@@ -108,8 +105,7 @@ public class MonitoringStatus {
         }
         if (needsMonitoringStateSaving) {
             saveMonitoringStatusIfOn();
-        }
-        else {
+        } else {
             updateMonitoringStatusTime(System.currentTimeMillis());
         }
     }
@@ -117,7 +113,7 @@ public class MonitoringStatus {
     public synchronized void updateNewlyInsideInRegionsContaining(Beacon beacon) {
         List<Region> matchingRegions = regionsMatchingTo(beacon);
         boolean needsMonitoringStateSaving = false;
-        for(Region region : matchingRegions) {
+        for (Region region : matchingRegions) {
             RegionMonitoringState state = getRegionsStateMap().get(region);
             if (state != null && state.markInside()) {
                 needsMonitoringStateSaving = true;
@@ -127,8 +123,7 @@ public class MonitoringStatus {
         }
         if (needsMonitoringStateSaving) {
             saveMonitoringStatusIfOn();
-        }
-        else {
+        } else {
             updateMonitoringStatusTime(System.currentTimeMillis());
         }
     }
@@ -145,11 +140,9 @@ public class MonitoringStatus {
         mRegionsStatesMap = new ConcurrentHashMap<Region, RegionMonitoringState>();
         if (!mStatePreservationIsOn) {
             LogManager.d(TAG, "Not restoring monitoring state because persistence is disabled");
-        }
-        else if (millisSinceLastMonitor > MAX_STATUS_PRESERVATION_FILE_AGE_TO_RESTORE_SECS * 1000) {
-            LogManager.d(TAG, "Not restoring monitoring state because it was recorded too many milliseconds ago: "+millisSinceLastMonitor);
-        }
-        else {
+        } else if (millisSinceLastMonitor > MAX_STATUS_PRESERVATION_FILE_AGE_TO_RESTORE_SECS * 1000) {
+            LogManager.d(TAG, "Not restoring monitoring state because it was recorded too many milliseconds ago: " + millisSinceLastMonitor);
+        } else {
             restoreMonitoringStatus();
             LogManager.d(TAG, "Done restoring monitoring status");
         }
@@ -168,22 +161,21 @@ public class MonitoringStatus {
     }
 
     protected void saveMonitoringStatusIfOn() {
-        if(!mStatePreservationIsOn) return;
+        if (!mStatePreservationIsOn) return;
         LogManager.d(TAG, "saveMonitoringStatusIfOn()");
         if (getRegionsStateMap().size() > MAX_REGIONS_FOR_STATUS_PRESERVATION) {
             LogManager.w(TAG, "Too many regions being monitored.  Will not persist region state");
             mContext.deleteFile(STATUS_PRESERVATION_FILE_NAME);
-        }
-        else {
+        } else {
             FileOutputStream outputStream = null;
             ObjectOutputStream objectOutputStream = null;
             try {
                 outputStream = mContext.openFileOutput(STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(outputStream);
-                Map<Region,RegionMonitoringState> map = getRegionsStateMap();
+                Map<Region, RegionMonitoringState> map = getRegionsStateMap();
                 // Must convert ConcurrentHashMap to HashMap becasue attempting to serialize
                 // ConcurrentHashMap throws a java.io.NotSerializableException
-                HashMap<Region,RegionMonitoringState> serializableMap = new HashMap<Region,RegionMonitoringState>();
+                HashMap<Region, RegionMonitoringState> serializableMap = new HashMap<Region, RegionMonitoringState>();
                 for (Region region : map.keySet()) {
                     serializableMap.put(region, map.get(region));
                 }
@@ -225,18 +217,16 @@ public class MonitoringStatus {
             inputStream = mContext.openFileInput(STATUS_PRESERVATION_FILE_NAME);
             objectInputStream = new ObjectInputStream(inputStream);
             Map<Region, RegionMonitoringState> obj = (Map<Region, RegionMonitoringState>) objectInputStream.readObject();
-            LogManager.d(TAG, "Restored region monitoring state for "+obj.size()+" regions.");
+            LogManager.d(TAG, "Restored region monitoring state for " + obj.size() + " regions.");
             for (Region region : obj.keySet()) {
-                LogManager.d(TAG, "Region  "+region+" uniqueId: "+region.getUniqueId()+" state: "+obj.get(region));
+                LogManager.d(TAG, "Region  " + region + " uniqueId: " + region.getUniqueId() + " state: " + obj.get(region));
             }
 
             // RegionMonitoringState objects only get serialized to the status preservation file when they are first inside,
             // therefore, their {@link RegionMonitoringState#lastSeenTime will be when they were first "inside".
             // Mark all beacons that were inside again so they don't trigger as a new exit - enter.
-            for (RegionMonitoringState regionMonitoringState : obj.values())
-            {
-                if (regionMonitoringState.getInside())
-                {
+            for (RegionMonitoringState regionMonitoringState : obj.values()) {
+                if (regionMonitoringState.getInside()) {
                     regionMonitoringState.markInside();
                 }
             }
@@ -245,7 +235,7 @@ public class MonitoringStatus {
 
         } catch (IOException | ClassNotFoundException | ClassCastException e) {
             if (e instanceof InvalidClassException) {
-                LogManager.d(TAG, "Serialized Monitoring State has wrong class. Just ignoring saved state..." );
+                LogManager.d(TAG, "Serialized Monitoring State has wrong class. Just ignoring saved state...");
             } else LogManager.e(TAG, "Deserialization exception, message: %s", e.getMessage());
         } finally {
             if (null != inputStream) {
@@ -309,12 +299,13 @@ public class MonitoringStatus {
     public void removeLocalRegion(Region region) {
         getRegionsStateMap().remove(region);
     }
-    public RegionMonitoringState addLocalRegion(Region region){
+
+    public RegionMonitoringState addLocalRegion(Region region) {
         Callback dummyCallback = new Callback(null);
         return addLocalRegion(region, dummyCallback);
     }
 
-    private RegionMonitoringState addLocalRegion(Region region, Callback callback){
+    private RegionMonitoringState addLocalRegion(Region region, Callback callback) {
         if (getRegionsStateMap().containsKey(region)) {
             // if the region definition hasn't changed, becasue if it has, we need to clear state
             // otherwise a region with the same uniqueId can never be changed
@@ -322,11 +313,10 @@ public class MonitoringStatus {
                 if (existingRegion.equals(region)) {
                     if (existingRegion.hasSameIdentifiers(region)) {
                         return getRegionsStateMap().get(existingRegion);
-                    }
-                    else {
-                        LogManager.d(TAG, "Replacing region with unique identifier "+region.getUniqueId());
-                        LogManager.d(TAG, "Old definition: "+existingRegion);
-                        LogManager.d(TAG, "New definition: "+region);
+                    } else {
+                        LogManager.d(TAG, "Replacing region with unique identifier " + region.getUniqueId());
+                        LogManager.d(TAG, "Old definition: " + existingRegion);
+                        LogManager.d(TAG, "New definition: " + region);
                         LogManager.d(TAG, "clearing state");
                         getRegionsStateMap().remove(region);
                         break;

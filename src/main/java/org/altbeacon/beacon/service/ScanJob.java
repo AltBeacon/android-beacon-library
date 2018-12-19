@@ -26,14 +26,15 @@ import java.util.List;
 
 /**
  * Used to perform scans periodically using the JobScheduler
- *
+ * <p>
  * Only one instance of this will be active, even with multiple jobIds.  If one job
  * is already running when another is scheduled to start, onStartJob gets called again on the same
  * instance.
- *
+ * <p>
  * If the OS decides to create a new instance, it will call onStopJob() on the old instance
- *
+ * <p>
  * Created by dyoung on 3/24/17.
+ *
  * @hide
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -52,6 +53,96 @@ public class ScanJob extends JobService {
     private ScanHelper mScanHelper;
     private boolean mInitialized = false;
 
+    /**
+     * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
+     * will default to the value in the AndroidManifest.xml
+     * <p>
+     * WARNING:  If using this library in a multi-process application, this method may not work.
+     * This is considered a private API and may be removed at any time.
+     * <p>
+     * the preferred way of setting this is in the AndroidManifest.xml as so:
+     * <code>
+     * <service android:name="org.altbeacon.beacon.service.ScanJob">
+     * </service>
+     * </code>
+     *
+     * @param id identifier to give the job
+     */
+    @SuppressWarnings("unused")
+    public static void setOverrideImmediateScanJobId(int id) {
+        sOverrideImmediateScanJobId = id;
+    }
+
+    /**
+     * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
+     * will default to the value in the AndroidManifest.xml
+     * <p>
+     * WARNING:  If using this library in a multi-process application, this method may not work.
+     * This is considered a private API and may be removed at any time.
+     * <p>
+     * the preferred way of setting this is in the AndroidManifest.xml as so:
+     * <code>
+     * <service android:name="org.altbeacon.beacon.service.ScanJob">
+     * <meta-data android:name="immmediateScanJobId" android:value="1001" tools:replace="android:value"/>
+     * <meta-data android:name="periodicScanJobId" android:value="1002" tools:replace="android:value"/>
+     * </service>
+     * </code>
+     *
+     * @param id identifier to give the job
+     */
+    @SuppressWarnings("unused")
+    public static void setOverridePeriodicScanJobId(int id) {
+        sOverridePeriodicScanJobId = id;
+    }
+
+    /**
+     * Returns the job id to be used to schedule this job.  This may be set in the
+     * AndroidManifest.xml or in single process applications by using #setOverrideJobId
+     *
+     * @param context the application context
+     * @return the job id
+     */
+    public static int getImmediateScanJobId(Context context) {
+        if (sOverrideImmediateScanJobId >= 0) {
+            LogManager.i(TAG, "Using ImmediateScanJobId from static override: " +
+                    sOverrideImmediateScanJobId);
+            return sOverrideImmediateScanJobId;
+        }
+        return getJobIdFromManifest(context, "immediateScanJobId");
+    }
+
+    /**
+     * Returns the job id to be used to schedule this job.  This may be set in the
+     * AndroidManifest.xml or in single process applications by using #setOverrideJobId
+     *
+     * @param context the application context
+     * @return the job id
+     */
+    public static int getPeriodicScanJobId(Context context) {
+        if (sOverrideImmediateScanJobId >= 0) {
+            LogManager.i(TAG, "Using PeriodicScanJobId from static override: " +
+                    sOverridePeriodicScanJobId);
+            return sOverridePeriodicScanJobId;
+        }
+        return getJobIdFromManifest(context, "periodicScanJobId");
+    }
+
+    private static int getJobIdFromManifest(Context context, String name) {
+        PackageItemInfo info = null;
+        try {
+            info = context.getPackageManager().getServiceInfo(new ComponentName(context,
+                    ScanJob.class), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) { /* do nothing here */ }
+        if (info != null && info.metaData != null && info.metaData.get(name) != null) {
+            int jobId = info.metaData.getInt(name);
+            LogManager.i(TAG, "Using " + name + " from manifest: " + jobId);
+            return jobId;
+        } else {
+            throw new RuntimeException("Cannot get job id from manifest.  " +
+                    "Make sure that the " + name + " is configured in the manifest for the ScanJob.");
+        }
+    }
+
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
         if (!initialzeScanHelper()) {
@@ -59,10 +150,9 @@ public class ScanJob extends JobService {
             return false;
         }
         if (jobParameters.getJobId() == getImmediateScanJobId(this)) {
-            LogManager.i(TAG, "Running immediate scan job: instance is "+this);
-        }
-        else {
-            LogManager.i(TAG, "Running periodic scan job: instance is "+this);
+            LogManager.i(TAG, "Running immediate scan job: instance is " + this);
+        } else {
+            LogManager.i(TAG, "Running periodic scan job: instance is " + this);
         }
 
         List<ScanResult> queuedScanResults = ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue();
@@ -79,21 +169,20 @@ public class ScanJob extends JobService {
         if (mInitialized) {
             LogManager.d(TAG, "Scanning already started.  Resetting for current parameters");
             startedScan = restartScanning();
-        }
-        else {
+        } else {
             startedScan = startScanning();
         }
         mStopHandler.removeCallbacksAndMessages(null);
 
         if (startedScan) {
-            LogManager.i(TAG, "Scan job running for "+mScanState.getScanJobRuntimeMillis()+" millis");
+            LogManager.i(TAG, "Scan job running for " + mScanState.getScanJobRuntimeMillis() + " millis");
             mStopHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
                     stopScanning();
                     mScanState.save();
-                    ScanJob.this.jobFinished(jobParameters , false);
+                    ScanJob.this.jobFinished(jobParameters, false);
 
                     // need to execute this after the current block or Android stops this job prematurely
                     mStopHandler.post(new Runnable() {
@@ -105,16 +194,15 @@ public class ScanJob extends JobService {
 
                 }
             }, mScanState.getScanJobRuntimeMillis());
-        }
-        else {
+        } else {
             LogManager.i(TAG, "Scanning not started so Scan job is complete.");
-            ScanJob.this.jobFinished(jobParameters , false);
+            ScanJob.this.jobFinished(jobParameters, false);
         }
         return true;
     }
 
-    private void scheduleNextScan(){
-        if(!mScanState.getBackgroundMode()){
+    private void scheduleNextScan() {
+        if (!mScanState.getBackgroundMode()) {
             // immediately reschedule scan if running in foreground
             LogManager.d(TAG, "In foreground mode, schedule next scan");
             ScanJobScheduler.getInstance().forceScheduleNextScan(ScanJob.this);
@@ -137,12 +225,10 @@ public class ScanJob extends JobService {
         if (insideAnyRegion) {
             // TODO: Set up a scan filter for not detecting a beacon pattern
             LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
-        }
-        else {
+        } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
-            }
-            else {
+            } else {
                 LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
             }
         }
@@ -152,8 +238,7 @@ public class ScanJob extends JobService {
     public boolean onStopJob(JobParameters params) {
         if (params.getJobId() == getPeriodicScanJobId(this)) {
             LogManager.i(TAG, "onStopJob called for periodic scan " + this);
-        }
-        else {
+        } else {
             LogManager.i(TAG, "onStopJob called for immediate scan " + this);
         }
         // Cancel the stop timer.  The OS is stopping prematurely
@@ -189,8 +274,7 @@ public class ScanJob extends JobService {
         if (mScanHelper.getCycledScanner() == null) {
             try {
                 mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
-            }
-            catch (OutOfMemoryError e) {
+            } catch (OutOfMemoryError e) {
                 LogManager.w(TAG, "Failed to create CycledLeScanner thread.");
                 return false;
             }
@@ -224,8 +308,7 @@ public class ScanJob extends JobService {
                 mScanHelper.getCycledScanner().start();
             }
             return true;
-        }
-        else {
+        } else {
             if (mScanHelper.getCycledScanner() != null) {
                 mScanHelper.getCycledScanner().stop();
             }
@@ -239,103 +322,13 @@ public class ScanJob extends JobService {
         beaconManager.setScannerInSameProcess(true);
         if (beaconManager.isMainProcess()) {
             LogManager.i(TAG, "scanJob version %s is starting up on the main process", BuildConfig.VERSION_NAME);
-        }
-        else {
+        } else {
             LogManager.i(TAG, "beaconScanJob library version %s is starting up on a separate process", BuildConfig.VERSION_NAME);
             ProcessUtils processUtils = new ProcessUtils(ScanJob.this);
-            LogManager.i(TAG, "beaconScanJob PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
+            LogManager.i(TAG, "beaconScanJob PID is " + processUtils.getPid() + " with process name " + processUtils.getProcessName());
         }
-        ModelSpecificDistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(ScanJob.this, BeaconManager.getDistanceModelUpdateUrl());
+        ModelSpecificDistanceCalculator defaultDistanceCalculator = new ModelSpecificDistanceCalculator(ScanJob.this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
         return restartScanning();
-    }
-
-    /**
-     * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
-     * will default to the value in the AndroidManifest.xml
-     *
-     * WARNING:  If using this library in a multi-process application, this method may not work.
-     * This is considered a private API and may be removed at any time.
-     *
-     * the preferred way of setting this is in the AndroidManifest.xml as so:
-     * <code>
-     * <service android:name="org.altbeacon.beacon.service.ScanJob">
-     * </service>
-     * </code>
-     *
-     * @param id identifier to give the job
-     */
-    @SuppressWarnings("unused")
-    public static void setOverrideImmediateScanJobId(int id) {
-        sOverrideImmediateScanJobId = id;
-    }
-
-    /**
-     * Allows configuration of the job id for the Android Job Scheduler.  If not configured, this
-     * will default to the value in the AndroidManifest.xml
-     *
-     * WARNING:  If using this library in a multi-process application, this method may not work.
-     * This is considered a private API and may be removed at any time.
-     *
-     * the preferred way of setting this is in the AndroidManifest.xml as so:
-     * <code>
-     * <service android:name="org.altbeacon.beacon.service.ScanJob">
-     *   <meta-data android:name="immmediateScanJobId" android:value="1001" tools:replace="android:value"/>
-     *   <meta-data android:name="periodicScanJobId" android:value="1002" tools:replace="android:value"/>
-     * </service>
-     * </code>
-     *
-     * @param id identifier to give the job
-     */
-    @SuppressWarnings("unused")
-    public static void setOverridePeriodicScanJobId(int id) {
-        sOverridePeriodicScanJobId = id;
-    }
-
-    /**
-     * Returns the job id to be used to schedule this job.  This may be set in the
-     * AndroidManifest.xml or in single process applications by using #setOverrideJobId
-     * @param context the application context
-     * @return the job id
-     */
-    public static int getImmediateScanJobId(Context context) {
-        if (sOverrideImmediateScanJobId >= 0) {
-            LogManager.i(TAG, "Using ImmediateScanJobId from static override: "+
-                    sOverrideImmediateScanJobId);
-            return sOverrideImmediateScanJobId;
-        }
-        return getJobIdFromManifest(context, "immediateScanJobId");
-    }
-
-    /**
-     * Returns the job id to be used to schedule this job.  This may be set in the
-     * AndroidManifest.xml or in single process applications by using #setOverrideJobId
-     * @param context the application context
-     * @return the job id
-     */
-    public static int getPeriodicScanJobId(Context context) {
-        if (sOverrideImmediateScanJobId >= 0) {
-            LogManager.i(TAG, "Using PeriodicScanJobId from static override: "+
-                    sOverridePeriodicScanJobId);
-            return sOverridePeriodicScanJobId;
-        }
-        return getJobIdFromManifest(context, "periodicScanJobId");
-    }
-
-    private static int getJobIdFromManifest(Context context, String name) {
-        PackageItemInfo info = null;
-        try {
-            info = context.getPackageManager().getServiceInfo(new ComponentName(context,
-                    ScanJob.class), PackageManager.GET_META_DATA);
-        } catch (PackageManager.NameNotFoundException e) { /* do nothing here */ }
-        if (info != null && info.metaData != null && info.metaData.get(name) != null) {
-            int jobId = info.metaData.getInt(name);
-            LogManager.i(TAG, "Using "+name+" from manifest: "+jobId);
-            return jobId;
-        }
-        else {
-            throw new RuntimeException("Cannot get job id from manifest.  " +
-                    "Make sure that the "+name+" is configured in the manifest for the ScanJob.");
-        }
     }
 }

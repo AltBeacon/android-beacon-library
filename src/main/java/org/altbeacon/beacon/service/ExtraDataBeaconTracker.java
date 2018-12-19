@@ -20,7 +20,7 @@ public class ExtraDataBeaconTracker implements Serializable {
      * This is a lookup table to find tracked beacons by the calculated beacon key
      */
     @NonNull
-    private final HashMap<String,HashMap<Integer,Beacon>> mBeaconsByKey = new HashMap<>();
+    private final HashMap<String, HashMap<Integer, Beacon>> mBeaconsByKey = new HashMap<>();
 
     private final boolean matchBeaconsByServiceUUID;
 
@@ -41,8 +41,7 @@ public class ExtraDataBeaconTracker implements Serializable {
         Beacon trackedBeacon = null;
         if (beacon.isMultiFrameBeacon() || beacon.getServiceUuid() != -1) {
             trackedBeacon = trackGattBeacon(beacon);
-        }
-        else {
+        } else {
             trackedBeacon = beacon;
         }
         return trackedBeacon;
@@ -59,11 +58,10 @@ public class ExtraDataBeaconTracker implements Serializable {
         }
 
         String key = getBeaconKey(beacon);
-        HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByKey.get(key);
+        HashMap<Integer, Beacon> matchingTrackedBeacons = mBeaconsByKey.get(key);
         if (null == matchingTrackedBeacons) {
             matchingTrackedBeacons = new HashMap<>();
-        }
-        else {
+        } else {
             Beacon trackedBeacon = matchingTrackedBeacons.values().iterator().next();
             beacon.setExtraDataFields(trackedBeacon.getExtraDataFields());
         }
@@ -74,7 +72,7 @@ public class ExtraDataBeaconTracker implements Serializable {
     }
 
     private void updateTrackedBeacons(@NonNull Beacon beacon) {
-        HashMap<Integer,Beacon> matchingTrackedBeacons = mBeaconsByKey.get(getBeaconKey(beacon));
+        HashMap<Integer, Beacon> matchingTrackedBeacons = mBeaconsByKey.get(getBeaconKey(beacon));
         if (null != matchingTrackedBeacons) {
             for (Beacon matchingTrackedBeacon : matchingTrackedBeacons.values()) {
                 matchingTrackedBeacon.setRssi(beacon.getRssi());

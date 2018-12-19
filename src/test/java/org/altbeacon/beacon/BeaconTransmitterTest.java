@@ -72,7 +72,7 @@ public class BeaconTransmitterTest {
             byteString += String.format("%02X", data[i]);
             byteString += " ";
         }
-        Log.d(TAG, "Advertising bytes are "+byteString );
+        Log.d(TAG, "Advertising bytes are " + byteString);
         assertEquals("Data should be 24 bytes long", 18, data.length);
         assertEquals("Advertisement bytes should be as expected", "00 C5 2F 23 44 54 F4 91 1B A9 FF A6 00 00 00 00 00 01 ", byteString);
     }

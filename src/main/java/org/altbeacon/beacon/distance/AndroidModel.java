@@ -1,12 +1,12 @@
 package org.altbeacon.beacon.distance;
 
 import android.os.Build;
-import org.altbeacon.beacon.BeaconManager;
+
 import org.altbeacon.beacon.logging.LogManager;
 
 /**
  * Represents a specific Android device model based on the available device build information
- *
+ * <p>
  * Created by dyoung on 8/28/14.
  */
 public class AndroidModel {
@@ -26,12 +26,13 @@ public class AndroidModel {
         mManufacturer = manufacturer;
 
     }
+
     public static AndroidModel forThisDevice() {
         return new AndroidModel(
-            Build.VERSION.RELEASE,
-            Build.ID,
-            Build.MODEL,
-            Build.MANUFACTURER);
+                Build.VERSION.RELEASE,
+                Build.ID,
+                Build.MODEL,
+                Build.MANUFACTURER);
     }
 
     public String getVersion() {
@@ -46,21 +47,20 @@ public class AndroidModel {
         return mBuildNumber;
     }
 
-    public String getModel() {
-        return mModel;
-    }
-
-
-    public String getManufacturer() {
-        return mManufacturer;
-    }
-
     public void setBuildNumber(String mBuildNumber) {
         this.mBuildNumber = mBuildNumber;
     }
 
+    public String getModel() {
+        return mModel;
+    }
+
     public void setModel(String mModel) {
         this.mModel = mModel;
+    }
+
+    public String getManufacturer() {
+        return mManufacturer;
     }
 
     public void setManufacturer(String mManufacturer) {
@@ -70,6 +70,7 @@ public class AndroidModel {
     /**
      * Calculates a qualitative match score between two different Android device models for the
      * purposes of how likely they are to have similar Bluetooth signal level responses
+     *
      * @param otherModel
      * @return match quality, higher numbers are a better match
      */
@@ -78,7 +79,7 @@ public class AndroidModel {
         if (this.mManufacturer.equalsIgnoreCase(otherModel.mManufacturer)) {
             score = 1;
         }
-        if (score ==1 && this.mModel.equals(otherModel.mModel)) {
+        if (score == 1 && this.mModel.equals(otherModel.mModel)) {
             score = 2;
         }
         if (score == 2 && this.mBuildNumber.equals(otherModel.mBuildNumber)) {
@@ -93,6 +94,6 @@ public class AndroidModel {
 
     @Override
     public String toString() {
-        return ""+mManufacturer+";"+mModel+";"+mBuildNumber+";"+mVersion;
+        return "" + mManufacturer + ";" + mModel + ";" + mBuildNumber + ";" + mVersion;
     }
 }

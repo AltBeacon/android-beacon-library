@@ -62,7 +62,6 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static android.app.PendingIntent.FLAG_ONE_SHOT;
 import static android.app.PendingIntent.getBroadcast;
@@ -73,10 +72,13 @@ import static android.app.PendingIntent.getBroadcast;
 
 public class BeaconService extends Service {
     public static final String TAG = "BeaconService";
-    private final Handler handler = new Handler();
-    private BluetoothCrashResolver bluetoothCrashResolver;
-    private ScanHelper mScanHelper;
-    private BeaconLocalBroadcastProcessor mBeaconNotificationProcessor;
+    /**
+     * Command to the service to display a message
+     */
+    public static final int MSG_START_RANGING = 2;
+    public static final int MSG_STOP_RANGING = 3;
+    public static final int MSG_START_MONITORING = 4;
+    public static final int MSG_STOP_MONITORING = 5;
 
     /*
      * The scan period is how long we wait between restarting the BLE advertisement scans
@@ -99,100 +101,16 @@ public class BeaconService extends Service {
      * scanning.
      *
      */
-
-    /**
-     * Class used for the client Binder.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with IPC.
-     */
-    public class BeaconBinder extends Binder {
-        public BeaconService getService() {
-            LogManager.i(TAG, "getService of BeaconBinder called");
-            // Return this instance of LocalService so clients can call public methods
-            return BeaconService.this;
-        }
-    }
-
-    /**
-     * Command to the service to display a message
-     */
-    public static final int MSG_START_RANGING = 2;
-    public static final int MSG_STOP_RANGING = 3;
-    public static final int MSG_START_MONITORING = 4;
-    public static final int MSG_STOP_MONITORING = 5;
     public static final int MSG_SET_SCAN_PERIODS = 6;
     public static final int MSG_SYNC_SETTINGS = 7;
-
-    static class IncomingHandler extends Handler {
-        private final WeakReference<BeaconService> mService;
-
-        IncomingHandler(BeaconService service) {
-            /*
-             * Explicitly state this uses the main thread. Without this we defer to where the
-             * service instance is initialized/created; which is usually the main thread anyways.
-             * But by being explicit we document our code design expectations for where things run.
-             */
-            super(Looper.getMainLooper());
-            mService = new WeakReference<BeaconService>(service);
-        }
-
-        @MainThread
-        @Override
-        public void handleMessage(Message msg) {
-            BeaconService service = mService.get();
-            if (service != null) {
-                StartRMData startRMData = StartRMData.fromBundle(msg.getData());
-                if (startRMData != null) {
-                    switch (msg.what) {
-                        case MSG_START_RANGING:
-                            LogManager.i(TAG, "start ranging received");
-                            service.startRangingBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_STOP_RANGING:
-                            LogManager.i(TAG, "stop ranging received");
-                            service.stopRangingBeaconsInRegion(startRMData.getRegionData());
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_START_MONITORING:
-                            LogManager.i(TAG, "start monitoring received");
-                            service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_STOP_MONITORING:
-                            LogManager.i(TAG, "stop monitoring received");
-                            service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_SET_SCAN_PERIODS:
-                            LogManager.i(TAG, "set scan intervals received");
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        default:
-                            super.handleMessage(msg);
-                    }
-                }
-                else if (msg.what == MSG_SYNC_SETTINGS) {
-                    LogManager.i(TAG, "Received settings update from other process");
-                    SettingsData settingsData = SettingsData.fromBundle(msg.getData());
-                    if (settingsData != null) {
-                        settingsData.apply(service);
-                    }
-                    else {
-                        LogManager.w(TAG, "Settings data missing");
-                    }
-                }
-                else {
-                    LogManager.i(TAG, "Received unknown message from other process : "+msg.what);
-                }
-
-            }
-        }
-    }
-
     /**
      * Target we publish for clients to send messages to IncomingHandler.
      */
     final Messenger mMessenger = new Messenger(new IncomingHandler(this));
+    private final Handler handler = new Handler();
+    private BluetoothCrashResolver bluetoothCrashResolver;
+    private ScanHelper mScanHelper;
+    private BeaconLocalBroadcastProcessor mBeaconNotificationProcessor;
 
     @MainThread
     @Override
@@ -217,11 +135,10 @@ public class BeaconService extends Service {
             LogManager.i(TAG, "beaconService version %s is starting up on the main process", BuildConfig.VERSION_NAME);
             // if we are on the main process, we use local broadcast notifications to deliver results.
             ensureNotificationProcessorSetup();
-        }
-        else {
+        } else {
             LogManager.i(TAG, "beaconService version %s is starting up on a separate process", BuildConfig.VERSION_NAME);
             ProcessUtils processUtils = new ProcessUtils(this);
-            LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
+            LogManager.i(TAG, "beaconService PID is " + processUtils.getPid() + " with process name " + processUtils.getProcessName());
         }
 
         String longScanForcingEnabled = getManifestMetadataValue("longScanForcingEnabled");
@@ -234,7 +151,7 @@ public class BeaconService extends Service {
 
         mScanHelper.reloadParsers();
 
-        DistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
+        DistanceCalculator defaultDistanceCalculator = new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
         Beacon.setDistanceCalculator(defaultDistanceCalculator);
 
         // Look for simulated scan data
@@ -250,14 +167,12 @@ public class BeaconService extends Service {
         this.startForegroundIfConfigured();
     }
 
-
     private void ensureNotificationProcessorSetup() {
         if (mBeaconNotificationProcessor == null) {
             mBeaconNotificationProcessor = new BeaconLocalBroadcastProcessor(this);
             mBeaconNotificationProcessor.register();
         }
     }
-
 
     /*
      * This starts the scanning service as a foreground service if it is so configured in the
@@ -283,8 +198,7 @@ public class BeaconService extends Service {
             if (info != null && info.metaData != null) {
                 return info.metaData.get(key).toString();
             }
-        }
-        catch (PackageManager.NameNotFoundException e) {
+        } catch (PackageManager.NameNotFoundException e) {
         }
         return null;
     }
@@ -432,5 +346,81 @@ public class BeaconService extends Service {
     @RestrictTo(Scope.TESTS)
     protected CycledLeScanCallback getCycledLeScanCallback() {
         return mScanHelper.getCycledLeScanCallback();
+    }
+
+    static class IncomingHandler extends Handler {
+        private final WeakReference<BeaconService> mService;
+
+        IncomingHandler(BeaconService service) {
+            /*
+             * Explicitly state this uses the main thread. Without this we defer to where the
+             * service instance is initialized/created; which is usually the main thread anyways.
+             * But by being explicit we document our code design expectations for where things run.
+             */
+            super(Looper.getMainLooper());
+            mService = new WeakReference<BeaconService>(service);
+        }
+
+        @MainThread
+        @Override
+        public void handleMessage(Message msg) {
+            BeaconService service = mService.get();
+            if (service != null) {
+                StartRMData startRMData = StartRMData.fromBundle(msg.getData());
+                if (startRMData != null) {
+                    switch (msg.what) {
+                        case MSG_START_RANGING:
+                            LogManager.i(TAG, "start ranging received");
+                            service.startRangingBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_STOP_RANGING:
+                            LogManager.i(TAG, "stop ranging received");
+                            service.stopRangingBeaconsInRegion(startRMData.getRegionData());
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_START_MONITORING:
+                            LogManager.i(TAG, "start monitoring received");
+                            service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_STOP_MONITORING:
+                            LogManager.i(TAG, "stop monitoring received");
+                            service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        case MSG_SET_SCAN_PERIODS:
+                            LogManager.i(TAG, "set scan intervals received");
+                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                            break;
+                        default:
+                            super.handleMessage(msg);
+                    }
+                } else if (msg.what == MSG_SYNC_SETTINGS) {
+                    LogManager.i(TAG, "Received settings update from other process");
+                    SettingsData settingsData = SettingsData.fromBundle(msg.getData());
+                    if (settingsData != null) {
+                        settingsData.apply(service);
+                    } else {
+                        LogManager.w(TAG, "Settings data missing");
+                    }
+                } else {
+                    LogManager.i(TAG, "Received unknown message from other process : " + msg.what);
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class BeaconBinder extends Binder {
+        public BeaconService getService() {
+            LogManager.i(TAG, "getService of BeaconBinder called");
+            // Return this instance of LocalService so clients can call public methods
+            return BeaconService.this;
+        }
     }
 }

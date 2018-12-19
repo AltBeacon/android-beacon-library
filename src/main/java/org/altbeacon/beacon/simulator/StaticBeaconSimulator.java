@@ -15,6 +15,7 @@ public class StaticBeaconSimulator implements BeaconSimulator {
     public List<Beacon> getBeacons() {
         return beacons;
     }
+
     public void setBeacons(List<Beacon> beacons) {
         this.beacons = beacons;
     }

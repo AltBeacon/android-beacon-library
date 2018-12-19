@@ -18,7 +18,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Config(sdk = 27)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 

@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 
-@Config(sdk = 27)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 public class BeaconSimulatorTest {

@@ -1,23 +1,22 @@
 package org.altbeacon.beacon;
 
-import android.content.Context;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 
+import android.content.Context;
+import java.util.Arrays;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 
-import java.util.Arrays;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-
-@Config(sdk = 27)
+@Config(sdk = 28)
 
 /**
  * Created by dyoung on 2/6/15.
@@ -122,7 +121,7 @@ public class GattBeaconTest {
     @Test
     public void testBeaconAdvertisingBytes() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
 
 
         Beacon beacon = new Beacon.Builder()

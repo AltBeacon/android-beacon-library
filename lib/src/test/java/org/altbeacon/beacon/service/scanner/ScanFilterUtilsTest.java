@@ -17,7 +17,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-@Config(sdk = 27)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 public class ScanFilterUtilsTest {

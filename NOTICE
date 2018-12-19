@@ -3,3 +3,8 @@ Copyright 2014 Radius Networks
 
 This product includes software developed at
 The Radius Networks (http://www.radiusnetworks.com/).
+//compileDebugUnitTestSources
+// ROBOLECTRIC_MIGRATION=DeprecatedMethods ./gradlew clean :lib:compileDebugUnitTestJava
+//ROBOLECTRIC_MIGRATION=ShadowUsageCheck ./gradlew clean :lib:compileDebugUnitTestJava
+//ROBOLECTRIC_MIGRATION=DeprecatedMethods ./gradlew clean :app:compileDebugUnitTestJava
+  //ROBOLECTRIC_MIGRATION=ShadowUsageCheck ./gradlew clean :app:compileDebugUnitTestJava

@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
  * Created by dyoung on 7/1/15.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 27)
+@Config(sdk = 28)
 public class BeaconServiceTest {
 
     @Before

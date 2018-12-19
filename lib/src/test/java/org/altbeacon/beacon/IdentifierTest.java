@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
-@Config(sdk = 27)
+@Config(sdk = 28)
 @RunWith(RobolectricTestRunner.class)
 
 /*

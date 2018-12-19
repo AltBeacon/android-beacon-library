@@ -1,8 +1,10 @@
 package org.altbeacon.beacon.service;
 
+import static org.junit.Assert.assertEquals;
+
 import android.content.Context;
 import android.os.Bundle;
-
+import java.util.ArrayList;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Identifier;
@@ -13,15 +15,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 
-import java.util.ArrayList;
-
-import static org.junit.Assert.assertEquals;
-
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 27)
+@Config(sdk = 28)
 public class RangingDataTest {
     @Before
     public void before() {
@@ -33,7 +32,7 @@ public class RangingDataTest {
 
     @Test
     public void testSerialization() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         identifiers.add(Identifier.parse("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6"));
         identifiers.add(Identifier.parse("1"));
@@ -68,7 +67,7 @@ public class RangingDataTest {
     @Test
     // On MacBookPro 2.5 GHz Core I7, 10000 serialization/deserialiation cycles of RangingData took 22ms
     public void testSerializationBenchmark() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         identifiers.add(Identifier.parse("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6"));
         identifiers.add(Identifier.parse("1"));

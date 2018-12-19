@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 
-@Config(sdk = 27)
+@Config(sdk = 28)
 
 /**
  * Created by dyoung on 7/22/14.

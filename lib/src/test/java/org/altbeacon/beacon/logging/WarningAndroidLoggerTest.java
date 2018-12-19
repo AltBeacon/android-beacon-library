@@ -16,6 +16,7 @@
  */
 package org.altbeacon.beacon.logging;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -35,7 +36,8 @@ import static org.junit.Assert.assertThat;
  *
  * @author Andrew Reitz
  */
-@Config(sdk = 27)
+@Ignore
+@Config(sdk = 28)
 @RunWith(RobolectricTestRunner.class)
 public class WarningAndroidLoggerTest {
     private String tag = getClass().getName();

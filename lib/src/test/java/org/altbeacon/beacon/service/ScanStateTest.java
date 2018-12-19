@@ -4,8 +4,9 @@ package org.altbeacon.beacon.service;
  * Created by dyoung on 7/30/17.
  */
 
-import android.content.Context;
+import static org.junit.Assert.assertEquals;
 
+import android.content.Context;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
@@ -13,16 +14,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Created by dyoung on 7/1/15.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 27)
+@Config(sdk = 28)
 public class ScanStateTest {
 
     @Before
@@ -35,7 +35,7 @@ public class ScanStateTest {
 
     @Test
     public void serializationTest() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         ScanState scanState = new ScanState(context);
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         scanState.setMonitoringStatus(monitoringStatus);

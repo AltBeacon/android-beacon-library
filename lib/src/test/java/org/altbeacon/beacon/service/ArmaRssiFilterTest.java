@@ -8,7 +8,7 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 27)
+@Config(sdk = 28)
 
 public class ArmaRssiFilterTest {
 

@@ -1,8 +1,6 @@
 package org.altbeacon.beacon.service;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Region;
@@ -12,8 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 import java.util.Collection;
 
@@ -31,10 +29,9 @@ public class MonitoringStatusTest {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         LogManager.setLogger(Loggers.verboseLogger());
         LogManager.setVerboseLoggingEnabled(true);
-        BeaconManager.setsManifestCheckingDisabled(true);
+        BeaconManager.setManifestCheckingDisabled(true);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void savesStatusOfUpTo50RegionsTest() throws Exception {
         Context context = RuntimeEnvironment.application;
@@ -48,7 +45,6 @@ public class MonitoringStatusTest {
         assertEquals("restored regions should be same number as saved", 50, monitoringStatus2.regions().size());
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void clearsStatusOfOver50RegionsTest() throws Exception {
         Context context = RuntimeEnvironment.application;
@@ -62,7 +58,6 @@ public class MonitoringStatusTest {
         assertEquals("restored regions should be none", 0, monitoringStatus2.regions().size());
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void refusesToRestoreRegionsIfTooMuchTimeHasPassedSinceSavingTest() throws Exception {
         Context context = RuntimeEnvironment.application;
@@ -78,7 +73,6 @@ public class MonitoringStatusTest {
         assertEquals("restored regions should be none", 0, monitoringStatus2.regions().size());
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void allowsAccessToRegionsAfterRestore() throws Exception {
         Context context = RuntimeEnvironment.application;

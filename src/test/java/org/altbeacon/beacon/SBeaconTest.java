@@ -1,20 +1,15 @@
 package org.altbeacon.beacon;
 
-import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
-import android.os.Build;
 import android.os.Parcel;
 
-
-import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.logging.Loggers;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import org.robolectric.annotation.Config;
 
 @Config(sdk = 28)
 
@@ -90,7 +85,7 @@ public class SBeaconTest {
 
     class SBeaconParser extends BeaconParser {
         private static final String TAG = "SBeaconParser";
-        @TargetApi(Build.VERSION_CODES.ECLAIR)
+
         @Override
         public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
             int startByte = 2;

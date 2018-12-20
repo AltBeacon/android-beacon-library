@@ -35,7 +35,6 @@ public class ScanStateTest {
         BeaconManager.setsManifestCheckingDisabled(true);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void serializationTest() throws Exception {
         Context context = RuntimeEnvironment.application;

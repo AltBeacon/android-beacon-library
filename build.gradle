@@ -162,7 +162,8 @@ android.libraryVariants.all { variant ->
         source = variant.javaCompile.source
         ext.androidJar =
                 "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompile.classpath.files, ext.androidJar)
+        //Refer to https://stackoverflow.com/a/50833438/4068957
+        doFirst { classpath = files(variant.javaCompile.classpath.files, ext.androidJar)}
         options.linksOffline "http://d.android.com/reference/", "${android.sdkDirectory}/docs/reference"
         exclude '**/BuildConfig.java'
         exclude '**/R.java'

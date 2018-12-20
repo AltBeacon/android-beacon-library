@@ -336,7 +336,7 @@ public class BeaconService extends Service {
         LogManager.i(TAG, "onDestroy called.  stopping scanning");
         handler.removeCallbacksAndMessages(null);
 
-        if (mScanHelper.getCycledScanner() == null) {
+        if (mScanHelper.getCycledScanner() != null) {
             mScanHelper.getCycledScanner().stop();
             mScanHelper.getCycledScanner().destroy();
         }

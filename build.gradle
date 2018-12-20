@@ -24,13 +24,8 @@ def getVersionName = {
 
 buildscript {
     repositories {
+        google()
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
-        maven {
-            url 'https://dl.google.com/dl/android/maven2/'
-        }
     }
 
     dependencies {
@@ -51,13 +46,8 @@ allprojects {
     group = "org.altbeacon"
 
     repositories {
+        google()
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
-        maven {
-            url 'https://dl.google.com/dl/android/maven2/'
-        }
     }
 }
 

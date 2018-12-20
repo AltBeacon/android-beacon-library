@@ -6,12 +6,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.RuntimeEnvironment;
 
 import static org.junit.Assert.assertEquals;
 
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 @RunWith(RobolectricTestRunner.class)
 /*
 HOW TO SEE DEBUG LINES FROM YOUR UNIT TESTS:
@@ -54,7 +54,7 @@ public class ModelSpecificDistanceCalculatorTest {
 
 	@Test
 	public void testCalculatesDistanceForMotoXPro() {
-		final Context applicationContext = ShadowApplication.getInstance().getApplicationContext();
+		final Context applicationContext = RuntimeEnvironment.application;
 		org.robolectric.shadows.ShadowLog.stream = System.err;
 
 		final AndroidModel model = new AndroidModel("5.0.2", "LXG22.67-7.1", "Moto X Pro", "XT1115");
@@ -68,7 +68,7 @@ public class ModelSpecificDistanceCalculatorTest {
 	public void testConcurrentModificationException() {
 		org.robolectric.shadows.ShadowLog.stream = System.err;
 
-		final Context applicationContext = ShadowApplication.getInstance().getApplicationContext();
+		final Context applicationContext = RuntimeEnvironment.application;
 
 		final AndroidModel model = new AndroidModel("4.4.2", "KOT49H", "Nexus 4", "LGE");
 		final String modelMapJson =

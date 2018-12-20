@@ -27,7 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 

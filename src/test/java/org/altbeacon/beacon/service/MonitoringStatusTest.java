@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.Collection;
 
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
  * Created by dyoung on 7/1/16.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 18)
+@Config(sdk = 28)
 public class MonitoringStatusTest {
     private static final String TAG = MonitoringStatusTest.class.getSimpleName();
     @Before
@@ -37,7 +37,7 @@ public class MonitoringStatusTest {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void savesStatusOfUpTo50RegionsTest() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 50; i++) {
             Region region = new Region(""+i, null, null, null);
@@ -51,7 +51,7 @@ public class MonitoringStatusTest {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void clearsStatusOfOver50RegionsTest() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 51; i++) {
             Region region = new Region(""+i, null, null, null);
@@ -65,7 +65,7 @@ public class MonitoringStatusTest {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void refusesToRestoreRegionsIfTooMuchTimeHasPassedSinceSavingTest() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);
         for (int i = 0; i < 50; i++) {
             Region region = new Region(""+i, null, null, null);
@@ -81,7 +81,7 @@ public class MonitoringStatusTest {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void allowsAccessToRegionsAfterRestore() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context);
         MonitoringStatus.getInstanceForApplication(context).clear();
         MonitoringStatus monitoringStatus = new MonitoringStatus(context);

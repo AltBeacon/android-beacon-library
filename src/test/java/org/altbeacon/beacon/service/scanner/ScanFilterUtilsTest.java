@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.mockito.Mockito;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 public class ScanFilterUtilsTest {

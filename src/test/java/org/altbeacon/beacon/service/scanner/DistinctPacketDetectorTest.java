@@ -8,7 +8,7 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 public class DistinctPacketDetectorTest {

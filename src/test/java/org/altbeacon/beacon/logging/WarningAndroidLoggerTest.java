@@ -16,7 +16,6 @@
  */
 package org.altbeacon.beacon.logging;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -25,14 +24,10 @@ import org.robolectric.shadows.ShadowLog;
 
 import java.util.List;
 
-import static android.util.Log.DEBUG;
 import static android.util.Log.ERROR;
-import static android.util.Log.INFO;
-import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
 import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.Matchers.empty;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -40,7 +35,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author Andrew Reitz
  */
-@Config(sdk = 18)
+@Config(sdk = 28)
 @RunWith(RobolectricTestRunner.class)
 public class WarningAndroidLoggerTest {
     private String tag = getClass().getName();

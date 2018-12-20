@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertEquals;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 

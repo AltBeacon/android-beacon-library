@@ -21,7 +21,7 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 

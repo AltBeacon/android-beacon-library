@@ -16,7 +16,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import org.robolectric.annotation.Config;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 /**
  * Created by dyoung on 7/22/14.

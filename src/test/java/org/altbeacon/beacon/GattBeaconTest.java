@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.Arrays;
 
@@ -17,7 +17,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 /**
  * Created by dyoung on 2/6/15.
@@ -114,7 +114,7 @@ public class GattBeaconTest {
     @Test
     public void testBeaconAdvertisingBytes() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
 
 
         Beacon beacon = new Beacon.Builder()
@@ -127,7 +127,7 @@ public class GattBeaconTest {
         BeaconParser beaconParser = new BeaconParser()
                 .setBeaconLayout("s:0-1=0123,m:2-2=00,d:3-3,p:4-4,i:5-14,i:15-20");
         byte[] data = beaconParser.getBeaconAdvertisementData(beacon);
-        BeaconTransmitter beaconTransmitter = new BeaconTransmitter(context, beaconParser);
+//        BeaconTransmitter beaconTransmitter = new BeaconTransmitter(context, beaconParser);
         // TODO: can't actually start transmitter here because Robolectric does not support API 21
 
         assertEquals("Data should be 19 bytes long", 19, data.length);

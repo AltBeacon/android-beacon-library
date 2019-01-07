@@ -1,8 +1,6 @@
 package org.altbeacon.beacon.service;
 
-import android.annotation.TargetApi;
 import android.os.AsyncTask;
-import android.os.Build;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
@@ -13,8 +11,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.android.controller.ServiceController;
 import org.robolectric.annotation.Config;
-import org.robolectric.util.ServiceController;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -24,7 +22,7 @@ import static org.junit.Assert.assertEquals;
  * Created by dyoung on 7/1/15.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 18)
+@Config(sdk = 28)
 public class BeaconServiceTest {
 
     @Before
@@ -40,12 +38,11 @@ public class BeaconServiceTest {
      * affect the size of the available threads in the main Android AsyncTask.THREAD_POOL_EXECUTOR
      * @throws Exception
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Test
     public void beaconScanCallbackTest() throws Exception {
         final ServiceController<BeaconService> beaconServiceServiceController =
                 Robolectric.buildService(BeaconService.class);
-        beaconServiceServiceController.attach();
+//        beaconServiceServiceController.attach();
         BeaconService beaconService = beaconServiceServiceController.get();
         beaconService.onCreate();
         CycledLeScanCallback callback = beaconService.getCycledLeScanCallback();

@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 @RunWith(RobolectricTestRunner.class)
 public class EddystoneTelemetryAccessorTest {
 

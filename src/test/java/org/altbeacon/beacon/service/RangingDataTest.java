@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.ArrayList;
 
@@ -22,7 +22,7 @@ import android.os.Bundle;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 18)
+@Config(sdk = 28)
 public class RangingDataTest {
     @Before
     public void before() {
@@ -34,7 +34,7 @@ public class RangingDataTest {
 
     @Test
     public void testSerialization() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         identifiers.add(Identifier.parse("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6"));
         identifiers.add(Identifier.parse("1"));
@@ -69,7 +69,7 @@ public class RangingDataTest {
     @Test
     // On MacBookPro 2.5 GHz Core I7, 10000 serialization/deserialiation cycles of RangingData took 22ms
     public void testSerializationBenchmark() throws Exception {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
         ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
         identifiers.add(Identifier.parse("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6"));
         identifiers.add(Identifier.parse("1"));

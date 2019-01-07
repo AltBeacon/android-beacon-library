@@ -7,13 +7,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 /**
  * Created by dyoung on 7/22/14.
@@ -25,7 +25,7 @@ public class BeaconTransmitterTest {
     @Test
     public void testBeaconAdvertisingBytes() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
 
         Beacon beacon = new Beacon.Builder()
                 .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
@@ -38,7 +38,7 @@ public class BeaconTransmitterTest {
         BeaconParser beaconParser = new BeaconParser()
                 .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
         byte[] data = beaconParser.getBeaconAdvertisementData(beacon);
-        BeaconTransmitter beaconTransmitter = new BeaconTransmitter(context, beaconParser);
+//        BeaconTransmitter beaconTransmitter = new BeaconTransmitter(context, beaconParser);
         // TODO: can't actually start transmitter here because Robolectric does not support API 21
 
         assertEquals("Data should be 24 bytes long", 24, data.length);
@@ -53,7 +53,7 @@ public class BeaconTransmitterTest {
     @Test
     public void testBeaconAdvertisingBytesForEddystone() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        Context context = ShadowApplication.getInstance().getApplicationContext();
+        Context context = RuntimeEnvironment.application;
 
         Beacon beacon = new Beacon.Builder()
                 .setId1("0x2f234454f4911ba9ffa6")
@@ -64,7 +64,7 @@ public class BeaconTransmitterTest {
         BeaconParser beaconParser = new BeaconParser()
                 .setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19");
         byte[] data = beaconParser.getBeaconAdvertisementData(beacon);
-        BeaconTransmitter beaconTransmitter = new BeaconTransmitter(context, beaconParser);
+//        BeaconTransmitter beaconTransmitter = new BeaconTransmitter(context, beaconParser);
         // TODO: can't actually start transmitter here because Robolectric does not support API 21
 
         String byteString = "";

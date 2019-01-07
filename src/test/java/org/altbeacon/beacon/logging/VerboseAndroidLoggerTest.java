@@ -22,6 +22,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 
+import java.util.List;
+
 import static android.util.Log.DEBUG;
 import static android.util.Log.ERROR;
 import static android.util.Log.INFO;
@@ -34,7 +36,7 @@ import static junit.framework.Assert.assertEquals;
  *
  * @author Andrew Reitz
  */
-@Config(sdk = 18)
+@Config(sdk = 28)
 @RunWith(RobolectricTestRunner.class)
 public class VerboseAndroidLoggerTest {
     private String tag = getClass().getName();
@@ -136,7 +138,8 @@ public class VerboseAndroidLoggerTest {
     }
 
     private void assertLogged(int type, String tag, String msg, Throwable throwable) {
-        ShadowLog.LogItem lastLog = ShadowLog.getLogs().get(0);
+        List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
+        ShadowLog.LogItem lastLog = logs.get(logs.size() - 1);
         assertEquals(type, lastLog.type);
         assertEquals(msg, lastLog.msg);
         assertEquals(tag, lastLog.tag);

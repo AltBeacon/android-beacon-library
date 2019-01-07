@@ -1,27 +1,20 @@
 package org.altbeacon.beacon;
 
-import android.annotation.TargetApi;
-import android.os.Build;
-import android.os.Parcel;
-
-import static android.test.MoreAsserts.assertNotEqual;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
-@Config(sdk = 18)
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 
@@ -144,7 +137,6 @@ public class BeaconParserTest {
         assertEquals("manufacturer should be parsed", 0x118 ,beacon.getManufacturer());
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     @Test
     public void testReEncodesBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -157,7 +149,6 @@ public class BeaconParserTest {
         assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     @Test
     public void testReEncodesBeaconForEddystoneTelemetry() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
@@ -185,7 +176,6 @@ public class BeaconParserTest {
         assertEquals("manufacturer should be parsed", 0x118, beacon.getManufacturer());
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     @Test
     public void testReEncodesLittleEndianBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;

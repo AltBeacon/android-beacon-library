@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 18)
+@Config(sdk = 28)
 public class ExtraDataBeaconTrackerTest {
     Beacon getManufacturerBeacon() {
         return new Beacon.Builder().setId1("1")

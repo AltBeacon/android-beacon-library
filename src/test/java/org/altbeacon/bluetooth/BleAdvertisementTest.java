@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.robolectric.annotation.Config;
 
-@Config(sdk = 18)
+@Config(sdk = 28)
 
 @RunWith(RobolectricTestRunner.class)
 

@@ -30,6 +30,8 @@ public class MonitoringStatusTest {
         LogManager.setLogger(Loggers.verboseLogger());
         LogManager.setVerboseLoggingEnabled(true);
         BeaconManager.setManifestCheckingDisabled(true);
+        Context context = RuntimeEnvironment.application;
+        new MonitoringStatus(context).clear();
     }
 
     @Test
@@ -77,14 +79,13 @@ public class MonitoringStatusTest {
     public void allowsAccessToRegionsAfterRestore() throws Exception {
         Context context = RuntimeEnvironment.application;
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context);
-        MonitoringStatus.getInstanceForApplication(context).clear();
-        MonitoringStatus monitoringStatus = new MonitoringStatus(context);
+        MonitoringStatus monitoringStatus = MonitoringStatus.getInstanceForApplication(context);
         for (int i = 0; i < 50; i++) {
             Region region = new Region(""+i, null, null, null);
             monitoringStatus.addRegion(region, null);
         }
         monitoringStatus.saveMonitoringStatusIfOn();
-        MonitoringStatus.getInstanceForApplication(context).restoreMonitoringStatus();
+        monitoringStatus.restoreMonitoringStatus();
         Collection<Region> regions = beaconManager.getMonitoredRegions();
         assertEquals("beaconManager should return restored regions", 50, regions.size());
     }

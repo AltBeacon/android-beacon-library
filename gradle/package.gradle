@@ -1,0 +1,68 @@
+apply plugin: 'idea'
+
+idea {
+    module {
+        testOutputDir = file('build/test-classes/debug')
+    }
+}
+
+task renameAarForRelease(type: Copy, dependsOn: build) {
+    description = "Rename the aar for easy release publishing"
+
+    from "$buildDir/outputs/aar/" //${project.name}-release.aar
+    into "$buildDir/outputs/aar/" //${project.name}-${project.version}.aar"
+    include "${project.name}-release.aar"
+    rename { String fileName ->
+        fileName = "${project.name}-${project.version}.aar"
+    }
+}
+
+task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) << {
+    println "Building with version=$version"
+}
+
+task release(dependsOn: 'distribution') << {
+    println('Doing release build')
+}
+
+android.libraryVariants.all { variant ->
+
+    task("generate${variant.name}Javadoc", type: Javadoc) {
+        title = "Android Beacon Library $version API"
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar =
+                "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        //Refer to https://stackoverflow.com/a/50833438/4068957
+        doFirst { classpath = files(variant.javaCompile.classpath.files, ext.androidJar)}
+        options.linksOffline "http://d.android.com/reference/", "${android.sdkDirectory}/docs/reference"
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+
+}
+
+task generateJavadoc(type: Javadoc, dependsOn: project.configurations.doclava) {
+    failOnError = true
+    title = null
+    source = android.sourceSets.main.java.srcDirs
+    options.doclet = "com.google.doclava.Doclava"
+    options.docletpath = configurations.doclava.files.asType(List)
+    classpath +=
+            project.files(android.getBootClasspath().join(File.pathSeparator)) + configurations.compile
+
+    destinationDir = file("../javadocs/")
+}
+
+build.mustRunAfter clean
+
+apply from: '../gradle/credentials.gradle'
+apply from: '../gradle/compile.gradle'
+apply from: '../gradle/publishing.gradle'
+apply from: '../gradle/bintray.gradle'
+apply from: '../gradle/artifactory.gradle'
+
+artifactoryPublish {
+    // Skip deploying to artifactory if building a pull request
+    onlyIf { !isSnapPullRequest }
+}

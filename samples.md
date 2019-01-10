@@ -37,6 +37,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
     }
     @Override
     public void onBeaconServiceConnect() {
+        beaconManager.removeAllMonitorNotifiers();
         beaconManager.addMonitorNotifier(new MonitorNotifier() {
         @Override
         public void didEnterRegion(Region region) {
@@ -90,6 +91,7 @@ public class RangingActivity extends Activity implements BeaconConsumer {
     }
     @Override
     public void onBeaconServiceConnect() {
+        beaconManager.removeAllRangeNotifiers();
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override 
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {

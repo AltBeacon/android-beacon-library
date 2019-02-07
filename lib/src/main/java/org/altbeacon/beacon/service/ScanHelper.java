@@ -212,6 +212,10 @@ class ScanHelper {
         catch (SecurityException e) {
             LogManager.e(TAG, "SecurityException making Android O background scanner");
         }
+        catch (NullPointerException e) {
+            // Needed to stop a crash caused by internal NPE thrown by Android.  See issue #636
+            LogManager.e(TAG, "NullPointerException stopping Android O background scanner", e);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -235,6 +239,9 @@ class ScanHelper {
         } catch (RuntimeException e) {
             // Needed to stop a crash caused by internal Android throw.  See issue #701
             LogManager.e(TAG, "Unexpected runtime exception stopping Android O background scanner", e);
+        } catch (NullPointerException e) {
+            // Needed to stop a crash caused by internal NPE thrown by Android.  See issue #636
+            LogManager.e(TAG, "NullPointerException stopping Android O background scanner", e);
         }
     }
 

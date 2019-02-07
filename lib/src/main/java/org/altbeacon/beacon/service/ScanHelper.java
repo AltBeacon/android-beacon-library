@@ -214,7 +214,7 @@ class ScanHelper {
         }
         catch (NullPointerException e) {
             // Needed to stop a crash caused by internal NPE thrown by Android.  See issue #636
-            LogManager.e(TAG, "NullPointerException stopping Android O background scanner", e);
+            LogManager.e(TAG, "NullPointerException starting Android O background scanner", e);
         }
     }
 

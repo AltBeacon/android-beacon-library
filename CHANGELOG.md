@@ -1,3 +1,7 @@
+
+### 2019-02-09 (#636, kababu007)
+- Fix intermittent crash caused by internal Android NPE
+
 ### Development
 
 - Update gradle and robolectric (#805, Tony Tang)

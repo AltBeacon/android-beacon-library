@@ -2,6 +2,7 @@
 
 - Fix crash on starting scanning with a forground service configured when multiple BeaconConsumer
   instances bound.  (#828, David G. Young)
+- Fix broken RegionBoostrap callbacks caused by change in previous release (#829, David G. Young)
 
 ### 2.16 / 2019-02-10
 

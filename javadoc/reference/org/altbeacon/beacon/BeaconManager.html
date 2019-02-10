@@ -1539,13 +1539,7 @@ Summary:
         <td class="jd-linkcol" width="100%">
         <span class="sympad"><a href="../../../org/altbeacon/beacon/BeaconManager.html#setDebug(boolean)">setDebug</a></span>(boolean debug)
         
-        <div class="jd-descrdiv">
-      <em>
-  This method is deprecated.
-      To be removed in a future release. Use
- <code><a href="../../../org/altbeacon/beacon/logging/LogManager.html#setLogger(org.altbeacon.beacon.logging.Logger)">setLogger(org.altbeacon.beacon.logging.Logger)</a></code>
- instead.
-</em></div>
+        <div class="jd-descrdiv">Set to true if you want to show library debugging.</div>
   
   </td></tr>
 
@@ -4589,14 +4583,7 @@ From class
 
       </div>
     <div class="jd-details-descr">
-      <p>
-  <p class="caution">
-      <strong>
-  This method is deprecated.</strong><br/> To be removed in a future release. Use
- <code><a href="../../../org/altbeacon/beacon/logging/LogManager.html#setLogger(org.altbeacon.beacon.logging.Logger)">setLogger(org.altbeacon.beacon.logging.Logger)</a></code>
- instead.
-
-  </p>
+      
   <div class="jd-tagdata jd-tagdescr"><p>Set to true if you want to show library debugging.</p></div>
   <div class="jd-tagdata">
       <h5 class="jd-tagtitle">Parameters</h5>
@@ -4604,7 +4591,13 @@ From class
         <tr>
           <th>debug</th>
           <td>True turn on all logs for this library to be printed out to logcat. False turns
-              off all logging.</td>
+              off detailed logging..
+
+ This is a convenience method that calls setLogger to a verbose logger and enables verbose
+ logging. For more fine grained control, use:
+ <code><a href="../../../org/altbeacon/beacon/logging/LogManager.html#setLogger(org.altbeacon.beacon.logging.Logger)">setLogger(org.altbeacon.beacon.logging.Logger)</a></code>
+ instead.
+</td>
         </tr>
       </table>
   </div>

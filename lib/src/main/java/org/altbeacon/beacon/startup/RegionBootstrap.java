@@ -7,6 +7,7 @@ import android.os.RemoteException;
 
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -34,11 +35,93 @@ public class RegionBootstrap {
 
     protected static final String TAG = "AppStarter";
     private BeaconManager beaconManager;
-    private BootstrapNotifier application;
+    private MonitorNotifier monitorNotifier;
+    private Context context;
     private List<Region> regions;
     private boolean disabled = false;
     private BeaconConsumer beaconConsumer;
     private boolean serviceConnected = false;
+
+    /**
+     * Constructor to bootstrap your Application on an entry/exit from a single region.
+     *
+     * @param context
+     * @param monitorNotifier
+     * @param region
+     */
+    public RegionBootstrap(final Context context, final MonitorNotifier monitorNotifier, Region region) {
+        if (context == null) {
+            throw new NullPointerException("Application Context should not be null");
+        }
+        this.context = context.getApplicationContext();
+        this.monitorNotifier = monitorNotifier;
+
+        this.monitorNotifier = new BootstrapNotifier() {
+            public Context getApplicationContext() {
+                return context.getApplicationContext();
+            }
+
+            public void didEnterRegion(Region region) {
+                monitorNotifier.didEnterRegion(region);
+            }
+
+            public void didExitRegion(Region region) {
+                monitorNotifier.didExitRegion(region);
+            }
+
+            public void didDetermineStateForRegion(int state, Region region) {
+                monitorNotifier.didDetermineStateForRegion(state, region);
+            }
+        };
+
+        regions = new ArrayList<Region>();
+        regions.add(region);
+
+        beaconManager = BeaconManager.getInstanceForApplication(context);
+        beaconConsumer = new InternalBeaconConsumer();
+        beaconManager.bind(beaconConsumer);
+        LogManager.d(TAG, "Waiting for BeaconService connection");
+    }
+
+    /**
+     * Constructor to bootstrap your Application on an entry/exit from multiple regions
+     *
+     * @param context
+     * @param monitorNotifier
+     * @param regions
+     */
+    public RegionBootstrap(final Context context, final MonitorNotifier monitorNotifier, List<Region> regions) {
+        if (context == null) {
+            throw new NullPointerException("Application Context should not be null");
+        }
+        this.context = context.getApplicationContext();
+        this.monitorNotifier = monitorNotifier;
+
+        this.monitorNotifier = new BootstrapNotifier() {
+            public Context getApplicationContext() {
+                return context.getApplicationContext();
+            }
+
+            public void didEnterRegion(Region region) {
+                monitorNotifier.didEnterRegion(region);
+            }
+
+            public void didExitRegion(Region region) {
+                monitorNotifier.didExitRegion(region);
+            }
+
+            public void didDetermineStateForRegion(int state, Region region) {
+                monitorNotifier.didDetermineStateForRegion(state, region);
+            }
+        };
+
+        this.regions = regions;
+
+        beaconManager = BeaconManager.getInstanceForApplication(context);
+        beaconConsumer = new InternalBeaconConsumer();
+        beaconManager.bind(beaconConsumer);
+        LogManager.d(TAG, "Waiting for BeaconService connection");
+    }
 
     /**
      * Constructor to bootstrap your Application on an entry/exit from a single region.
@@ -50,10 +133,11 @@ public class RegionBootstrap {
         if (application.getApplicationContext() == null) {
             throw new NullPointerException("The BootstrapNotifier instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
         }
-        beaconManager = BeaconManager.getInstanceForApplication(application.getApplicationContext());
-        this.application = application;
+        this.context = application.getApplicationContext();
         regions = new ArrayList<Region>();
         regions.add(region);
+
+        beaconManager = BeaconManager.getInstanceForApplication(context);
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
         LogManager.d(TAG, "Waiting for BeaconService connection");
@@ -61,6 +145,7 @@ public class RegionBootstrap {
 
     /**
      * Constructor to bootstrap your Application on an entry/exit from multiple regions
+     *
      * @param application
      * @param regions
      */
@@ -68,11 +153,11 @@ public class RegionBootstrap {
         if (application.getApplicationContext() == null) {
             throw new NullPointerException("The BootstrapNotifier instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
         }
-        beaconManager = BeaconManager.getInstanceForApplication(application.getApplicationContext());
 
-        this.application = application;
+        this.context = application.getApplicationContext();
         this.regions = regions;
 
+        beaconManager = BeaconManager.getInstanceForApplication(context);
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
         LogManager.d(TAG, "Waiting for BeaconService connection");
@@ -110,7 +195,7 @@ public class RegionBootstrap {
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't add bootstrap region");
                 }
-            }else{
+            } else {
                 LogManager.w(TAG, "Adding a region: service not yet Connected");
             }
             regions.add(region);
@@ -130,7 +215,7 @@ public class RegionBootstrap {
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't stop bootstrap region");
                 }
-            }else{
+            } else {
                 LogManager.w(TAG, "Removing a region: service not yet Connected");
             }
             regions.remove(region);
@@ -147,7 +232,7 @@ public class RegionBootstrap {
         @Override
         public void onBeaconServiceConnect() {
             LogManager.d(TAG, "Activating background region monitoring");
-            beaconManager.addMonitorNotifier(application);
+            beaconManager.addMonitorNotifier(monitorNotifier);
             serviceConnected = true;
             try {
                 for (Region region : regions) {
@@ -168,8 +253,8 @@ public class RegionBootstrap {
         @Override
         public boolean bindService(Intent intent, ServiceConnection conn, int arg2) {
             this.serviceIntent = intent;
-            application.getApplicationContext().startService(intent);
-            return application.getApplicationContext().bindService(intent, conn, arg2);
+            context.startService(intent);
+            return context.bindService(intent, conn, arg2);
 
         }
 
@@ -178,7 +263,7 @@ public class RegionBootstrap {
          */
         @Override
         public Context getApplicationContext() {
-            return application.getApplicationContext();
+            return context;
         }
 
         /**
@@ -186,8 +271,8 @@ public class RegionBootstrap {
          */
         @Override
         public void unbindService(ServiceConnection conn) {
-            application.getApplicationContext().unbindService(conn);
-            application.getApplicationContext().stopService(serviceIntent);
+            context.unbindService(conn);
+            context.stopService(serviceIntent);
             serviceConnected = false;
         }
     }

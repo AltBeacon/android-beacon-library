@@ -1,6 +1,7 @@
 
 ### Development
 
+- New Region Bootstrap constructors allowing separate context and notifir (#821, Alper Tekin)
 - Fix intermittent crash caused by internal Android NPE (#824, kababu007)
 - Update gradle and robolectric (#805, Tony Tang)
 - Fix problem on service shutdown that leaked threads and left scanning on (#804, David G. Young)

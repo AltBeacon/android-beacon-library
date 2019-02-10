@@ -1,5 +1,5 @@
 
-### Development
+### 2.16 / 2019-02-10
 
 - New Region Bootstrap constructors allowing separate context and notifir (#821, Alper Tekin)
 - Fix intermittent crash caused by internal Android NPE (#824, kababu007)

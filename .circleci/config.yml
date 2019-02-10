@@ -7,8 +7,8 @@ jobs:
     environment:
       JVM_OPTS: -Xmx3200m
     steps:
-      - run: yes | sdkmanager --licenses
-      - run: yes | sdkmanager --update || exit 0
+      - run: y | sdkmanager --licenses
+      - run: y | sdkmanager --update || exit 0
       - checkout
       - restore_cache:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "./build.gradle" }}

@@ -55,25 +55,6 @@ public class RegionBootstrap {
         }
         this.context = context.getApplicationContext();
         this.monitorNotifier = monitorNotifier;
-
-        this.monitorNotifier = new BootstrapNotifier() {
-            public Context getApplicationContext() {
-                return context.getApplicationContext();
-            }
-
-            public void didEnterRegion(Region region) {
-                monitorNotifier.didEnterRegion(region);
-            }
-
-            public void didExitRegion(Region region) {
-                monitorNotifier.didExitRegion(region);
-            }
-
-            public void didDetermineStateForRegion(int state, Region region) {
-                monitorNotifier.didDetermineStateForRegion(state, region);
-            }
-        };
-
         regions = new ArrayList<Region>();
         regions.add(region);
 
@@ -97,24 +78,6 @@ public class RegionBootstrap {
         this.context = context.getApplicationContext();
         this.monitorNotifier = monitorNotifier;
 
-        this.monitorNotifier = new BootstrapNotifier() {
-            public Context getApplicationContext() {
-                return context.getApplicationContext();
-            }
-
-            public void didEnterRegion(Region region) {
-                monitorNotifier.didEnterRegion(region);
-            }
-
-            public void didExitRegion(Region region) {
-                monitorNotifier.didExitRegion(region);
-            }
-
-            public void didDetermineStateForRegion(int state, Region region) {
-                monitorNotifier.didDetermineStateForRegion(state, region);
-            }
-        };
-
         this.regions = regions;
 
         beaconManager = BeaconManager.getInstanceForApplication(context);
@@ -136,7 +99,7 @@ public class RegionBootstrap {
         this.context = application.getApplicationContext();
         regions = new ArrayList<Region>();
         regions.add(region);
-
+        this.monitorNotifier = application;
         beaconManager = BeaconManager.getInstanceForApplication(context);
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
@@ -156,7 +119,7 @@ public class RegionBootstrap {
 
         this.context = application.getApplicationContext();
         this.regions = regions;
-
+        this.monitorNotifier = application;
         beaconManager = BeaconManager.getInstanceForApplication(context);
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);

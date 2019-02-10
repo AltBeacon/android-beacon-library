@@ -1,3 +1,6 @@
+### Development
+
+- Fix broken RegionBoostrap callbacks caused by change in previous release (#829, David G. Young)- 
 
 ### 2.16 / 2019-02-10
 

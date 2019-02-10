@@ -1,9 +1,7 @@
 
-### 2019-02-09 (#636, kababu007)
-- Fix intermittent crash caused by internal Android NPE
-
 ### Development
 
+- Fix intermittent crash caused by internal Android NPE (#824, kababu007)
 - Update gradle and robolectric (#805, Tony Tang)
 - Fix problem on service shutdown that leaked threads and left scanning on (#804, David G. Young)
 
@@ -20,7 +18,7 @@
 (#767, David G. Young)
 - Disable BluetoothCrashResolver on Android 5+ as a it is not helpful can can create log noise.
    (#768, David G. Young)
-- Prevent NPE on start scan. (#780, Adrián Nieto Rodríguez)
+- Prevent NPE on start scan. (#780, drián Nieto Rodríguez)
 - Fix thread leak leading to OOM Exceptions when using ScanJobs (#785, David G. Young)
 
 ### 2.15.2 / 2018-10-17

@@ -429,8 +429,14 @@ public class BeaconManager {
                     Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                             this.getForegroundServiceNotification() != null) {
-                        LogManager.i(TAG, "Starting foreground beacon scanning service.");
-                        mContext.startForegroundService(intent);
+                        if (isAnyConsumerBound()) {
+                            LogManager.i(TAG, "Not starting foreground beacon scanning" +
+                                    " service.  A consumer is already bound, so it should be started");
+                        }
+                        else {
+                            LogManager.i(TAG, "Starting foreground beacon scanning service.");
+                            mContext.startForegroundService(intent);
+                        }
                     }
                     else {
                     }

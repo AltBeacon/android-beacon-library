@@ -108,6 +108,11 @@ public class ScanJobScheduler {
         if (scanResults != null) {
             mBackgroundScanResultQueue.addAll(scanResults);
         }
+        else {
+            // we have been woken up in the background by no scan results, which means that the
+            // ble pattern lock has been lost.
+            LogManager.d(TAG, "BLE pattern lock lost");
+        }
         synchronized (this) {
             // We typically get a bunch of calls in a row here, separated by a few millis.  Only do this once.
             if (System.currentTimeMillis() - mScanJobScheduleTime > MIN_MILLIS_BETWEEN_SCAN_JOB_SCHEDULING) {

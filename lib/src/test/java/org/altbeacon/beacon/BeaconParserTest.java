@@ -1,5 +1,7 @@
 package org.altbeacon.beacon;
 
+import android.util.Log;
+
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.junit.Test;
@@ -303,6 +305,24 @@ public class BeaconParserTest {
         byte[] bytes = p.getBeaconAdvertisementData(beacon);
         assertEquals("First byte of url should be in position 3", 0x02, bytes[2]);
     }
+
+    @Test
+    public void testCanGetIdentifierPrefixForAltBeaconRegion() {
+        org.robolectric.shadows.ShadowLog.stream = System.err;
+        BeaconManager.setDebug(true);
+        Region region = new Region("myRegion", Identifier.parse("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6"), null, null);
+        BeaconParser p = new BeaconParser().
+                setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
+        byte[] bytes = p.getPrefixAdvertisementData(region);
+        assertEquals("length should be 16", 16, bytes.length);
+        for (int i = 0; i < bytes.length; i++) {
+            Log.d("TEST", String.format("%02X", bytes[i]));
+        }
+        assertEquals("first byte should be start of uuid", (byte) 0x2f, bytes[0]);
+        assertEquals("last byte should be end of uuid", (byte) 0xa6,  bytes[15]);
+    }
+
+
     @Test
     public void doesNotCashWithOverflowingByteCodeComparisonOnPdu() {
         // Test for https://github.com/AltBeacon/android-beacon-library/issues/323

@@ -47,9 +47,14 @@ public class ScanState implements Serializable {
     private long mBackgroundBetweenScanPeriod;
     private long mForegroundScanPeriod;
     private long mBackgroundScanPeriod;
+    private long mRegionExitPeriod;
     private boolean mBackgroundMode;
     private long mLastScanStartTimeMillis = 0l;
     private transient Context mContext;
+
+    public long getRegionExitPeriod() { return mRegionExitPeriod; };
+
+    public void setRegionExitPeriod(long regionExitPeriod) { mRegionExitPeriod = regionExitPeriod; }
 
     public Boolean getBackgroundMode() {
         return mBackgroundMode;
@@ -254,6 +259,25 @@ public class ScanState implements Serializable {
                 return MIN_SCAN_JOB_INTERVAL_MILLIS;
             }
         }
+        else {
+            // In the backround we always scan for at least one background scan period, or more
+            // periods if needed to meet the minimum duration of 10 seconds, or more if needed
+            // to get to the region exit period in addition to one scan cycle.  This latter
+            // qualification lets us continue scanning until we have done so long enough to see
+            // a region exit, important if we woke up in the background due to a failure to detect
+            // on an intent-based scan
+            // TODO: Consider making this minimum background time longer, perhaps 10x the scan period
+            // as it exists on iOS. or even making it configurable.
+            long minBackgroundScanJobInterval = scanPeriodMillis;
+            while (minBackgroundScanJobInterval < mRegionExitPeriod+scanPeriodMillis ||
+                    minBackgroundScanJobInterval < 10000) {
+                minBackgroundScanJobInterval += scanPeriodMillis;
+            }
+
+            if (scanPeriodMillis < minBackgroundScanJobInterval) {
+                return (int) minBackgroundScanJobInterval;
+            }
+        }
         return (int) scanPeriodMillis;
     }
 
@@ -266,6 +290,7 @@ public class ScanState implements Serializable {
         mBackgroundScanPeriod = beaconManager.getBackgroundScanPeriod();
         mBackgroundBetweenScanPeriod = beaconManager.getBackgroundBetweenScanPeriod();
         mBackgroundMode = beaconManager.getBackgroundMode();
+        mRegionExitPeriod = BeaconManager.getRegionExitPeriod();
 
         ArrayList<Region> existingMonitoredRegions = new ArrayList<>(mMonitoringStatus.regions());
         ArrayList<Region> existingRangedRegions = new ArrayList<>(mRangedRegionState.keySet());

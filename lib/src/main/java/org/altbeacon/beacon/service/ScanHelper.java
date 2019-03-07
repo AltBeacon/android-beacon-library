@@ -183,10 +183,10 @@ class ScanHelper {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers) {
-        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+    void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers, int scanCallbackType) {
+        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).setCallbackType(scanCallbackType).build();
         List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                new ArrayList<BeaconParser>(beaconParsers));
+                new ArrayList<BeaconParser>(beaconParsers), new ArrayList<Region>(mBeaconManager.getMonitoredRegions()));
         try {
             final BluetoothManager bluetoothManager =
                     (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
@@ -198,7 +198,7 @@ class ScanHelper {
             } else {
                 BluetoothLeScanner scanner = bluetoothAdapter.getBluetoothLeScanner();
                 if (scanner != null) {
-                    int result = scanner.startScan(filters, settings, getScanCallbackIntent());
+                    int result = scanner.startScan(filters, settings, getScanCallbackIntent(scanCallbackType));
                     if (result != 0) {
                         LogManager.e(TAG, "Failed to start background scan on Android O.  Code: " + result);
                     } else {
@@ -232,7 +232,8 @@ class ScanHelper {
             } else {
                BluetoothLeScanner scanner =  bluetoothAdapter.getBluetoothLeScanner();
                if (scanner != null) {
-                   scanner.stopScan(getScanCallbackIntent());
+                   scanner.stopScan(getScanCallbackIntent(ScanSettings.CALLBACK_TYPE_MATCH_LOST));
+                   scanner.stopScan(getScanCallbackIntent(ScanSettings.CALLBACK_TYPE_ALL_MATCHES));
                }
             }
         } catch (SecurityException e) {
@@ -247,8 +248,11 @@ class ScanHelper {
     }
 
     // Low power scan results in the background will be delivered via Intent
-    PendingIntent getScanCallbackIntent() {
+    PendingIntent getScanCallbackIntent(int scanCallbackType) {
         Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
+        if (scanCallbackType == ScanSettings.CALLBACK_TYPE_MATCH_LOST) {
+            intent.putExtra("match-lost", true);
+        }
         intent.putExtra("o-scan", true);
         return PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }

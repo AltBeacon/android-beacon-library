@@ -736,6 +736,107 @@ public class BeaconParser implements Serializable {
         return advertisingBytes;
     }
 
+    /**
+     * Get BLE advertisement prefix bytes for a Region
+     * This is used for setting up a hardware filter to match a particular region
+     * @param region the beacon containing the data to be matched
+     * @return the byte array to be matched
+     */
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    public byte[] getPrefixAdvertisementData(Region region) {
+        int regionIdentifierCount = 0;
+        while (region.getIdentifier(regionIdentifierCount) != null) {
+            regionIdentifierCount++;
+        }
+        if (regionIdentifierCount == 0) {
+            // If the region is a full wildcard with all null identifiers, there is nothing extra
+            // to match on.  Return empty prefix data.
+            return new byte[] {};
+        }
+        byte[] advertisingBytes;
+
+        int lastIndex = -1;
+        if (mMatchingBeaconTypeCodeEndOffset != null && mMatchingBeaconTypeCodeEndOffset > lastIndex) {
+            lastIndex = mMatchingBeaconTypeCodeEndOffset;
+        }
+        if (mPowerEndOffset != null && mPowerEndOffset > lastIndex) {
+            lastIndex = mPowerEndOffset;
+        }
+        for (int identifierNum = 0; identifierNum < this.mIdentifierEndOffsets.size(); identifierNum++) {
+            if (this.mIdentifierEndOffsets.get(identifierNum) != null && this.mIdentifierEndOffsets.get(identifierNum) > lastIndex) {
+                lastIndex = this.mIdentifierEndOffsets.get(identifierNum);
+            }
+        }
+        for (int identifierNum = 0; identifierNum < this.mDataEndOffsets.size(); identifierNum++) {
+            if (this.mDataEndOffsets.get(identifierNum) != null && this.mDataEndOffsets.get(identifierNum) > lastIndex) {
+                lastIndex = this.mDataEndOffsets.get(identifierNum);
+            }
+        }
+
+        // we must adjust the lastIndex to account for variable length identifiers, if there are any.
+        int adjustedIdentifiersLength = 0;
+        for (int identifierNum = 0; identifierNum < this.mIdentifierStartOffsets.size(); identifierNum++) {
+            if (mIdentifierVariableLengthFlags.get(identifierNum)) {
+                int declaredIdentifierLength = (this.mIdentifierEndOffsets.get(identifierNum) - this.mIdentifierStartOffsets.get(identifierNum)+1);
+                int actualIdentifierLength = region.getIdentifier(identifierNum).getByteCount();
+                adjustedIdentifiersLength += actualIdentifierLength;
+                adjustedIdentifiersLength -= declaredIdentifierLength;
+            }
+        }
+        lastIndex += adjustedIdentifiersLength;
+
+        advertisingBytes = new byte[lastIndex+1-2];
+
+        // set identifiers
+        for (int identifierNum = 0; identifierNum < regionIdentifierCount; identifierNum++) {
+            byte[] identifierBytes = region.getIdentifier(identifierNum).toByteArrayOfSpecifiedEndianness(!this.mIdentifierLittleEndianFlags.get(identifierNum));
+
+            // If the identifier we are trying to stuff into the space is different than the space available
+            // adjust it
+            if (identifierBytes.length < getIdentifierByteCount(identifierNum)) {
+                if (!mIdentifierVariableLengthFlags.get(identifierNum)) {
+                    // Pad it, but only if this is not a variable length identifier
+                    if (mIdentifierLittleEndianFlags.get(identifierNum)) {
+                        // this is little endian.  Pad at the end of the array
+                        identifierBytes = Arrays.copyOf(identifierBytes,getIdentifierByteCount(identifierNum));
+                    }
+                    else {
+                        // this is big endian.  Pad at the beginning of the array
+                        byte[] newIdentifierBytes = new byte[getIdentifierByteCount(identifierNum)];
+                        System.arraycopy(identifierBytes, 0, newIdentifierBytes, getIdentifierByteCount(identifierNum)-identifierBytes.length, identifierBytes.length);
+                        identifierBytes = newIdentifierBytes;
+                    }
+                }
+                LogManager.d(TAG, "Expanded identifier because it is too short.  It is now: "+byteArrayToString(identifierBytes));
+            }
+            else if (identifierBytes.length > getIdentifierByteCount(identifierNum)) {
+                if (mIdentifierLittleEndianFlags.get(identifierNum)) {
+                    // Truncate it at the beginning for big endian
+                    identifierBytes = Arrays.copyOfRange(identifierBytes, getIdentifierByteCount(identifierNum)-identifierBytes.length, getIdentifierByteCount(identifierNum));
+                }
+                else {
+                    // Truncate it at the end for little endian
+                    identifierBytes = Arrays.copyOf(identifierBytes,getIdentifierByteCount(identifierNum));
+                }
+                LogManager.d(TAG, "Truncated identifier because it is too long.  It is now: "+byteArrayToString(identifierBytes));
+            }
+            else {
+                LogManager.d(TAG, "Identifier size is just right: "+byteArrayToString(identifierBytes));
+            }
+            for (int index = this.mIdentifierStartOffsets.get(identifierNum); index <= this.mIdentifierStartOffsets.get(identifierNum)+identifierBytes.length-1; index ++) {
+                advertisingBytes[index-2] = (byte) identifierBytes[index-this.mIdentifierStartOffsets.get(identifierNum)];
+            }
+        }
+
+        int firstIndexToUse = mMatchingBeaconTypeCodeEndOffset+1;
+        int lastIndexToUse =  mIdentifierEndOffsets.get(regionIdentifierCount-1);
+        byte[] matchingBytes = new byte[lastIndexToUse-firstIndexToUse+1];
+        for (int i = 0; i < matchingBytes.length; i++) {
+            matchingBytes[i] = advertisingBytes[i+firstIndexToUse-2];
+        }
+        return matchingBytes;
+    }
+
     public BeaconParser setMatchingBeaconTypeCode(Long typeCode) {
         mMatchingBeaconTypeCode = typeCode;
         return this;
@@ -787,6 +888,7 @@ public class BeaconParser implements Serializable {
         }
         return new String(hexChars);
     }
+
 
     public static class BeaconLayoutException extends RuntimeException {
         public BeaconLayoutException(String s) {

@@ -7,7 +7,10 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.os.ParcelUuid;
 
+import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.Identifier;
+import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
@@ -33,7 +36,7 @@ public class ScanFilterUtils {
         return scanFilters;
     }
 
-    public List<ScanFilterData> createScanFilterDataForBeaconParser(BeaconParser beaconParser) {
+    public List<ScanFilterData> createScanFilterDataForBeaconParser(BeaconParser beaconParser, byte[] identifierPrefix) {
         ArrayList<ScanFilterData> scanFilters = new ArrayList<ScanFilterData>();
         for (int manufacturer : beaconParser.getHardwareAssistManufacturers()) {
             Long serviceUuid = beaconParser.getServiceUuid();
@@ -44,11 +47,11 @@ public class ScanFilterUtils {
             // Note: the -2 here is because we want the filter and mask to start after the
             // two-byte manufacturer code, and the beacon parser expression is based on offsets
             // from the start of the two byte code
-            byte[] filter = new byte[endOffset + 1 - 2];
-            byte[] mask = new byte[endOffset + 1 - 2];
+            byte[] filter = new byte[endOffset + 1 - 2 + identifierPrefix.length];
+            byte[] mask = new byte[endOffset + 1 - 2 + identifierPrefix.length];
             byte[] typeCodeBytes = BeaconParser.longToByteArray(typeCode, endOffset-startOffset+1);
+            int filterIndex = 0;
             for (int layoutIndex = 2; layoutIndex <= endOffset; layoutIndex++) {
-                int filterIndex = layoutIndex-2;
                 if (layoutIndex < startOffset) {
                     filter[filterIndex] = 0;
                     mask[filterIndex] = 0;
@@ -56,6 +59,12 @@ public class ScanFilterUtils {
                     filter[filterIndex] = typeCodeBytes[layoutIndex-startOffset];
                     mask[filterIndex] = (byte) 0xff;
                 }
+                filterIndex += 1;
+            }
+            for (int indentifierIndex = 0; indentifierIndex < identifierPrefix.length; indentifierIndex++) {
+                filter[filterIndex] = identifierPrefix[indentifierIndex];
+                mask[filterIndex] = (byte) 0xff;
+                filterIndex += 1;
             }
             ScanFilterData sfd = new ScanFilterData();
             sfd.manufacturer = manufacturer;
@@ -68,12 +77,19 @@ public class ScanFilterUtils {
         return scanFilters;
     }
 
-    public List<ScanFilter> createScanFiltersForBeaconParsers(List<BeaconParser> beaconParsers) {
+    public List<ScanFilter> createScanFiltersForBeaconParsers(List<BeaconParser> beaconParsers, List<Region> regions) {
         List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
         // for each beacon parser, make a filter expression that includes all its desired
         // hardware manufacturers
         for (BeaconParser beaconParser: beaconParsers) {
-            List<ScanFilterData> sfds = createScanFilterDataForBeaconParser(beaconParser);
+            byte[] identifierPrefix = {};
+            if (regions.size() == 1) {
+                Beacon.Builder builder = new Beacon.Builder();
+                Region region = regions.get(0);
+                identifierPrefix = beaconParser.getPrefixAdvertisementData(region);
+            }
+
+            List<ScanFilterData> sfds = createScanFilterDataForBeaconParser(beaconParser, identifierPrefix);
             for (ScanFilterData sfd: sfds) {
                 ScanFilter.Builder builder = new ScanFilter.Builder();
                 if (sfd.serviceUuid != null) {

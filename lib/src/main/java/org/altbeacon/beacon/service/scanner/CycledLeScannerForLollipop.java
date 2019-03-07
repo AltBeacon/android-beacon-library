@@ -17,6 +17,7 @@ import android.support.annotation.WorkerThread;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
@@ -175,7 +176,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                          mBeaconManager.getBeaconParsers());
+                          mBeaconManager.getBeaconParsers(), new ArrayList<Region>(mBeaconManager.getMonitoredRegions()));
         } else {
             LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
@@ -194,7 +195,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     // manufacturer codes.  See #769 for details.
                     LogManager.d(TAG, "Using a non-empty scan filter since this is Samsung 8.1+");
                     filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                            mBeaconManager.getBeaconParsers());
+                            mBeaconManager.getBeaconParsers(), new ArrayList<Region>(mBeaconManager.getMonitoredRegions()));
                 }
                 else {
                     LogManager.d(TAG, "Using an empty scan filter since this is 8.1+ on Non-Samsung");

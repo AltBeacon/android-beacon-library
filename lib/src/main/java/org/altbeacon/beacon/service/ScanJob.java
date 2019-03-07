@@ -5,6 +5,7 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageItemInfo;
@@ -41,7 +42,8 @@ public class ScanJob extends JobService {
     private static final String TAG = ScanJob.class.getSimpleName();
     /*
         Periodic scan jobs are used in general, but they cannot be started immediately.  So we have
-        a second immediate scan job to kick off when scanning gets started or settings changed.
+        a second immediate scan job to kick off when scanning gets started or settings changed,
+        or when beacons are detected or stop being detected in the background.
         Once the periodic one gets run, the immediate is cancelled.
      */
     private static int sOverrideImmediateScanJobId = -1;
@@ -135,12 +137,18 @@ public class ScanJob extends JobService {
             }
         }
         if (insideAnyRegion) {
-            // TODO: Set up a scan filter for not detecting a beacon pattern
-            LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LogManager.d(TAG, "We are inside a region.  Starting a filtered O scan for pattern loss.");
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), ScanSettings.CALLBACK_TYPE_MATCH_LOST);
+            }
+            else {
+                LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
+            }
         }
         else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+                LogManager.d(TAG, "We are outside regions.  Starting a filtered O scan for all pattern finds.");
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
             }
             else {
                 LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");

@@ -7,9 +7,11 @@ import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.RequiresApi;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.BeaconManager;
@@ -39,8 +41,13 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
                 if (errorCode != -1) {
                     LogManager.w(TAG, "Passive background scan failed.  Code; "+errorCode);
                 }
-                ArrayList<ScanResult> scanResults = intent.getParcelableArrayListExtra(BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT);
-                ScanJobScheduler.getInstance().scheduleAfterBackgroundWakeup(context, scanResults);
+                if (intent.getBooleanExtra("match-lost", false)) {
+                    ScanJobScheduler.getInstance().scheduleAfterBackgroundWakeup(context, null);
+                }
+                else {
+                    ArrayList<ScanResult> scanResults = intent.getParcelableArrayListExtra(BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT);
+                    ScanJobScheduler.getInstance().scheduleAfterBackgroundWakeup(context, scanResults);
+                }
             }
             else if (intent.getBooleanExtra("wakeup", false)) {
                 LogManager.d(TAG, "got wake up intent");

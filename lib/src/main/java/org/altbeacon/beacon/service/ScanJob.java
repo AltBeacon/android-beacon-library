@@ -60,6 +60,7 @@ public class ScanJob extends JobService {
             LogManager.e(TAG, "Cannot allocate a scanner to look for beacons.  System resources are low.");
             return false;
         }
+        ScanJobScheduler.getInstance().ensureNotificationProcessorSetup(getApplicationContext());
         if (jobParameters.getJobId() == getImmediateScanJobId(this)) {
             LogManager.i(TAG, "Running immediate scan job: instance is "+this);
         }

@@ -11,9 +11,11 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.PowerManager;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -80,6 +82,7 @@ class ScanHelper {
     ScanHelper(Context context) {
         mContext = context;
         mBeaconManager = BeaconManager.getInstanceForApplication(context);
+        registerForDozeIntents();
     }
 
     private ExecutorService getExecutor() {
@@ -145,6 +148,11 @@ class ScanHelper {
         mSimulatedScanData = simulatedScanData;
     }
 
+    void registerForDozeIntents() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+        mContext.registerReceiver(new StartupBroadcastReceiver(), filter);
+    }
 
     void createCycledLeScanner(boolean backgroundMode, BluetoothCrashResolver crashResolver) {
         mCycledScanner = CycledLeScanner.createScanner(mContext, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
@@ -294,9 +302,44 @@ class ScanHelper {
                     LogManager.d(TAG, "Beacon simulator not enabled");
                 }
             }
-            mDistinctPacketDetector.clearDetections();
-            mMonitoringStatus.updateNewlyOutside();
-            processRangeData();
+            // Android 9 Doze mode observations:
+            // In doze, ScanJobs will be suppressed unless it is the maintenance window
+            // In heavy doze, BLE detections will be suppressed
+            // In heavy doze maintenance window, BLE detections are sill suppressed but the jobs
+            // still fire, causing spurious region exits and empty ranging callbacks we'd like to
+            // avoid.
+            // The following call will exit region events to fire based on beacons not being detected
+            // recently enough.  However, if we are in Doze mode, we want to suppress this from
+            // happening, because we cannot trust if we have seen beacons -- detctions may be
+            // suppressed.
+            // Ah, but this does not work, as on my Android 9 Nexus, the pm.isPoserSaverMode()
+            // always returns false.  So we don't know if we are in doze mode.  The intent is
+            // never sent either.   We might know we are not in doze mode because we get ble
+            // detections.  but we cannot discern between being in a radio quiet area and being
+            // in doze mode.  This could be a deal breaker for being able to detect if we are
+            // out of region in a timely manner.  If you let your phone sit on the desk, then
+            // wake it up, we won't get a callback for up to 15 minutes later.  So you won't know
+            // if you left a region for up to 15 minutes after letting your phone go into doze
+            //
+            // We also might have a spurious exit here is we fail to detect a beacon in one cycle
+            // after resuming from a between scan period.  We could debounce this with ranging just
+            // like is common to do with iOS
+            boolean dozeMode = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+                if (pm.isPowerSaveMode()) {
+                    LogManager.d(TAG, "We are in doze mode.");
+                    dozeMode = true;
+                }
+            }
+            if (dozeMode) {
+                LogManager.w(TAG, "We are in doze mode.  Suppressing unreliable ranging/monitoring state changes.");
+            }
+            else {
+                mDistinctPacketDetector.clearDetections();
+                mMonitoringStatus.updateNewlyOutside();
+                processRangeData();
+            }
         }
     };
 

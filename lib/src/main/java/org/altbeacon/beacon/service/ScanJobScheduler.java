@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -113,10 +114,17 @@ public class ScanJobScheduler {
             // ble pattern lock has been lost.
             LogManager.d(TAG, "BLE pattern lock lost");
         }
+        boolean dozeMode = false;
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        if (pm.isPowerSaveMode()) {
+            LogManager.d(TAG, "We are in doze mode.");
+            dozeMode = true;
+        }
+
         synchronized (this) {
             // We typically get a bunch of calls in a row here, separated by a few millis.  Only do this once.
             if (System.currentTimeMillis() - mScanJobScheduleTime > MIN_MILLIS_BETWEEN_SCAN_JOB_SCHEDULING) {
-                LogManager.d(TAG, "scheduling an immediate scan job because last did "+(System.currentTimeMillis() - mScanJobScheduleTime)+"seconds ago.");
+                LogManager.d(TAG, "scheduling an immediate scan job because last did "+(System.currentTimeMillis() - mScanJobScheduleTime)+" seconds ago."+(dozeMode ? "(This should not get executed because we are in doze mode.)" : ""));
                 mScanJobScheduleTime = System.currentTimeMillis();
             }
             else {

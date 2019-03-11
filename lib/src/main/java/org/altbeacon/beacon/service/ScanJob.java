@@ -63,6 +63,9 @@ public class ScanJob extends JobService {
             LogManager.e(TAG, "Cannot allocate a scanner to look for beacons.  System resources are low.");
             return false;
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mScanHelper.stopAndroidOBackgroundScan();
+        }
         ScanJobScheduler.getInstance().ensureNotificationProcessorSetup(getApplicationContext());
         if (jobParameters.getJobId() == getImmediateScanJobId(this)) {
             LogManager.i(TAG, "Running immediate scan job: instance is "+this);
@@ -178,9 +181,6 @@ public class ScanJob extends JobService {
 
     private void stopScanning() {
         mInitialized = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mScanHelper.stopAndroidOBackgroundScan();
-        }
         if (mScanHelper.getCycledScanner() != null) {
             mScanHelper.getCycledScanner().stop();
             mScanHelper.getCycledScanner().destroy();
@@ -211,9 +211,6 @@ public class ScanJob extends JobService {
 
     // Returns true of scanning actually was started, false if it did not need to be
     private boolean restartScanning() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mScanHelper.stopAndroidOBackgroundScan();
-        }
         long scanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod();
         long betweenScanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod();
         if (mScanHelper.getCycledScanner() != null) {

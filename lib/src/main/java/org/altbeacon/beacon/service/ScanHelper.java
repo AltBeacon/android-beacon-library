@@ -186,13 +186,15 @@ class ScanHelper {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers, int scanCallbackType) {
-        ScanSettings.Builder builder =  (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER))
+        ScanSettings.Builder builder =  (new ScanSettings.Builder())
                 .setCallbackType(scanCallbackType);
         if (scanCallbackType == ScanSettings.CALLBACK_TYPE_FIRST_MATCH) {
+            builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
             builder.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT);
             builder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
         }
         else {
+            builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
             builder.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT);
             builder.setMatchMode(ScanSettings.MATCH_MODE_STICKY);
         }

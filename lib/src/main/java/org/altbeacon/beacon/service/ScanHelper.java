@@ -35,6 +35,7 @@ import org.altbeacon.beacon.service.scanner.DistinctPacketDetector;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.service.scanner.ScanFilterUtils;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
+import org.altbeacon.beacon.utils.DozeDetector;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.util.ArrayList;
@@ -82,7 +83,6 @@ class ScanHelper {
     ScanHelper(Context context) {
         mContext = context;
         mBeaconManager = BeaconManager.getInstanceForApplication(context);
-        registerForDozeIntents();
     }
 
     private ExecutorService getExecutor() {
@@ -148,12 +148,6 @@ class ScanHelper {
         mSimulatedScanData = simulatedScanData;
     }
 
-    void registerForDozeIntents() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
-        mContext.registerReceiver(new StartupBroadcastReceiver(), filter);
-    }
-
     void createCycledLeScanner(boolean backgroundMode, BluetoothCrashResolver crashResolver) {
         mCycledScanner = CycledLeScanner.createScanner(mContext, BeaconManager.DEFAULT_FOREGROUND_SCAN_PERIOD,
                 BeaconManager.DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD, backgroundMode,
@@ -192,7 +186,44 @@ class ScanHelper {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers, int scanCallbackType) {
-        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).setCallbackType(scanCallbackType).build();
+        ScanSettings.Builder builder =  (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER))
+                .setCallbackType(scanCallbackType);
+        if (scanCallbackType == ScanSettings.CALLBACK_TYPE_FIRST_MATCH) {
+            builder.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT);
+            builder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
+        }
+        else {
+            builder.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT);
+            builder.setMatchMode(ScanSettings.MATCH_MODE_STICKY);
+        }
+
+        /*
+        Settings results on NOkia 6.1+
+
+        Default settings give you a CALLBACK_TYPE_MATCH_LOST  every 40 seconds or so even with a becon nearby
+
+        These settings never fire:
+        builder.setNumOfMatches(ScanSettings.MATCH_NUM_FEW_ADVERTISEMENT);
+        builder.setMatchMode(ScanSettings.MATCH_MODE_STICKY);
+
+        These settings don't give you a CALLBACK_TYPE_MATCH_LOST seemingly ever
+        builder.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT);
+        builder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
+
+        These settings give you a lost, but too often:
+        builder.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT);
+        builder.setMatchMode(ScanSettings.MATCH_MODE_STICKY);
+03-10 13:41:57.703 12990 12990 D ScanJobScheduler: BLE pattern lock lost
+03-10 13:42:45.158 12990 12990 D ScanJobScheduler: BLE pattern lock lost
+03-10 13:43:18.417 12990 12990 D ScanJobScheduler: BLE pattern lock lost
+03-10 13:43:52.756 12990 12990 D ScanJobScheduler: BLE pattern lock lost
+03-10 13:44:15.654 12990 12990 D ScanJobScheduler: BLE pattern lock lost
+03-10 13:44:38.562 12990 12990 D ScanJobScheduler: BLE pattern lock lost
+03-10 13:45:01.425 12990 12990 D ScanJobScheduler: BLE pattern lock lost
+
+         */
+
+        ScanSettings settings = builder.build();
         List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                 new ArrayList<BeaconParser>(beaconParsers), new ArrayList<Region>(mBeaconManager.getMonitoredRegions()));
         try {
@@ -241,7 +272,7 @@ class ScanHelper {
                BluetoothLeScanner scanner =  bluetoothAdapter.getBluetoothLeScanner();
                if (scanner != null) {
                    scanner.stopScan(getScanCallbackIntent(ScanSettings.CALLBACK_TYPE_MATCH_LOST));
-                   scanner.stopScan(getScanCallbackIntent(ScanSettings.CALLBACK_TYPE_ALL_MATCHES));
+                   scanner.stopScan(getScanCallbackIntent(ScanSettings.CALLBACK_TYPE_FIRST_MATCH));
                }
             }
         } catch (SecurityException e) {
@@ -312,9 +343,8 @@ class ScanHelper {
             // recently enough.  However, if we are in Doze mode, we want to suppress this from
             // happening, because we cannot trust if we have seen beacons -- detctions may be
             // suppressed.
-            // Ah, but this does not work, as on my Android 9 Nexus, the pm.isPoserSaverMode()
-            // always returns false.  So we don't know if we are in doze mode.  The intent is
-            // never sent either.   We might know we are not in doze mode because we get ble
+            //
+            // It is unclear how reliable this doze detection will be.
             // detections.  but we cannot discern between being in a radio quiet area and being
             // in doze mode.  This could be a deal breaker for being able to detect if we are
             // out of region in a timely manner.  If you let your phone sit on the desk, then
@@ -324,14 +354,7 @@ class ScanHelper {
             // We also might have a spurious exit here is we fail to detect a beacon in one cycle
             // after resuming from a between scan period.  We could debounce this with ranging just
             // like is common to do with iOS
-            boolean dozeMode = false;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
-                if (pm.isPowerSaveMode()) {
-                    LogManager.d(TAG, "We are in doze mode.");
-                    dozeMode = true;
-                }
-            }
+            boolean dozeMode = new DozeDetector().isInDozeMode(mContext);
             if (dozeMode) {
                 LogManager.w(TAG, "We are in doze mode.  Suppressing unreliable ranging/monitoring state changes.");
             }

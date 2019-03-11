@@ -28,6 +28,7 @@ import android.os.SystemClock;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 public class RegionMonitoringState implements Serializable {
@@ -59,9 +60,32 @@ public class RegionMonitoringState implements Serializable {
         lastSeenTime = 0l;
     }
 
-    public boolean markOutsideIfExpired() {
+    public boolean markOutsideIfExpired(long scanStartTime, long scanPeriod, long betweenScanPeriod) {
         if (inside) {
-            if (lastSeenTime > 0 && SystemClock.elapsedRealtime() - lastSeenTime > BeaconManager.getRegionExitPeriod()) {
+            long regionExitPeriod = BeaconManager.getRegionExitPeriod();
+            long timeSinceLastSeen = lastSeenTime > 0 ? SystemClock.elapsedRealtime() - lastSeenTime : 0;
+            if (timeSinceLastSeen > regionExitPeriod) {
+                long timeScanning = SystemClock.elapsedRealtime() - scanStartTime;
+
+                boolean elegibleForDebounce = betweenScanPeriod < 100 || scanPeriod > regionExitPeriod;
+                if (elegibleForDebounce) {
+                    if (scanStartTime == 0) {
+                        LogManager.d(TAG, "Suppressing region exit because we are not scanning.");
+                        return false;
+                    }
+                    else if (timeScanning < BeaconManager.getRegionExitPeriod()) {
+                        // This logic prevens spurious exits caused by not seeing the beacon in teh first short
+                        // cycle after resuming scanning after a pause.
+                        LogManager.d(TAG, "Suppressing region exit because we only have been scanning since "+timeScanning+" milis ago.");
+                        return false;
+                    }
+                    else {
+                        LogManager.d(TAG, "Not Suppressing region exit because we have been scanning since "+timeScanning+" milis ago.");
+                    }
+                }
+                else {
+                    LogManager.d(TAG, "Region exits cannot be debounced because the scan period is too short and there is a between scan period.");
+                }
                 LogManager.d(TAG, "We are newly outside the region because the lastSeenTime of %s "
                                 + "was %s seconds ago, and that is over the expiration duration "
                                 + "of %s", lastSeenTime, SystemClock.elapsedRealtime() - lastSeenTime,
@@ -69,6 +93,13 @@ public class RegionMonitoringState implements Serializable {
                 markOutside();
                 return true;
             }
+            else {
+                LogManager.d(TAG, "No region exit because we saw a beacon  "+timeSinceLastSeen+" ms ago.");
+
+            }
+        }
+        else {
+            LogManager.d(TAG, "No region exit because we are outside.");
         }
         return false;
     }

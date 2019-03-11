@@ -1,8 +1,10 @@
 package org.altbeacon.beacon.service;
 
 import android.content.Context;
+import android.os.SystemClock;
 
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
@@ -35,12 +37,17 @@ public class MonitoringStatus {
 
     private Context mContext;
 
+    private long mScanningSince;
+    private long mScanLastStarted;
+    private long mScanLastStopped;
+
     private boolean mStatePreservationIsOn = true;
 
     /**
      * Private lock object for singleton initialization protecting against denial-of-service attack.
      */
     private static final Object SINGLETON_LOCK = new Object();
+
 
     public static MonitoringStatus getInstanceForApplication(Context context) {
         /*
@@ -97,10 +104,17 @@ public class MonitoringStatus {
     public synchronized void updateNewlyOutside() {
         Iterator<Region> monitoredRegionIterator = regions().iterator();
         boolean needsMonitoringStateSaving = false;
+        BeaconManager manager = BeaconManager.getInstanceForApplication(mContext);
+        long betweenScanPeriod = manager.getForegroundBetweenScanPeriod();
+        long scanPeriod = manager.getForegroundScanPeriod();
+        if (manager.getBackgroundMode()) {
+            betweenScanPeriod = manager.getForegroundBetweenScanPeriod();
+            scanPeriod = manager.getForegroundScanPeriod();
+        }
         while (monitoredRegionIterator.hasNext()) {
             Region region = monitoredRegionIterator.next();
             RegionMonitoringState state = stateOf(region);
-            if (state.markOutsideIfExpired()) {
+            if (state.markOutsideIfExpired(mScanningSince, scanPeriod, betweenScanPeriod)) {
                 needsMonitoringStateSaving = true;
                 LogManager.d(TAG, "found a monitor that expired: %s", region);
                 state.getCallback().call(mContext, "monitoringData", new MonitoringData(state.getInside(), region).toBundle());
@@ -338,4 +352,23 @@ public class MonitoringStatus {
         getRegionsStateMap().put(region, monitoringState);
         return monitoringState;
     }
+
+    public void markScanLastStarted() {
+        long now = SystemClock.elapsedRealtime();
+        if (mScanningSince > 0) {
+            if (mScanLastStarted > mScanLastStopped-200) {
+                return;
+            }
+            else {
+                LogManager.d(TAG, "updating scanning since because stopped duration was: "+(mScanLastStopped-mScanLastStarted));
+            }
+        }
+        LogManager.d(TAG, "updating scanning since");
+        mScanningSince = now;
+        mScanLastStarted = now;
+    }
+    public void markScanLastStopped() {
+        mScanLastStopped = SystemClock.elapsedRealtime();
+    }
+
 }

@@ -21,6 +21,7 @@ import android.support.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.service.MonitoringStatus;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
@@ -217,6 +218,7 @@ public abstract class CycledLeScanner {
         mScanningEnabled = true;
         if (!mScanCyclerStarted) {
             scanLeDevice(true);
+
         } else {
             LogManager.d(TAG, "scanning already started");
         }
@@ -312,6 +314,7 @@ public abstract class CycledLeScanner {
                                         try {
                                             if (android.os.Build.VERSION.SDK_INT < 23 || checkLocationPermission()) {
                                                 mCurrentScanStartTime = SystemClock.elapsedRealtime();
+                                                MonitoringStatus.getInstanceForApplication(mContext).markScanLastStarted();
                                                 startScan();
                                             }
                                         } catch (Exception e) {
@@ -342,6 +345,7 @@ public abstract class CycledLeScanner {
                 LogManager.d(TAG, "disabling scan");
                 mScanning = false;
                 mScanCyclerStarted = false;
+                MonitoringStatus.getInstanceForApplication(mContext).markScanLastStopped();
                 stopScan();
                 mCurrentScanStartTime = 0l;
                 mLastScanCycleEndTime = SystemClock.elapsedRealtime();

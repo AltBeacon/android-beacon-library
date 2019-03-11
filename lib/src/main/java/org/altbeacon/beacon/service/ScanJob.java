@@ -6,6 +6,7 @@ import android.app.job.JobService;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageItemInfo;
@@ -19,6 +20,8 @@ import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
+import org.altbeacon.beacon.utils.DozeDetector;
 import org.altbeacon.beacon.utils.ProcessUtils;
 
 import java.util.ArrayList;
@@ -149,7 +152,7 @@ public class ScanJob extends JobService {
         else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 LogManager.d(TAG, "We are outside regions.  Starting a filtered O scan for all pattern finds.");
-                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
             }
             else {
                 LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
@@ -170,7 +173,6 @@ public class ScanJob extends JobService {
         stopScanning();
         startPassiveScanIfNeeded();
         mScanHelper.terminateThreads();
-
         return false;
     }
 

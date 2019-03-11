@@ -12,13 +12,18 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.PowerManager;
+import android.os.RemoteException;
 import android.support.annotation.RequiresApi;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.service.ScanJob;
 import org.altbeacon.beacon.service.ScanJobScheduler;
+import org.altbeacon.beacon.utils.DozeDetector;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 public class StartupBroadcastReceiver extends BroadcastReceiver
@@ -32,23 +37,18 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
             LogManager.w(TAG, "Not starting up beacon service because we do not have API version 18 (Android 4.3).  We have: %s", Build.VERSION.SDK_INT);
             return;
         }
+        boolean dozeMode = new DozeDetector().isInDozeMode(context);
+        LogManager.d(TAG, "Doze mode? "+dozeMode);
 
-        boolean dozeMode = false;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            if (pm.isPowerSaveMode()) {
-                LogManager.d(TAG, "We are in doze mode.");
-                dozeMode = true;
+        if (intent.getAction() != null) {
+            if (intent.getAction().equals(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)) {
+                LogManager.w(TAG, "Doze mode 1 changed to "+dozeMode);
+                return;
             }
-            else {
-                LogManager.d(TAG, "We are not in doze mode.");
+            if (intent.getAction().equals(new DozeDetector().getLightIdleModeChangeAction())) {
+                LogManager.w(TAG, "Doze mode 2 changed to "+dozeMode);
+                return;
             }
-        }
-
-        if (intent.getAction() != null && intent.getAction().equals(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)) {
-            LogManager.w(TAG, "Doze mode changed to "+dozeMode);
-            return;
         }
 
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());

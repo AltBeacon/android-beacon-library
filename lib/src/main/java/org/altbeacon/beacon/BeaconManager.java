@@ -56,6 +56,8 @@ import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
+import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
+import org.altbeacon.beacon.utils.DozeDetector;
 import org.altbeacon.beacon.utils.ProcessUtils;
 
 import java.util.ArrayList;
@@ -333,6 +335,8 @@ public class BeaconManager {
          }
         this.beaconParsers.add(new AltBeaconParser());
         setScheduledScanJobsEnabledDefault();
+        new DozeDetector().registerDozeCallbacks(mContext, new StartupBroadcastReceiver());
+
     }
 
     /***

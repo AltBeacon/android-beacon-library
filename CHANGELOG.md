@@ -1,3 +1,8 @@
+### Development
+
+Bug Fixes:
+- Fix intermittent failed ranging/monitoring callbacks in race conditions. (#842, David G. Young) 
+
 ### 2.16.1 / 2019-02-10
 
 - Fix crash on starting scanning with a forground service configured when multiple BeaconConsumer

@@ -55,7 +55,17 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
         if (beaconManager.isAnyConsumerBound() || beaconManager.getScheduledScanJobsEnabled()) {
             int bleCallbackType = intent.getIntExtra(BluetoothLeScanner.EXTRA_CALLBACK_TYPE, -1); // e.g. ScanSettings.CALLBACK_TYPE_FIRST_MATCH
             if (bleCallbackType != -1) {
-                LogManager.d(TAG, "Passive background scan callback type: "+bleCallbackType);
+                String  bleCallbackTypeString = ""+bleCallbackType;
+                if (bleCallbackType == ScanSettings.CALLBACK_TYPE_FIRST_MATCH) {
+                    bleCallbackTypeString = "CALLBACK_TYPE_FIRST_MATCH)";
+                }
+                if (bleCallbackType == ScanSettings.CALLBACK_TYPE_MATCH_LOST) {
+                    bleCallbackTypeString = "CALLBACK_TYPE_MATCH_LOST";
+                }
+                if (bleCallbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
+                    bleCallbackTypeString = "CALLBACK_TYPE_ALL_MATCHES";
+                }
+                LogManager.d(TAG, "Passive background scan callback type: "+bleCallbackTypeString);
                 LogManager.d(TAG, "Got Android O background scan via intent");
                 int errorCode = intent.getIntExtra(BluetoothLeScanner.EXTRA_ERROR_CODE, -1); // e.g.  ScanCallback.SCAN_FAILED_INTERNAL_ERROR
                 if (errorCode != -1) {

@@ -596,6 +596,9 @@ public class BeaconManager {
             LogManager.w(TAG, "Disabling ScanJobs on Android 8+ may disable delivery of "+
                     "beacon callbacks in the background unless a foreground service is active.");
         }
+        if(!enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ScanJobScheduler.getInstance().cancelSchedule(mContext);
+        }
         mScheduledScanJobsEnabled = enabled;
     }
     

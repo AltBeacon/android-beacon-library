@@ -2,6 +2,7 @@
 
 Bug Fixes:
 - Fix intermittent failed ranging/monitoring callbacks in race conditions. (#842, David G. Young) 
+- Prevent duplicate callbacks on Android 8+ with a foreground service by stopping ScanJob.  (#847, Stephen Ruda)
 
 ### 2.16.1 / 2019-02-10
 

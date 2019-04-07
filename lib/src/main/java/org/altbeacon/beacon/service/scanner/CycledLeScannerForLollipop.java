@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.ParcelUuid;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
@@ -35,10 +36,12 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private long mBackgroundLScanFirstDetectionTime = 0;
     private boolean mMainScanCycleActive = false;
     private final BeaconManager mBeaconManager;
+    private final PowerManager mPowerManager;
 
     public CycledLeScannerForLollipop(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
         mBeaconManager = BeaconManager.getInstanceForApplication(mContext);
+        mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
     }
 
     @Override
@@ -187,7 +190,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // We only add these filters on 8.1+ devices, because adding scan filters has been reported
             // to cause scan failures on some Samsung devices with Android 5.x
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                if (Build.MANUFACTURER.equalsIgnoreCase("samsung")) {
+                if (Build.MANUFACTURER.equalsIgnoreCase("samsung") && !mPowerManager.isInteractive()) {
                     // On the Samsung Galaxy Note 8.1, scans are blocked with screen off when the
                     // scan filter is empty (wildcard).  We do a more detailed filter on Samsung only
                     // because it might block detections of AltBeacon packets with non-standard

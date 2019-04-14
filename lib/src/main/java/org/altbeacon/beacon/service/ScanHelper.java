@@ -356,11 +356,15 @@ class ScanHelper {
             // We also might have a spurious exit here is we fail to detect a beacon in one cycle
             // after resuming from a between scan period.  We could debounce this with ranging just
             // like is common to do with iOS
-            boolean dozeMode = new DozeDetector().isInDozeMode(mContext);
-            if (dozeMode) {
-                LogManager.w(TAG, "We are in doze mode.  Suppressing unreliable ranging/monitoring state changes.");
+            boolean suppressStatechanges = false;
+            boolean fullDozeMode = new DozeDetector().isInFullDozeMode(mContext);
+            if (mBeaconManager.getForegroundServiceNotification() == null) {
+                if (fullDozeMode) {
+                    LogManager.w(TAG, "We are in full doze mode without a foreground service.  Suppressing unreliable ranging/monitoring state changes.");
+                    suppressStatechanges = true;
+                }
             }
-            else {
+            if (!suppressStatechanges) {
                 mDistinctPacketDetector.clearDetections();
                 mMonitoringStatus.updateNewlyOutside();
                 processRangeData();

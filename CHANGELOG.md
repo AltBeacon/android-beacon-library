@@ -1,6 +1,7 @@
 ### Development
 
 Bug Fixes:
+- Protect against a NPE when changing ranged regions.  (#770, David G. Young)
 - Fix intermittent failed ranging/monitoring callbacks in race conditions. (#842, David G. Young) 
 - Prevent duplicate callbacks on Android 8+ with a foreground service by stopping ScanJob.  (#847, Stephen Ruda)
 

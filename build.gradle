@@ -1,196 +1,20 @@
-ext {
-    isSnapshot = !project.hasProperty('release')
-    isSnapCi = System.getenv('SNAP_CI') != null
-    isSnapPullRequest = System.getenv('SNAP_PULL_REQUEST_NUMBER') != null
-}
-
-/*
- * Gets the version name from the latest Git tag
- */
-def getVersionName = {
-    def stdout = new ByteArrayOutputStream()
-    try {
-        exec {
-            commandLine 'git', 'describe', '--tags'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
-    catch (e) {
-        println("Can't get version from git: " + e);
-        return "adhoc"
-    }
-}
-
 buildscript {
     repositories {
+        google()
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
-        maven {
-            url 'https://dl.google.com/dl/android/maven2/'
-        }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'com.android.tools.build:gradle:3.2.1'
+        //noinspection GradleDependency
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.1'
+        //noinspection GradleDependency
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.3'
     }
 }
-
-apply plugin: 'com.android.library'
-
-apply from: 'gradle/eclipse.gradle'
-
 allprojects {
-    version = "${getVersionName()}${isSnapshot == true ? "-SNAPSHOT" : ""}"
-    group = "org.altbeacon"
-
     repositories {
+        google()
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
-        maven {
-            url 'https://dl.google.com/dl/android/maven2/'
-        }
     }
-}
-
-android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.0'
-
-    defaultConfig {
-        // Unfortunately 'com.android.support:appcompat-v7:26.0.0'
-        // requires minSdkVersion 14, forcing a bump verson minSdkVersion 7
-        // But since only 0.8% of Android devices have < SDK 14 as of Une 2017, this will become
-        // the new min version for this library in order to target Android O
-        minSdkVersion 14
-        targetSdkVersion 28
-        versionCode 1
-        versionName version
-        consumerProguardFiles 'proguard-rules.pro'
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        encoding "UTF-8"
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
-
-    lintOptions {
-        abortOnError false
-    }
-
-    packagingOptions {
-        exclude 'LICENSE.txt'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE'
-    }
-}
-
-configurations {
-    doclava
-}
-
-
-
-dependencies {
-    compile fileTree ( dir: 'libs', include: ['*.jar'] )
-    compile 'com.android.support:support-v4:28.0.0-rc02'
-    compile 'com.android.support:support-annotations:28.0.0-rc02'
-
-    testCompile 'com.google.android:android-test:4.1.1.4'
-    testCompile('junit:junit:4.12') {
-        exclude group: 'org.hamcrest'
-    }
-    testCompile('org.hamcrest:hamcrest-junit:2.0.0.0') {
-        exclude group: 'junit'
-    }
-    testCompile('com.squareup:fest-android:1.0.+@aar')
-    testCompile('org.robolectric:robolectric:3.0') {
-        exclude group: 'junit'
-    }
-    testCompile('org.mockito:mockito-core:1.10.19') {
-        exclude group: 'org.hamcrest'
-    }
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'org.hamcrest'
-    })
-    androidTestCompile 'org.apache.commons:commons-math3:3.6.1'
-    doclava 'com.google.doclava:doclava:1.0.6'
-}
-
-apply plugin: 'idea'
-
-idea {
-    module {
-        testOutputDir = file('build/test-classes/debug')
-    }
-}
-
-task renameAarForRelease(type: Copy, dependsOn: build) {
-    description = "Rename the aar for easy release publishing"
-
-    from "$buildDir/outputs/aar/" //${project.name}-release.aar
-    into "$buildDir/outputs/aar/" //${project.name}-${project.version}.aar"
-    include "${project.name}-release.aar"
-    rename { String fileName ->
-        fileName = "${project.name}-${project.version}.aar"
-    }
-}
-
-task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) << {
-    println "Building with version=$version"
-}
-
-task release(dependsOn: 'distribution') << {
-    println('Doing release build')
-}
-
-android.libraryVariants.all { variant ->
-
-    task("generate${variant.name}Javadoc", type: Javadoc) {
-        title = "Android Beacon Library $version API"
-        description "Generates Javadoc for $variant.name."
-        source = variant.javaCompile.source
-        ext.androidJar =
-                "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompile.classpath.files, ext.androidJar)
-        options.linksOffline "http://d.android.com/reference/", "${android.sdkDirectory}/docs/reference"
-        exclude '**/BuildConfig.java'
-        exclude '**/R.java'
-    }
-
-}
-
-task generateJavadoc(type: Javadoc, dependsOn: project.configurations.doclava) {
-    failOnError = true
-    title = null
-    source = android.sourceSets.main.java.srcDirs
-    options.doclet = "com.google.doclava.Doclava"
-    options.docletpath = configurations.doclava.files.asType(List)
-    classpath +=
-            project.files(android.getBootClasspath().join(File.pathSeparator)) + configurations.compile
-
-    destinationDir = file("../javadocs/")
-}
-
-build.mustRunAfter clean
-
-apply from: 'gradle/credentials.gradle'
-apply from: 'gradle/compile.gradle'
-apply from: 'gradle/publishing.gradle'
-apply from: 'gradle/bintray.gradle'
-apply from: 'gradle/artifactory.gradle'
-
-artifactoryPublish {
-    // Skip deploying to artifactory if building a pull request
-    onlyIf { !isSnapPullRequest }
 }

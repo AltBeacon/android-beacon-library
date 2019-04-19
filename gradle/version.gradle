@@ -1,0 +1,28 @@
+ext {
+    isSnapshot = !project.hasProperty('release')
+    isSnapCi = System.getenv('SNAP_CI') != null
+    isSnapPullRequest = System.getenv('SNAP_PULL_REQUEST_NUMBER') != null
+}
+
+/*
+ * Gets the version name from the latest Git tag
+ */
+def getVersionName = {
+    def stdout = new ByteArrayOutputStream()
+    try {
+        exec {
+            commandLine 'git', 'describe', '--tags'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+    catch (e) {
+        println("Can't get version from git: " + e);
+        return "adhoc"
+    }
+}
+
+allprojects {
+    version = "${getVersionName()}${isSnapshot ? "-SNAPSHOT" : ""}"
+    group = "org.altbeacon"
+}

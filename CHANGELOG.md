@@ -1,6 +1,39 @@
 ### Development
 
+Bug Fixes:
 - Protect against a NPE when changing ranged regions.  (#770, David G. Young)
+- Fix intermittent failed ranging/monitoring callbacks in race conditions. (#842, David G. Young) 
+- Prevent duplicate callbacks on Android 8+ with a foreground service by stopping ScanJob.  (#847, Stephen Ruda)
+
+### 2.16.1 / 2019-02-10
+
+- Fix crash on starting scanning with a forground service configured when multiple BeaconConsumer
+  instances bound.  (#828, David G. Young)
+- Fix broken RegionBoostrap callbacks caused by change in previous release (#829, David G. Young)
+
+### 2.16 / 2019-02-10
+
+- New Region Bootstrap constructors allowing separate context and notifir (#821, Alper Tekin)
+- Fix intermittent crash caused by internal Android NPE (#824, kababu007)
+- Update gradle and robolectric (#805, Tony Tang)
+- Fix problem on service shutdown that leaked threads and left scanning on (#804, David G. Young)
+
+### 2.15.4 / 2018-12-11
+
+- Fix crash on BluetoothCrashResolver (#790, Michael Porter)
+
+### 2.15.3 / 2018-12-11
+
+- Samsung screen-off scans on Android 8.1+ fixed.  (#798, David G. Young)
+- Fix bug preventing callbacks after unbind/bind when using ScanJobs.  (#765, David G. Young)
+- Prevent NPE on access CycledLEScanner after OOM on Android 8+.  (#766, David G. Young)
+- Make switching back and forth between a foreground service and scan jobs more reliable
+(#767, David G. Young)
+- Disable BluetoothCrashResolver on Android 5+ as a it is not helpful can can create log noise.
+   (#768, David G. Young)
+- Prevent NPE on start scan. (#780, Adrián Nieto Rodríguez)
+- Fix thread leak leading to OOM Exceptions when using ScanJobs (#785, David G. Young)
+>>>>>>> master
 
 ### 2.15.2 / 2018-10-17
 

@@ -1,12 +1,12 @@
 language: java
 
-jdk: oraclejdk7
+jdk: oraclejdk8
 
 before_install:
   - export TERM=dumb
   - cp gradle.properties.dist gradle.properties
   - sudo apt-get install -qq libstdc++6:i386 lib32z1
-  - export COMPONENTS=build-tools-19.0.3,android-19,extra-android-m2repository
+  - export COMPONENTS=build-tools-28.0.3,android-28,extra-android-m2repository
   - curl -L https://raw.github.com/embarkmobile/android-sdk-installer/version-1/android-sdk-installer | bash /dev/stdin --install=$COMPONENTS
   - source ~/.android-sdk-installer/env
 install:

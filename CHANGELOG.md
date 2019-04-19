@@ -33,7 +33,6 @@ Bug Fixes:
    (#768, David G. Young)
 - Prevent NPE on start scan. (#780, Adrián Nieto Rodríguez)
 - Fix thread leak leading to OOM Exceptions when using ScanJobs (#785, David G. Young)
->>>>>>> master
 
 ### 2.15.2 / 2018-10-17
 

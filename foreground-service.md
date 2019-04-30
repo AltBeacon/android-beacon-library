@@ -62,3 +62,7 @@ Below is an example of constantly scanning in the background on a 1.1 second cyc
 beaconManager.setBackgroundBetweenScanPeriod(0);
 beaconManager.setBackgroundScanPeriod(1100);
 ```
+
+#### Forked OEM Limitations
+
+Some phone OEMs fork their Android limitations to add custom battery saving code that kills background apps including foreground services.  Huawei, ZTE, OnePlus and Nokia devices are known to be affected.  Read more [here](http://www.davidgyoungtech.com/2019/04/30/the-rise-of-the-nasty-forks).

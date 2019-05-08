@@ -12,16 +12,15 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
-import android.support.annotation.MainThread;
-import android.support.annotation.WorkerThread;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.MainThread;
+import androidx.annotation.WorkerThread;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
-import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 

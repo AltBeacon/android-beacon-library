@@ -17,12 +17,16 @@ task renameAarForRelease(type: Copy, dependsOn: build) {
     }
 }
 
-task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) << {
-    println "Building with version=$version"
+task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) {
+    doLast {
+        println "Building with version=$version"
+    }
 }
 
-task release(dependsOn: 'distribution') << {
-    println('Doing release build')
+task release(dependsOn: 'distribution') {
+    doLast {
+        println('Doing release build')
+    }
 }
 
 android.libraryVariants.all { variant ->
@@ -40,18 +44,6 @@ android.libraryVariants.all { variant ->
         exclude '**/R.java'
     }
 
-}
-
-task generateJavadoc(type: Javadoc, dependsOn: project.configurations.doclava) {
-    failOnError = true
-    title = null
-    source = android.sourceSets.main.java.srcDirs
-    options.doclet = "com.google.doclava.Doclava"
-    options.docletpath = configurations.doclava.files.asType(List)
-    classpath +=
-            project.files(android.getBootClasspath().join(File.pathSeparator)) + configurations.compile
-
-    destinationDir = file("../javadocs/")
 }
 
 build.mustRunAfter clean

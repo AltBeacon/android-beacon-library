@@ -1,7 +1,7 @@
 package org.altbeacon.beacon.service.scanner;
 
 import android.bluetooth.BluetoothDevice;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.WorkerThread;
 
 /**
  * Allows an implementation to see non-Beacon BLE devices as they are scanned.

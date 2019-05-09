@@ -146,7 +146,7 @@ public class ScanJob extends JobService {
         if (insideAnyRegion) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 LogManager.d(TAG, "We are inside a region.  Starting a filtered O scan for pattern loss.");
-                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), ScanSettings.CALLBACK_TYPE_MATCH_LOST);
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), BeaconManager.getInstanceForApplication(this).getMonitoredRegions(), ScanSettings.CALLBACK_TYPE_MATCH_LOST);
             }
             else {
                 LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
@@ -155,7 +155,7 @@ public class ScanJob extends JobService {
         else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 LogManager.d(TAG, "We are outside regions.  Starting a filtered O scan for all pattern finds.");
-                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers(), BeaconManager.getInstanceForApplication(this).getMonitoredRegions(), ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
             }
             else {
                 LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");

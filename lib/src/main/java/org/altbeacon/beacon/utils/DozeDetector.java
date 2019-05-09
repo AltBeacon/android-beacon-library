@@ -66,7 +66,8 @@ public class DozeDetector {
         context.registerReceiver(receiver, filter);
 
         filter = new IntentFilter();
-        filter.addAction(getLightIdleModeChangeAction());
+        String action = getLightIdleModeChangeAction();
+        filter.addAction(action);
         context.registerReceiver(receiver, filter);
     }
 

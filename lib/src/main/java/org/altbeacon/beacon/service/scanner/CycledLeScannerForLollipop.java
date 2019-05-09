@@ -10,20 +10,26 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Looper;
 import android.os.ParcelUuid;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
+import org.altbeacon.beacon.service.MonitoringStatus;
+import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @TargetApi(21)
@@ -92,7 +98,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // devices should behave like pre-Android L devices, because we don't want to drain battery
             // by continuously delivering packets for beacons visible in the background
             if (scanActiveBefore) {
-                if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
+//                if (secsSinceLastDetection > BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS) {
                     mBackgroundLScanStartTime = SystemClock.elapsedRealtime();
                     mBackgroundLScanFirstDetectionTime = 0l;
                     LogManager.d(TAG, "This is Android L. Preparing to do a filtered scan for the background.");
@@ -101,6 +107,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     // Only scan between cycles if the between can cycle time > 6 seconds.  A shorter low
                     // power scan is unlikely to be useful, and might trigger a "scanning too frequently"
                     // error on Android N.
+
                     if (mBetweenScanPeriod > 6000l) {
                         startScan();
                     }
@@ -109,13 +116,13 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     }
 
 
-                } else {
-                    // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
-                    // This API is now available in Android M
-                    LogManager.d(TAG, "This is Android L, but we last saw a beacon only %s "
-                            + "ago, so we will not keep scanning in background.",
-                            secsSinceLastDetection);
-                }
+//                } else {
+//                    // TODO: Consider starting a scan with delivery based on the filters *NOT* being seen
+////                    // This API is now available in Android M
+//                    LogManager.d(TAG, "This is Android L, but we last saw a beacon only %s "
+//                            + "ago, so we will not keep scanning in background.",
+//                            secsSinceLastDetection);
+//                }
             }
             if (mBackgroundLScanStartTime > 0l) {
                 // if we are in here, we have detected beacons recently in a background L scan
@@ -139,21 +146,34 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     }
                 }
             }
-            LogManager.d(TAG, "Waiting to start full Bluetooth scan for another %s milliseconds",
+            boolean isUiThread = Looper.getMainLooper().getThread() == Thread.currentThread();
+            LogManager.d(TAG, "Waiting to start full Bluetooth scan for another %s ms.  UiThread: "+isUiThread,
                     millisecondsUntilStart);
             // Don't actually wait until the next scan time -- only wait up to 1 second.  This
             // allows us to start scanning sooner if a consumer enters the foreground and expects
             // results more quickly.
-            if (scanActiveBefore && mBackgroundFlag) {
+            if (mBackgroundFlag) {
                 setWakeUpAlarm();
             }
+            final long delay = millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart;
+            final long delayStart = System.currentTimeMillis();
+            final long uptimeStart = android.os.SystemClock.uptimeMillis();
             mHandler.postDelayed(new Runnable() {
                 @MainThread
                 @Override
                 public void run() {
+                    boolean isUiThread = Looper.getMainLooper().getThread() == Thread.currentThread();
+                    long delayEnd = System.currentTimeMillis();
+                    long extraDelay = delayEnd-delayStart-delay;
+
+                    long uptimeDelay = android.os.SystemClock.uptimeMillis() - uptimeStart - delay;
+
+                    if (extraDelay > 500) {
+                        LogManager.d(TAG, "Begin doze maintenance window?  Delay lasted an extra "+extraDelay+"ms.  Uptime dleay: "+uptimeDelay);
+                    }
                     scanLeDevice(true);
                 }
-            }, millisecondsUntilStart > 1000 ? 1000 : millisecondsUntilStart);
+            }, delay);
         } else {
             if (mBackgroundLScanStartTime > 0l) {
                 stopScan();
@@ -174,12 +194,25 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
         if (!mMainScanCycleActive) {
             LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
-            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                           mBeaconManager.getBeaconParsers(), new ArrayList<Region>(mBeaconManager.getMonitoredRegions()));
+            ScanSettings.Builder builder = new ScanSettings.Builder();
+            builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                LogManager.d(TAG, "Starting first match scan");
+                builder.setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
+            }
+            settings = builder.build();
+
         } else {
             LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
-            settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
+            ScanSettings.Builder builder = new ScanSettings.Builder();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                LogManager.d(TAG, "Starting first match scan");
+                builder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+            }
+            builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+            settings = builder.build();
             // We create scan filters that match so that we can detect
             // beacons in foreground mode even if the screen is off.  This is a necessary workaround
             // for a change in Android 8.1 that blocks scan results when the screen is off unless
@@ -319,7 +352,19 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 @Override
                 public void onScanResult(int callbackType, ScanResult scanResult) {
                     if (LogManager.isVerboseLoggingEnabled()) {
-                        LogManager.d(TAG, "got record");
+                        if (callbackType == ScanSettings.CALLBACK_TYPE_MATCH_LOST) {
+                            LogManager.d(TAG, "got match lost record -- this is unexpected here");
+                        }
+                        else  if (callbackType == ScanSettings.CALLBACK_TYPE_FIRST_MATCH) {
+                            LogManager.d(TAG, "got first matcht record");
+                        }
+                        else  if (callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
+                            LogManager.d(TAG, "got all matches record");
+
+                        }
+                        else {
+                            LogManager.d(TAG, "got other record.  This is unexpected");
+                        }
                         List<ParcelUuid> uuids = scanResult.getScanRecord().getServiceUuids();
                         if (uuids != null) {
                             for (ParcelUuid uuid : uuids) {

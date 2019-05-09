@@ -185,7 +185,7 @@ class ScanHelper {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers, int scanCallbackType) {
+    void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers, Collection<Region> regions, int scanCallbackType) {
         ScanSettings.Builder builder =  (new ScanSettings.Builder())
                 .setCallbackType(scanCallbackType);
         if (scanCallbackType == ScanSettings.CALLBACK_TYPE_FIRST_MATCH) {
@@ -227,7 +227,7 @@ class ScanHelper {
 
         ScanSettings settings = builder.build();
         List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                new ArrayList<BeaconParser>(beaconParsers), new ArrayList<Region>(mBeaconManager.getMonitoredRegions()));
+                new ArrayList<BeaconParser>(beaconParsers), new ArrayList<Region>(regions));
         try {
             final BluetoothManager bluetoothManager =
                     (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);

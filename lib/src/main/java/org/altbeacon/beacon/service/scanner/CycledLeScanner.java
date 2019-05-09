@@ -67,7 +67,6 @@ public abstract class CycledLeScanner {
      */
     @NonNull
     protected final Handler mHandler = new Handler(Looper.getMainLooper());
-
     /**
      * Handler to background thread for interacting with the low-level Android BLE scanner.
      * <p>
@@ -81,6 +80,7 @@ public abstract class CycledLeScanner {
      */
     @NonNull
     private final HandlerThread mScanThread;
+
 
     protected final BluetoothCrashResolver mBluetoothCrashResolver;
     protected final CycledLeScanCallback mCycledLeScanCallback;
@@ -218,7 +218,6 @@ public abstract class CycledLeScanner {
         mScanningEnabled = true;
         if (!mScanCyclerStarted) {
             scanLeDevice(true);
-
         } else {
             LogManager.d(TAG, "scanning already started");
         }
@@ -229,6 +228,7 @@ public abstract class CycledLeScanner {
         LogManager.d(TAG, "stop called");
         mScanningEnabled = false;
         if (mScanCyclerStarted) {
+            /*
             scanLeDevice(false);
             // If we have left scanning on between scan periods, now is the time to shut it off.
             if (mScanningLeftOn) {
@@ -241,6 +241,7 @@ public abstract class CycledLeScanner {
                     LogManager.w(e, TAG, "Internal Android exception scanning for beacons");
                 }
             }
+        */
         } else {
             LogManager.d(TAG, "scanning already stopped");
         }
@@ -365,8 +366,12 @@ public abstract class CycledLeScanner {
     protected void scheduleScanCycleStop() {
         // Stops scanning after a pre-defined scan period.
         long millisecondsUntilStop = mScanCycleStopTime - SystemClock.elapsedRealtime();
+        final long delay = millisecondsUntilStop > 1000 ? 1000 : millisecondsUntilStop;
+        final long delayStart = System.currentTimeMillis();
+        final long uptimeStart = android.os.SystemClock.uptimeMillis();
         if (mScanningEnabled && millisecondsUntilStop > 0) {
-            LogManager.d(TAG, "Waiting to stop scan cycle for another %s milliseconds",
+            boolean isUiThread = Looper.getMainLooper().getThread() == Thread.currentThread();
+            LogManager.d(TAG, "Waiting to stop scan cycle for another %s ms.  Ui thread: "+isUiThread,
                     millisecondsUntilStop);
             if (mBackgroundFlag) {
                 setWakeUpAlarm();
@@ -375,9 +380,16 @@ public abstract class CycledLeScanner {
                 @MainThread
                 @Override
                 public void run() {
+                    boolean isUiThread = Looper.getMainLooper().getThread() == Thread.currentThread();
+                    long delayEnd = System.currentTimeMillis();
+                    long extraDelay = delayEnd-delayStart-delay;
+                    long uptimeDelay = android.os.SystemClock.uptimeMillis() - uptimeStart - delay;
+                    if (extraDelay > 500) {
+                        LogManager.d(TAG, "Begin doze maintenance window?  Delay lasted an extra "+extraDelay+"ms.  Uptime dleay: "+uptimeDelay);
+                    }
                     scheduleScanCycleStop();
                 }
-            }, millisecondsUntilStop > 1000 ? 1000 : millisecondsUntilStop);
+            }, delay);
         } else {
             finishScanCycle();
         }

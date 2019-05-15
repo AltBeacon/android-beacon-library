@@ -61,7 +61,7 @@ public class CpuSleepDetector {
         }, 1000);
     }
     private HashMap<Date,Long> detectedStalls = new HashMap<Date,Long>();
-    private HashMap<Date,Long> getDetectedStalls() {
+    public HashMap<Date,Long> getDetectedStalls() {
         return detectedStalls;
     }
     private void prune() {
@@ -76,6 +76,7 @@ public class CpuSleepDetector {
             detectedStalls = newDetectedStalls;
         }
     }
+
     public void logDump() {
         Log.d(TAG, "Last 100 known CPU sleep incidents:");
         ArrayList<Date>  dates = new ArrayList<>(getDetectedStalls().keySet());

@@ -134,14 +134,17 @@ public class ScanJob extends JobService {
                 insideAnyRegion = true;
             }
         }
-        if (insideAnyRegion) {
+        if (insideAnyRegion && mScanState.getRangedRegionState().size() == 0) {
             // TODO: Set up a scan filter for not detecting a beacon pattern
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+            LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
         }
         else {
-            LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+            }
+            else {
+                LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
+            }
         }
     }
 

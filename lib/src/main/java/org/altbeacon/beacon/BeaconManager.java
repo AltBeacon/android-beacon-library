@@ -581,6 +581,7 @@ public class BeaconManager {
      *
      * @param enabled
      */
+
     public void setEnableScheduledScanJobs(boolean enabled) {
         if (isAnyConsumerBound()) {
             LogManager.e(TAG, "ScanJob may not be configured because a consumer is" +
@@ -998,14 +999,15 @@ public class BeaconManager {
 
     @TargetApi(18)
     private void applyChangesToServices(int type, Region region) throws RemoteException {
+        if (!isAnyConsumerBound()) {
+            LogManager.w(TAG, "The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+            return;
+        }
         if (mScheduledScanJobsEnabled) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
             }
             return;
-        }
-        if (serviceMessenger == null) {
-            throw new RemoteException("The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
         }
         Message msg = Message.obtain(null, type, 0, 0);
         if (type == BeaconService.MSG_SET_SCAN_PERIODS) {

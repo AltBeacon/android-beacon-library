@@ -1,6 +1,6 @@
-### Development
+### 2.16.2 / 2019-05-29
 
-Bug Fixes:
+- Prevent crash on alarms going off with a different user active (#886, David G. Young)
 - Fix thread leak caused by scheduling ScanJob when no consumers bound. (#885, David G. Young)
 - Protect against a NPE when changing ranged regions.  (#770, David G. Young)
 - Fix intermittent failed ranging/monitoring callbacks in race conditions. (#842, David G. Young) 

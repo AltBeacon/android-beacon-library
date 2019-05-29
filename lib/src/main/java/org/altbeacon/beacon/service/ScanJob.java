@@ -54,63 +54,71 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
-        if (!initialzeScanHelper()) {
-            LogManager.e(TAG, "Cannot allocate a scanner to look for beacons.  System resources are low.");
-            return false;
-        }
-        ScanJobScheduler.getInstance().ensureNotificationProcessorSetup(getApplicationContext());
-        if (jobParameters.getJobId() == getImmediateScanJobId(this)) {
-            LogManager.i(TAG, "Running immediate scan job: instance is "+this);
-        }
-        else {
-            LogManager.i(TAG, "Running periodic scan job: instance is "+this);
-        }
-
-        List<ScanResult> queuedScanResults = ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue();
-        LogManager.d(TAG, "Processing %d queued scan resuilts", queuedScanResults.size());
-        for (ScanResult result : queuedScanResults) {
-            ScanRecord scanRecord = result.getScanRecord();
-            if (scanRecord != null) {
-                mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
-            }
-        }
-        LogManager.d(TAG, "Done processing queued scan resuilts");
-
-        boolean startedScan;
-        if (mInitialized) {
-            LogManager.d(TAG, "Scanning already started.  Resetting for current parameters");
-            startedScan = restartScanning();
-        }
-        else {
-            startedScan = startScanning();
-        }
-        mStopHandler.removeCallbacksAndMessages(null);
-
-        if (startedScan) {
-            LogManager.i(TAG, "Scan job running for "+mScanState.getScanJobRuntimeMillis()+" millis");
-            mStopHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
-                    stopScanning();
-                    mScanState.save();
+        // We start off on the main UI thread here.
+        // But the ScanState restore from storage sometimes hangs, so we start new thread here just
+        // to kick that off.  This way if the restore hangs, we don't hang the UI thread.
+        new Thread(new Runnable() {
+            public void run() {
+                if (!initialzeScanHelper()) {
+                    LogManager.e(TAG, "Cannot allocate a scanner to look for beacons.  System resources are low.");
                     ScanJob.this.jobFinished(jobParameters , false);
+                }
+                ScanJobScheduler.getInstance().ensureNotificationProcessorSetup(getApplicationContext());
+                if (jobParameters.getJobId() == getImmediateScanJobId(ScanJob.this)) {
+                    LogManager.i(TAG, "Running immediate scan job: instance is "+this);
+                }
+                else {
+                    LogManager.i(TAG, "Running periodic scan job: instance is "+this);
+                }
 
-                    // need to execute this after the current block or Android stops this job prematurely
-                    mStopHandler.post(new Runnable() {
+                List<ScanResult> queuedScanResults = ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue();
+                LogManager.d(TAG, "Processing %d queued scan resuilts", queuedScanResults.size());
+                for (ScanResult result : queuedScanResults) {
+                    ScanRecord scanRecord = result.getScanRecord();
+                    if (scanRecord != null) {
+                        mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
+                    }
+                }
+                LogManager.d(TAG, "Done processing queued scan resuilts");
+
+                boolean startedScan;
+                if (mInitialized) {
+                    LogManager.d(TAG, "Scanning already started.  Resetting for current parameters");
+                    startedScan = restartScanning();
+                }
+                else {
+                    startedScan = startScanning();
+                }
+                mStopHandler.removeCallbacksAndMessages(null);
+
+                if (startedScan) {
+                    LogManager.i(TAG, "Scan job running for "+mScanState.getScanJobRuntimeMillis()+" millis");
+                    mStopHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            scheduleNextScan();
-                        }
-                    });
+                            LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
+                            stopScanning();
+                            mScanState.save();
+                            ScanJob.this.jobFinished(jobParameters , false);
 
+                            // need to execute this after the current block or Android stops this job prematurely
+                            mStopHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    scheduleNextScan();
+                                }
+                            });
+
+                        }
+                    }, mScanState.getScanJobRuntimeMillis());
                 }
-            }, mScanState.getScanJobRuntimeMillis());
-        }
-        else {
-            LogManager.i(TAG, "Scanning not started so Scan job is complete.");
-            ScanJob.this.jobFinished(jobParameters , false);
-        }
+                else {
+                    LogManager.i(TAG, "Scanning not started so Scan job is complete.");
+                    ScanJob.this.jobFinished(jobParameters , false);
+                }
+            }
+        }).start();
+
         return true;
     }
 

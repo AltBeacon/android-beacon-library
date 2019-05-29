@@ -19,26 +19,21 @@ See [configuring your project](configure.html) for more information on how to us
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.16.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.14/android-beacon-library-2.16.1.aar)
 
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.16.1)
+
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.4.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15.4/android-beacon-library-2.15.4.aar)
 
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.4.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15.4/android-beacon-library-2.15.4.tar.gz)
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.15.4)
 
-[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.15.2)
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.2.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15.2/android-beacon-library-2.15.2.aar)
-
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.2.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15,2/android-beacon-library-2.15.2.tar.gz)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.15.2)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15.1/android-beacon-library-2.15.1.aar)
 
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.1.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15.1/android-beacon-library-2.15.1.tar.gz)
-
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.15.1)
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15/android-beacon-library-2.15.aar)
-
-<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.15.tar.gz](https://github.com/AltBeacon/android-beacon-library/releases/download/2.15/android-beacon-library-2.15.tar.gz)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.15)
 

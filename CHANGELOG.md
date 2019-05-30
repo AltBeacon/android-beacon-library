@@ -1,3 +1,7 @@
+### Development
+
+- Fix thread leak with 0 regions and settings applied, (#888, David G. Young)
+
 ### 2.16.2 / 2019-05-29
 
 - Prevent crash on alarms going off with a different user active (#886, David G. Young)

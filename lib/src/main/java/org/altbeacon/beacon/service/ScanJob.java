@@ -57,6 +57,7 @@ public class ScanJob extends JobService {
         // We start off on the main UI thread here.
         // But the ScanState restore from storage sometimes hangs, so we start new thread here just
         // to kick that off.  This way if the restore hangs, we don't hang the UI thread.
+        LogManager.d(TAG, "ScanJob Lifecycle START: "+ScanJob.this);
         new Thread(new Runnable() {
             public void run() {
                 if (!initialzeScanHelper()) {
@@ -96,9 +97,10 @@ public class ScanJob extends JobService {
                     mStopHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
+                            LogManager.i(TAG, "ScanJob runtime expired: " + ScanJob.this);
                             stopScanning();
                             mScanState.save();
+                            LogManager.d(TAG, "ScanJob Lifecycle STOP (expire): "+ScanJob.this);
                             ScanJob.this.jobFinished(jobParameters , false);
 
                             // need to execute this after the current block or Android stops this job prematurely
@@ -114,6 +116,9 @@ public class ScanJob extends JobService {
                 }
                 else {
                     LogManager.i(TAG, "Scanning not started so Scan job is complete.");
+                    stopScanning();
+                    mScanState.save();
+                    LogManager.d(TAG, "ScanJob Lifecycle STOP (start fail): "+ScanJob.this);
                     ScanJob.this.jobFinished(jobParameters , false);
                 }
             }
@@ -165,8 +170,10 @@ public class ScanJob extends JobService {
         else {
             LogManager.i(TAG, "onStopJob called for immediate scan " + this);
         }
+        LogManager.d(TAG, "ScanJob Lifecycle STOP: "+ScanJob.this);
         // Cancel the stop timer.  The OS is stopping prematurely
         mStopHandler.removeCallbacksAndMessages(null);
+
         stopScanning();
         startPassiveScanIfNeeded();
         mScanHelper.terminateThreads();

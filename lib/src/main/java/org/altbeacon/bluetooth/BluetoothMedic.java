@@ -276,6 +276,9 @@ public class BluetoothMedic {
                     scanner.stopScan(callback);
                 } catch (IllegalStateException e) {
                     LogManager.d(TAG, "Bluetooth is off.  Cannot run scan test.");
+                } catch (NullPointerException e) {
+                    // Needed to stop a crash caused by internal NPE thrown by Android.  See issue #636
+                    LogManager.e(TAG, "NullPointerException. Cannot run scan test.", e);
                 }
             }
             else {

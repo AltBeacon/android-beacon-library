@@ -1,3 +1,7 @@
+### Development
+
+- Prevent NPE when ScanState restore hangs or ScanJob thread is slow to start (#890, David G. Young)
+
 ### 2.16.2 / 2019-05-29
 
 - Prevent crash on alarms going off with a different user active (#886, David G. Young)

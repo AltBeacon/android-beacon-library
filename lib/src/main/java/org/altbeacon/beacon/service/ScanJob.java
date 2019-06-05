@@ -51,6 +51,7 @@ public class ScanJob extends JobService {
     @Nullable
     private ScanState mScanState = null;
     private Handler mStopHandler = new Handler();
+    @Nullable
     private ScanHelper mScanHelper;
     private boolean mInitialized = false;
 
@@ -78,7 +79,9 @@ public class ScanJob extends JobService {
                 for (ScanResult result : queuedScanResults) {
                     ScanRecord scanRecord = result.getScanRecord();
                     if (scanRecord != null) {
-                        mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
+                        if (mScanHelper != null) {
+                            mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
+                        }
                     }
                 }
                 LogManager.d(TAG, "Done processing queued scan resuilts");
@@ -156,7 +159,9 @@ public class ScanJob extends JobService {
             }
             else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+                    if (mScanHelper != null) {
+                        mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+                    }
                 }
                 else {
                     LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
@@ -177,19 +182,22 @@ public class ScanJob extends JobService {
         mStopHandler.removeCallbacksAndMessages(null);
         stopScanning();
         startPassiveScanIfNeeded();
-        mScanHelper.terminateThreads();
-
+        if (mScanHelper != null) {
+            mScanHelper.terminateThreads();
+        }
         return false;
     }
 
     private void stopScanning() {
         mInitialized = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mScanHelper.stopAndroidOBackgroundScan();
-        }
-        if (mScanHelper.getCycledScanner() != null) {
-            mScanHelper.getCycledScanner().stop();
-            mScanHelper.getCycledScanner().destroy();
+        if (mScanHelper != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mScanHelper.stopAndroidOBackgroundScan();
+            }
+            if (mScanHelper.getCycledScanner() != null) {
+                mScanHelper.getCycledScanner().stop();
+                mScanHelper.getCycledScanner().destroy();
+            }
         }
         LogManager.d(TAG, "Scanning stopped");
     }
@@ -219,7 +227,7 @@ public class ScanJob extends JobService {
 
     // Returns true of scanning actually was started, false if it did not need to be
     private boolean restartScanning() {
-        if (mScanState != null) {
+        if (mScanState != null && mScanHelper != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mScanHelper.stopAndroidOBackgroundScan();
             }

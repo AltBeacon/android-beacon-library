@@ -11,6 +11,7 @@ import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -47,8 +48,10 @@ public class ScanJob extends JobService {
     private static int sOverrideImmediateScanJobId = -1;
     private static int sOverridePeriodicScanJobId = -1;
 
-    private ScanState mScanState;
+    @Nullable
+    private ScanState mScanState = null;
     private Handler mStopHandler = new Handler();
+    @Nullable
     private ScanHelper mScanHelper;
     private boolean mInitialized = false;
 
@@ -76,7 +79,9 @@ public class ScanJob extends JobService {
                 for (ScanResult result : queuedScanResults) {
                     ScanRecord scanRecord = result.getScanRecord();
                     if (scanRecord != null) {
-                        mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
+                        if (mScanHelper != null) {
+                            mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
+                        }
                     }
                 }
                 LogManager.d(TAG, "Done processing queued scan resuilts");
@@ -92,25 +97,27 @@ public class ScanJob extends JobService {
                 mStopHandler.removeCallbacksAndMessages(null);
 
                 if (startedScan) {
-                    LogManager.i(TAG, "Scan job running for "+mScanState.getScanJobRuntimeMillis()+" millis");
-                    mStopHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
-                            stopScanning();
-                            mScanState.save();
-                            ScanJob.this.jobFinished(jobParameters , false);
+                    if (mScanState != null) {
+                        LogManager.i(TAG, "Scan job running for "+mScanState.getScanJobRuntimeMillis()+" millis");
+                        mStopHandler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
+                                stopScanning();
+                                mScanState.save();
+                                ScanJob.this.jobFinished(jobParameters , false);
 
-                            // need to execute this after the current block or Android stops this job prematurely
-                            mStopHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    scheduleNextScan();
-                                }
-                            });
+                                // need to execute this after the current block or Android stops this job prematurely
+                                mStopHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        scheduleNextScan();
+                                    }
+                                });
 
-                        }
-                    }, mScanState.getScanJobRuntimeMillis());
+                            }
+                        }, mScanState.getScanJobRuntimeMillis());
+                    }
                 }
                 else {
                     LogManager.i(TAG, "Scanning not started so Scan job is complete.");
@@ -123,36 +130,42 @@ public class ScanJob extends JobService {
     }
 
     private void scheduleNextScan(){
-        if(!mScanState.getBackgroundMode()){
-            // immediately reschedule scan if running in foreground
-            LogManager.d(TAG, "In foreground mode, schedule next scan");
-            ScanJobScheduler.getInstance().forceScheduleNextScan(ScanJob.this);
-        } else {
-            startPassiveScanIfNeeded();
+        if  (mScanState != null) {
+            if(!mScanState.getBackgroundMode()){
+                // immediately reschedule scan if running in foreground
+                LogManager.d(TAG, "In foreground mode, schedule next scan");
+                ScanJobScheduler.getInstance().forceScheduleNextScan(ScanJob.this);
+            } else {
+                startPassiveScanIfNeeded();
+            }
         }
     }
 
     private void startPassiveScanIfNeeded() {
-        LogManager.d(TAG, "Checking to see if we need to start a passive scan");
-        boolean insideAnyRegion = false;
-        // Clone the collection before iterating to prevent ConcurrentModificationException per #577
-        List<Region> regions = new ArrayList<>(mScanState.getMonitoringStatus().regions());
-        for (Region region : regions) {
-            RegionMonitoringState state = mScanState.getMonitoringStatus().stateOf(region);
-            if (state != null && state.getInside()) {
-                insideAnyRegion = true;
+        if (mScanState != null) {
+            LogManager.d(TAG, "Checking to see if we need to start a passive scan");
+            boolean insideAnyRegion = false;
+            // Clone the collection before iterating to prevent ConcurrentModificationException per #577
+            List<Region> regions = new ArrayList<>(mScanState.getMonitoringStatus().regions());
+            for (Region region : regions) {
+                RegionMonitoringState state = mScanState.getMonitoringStatus().stateOf(region);
+                if (state != null && state.getInside()) {
+                    insideAnyRegion = true;
+                }
             }
-        }
-        if (insideAnyRegion) {
-            // TODO: Set up a scan filter for not detecting a beacon pattern
-            LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
-        }
-        else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+            if (insideAnyRegion) {
+                // TODO: Set up a scan filter for not detecting a beacon pattern
+                LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
             }
             else {
-                LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (mScanHelper != null) {
+                        mScanHelper.startAndroidOBackgroundScan(mScanState.getBeaconParsers());
+                    }
+                }
+                else {
+                    LogManager.d(TAG, "This is not Android O.  No scanning between cycles when using ScanJob");
+                }
             }
         }
     }
@@ -169,19 +182,22 @@ public class ScanJob extends JobService {
         mStopHandler.removeCallbacksAndMessages(null);
         stopScanning();
         startPassiveScanIfNeeded();
-        mScanHelper.terminateThreads();
-
+        if (mScanHelper != null) {
+            mScanHelper.terminateThreads();
+        }
         return false;
     }
 
     private void stopScanning() {
         mInitialized = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mScanHelper.stopAndroidOBackgroundScan();
-        }
-        if (mScanHelper.getCycledScanner() != null) {
-            mScanHelper.getCycledScanner().stop();
-            mScanHelper.getCycledScanner().destroy();
+        if (mScanHelper != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mScanHelper.stopAndroidOBackgroundScan();
+            }
+            if (mScanHelper.getCycledScanner() != null) {
+                mScanHelper.getCycledScanner().stop();
+                mScanHelper.getCycledScanner().destroy();
+            }
         }
         LogManager.d(TAG, "Scanning stopped");
     }
@@ -190,18 +206,20 @@ public class ScanJob extends JobService {
     private boolean initialzeScanHelper() {
         mScanHelper = new ScanHelper(this);
         mScanState = ScanState.restore(ScanJob.this);
-        mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
-        mScanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
-        mScanHelper.setRangedRegionState(mScanState.getRangedRegionState());
-        mScanHelper.setBeaconParsers(mScanState.getBeaconParsers());
-        mScanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
-        if (mScanHelper.getCycledScanner() == null) {
-            try {
-                mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
-            }
-            catch (OutOfMemoryError e) {
-                LogManager.w(TAG, "Failed to create CycledLeScanner thread.");
-                return false;
+        if (mScanState != null) {
+            mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
+            mScanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
+            mScanHelper.setRangedRegionState(mScanState.getRangedRegionState());
+            mScanHelper.setBeaconParsers(mScanState.getBeaconParsers());
+            mScanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
+            if (mScanHelper.getCycledScanner() == null) {
+                try {
+                    mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
+                }
+                catch (OutOfMemoryError e) {
+                    LogManager.w(TAG, "Failed to create CycledLeScanner thread.");
+                    return false;
+                }
             }
         }
         return true;
@@ -209,35 +227,40 @@ public class ScanJob extends JobService {
 
     // Returns true of scanning actually was started, false if it did not need to be
     private boolean restartScanning() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mScanHelper.stopAndroidOBackgroundScan();
-        }
-        long scanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod();
-        long betweenScanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod();
-        if (mScanHelper.getCycledScanner() != null) {
-            mScanHelper.getCycledScanner().setScanPeriods(scanPeriod,
-                    betweenScanPeriod,
-                    mScanState.getBackgroundMode());
-        }
-        mInitialized = true;
-        if (scanPeriod <= 0) {
-            LogManager.w(TAG, "Starting scan with scan period of zero.  Exiting ScanJob.");
-            if (mScanHelper.getCycledScanner() != null) {
-                mScanHelper.getCycledScanner().stop();
+        if (mScanState != null && mScanHelper != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mScanHelper.stopAndroidOBackgroundScan();
             }
-            return false;
-        }
+            long scanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundScanPeriod() : mScanState.getForegroundScanPeriod();
+            long betweenScanPeriod = mScanState.getBackgroundMode() ? mScanState.getBackgroundBetweenScanPeriod() : mScanState.getForegroundBetweenScanPeriod();
+            if (mScanHelper.getCycledScanner() != null) {
+                mScanHelper.getCycledScanner().setScanPeriods(scanPeriod,
+                        betweenScanPeriod,
+                        mScanState.getBackgroundMode());
+            }
+            mInitialized = true;
+            if (scanPeriod <= 0) {
+                LogManager.w(TAG, "Starting scan with scan period of zero.  Exiting ScanJob.");
+                if (mScanHelper.getCycledScanner() != null) {
+                    mScanHelper.getCycledScanner().stop();
+                }
+                return false;
+            }
 
-        if (mScanHelper.getRangedRegionState().size() > 0 || mScanHelper.getMonitoringStatus().regions().size() > 0) {
-            if (mScanHelper.getCycledScanner() != null) {
-                mScanHelper.getCycledScanner().start();
+            if (mScanHelper.getRangedRegionState().size() > 0 || mScanHelper.getMonitoringStatus().regions().size() > 0) {
+                if (mScanHelper.getCycledScanner() != null) {
+                    mScanHelper.getCycledScanner().start();
+                }
+                return true;
             }
-            return true;
+            else {
+                if (mScanHelper.getCycledScanner() != null) {
+                    mScanHelper.getCycledScanner().stop();
+                }
+                return false;
+            }
         }
         else {
-            if (mScanHelper.getCycledScanner() != null) {
-                mScanHelper.getCycledScanner().stop();
-            }
             return false;
         }
     }

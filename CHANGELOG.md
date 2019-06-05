@@ -1,6 +1,7 @@
 ### Development
 
 - Prevent NPE in BluetoothMedic#runScanTest. (#893 Van Hoang Tran) 
+- Prevent NPE when ScanState restore hangs or ScanJob thread is slow to start (#890, David G. Young)
 
 ### 2.16.2 / 2019-05-29
 

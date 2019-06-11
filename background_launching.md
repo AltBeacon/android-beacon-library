@@ -30,7 +30,7 @@ Another limitation is that on some phones, if the user has moved your app from i
 
 #### How do I set this up?
 
-In order to launch your app from the background, you first create a custom `AndroidApplication` class for your app that implements the `BootstrapNotifier` interface.  You then then construct the `RegionBootstrap` class with a `Region` that defines the beacons that you want to 
+In order to launch your app from the background, you first create a custom `AndroidApplication` class for your app that implements the `BootstrapNotifier` interface.  You then construct the `RegionBootstrap` class with a `Region` that defines the beacons that you want to 
 trigger your app to launch.   The `didEnterRegion` method of your `AndroidApplication` class will get called when a matching beacon is seen.
 
 It's actually easier than it sounds.  Here's an example that launches an app's MainActivity when any beacon with the first identifier set to `2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6` is seen:

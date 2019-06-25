@@ -54,6 +54,7 @@ public class ScanJob extends JobService {
     @Nullable
     private ScanHelper mScanHelper;
     private boolean mInitialized = false;
+    private boolean mStopCalled = false;
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
@@ -86,6 +87,12 @@ public class ScanJob extends JobService {
                     }
                 }
                 LogManager.d(TAG, "Done processing queued scan resuilts");
+
+                if (mStopCalled) {
+                    LogManager.d(TAG, "Quitting scan job before we even start.  Somebody told us to stop.");
+                    ScanJob.this.jobFinished(jobParameters , false);
+                    return;
+                }
 
                 boolean startedScan;
                 if (mInitialized) {
@@ -176,6 +183,7 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters params) {
+        mStopCalled = true;
         if (params.getJobId() == getPeriodicScanJobId(this)) {
             LogManager.i(TAG, "onStopJob called for periodic scan " + this);
         }

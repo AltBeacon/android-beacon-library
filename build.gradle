@@ -2,14 +2,16 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.android.tools.build:gradle:3.4.1'
         //noinspection GradleDependency
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.1'
         //noinspection GradleDependency
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.3'
+        classpath "com.vanniktech:gradle-android-javadoc-plugin:0.3.0"
     }
 }
 allprojects {

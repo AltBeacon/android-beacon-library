@@ -216,25 +216,29 @@ public class ScanJob extends JobService {
         LogManager.d(TAG, "Scanning stopped");
     }
 
-    // Returns false if cycle thread cannot be allocated
+    // Returns false if ScanHelper cannot be initialized
     private boolean initialzeScanHelper() {
-        mScanHelper = new ScanHelper(this);
         mScanState = ScanState.restore(ScanJob.this);
         if (mScanState != null) {
+            ScanHelper scanHelper = new ScanHelper(this);
             mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
-            mScanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
-            mScanHelper.setRangedRegionState(mScanState.getRangedRegionState());
-            mScanHelper.setBeaconParsers(mScanState.getBeaconParsers());
-            mScanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
-            if (mScanHelper.getCycledScanner() == null) {
+            scanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
+            scanHelper.setRangedRegionState(mScanState.getRangedRegionState());
+            scanHelper.setBeaconParsers(mScanState.getBeaconParsers());
+            scanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
+            if (scanHelper.getCycledScanner() == null) {
                 try {
-                    mScanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
+                    scanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);
                 }
                 catch (OutOfMemoryError e) {
                     LogManager.w(TAG, "Failed to create CycledLeScanner thread.");
                     return false;
                 }
             }
+            mScanHelper = scanHelper;
+        }
+        else {
+            return false;
         }
         return true;
     }

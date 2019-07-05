@@ -17,41 +17,16 @@ task renameAarForRelease(type: Copy, dependsOn: build) {
     }
 }
 
-task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) << {
-    println "Building with version=$version"
-}
-
-task release(dependsOn: 'distribution') << {
-    println('Doing release build')
-}
-
-android.libraryVariants.all { variant ->
-
-    task("generate${variant.name}Javadoc", type: Javadoc) {
-        title = "Android Beacon Library $version API"
-        description "Generates Javadoc for $variant.name."
-        source = variant.javaCompile.source
-        ext.androidJar =
-                "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        //Refer to https://stackoverflow.com/a/50833438/4068957
-        doFirst { classpath = files(variant.javaCompile.classpath.files, ext.androidJar)}
-        options.linksOffline "http://d.android.com/reference/", "${android.sdkDirectory}/docs/reference"
-        exclude '**/BuildConfig.java'
-        exclude '**/R.java'
+task distribution(dependsOn: [build, clean, renameAarForRelease]) {
+    doLast {
+        println "Building with version=$version"
     }
-
 }
 
-task generateJavadoc(type: Javadoc, dependsOn: project.configurations.doclava) {
-    failOnError = true
-    title = null
-    source = android.sourceSets.main.java.srcDirs
-    options.doclet = "com.google.doclava.Doclava"
-    options.docletpath = configurations.doclava.files.asType(List)
-    classpath +=
-            project.files(android.getBootClasspath().join(File.pathSeparator)) + configurations.compile
-
-    destinationDir = file("../javadocs/")
+task release(dependsOn: 'distribution') {
+    doLast {
+        println('Doing release build')
+    }
 }
 
 build.mustRunAfter clean

@@ -3,6 +3,9 @@ buildscript {
         google()
         jcenter()
         mavenCentral()
+        repositories {
+            maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        }
     }
 
     dependencies {
@@ -11,7 +14,12 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.1'
         //noinspection GradleDependency
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.0.3'
-        classpath "com.vanniktech:gradle-android-javadoc-plugin:0.3.0"
+        // The 3.0 version of this plugin does not support Gradle 5, The latest source does support
+        // Grale 5. So we are using a snapshot until the 4.0 version is released.
+        //classpath "com.vanniktech:gradle-android-javadoc-plugin:0.3.0"
+        dependencies {
+            classpath "com.vanniktech:gradle-android-javadoc-plugin:0.4.0-SNAPSHOT"
+        }
     }
 }
 allprojects {

@@ -88,52 +88,58 @@ public class ScanJob extends JobService {
                 }
                 LogManager.d(TAG, "Done processing queued scan resuilts");
 
-                if (mStopCalled) {
-                    LogManager.d(TAG, "Quitting scan job before we even start.  Somebody told us to stop.");
-                    ScanJob.this.jobFinished(jobParameters , false);
-                    return;
-                }
+                // This syncronized block is around the scan start.
+                // Without it, it is possilbe that onStopJob is called in another thread and
+                // closing out the CycledScanner
+                synchronized(this) {
+                    if (mStopCalled) {
+                        LogManager.d(TAG, "Quitting scan job before we even start.  Somebody told us to stop.");
+                        ScanJob.this.jobFinished(jobParameters , false);
+                        return;
+                    }
 
-                boolean startedScan;
-                if (mInitialized) {
-                    LogManager.d(TAG, "Scanning already started.  Resetting for current parameters");
-                    startedScan = restartScanning();
-                }
-                else {
-                    startedScan = startScanning();
-                }
-                mStopHandler.removeCallbacksAndMessages(null);
+                    boolean startedScan;
+                    if (mInitialized) {
+                        LogManager.d(TAG, "Scanning already started.  Resetting for current parameters");
+                        startedScan = restartScanning();
+                    }
+                    else {
+                        startedScan = startScanning();
+                    }
+                    mStopHandler.removeCallbacksAndMessages(null);
 
-                if (startedScan) {
-                    if (mScanState != null) {
-                        LogManager.i(TAG, "Scan job running for "+mScanState.getScanJobRuntimeMillis()+" millis");
-                        mStopHandler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
-                                stopScanning();
-                                mScanState.save();
-                                ScanJob.this.jobFinished(jobParameters , false);
+                    if (startedScan) {
+                        if (mScanState != null) {
+                            LogManager.i(TAG, "Scan job running for "+mScanState.getScanJobRuntimeMillis()+" millis");
+                            mStopHandler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    LogManager.i(TAG, "Scan job runtime expired: " + ScanJob.this);
+                                    stopScanning();
+                                    mScanState.save();
+                                    ScanJob.this.jobFinished(jobParameters , false);
 
-                                // need to execute this after the current block or Android stops this job prematurely
-                                mStopHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        scheduleNextScan();
-                                    }
-                                });
+                                    // need to execute this after the current block or Android stops this job prematurely
+                                    mStopHandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            scheduleNextScan();
+                                        }
+                                    });
 
-                            }
-                        }, mScanState.getScanJobRuntimeMillis());
+                                }
+                            }, mScanState.getScanJobRuntimeMillis());
+                        }
+                    }
+                    else {
+                        LogManager.i(TAG, "Scanning not started so Scan job is complete.");
+                        stopScanning();
+                        mScanState.save();
+                        LogManager.d(TAG, "ScanJob Lifecycle STOP (start fail): "+ScanJob.this);
+                        ScanJob.this.jobFinished(jobParameters , false);
                     }
                 }
-                else {
-                    LogManager.i(TAG, "Scanning not started so Scan job is complete.");
-                    stopScanning();
-                    mScanState.save();
-                    LogManager.d(TAG, "ScanJob Lifecycle STOP (start fail): "+ScanJob.this);
-                    ScanJob.this.jobFinished(jobParameters , false);
-                }
+
             }
         }).start();
 
@@ -183,21 +189,24 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters params) {
-        mStopCalled = true;
-        if (params.getJobId() == getPeriodicScanJobId(this)) {
-            LogManager.i(TAG, "onStopJob called for periodic scan " + this);
-        }
-        else {
-            LogManager.i(TAG, "onStopJob called for immediate scan " + this);
-        }
-        LogManager.d(TAG, "ScanJob Lifecycle STOP: "+ScanJob.this);
-        // Cancel the stop timer.  The OS is stopping prematurely
-        mStopHandler.removeCallbacksAndMessages(null);
+        // See corresponding synchronized block in onStartJob
+        synchronized(this) {
+            mStopCalled = true;
+            if (params.getJobId() == getPeriodicScanJobId(this)) {
+                LogManager.i(TAG, "onStopJob called for periodic scan " + this);
+            }
+            else {
+                LogManager.i(TAG, "onStopJob called for immediate scan " + this);
+            }
+            LogManager.d(TAG, "ScanJob Lifecycle STOP: "+ScanJob.this);
+            // Cancel the stop timer.  The OS is stopping prematurely
+            mStopHandler.removeCallbacksAndMessages(null);
 
-        stopScanning();
-        startPassiveScanIfNeeded();
-        if (mScanHelper != null) {
-            mScanHelper.terminateThreads();
+            stopScanning();
+            startPassiveScanIfNeeded();
+            if (mScanHelper != null) {
+                mScanHelper.terminateThreads();
+            }
         }
         return false;
     }

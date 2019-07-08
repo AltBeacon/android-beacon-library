@@ -70,10 +70,10 @@ public class ScanJob extends JobService {
                 }
                 ScanJobScheduler.getInstance().ensureNotificationProcessorSetup(getApplicationContext());
                 if (jobParameters.getJobId() == getImmediateScanJobId(ScanJob.this)) {
-                    LogManager.i(TAG, "Running immediate scan job: instance is "+this);
+                    LogManager.i(TAG, "Running immediate scan job: instance is "+ScanJob.this);
                 }
                 else {
-                    LogManager.i(TAG, "Running periodic scan job: instance is "+this);
+                    LogManager.i(TAG, "Running periodic scan job: instance is "+ScanJob.this);
                 }
 
                 List<ScanResult> queuedScanResults = ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue();
@@ -91,7 +91,7 @@ public class ScanJob extends JobService {
                 // This syncronized block is around the scan start.
                 // Without it, it is possilbe that onStopJob is called in another thread and
                 // closing out the CycledScanner
-                synchronized(this) {
+                synchronized(ScanJob.this) {
                     if (mStopCalled) {
                         LogManager.d(TAG, "Quitting scan job before we even start.  Somebody told us to stop.");
                         ScanJob.this.jobFinished(jobParameters , false);
@@ -190,7 +190,7 @@ public class ScanJob extends JobService {
     @Override
     public boolean onStopJob(JobParameters params) {
         // See corresponding synchronized block in onStartJob
-        synchronized(this) {
+        synchronized(ScanJob.this) {
             mStopCalled = true;
             if (params.getJobId() == getPeriodicScanJobId(this)) {
                 LogManager.i(TAG, "onStopJob called for periodic scan " + this);

@@ -6,13 +6,16 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import androidx.annotation.AnyThread;
 import androidx.annotation.MainThread;
@@ -52,6 +55,7 @@ public abstract class CycledLeScanner {
     // avoid doing too many scans in a limited time on Android 7.0 or because we are capable of
     // multiple detections.  If true, it indicates scanning needs to be stopped when we finish.
     private boolean mScanningLeftOn = false;
+    private BroadcastReceiver mCancelAlarmOnUserSwitchBroadcastReceiver = null;
 
     protected long mBetweenScanPeriod;
 
@@ -260,7 +264,6 @@ public abstract class CycledLeScanner {
 
         // Remove any postDelayed Runnables queued for the next scan cycle
         mHandler.removeCallbacksAndMessages(null);
-
         // We cannot quit the thread used by the handler until queued Runnables have been processed,
         // because the handler is what stops scanning, and we do not want scanning left on.
         // So we stop the thread using the handler, so we make sure it happens after all other
@@ -273,6 +276,7 @@ public abstract class CycledLeScanner {
                 mScanThread.quit();
             }
         });
+        cleanupCancelAlarmOnUserSwitch();
     }
 
     protected abstract void stopScan();
@@ -484,11 +488,36 @@ public abstract class CycledLeScanner {
         if (milliseconds < mScanPeriod) {
             milliseconds = mScanPeriod;
         }
-
         AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + milliseconds, getWakeUpOperation());
         LogManager.d(TAG, "Set a wakeup alarm to go off in %s ms: %s", milliseconds, getWakeUpOperation());
+        cancelAlarmOnUserSwitch();
     }
+
+    // Added to prevent crash on switching users.  See #876
+    protected void cancelAlarmOnUserSwitch() {
+        if (mCancelAlarmOnUserSwitchBroadcastReceiver == null) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction( Intent.ACTION_USER_BACKGROUND );
+            filter.addAction( Intent.ACTION_USER_FOREGROUND );
+
+            mCancelAlarmOnUserSwitchBroadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    LogManager.w(TAG, "User switch detected.  Cancelling alarm to prevent potential crash.");
+                    cancelWakeUpAlarm();
+                }
+            };
+            mContext.registerReceiver(mCancelAlarmOnUserSwitchBroadcastReceiver, filter);
+        }
+    }
+    protected void cleanupCancelAlarmOnUserSwitch() {
+        if (mCancelAlarmOnUserSwitchBroadcastReceiver != null) {
+            mContext.unregisterReceiver(mCancelAlarmOnUserSwitchBroadcastReceiver);
+            mCancelAlarmOnUserSwitchBroadcastReceiver = null;
+        }
+    }
+
 
     protected PendingIntent getWakeUpOperation() {
         if (mWakeUpOperation == null) {

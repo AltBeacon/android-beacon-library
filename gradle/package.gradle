@@ -43,7 +43,6 @@ android.libraryVariants.all { variant ->
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }
-
 }
 
 build.mustRunAfter clean

@@ -1,9 +1,15 @@
 ### Development
 
-Bug Fixes:
+- Prevent NPE in BluetoothMedic#runScanTest. (#893 Van Hoang Tran) 
+
+### 2.16.2 / 2019-05-29
+
+- Prevent crash on alarms going off with a different user active (#886, David G. Young)
+- Fix thread leak caused by scheduling ScanJob when no consumers bound. (#885, David G. Young)
 - Protect against a NPE when changing ranged regions.  (#770, David G. Young)
 - Fix intermittent failed ranging/monitoring callbacks in race conditions. (#842, David G. Young) 
 - Prevent duplicate callbacks on Android 8+ with a foreground service by stopping ScanJob.  (#847, Stephen Ruda)
+- Only apply Samsung-specific non-empty scan filters when the screen is off (#855, Marcel Schnelle)
 
 ### 2.16.1 / 2019-02-10
 

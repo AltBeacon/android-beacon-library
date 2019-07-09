@@ -513,7 +513,10 @@ public abstract class CycledLeScanner {
     }
     protected void cleanupCancelAlarmOnUserSwitch() {
         if (mCancelAlarmOnUserSwitchBroadcastReceiver != null) {
-            mContext.unregisterReceiver(mCancelAlarmOnUserSwitchBroadcastReceiver);
+            try {
+                mContext.unregisterReceiver(mCancelAlarmOnUserSwitchBroadcastReceiver);
+            }
+            catch (IllegalArgumentException e) {} // thrown if OS does not think it was registered
             mCancelAlarmOnUserSwitchBroadcastReceiver = null;
         }
     }

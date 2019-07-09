@@ -1,6 +1,9 @@
 ### Development
 
-- Prevent NPE in BluetoothMedic#runScanTest. (#893 Van Hoang Tran) 
+- Fix thread leak with 0 regions and settings applied, (#888, David G. Young)
+- Prevent NPE when ScanState restore hangs or ScanJob thread is slow to start (#890, David G. Young)
+- Prevent crash from IAE when ending scan cycle (#891, David G. Young)
+- Prevent NPE in BluetoothMedic#runScanTest. (#893 Van Hoang Tran)
 
 ### 2.16.2 / 2019-05-29
 

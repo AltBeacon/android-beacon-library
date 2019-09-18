@@ -20,7 +20,7 @@ Beacon beacon = new Beacon.Builder()
 // Change the layout below for other beacon types
 BeaconParser beaconParser = new BeaconParser()
         .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
-BeaconTransmitter beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);	
+BeaconTransmitter beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);
 beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
 
             @Override
@@ -40,7 +40,7 @@ beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
 
 In order to support beacon transmission, a device must have Android 5.0+, a Bluetooth LE chipset that supports peripheral mode, and
 a compatible hardware driver from the device manufacturer.  Check [here](beacon-transmitter-devices.html) for a list of devices that
-are known to support or not support transmission. 
+are known to support or not support transmission.
 
 The easiest way to see if another device is compatible is to download the [Locate app for Android](https://play.google.com/store/apps/details?id=com.radiusnetworks.locate), and attempt to use it to transmit.  If the device
 is not compatible, the app will tell you.
@@ -66,5 +66,10 @@ NOT_SUPPORTED_CANNOT_GET_ADVERTISER
 The `NOT_SUPPORTED_CANNOT_GET_ADVERTISER_MULTIPLE_ADVERTISEMENTS`, `NOT_SUPPORTED_MULTIPLE_ADVERTISEMENTS` and  `NOT_SUPPORTED_CANNOT_GET_ADVERTISER` return typically indicates that the device either does not have a compatible chipset, or the manufacturer has not
 implemented the driver support required by Google for the Android 5.x BLE
 transmission APIs.
+
+#### Transmitting in the background
+
+Apps running on Android 8+ are generally limited to only 10 minutes of background running time.  After this time expires, the transmitter will stop.  If you wish to keep transmitting, you
+must use a Foreground Service to keep your app alive in the background.
 
 

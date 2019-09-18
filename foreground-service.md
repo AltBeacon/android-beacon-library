@@ -12,12 +12,15 @@ users know scanning is taking place.
 #### Why would you want this?
 
 Android versions 8+ restrict services from running in the background to only 10 minutes after
-an app leaves the foreground.  This blocks background beacon detections.  
+an app leaves the foreground.  This blocks background beacon detections.
 
 By default on Android 8+, the library will use the JobScheduler to run scans, but these are
 limited to at most every 15 minutes.  For use cases where apps need frequent beacon scanning in the
 background, a foreground service is a viable alternative.  This may be useful it you need
 near constant beacon tracking in the background.
+
+While designed largely for background beacon detections, using the library's included Foreground Service
+will also enable your app to continuously run a beacon transmitter in the background.
 
 #### How it works
 
@@ -62,6 +65,11 @@ Below is an example of constantly scanning in the background on a 1.1 second cyc
 beaconManager.setBackgroundBetweenScanPeriod(0);
 beaconManager.setBackgroundScanPeriod(1100);
 ```
+
+#### Android 10 permissions
+
+On Android 10, you generally must have obtained ACCESS_BACKGROUND_LOCATION for beacon detection to work when your app is not visible.  However, it is possible to scan with only foreground location permission
+granted and a foreground service if you add `android:foregroundServiceType="location"` to your the foreground service declaration in the manifest.  See [here](https://developer.android.com/training/location/receive-location-updates) for details.
 
 #### Forked OEM Limitations
 

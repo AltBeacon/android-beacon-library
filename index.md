@@ -26,13 +26,15 @@ It allows Android devices to use beacons much like iOS devices do.  An app can r
 
 ### What kinds of beacons does it detect?
 
-The library may be configured to detect a wide variety of beacons.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org), but it can be easily configured to work with the most popular beacon types on the market.  See the documentation for the
-[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for more info.  Eddystone is fully supported, with details shown in the Eddystone section below.
+The library can easily be configured to detect iBeacon, Eddystone and other beacon formats.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org) See the documentation for the
+[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for more info.
 
-### Android 9 and 8 Support
+### Android 10, 9 and 8 Support
 
-This library fully supports Android 9.  Existing apps that use older versions ofthis library version 2.12 older versions the
-library will need to upgrade to version 2.12+ in order to detect in the background on Android 8+ devices.  Read more information [here.](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8)
+Library versions 2.16+ fully supports Android 4.3-10.x.  **Android 10 has a new location permission
+model that requires beacon apps to make changes** to target SDK version 29+.  See the [request permission](/android-beacon-library/requesting_permission.html) page for more info.
+
+Existing apps that use library version 2.12 older versions must upgrade in order to detect in the background on Android 8+ devices.  Read more information [here.](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8)
 
 ### Who uses this library?
 
@@ -72,7 +74,7 @@ library will need to upgrade to version 2.12+ in order to detect in the backgrou
 
 ### What devices can detect beacons?
 
-Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of September 2018, this is approximately 96 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html).
+Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of September 2019, this is approximately 97 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html).
 
 To transmit as a beacon, Android 5+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.
 

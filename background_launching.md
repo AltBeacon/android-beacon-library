@@ -5,7 +5,7 @@ layout: android-beacon-library
 ### Launching in the Background
 
 The Android Beacon Library allows your app to launch automatically when one or more beacons come into range.  The trigger can be set for
-a single beacon or a group of beacons. 
+a single beacon or a group of beacons.
 
 #### What if the user hasn't launched the app since boot?
 
@@ -28,9 +28,12 @@ this frequency, but be aware that users may notice your app is draining their ba
 
 Another limitation is that on some phones, if the user has moved your app from internal memory to the SD card, the Android Beacon Library will not be able to start at boot, effectively disabling this feature.  As most beacon-capable phones with Android 4.3 have abundant storage, this should be relatively rare.
 
+Finally, for users with Android 10+, apps must request the ALLOW_BACKGROUND_LOCATION permission and users must grant it.  If users do not grant this permission, the app cannot detect beacons
+or launch itself in the background.
+
 #### How do I set this up?
 
-In order to launch your app from the background, you first create a custom `AndroidApplication` class for your app that implements the `BootstrapNotifier` interface.  You then construct the `RegionBootstrap` class with a `Region` that defines the beacons that you want to 
+In order to launch your app from the background, you first create a custom `AndroidApplication` class for your app that implements the `BootstrapNotifier` interface.  You then construct the `RegionBootstrap` class with a `Region` that defines the beacons that you want to
 trigger your app to launch.   The `didEnterRegion` method of your `AndroidApplication` class will get called when a matching beacon is seen.
 
 It's actually easier than it sounds.  Here's an example that launches an app's MainActivity when any beacon with the first identifier set to `2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6` is seen:

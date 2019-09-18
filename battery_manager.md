@@ -2,9 +2,9 @@
 layout: android-beacon-library
 ---
 
-### Battery manager
+### Background power saver
 
-The Android Beacon Library includes a battery manager that automatically saves 60% or more of devices' battery life when your beacon app is running in the background.
+The Android Beacon Library includes a background power saver that automatically saves 60% or more of devices' battery life when your beacon app is running in the background.
 
 #### Why do you need this?
 

@@ -1,4 +1,4 @@
-### Development
+### 2.16.3 / 2019-09-18
 
 - Fix thread leak with 0 regions and settings applied, (#888, David G. Young)
 - Prevent NPE when ScanState restore hangs or ScanJob thread is slow to start (#890, David G. Young)

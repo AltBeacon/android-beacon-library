@@ -30,7 +30,7 @@ new apps, please add the above permissions to your app manifest as is appropriat
 
 ## Requesting permissions at runtime
 
-You must also add code like the following to an Activity.  Use the first code block if you target SDK 29+ and the scone
+You must also add code like the following to an Activity.  Use the first code block if you target SDK 29+ and the second block if you are using an earlier target SDK
 
 Code block 1:  For targetSDK=29 or higher
 

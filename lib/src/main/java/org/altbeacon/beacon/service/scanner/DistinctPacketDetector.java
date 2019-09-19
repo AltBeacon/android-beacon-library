@@ -1,6 +1,6 @@
 package org.altbeacon.beacon.service.scanner;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;

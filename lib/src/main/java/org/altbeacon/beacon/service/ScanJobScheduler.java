@@ -8,9 +8,9 @@ import android.content.Context;
 import android.os.Build;
 import android.os.PersistableBundle;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import org.altbeacon.beacon.BeaconLocalBroadcastProcessor;
 import org.altbeacon.beacon.BeaconManager;

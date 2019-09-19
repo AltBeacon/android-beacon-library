@@ -5,8 +5,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.SystemClock;
-import android.support.annotation.MainThread;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.WorkerThread;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;

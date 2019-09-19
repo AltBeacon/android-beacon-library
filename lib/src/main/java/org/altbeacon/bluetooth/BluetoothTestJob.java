@@ -8,10 +8,9 @@ import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.beacon.service.BeaconService;
 
 /**
  * @hide

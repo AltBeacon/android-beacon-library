@@ -1,6 +1,6 @@
 package org.altbeacon.beacon;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;

@@ -17,7 +17,7 @@ task renameAarForRelease(type: Copy, dependsOn: build) {
     }
 }
 
-task distribution(dependsOn: [build, clean, renameAarForRelease]) {
+task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) {
     doLast {
         println "Building with version=$version"
     }
@@ -26,6 +26,22 @@ task distribution(dependsOn: [build, clean, renameAarForRelease]) {
 task release(dependsOn: 'distribution') {
     doLast {
         println('Doing release build')
+    }
+}
+
+android.libraryVariants.all { variant ->
+
+    task("generate${variant.name}Javadoc", type: Javadoc) {
+        title = "Android Beacon Library $version API"
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar =
+                "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        //Refer to https://stackoverflow.com/a/50833438/4068957
+        doFirst { classpath = files(variant.javaCompile.classpath.files, ext.androidJar)}
+        options.linksOffline "http://d.android.com/reference/", "${android.sdkDirectory}/docs/reference"
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
     }
 }
 

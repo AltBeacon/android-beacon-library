@@ -7,7 +7,9 @@ import android.os.RemoteException;
 
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BleNotifier;
 import org.altbeacon.beacon.MonitorNotifier;
+import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -20,14 +22,14 @@ import java.util.List;
  * to start on Android device startup.  If a matching beacon is detected, the BootstrapNotifier
  * didEnterRegion method will be called, allowing the application to launch an Activity, send a
  * local notification, or perform any other action desired.
- *
+ * <p>
  * Using this class as described above will also cause beacon scanning to start back up after power
  * is connected or disconnected from a device if the user has force terminated the app.
- *
+ * <p>
  * IMPORTANT NOTE:  The RegionBootstrap class registers an internal MonitorNotifier with the
  * BeaconManager.  If you use the RegionBootstrap, your application must not manually register
  * a second MonitorNotifier, otherwise it will unregister the one configured by the RegionBootstrap,
- * effectively disabling it.  When using the RegionBootstrap, any custom monitoring code must
+ * effectively disabling it.  When using the RegionBootstrap, any custom monitoring/ranging code must
  * therefore be placed in the callback methods in the BootstrapNotifier implementation passed to the
  * RegionBootstrap.
  */
@@ -35,26 +37,34 @@ public class RegionBootstrap {
 
     protected static final String TAG = "AppStarter";
     private BeaconManager beaconManager;
-    private MonitorNotifier monitorNotifier;
+    private BleNotifier bleNotifier;
     private Context context;
     private List<Region> regions;
     private boolean disabled = false;
     private BeaconConsumer beaconConsumer;
     private boolean serviceConnected = false;
+    private boolean isRangeNotifier = false;
 
     /**
      * Constructor to bootstrap your Application on an entry/exit from a single region.
      *
      * @param context
-     * @param monitorNotifier
+     * @param bleNotifier
      * @param region
      */
-    public RegionBootstrap(final Context context, final MonitorNotifier monitorNotifier, Region region) {
+    public RegionBootstrap(final Context context, final BleNotifier bleNotifier, Region region) {
         if (context == null) {
             throw new NullPointerException("Application Context should not be null");
+        } else if (bleNotifier instanceof RangeNotifier) {
+            isRangeNotifier = true;
+        } else if (bleNotifier instanceof MonitorNotifier) {
+            isRangeNotifier = false;
+        } else {
+            throw new IllegalArgumentException("bleNotifier must implement RangeNotifier or MonitorNotifier");
         }
+
         this.context = context.getApplicationContext();
-        this.monitorNotifier = monitorNotifier;
+        this.bleNotifier = bleNotifier;
         regions = new ArrayList<Region>();
         regions.add(region);
 
@@ -68,15 +78,22 @@ public class RegionBootstrap {
      * Constructor to bootstrap your Application on an entry/exit from multiple regions
      *
      * @param context
-     * @param monitorNotifier
+     * @param bleNotifier
      * @param regions
      */
-    public RegionBootstrap(final Context context, final MonitorNotifier monitorNotifier, List<Region> regions) {
+    public RegionBootstrap(final Context context, final BleNotifier bleNotifier, List<Region> regions) {
         if (context == null) {
             throw new NullPointerException("Application Context should not be null");
+        } else if (bleNotifier instanceof RangeNotifier) {
+            isRangeNotifier = true;
+        } else if (bleNotifier instanceof MonitorNotifier) {
+            isRangeNotifier = false;
+        } else {
+            throw new IllegalArgumentException("bleNotifier must implement RangeNotifier or MonitorNotifier");
         }
+
         this.context = context.getApplicationContext();
-        this.monitorNotifier = monitorNotifier;
+        this.bleNotifier = bleNotifier;
 
         this.regions = regions;
 
@@ -92,14 +109,21 @@ public class RegionBootstrap {
      * @param application
      * @param region
      */
-    public RegionBootstrap(BootstrapNotifier application, Region region) {
+    public RegionBootstrap(Bootstrap application, Region region) {
         if (application.getApplicationContext() == null) {
-            throw new NullPointerException("The BootstrapNotifier instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
+            throw new NullPointerException("The Bootstrap instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
+        } else if (application instanceof RangeNotifier) {
+            isRangeNotifier = true;
+        } else if (application instanceof MonitorNotifier) {
+            isRangeNotifier = false;
+        } else {
+            throw new IllegalArgumentException("Application must implement RangeNotifier or MonitorNotifier");
         }
+
         this.context = application.getApplicationContext();
         regions = new ArrayList<Region>();
         regions.add(region);
-        this.monitorNotifier = application;
+        this.bleNotifier = application;
         beaconManager = BeaconManager.getInstanceForApplication(context);
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
@@ -112,14 +136,20 @@ public class RegionBootstrap {
      * @param application
      * @param regions
      */
-    public RegionBootstrap(BootstrapNotifier application, List<Region> regions) {
+    public RegionBootstrap(Bootstrap application, List<Region> regions) {
         if (application.getApplicationContext() == null) {
-            throw new NullPointerException("The BootstrapNotifier instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
+            throw new NullPointerException("The Bootstrap instance is returning null from its getApplicationContext() method.  Have you implemented this method?");
+        } else if (application instanceof RangeNotifier) {
+            isRangeNotifier = true;
+        } else if (application instanceof MonitorNotifier) {
+            isRangeNotifier = false;
+        } else {
+            throw new IllegalArgumentException("Application must implement RangeNotifier or MonitorNotifier");
         }
 
         this.context = application.getApplicationContext();
         this.regions = regions;
-        this.monitorNotifier = application;
+        this.bleNotifier = application;
         beaconManager = BeaconManager.getInstanceForApplication(context);
         beaconConsumer = new InternalBeaconConsumer();
         beaconManager.bind(beaconConsumer);
@@ -154,7 +184,11 @@ public class RegionBootstrap {
         if (!regions.contains(region)) {
             if (serviceConnected) {
                 try {
-                    beaconManager.startMonitoringBeaconsInRegion(region);
+                    if (isRangeNotifier) {
+                        beaconManager.startRangingBeaconsInRegion(region);
+                    } else {
+                        beaconManager.startMonitoringBeaconsInRegion(region);
+                    }
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't add bootstrap region");
                 }
@@ -174,7 +208,11 @@ public class RegionBootstrap {
         if (regions.contains(region)) {
             if (serviceConnected) {
                 try {
-                    beaconManager.stopMonitoringBeaconsInRegion(region);
+                    if (isRangeNotifier) {
+                        beaconManager.stopRangingBeaconsInRegion(region);
+                    } else {
+                        beaconManager.stopMonitoringBeaconsInRegion(region);
+                    }
                 } catch (RemoteException e) {
                     LogManager.e(e, TAG, "Can't stop bootstrap region");
                 }
@@ -194,13 +232,23 @@ public class RegionBootstrap {
          */
         @Override
         public void onBeaconServiceConnect() {
-            LogManager.d(TAG, "Activating background region monitoring");
-            beaconManager.addMonitorNotifier(monitorNotifier);
+            LogManager.d(TAG, "Activating background region monitoring or ranging");
+
+            if (isRangeNotifier) {
+                beaconManager.addRangeNotifier((RangeNotifier) bleNotifier);
+            } else {
+                beaconManager.addMonitorNotifier((MonitorNotifier) bleNotifier);
+            }
+
             serviceConnected = true;
             try {
                 for (Region region : regions) {
-                    LogManager.d(TAG, "Background region monitoring activated for region %s", region);
-                    beaconManager.startMonitoringBeaconsInRegion(region);
+                    LogManager.d(TAG, "Background region monitoring or ranging activated for region %s", region);
+                    if (isRangeNotifier) {
+                        beaconManager.startRangingBeaconsInRegion(region);
+                    } else {
+                        beaconManager.startMonitoringBeaconsInRegion(region);
+                    }
                     if (beaconManager.isBackgroundModeUninitialized()) {
                         beaconManager.setBackgroundMode(true);
                     }

@@ -32,7 +32,7 @@ package org.altbeacon.beacon;
  *
  * @author David G. Young
  */
-public interface MonitorNotifier {
+public interface MonitorNotifier extends BleNotifier {
     /**
      * Indicates the Android device is inside the Region of beacons
      */

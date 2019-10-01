@@ -35,7 +35,7 @@ import java.util.Collection;
  * @author David G. Young
  *
  */
-public interface RangeNotifier {
+public interface RangeNotifier extends BleNotifier {
     /**
      * Called once per second to give an estimate of the mDistance to visible beacons
      * @param beacons a collection of <code>Beacon<code> objects that have been seen in the past second

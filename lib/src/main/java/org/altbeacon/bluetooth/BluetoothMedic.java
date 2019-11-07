@@ -398,7 +398,13 @@ public class BluetoothMedic {
     private void cycleBluetooth() {
         LogManager.d(TAG, "Power cycling bluetooth");
         LogManager.d(TAG, "Turning Bluetooth off.");
-        if (mAdapter != null) {
+        // we do not force bt on
+        // we do not reset bluetooth while bonded with a device (you could deactivate bt headphones)
+        if (mAdapter != null 
+            && mAdapter.isEnabled()
+            && mAdapter.getBondedDevices().isEmpty() 
+            ) {
+
             this.mAdapter.disable();
             this.mHandler.postDelayed(new Runnable() {
                 public void run() {

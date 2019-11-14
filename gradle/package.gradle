@@ -17,7 +17,7 @@ task renameAarForRelease(type: Copy, dependsOn: build) {
     }
 }
 
-task distribution(dependsOn: [bundleEclipse, build, clean, renameAarForRelease]) {
+task distribution(dependsOn: [build, clean, renameAarForRelease]) {
     doLast {
         println "Building with version=$version"
     }

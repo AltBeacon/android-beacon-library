@@ -189,7 +189,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // We only add these filters on 8.1+ devices, because adding scan filters has been reported
             // to cause scan failures on some Samsung devices with Android 5.x
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                if (Build.MANUFACTURER.equalsIgnoreCase("samsung") && !mPowerManager.isInteractive()) {
+                if (Build.MANUFACTURER.equalsIgnoreCase("samsung")) {
                     // On the Samsung Galaxy Note 8.1, scans are blocked with screen off when the
                     // scan filter is empty (wildcard).  We do a more detailed filter on Samsung only
                     // because it might block detections of AltBeacon packets with non-standard

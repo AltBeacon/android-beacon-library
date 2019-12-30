@@ -1,3 +1,6 @@
+### Development
+- Fix ConcurrentModificationException crash on background detection reported in #929. (#937, David G. Young)
+
 ### 2.16.3 / 2019-09-18
 
 - Fix thread leak with 0 regions and settings applied, (#888, David G. Young)

@@ -419,5 +419,5 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 }
             }
         }
-    }
+    };
 }

@@ -48,7 +48,6 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     @Override
     protected void stopScan() {
         postStopLeScan();
-        mContext.unregisterReceiver(mSamsungScreenOffReceiver);
     }
 
     /*
@@ -181,7 +180,6 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                           mBeaconManager.getBeaconParsers());
-            mContext.unregisterReceiver(mSamsungScreenOffReceiver);
         } else {
             LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
@@ -204,14 +202,13 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 }
                 else {
                     if (Build.MANUFACTURER.equalsIgnoreCase("samsung")) {
-                        LogManager.d(TAG, "Using a wildcard scan filter on Samsung because the screen is on.  We will switch to a non-empty filter if the screen goes off.");
+                        LogManager.d(TAG, "Using a wildcard scan filter on Samsung because the screen is on.  We will switch to a non-empty filter if the screen goes off");
                         // if this is samsung, as soon as the screen goes off we will need to start a different scan
                         // that has scan filters
-                        IntentFilter filter = new IntentFilter();
-                        filter.addAction(android.content.Intent.ACTION_SCREEN_OFF);
-                        mContext.registerReceiver(mSamsungScreenOffReceiver, filter);
-                    }
-                    else {
+                        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+                        mContext.getApplicationContext().registerReceiver(mSamsungScreenOffReceiver, filter);
+                        LogManager.d(TAG, "registering SamsungScreenOffReceiver "+mSamsungScreenOffReceiver);
+                    } else {
                         LogManager.d(TAG, "Using an empty scan filter since this is 8.1+ on Non-Samsung");
                     }
                     // The wildcard filter matches everything.
@@ -226,6 +223,14 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         if (settings != null) {
             postStartLeScan(filters, settings);
         }
+    }
+
+    @MainThread
+    public void stop() {
+        super.stop();
+        LogManager.d(TAG, "unregistering SamsungScreenOffReceiver as we stop the cycled scanner");
+        // Catch the exception in case it has not been registered
+        try { mContext.getApplicationContext().unregisterReceiver(mSamsungScreenOffReceiver); } catch (IllegalArgumentException e) {}
     }
 
     @Override
@@ -409,14 +414,13 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private BroadcastReceiver mSamsungScreenOffReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            mContext.unregisterReceiver(this);
-            if (mMainScanCycleActive) {
-                LogManager.d(TAG, "Screen has gone off while using a wildcard scan filter on Samsung.  We need to switch to a non-wildcard filter to confinue detecting.");
-                ScanSettings scanSettings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
-                List<ScanFilter> revisedFilters = new ScanFilterUtils().createScanFiltersForBeaconParsers(mBeaconManager.getBeaconParsers());
-                if (scanSettings != null) {
-                    postStartLeScan(revisedFilters, scanSettings);
-                }
+            if (!mMainScanCycleActive) {
+                LogManager.d(TAG, "Screen has gone off while outside the main scan cycle on Samsung.  We will do nothing.");
+            }
+            else {
+                LogManager.d(TAG, "Screen has gone off while using a wildcard scan filter on Samsung.  Restarting scanner with non-empty filters.");
+                stopScan();
+                startScan();
             }
         }
     };

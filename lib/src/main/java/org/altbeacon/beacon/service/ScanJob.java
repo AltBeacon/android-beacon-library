@@ -77,7 +77,7 @@ public class ScanJob extends JobService {
                     LogManager.i(TAG, "Running periodic scan job: instance is "+ScanJob.this);
                 }
 
-                List<ScanResult> queuedScanResults = ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue();
+                List<ScanResult> queuedScanResults =  new ArrayList<>(ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue());
                 LogManager.d(TAG, "Processing %d queued scan resuilts", queuedScanResults.size());
                 for (ScanResult result : queuedScanResults) {
                     ScanRecord scanRecord = result.getScanRecord();

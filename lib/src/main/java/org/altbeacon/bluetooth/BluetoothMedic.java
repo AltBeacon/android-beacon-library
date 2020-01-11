@@ -1,5 +1,6 @@
 package org.altbeacon.bluetooth;
 
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -92,6 +93,7 @@ public class BluetoothMedic {
     @Nullable
     private Boolean mScanTestResult = null;
     private boolean mNotificationsEnabled = false;
+    private boolean mNotificationChannelCreated = false;
     private int mNotificationIcon = 0;
     private long mLastBluetoothPowerCycleTime = 0L;
     private static final long MIN_MILLIS_BETWEEN_BLUETOOTH_POWER_CYCLES = 60000L;
@@ -418,6 +420,9 @@ public class BluetoothMedic {
     private void sendNotification(Context context, String message, String detail) {
         initializeWithContext(context);
         if(this.mNotificationsEnabled) {
+            if (!this.mNotificationChannelCreated) {
+                createNotificationChannel(context, "err");
+            }
             NotificationCompat.Builder builder =
                     (new NotificationCompat.Builder(context, "err"))
                             .setContentTitle("BluetoothMedic: " + message)
@@ -436,6 +441,22 @@ public class BluetoothMedic {
             if (notificationManager != null) {
                 notificationManager.notify(1, builder.build());
             }
+        }
+    }
+
+    @RequiresApi(21)
+    private void createNotificationChannel(Context context, String channelId) {
+        // On Android 8.0 and above posting a notification without a
+        // channel is an error. So create a notification channel 'err'
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelName = "Errors";
+            String description = "Scan errors";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
+            channel.setDescription(description);
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+            mNotificationChannelCreated = true;
         }
     }
 

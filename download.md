@@ -9,13 +9,16 @@ Binary distributions are provided in two formats.  The aar format is recommended
 See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
 
-#### Latest Stable Release 2.16.3
+#### Latest Stable Release 2.16.4
 
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.16.3.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.16.4/android-beacon-library-2.16.4.aar)
+
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.16.4)
+
+#### Archived Releases
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.16.3.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.16.3/android-beacon-library-2.16.3.aar)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.16.3)
-
-#### Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.16.2.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.16.2/android-beacon-library-2.16.2.aar)
 

@@ -1,4 +1,4 @@
-### Development
+### 2.16.4 / 2020-01-26
 
 - Fix Bluetooth Medic notifications on apps targeting API 26+ (#943 Anu Vakkachen)
 - Fix ConcurrentModificationException crash on background detection reported in #929. (#940, David G. Young)

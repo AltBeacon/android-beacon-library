@@ -1,5 +1,6 @@
 ### Development
 
+- Fix Bluetooth Medic notifications on apps targeting API 26+ (#943 Anu Vakkachen)
 - Fix ConcurrentModificationException crash on background detection reported in #929. (#940, David G. Young)
 - Expedite beacon detections on Samsung when transitionoing from screen on to screen onff (#941, David G. Young)
 

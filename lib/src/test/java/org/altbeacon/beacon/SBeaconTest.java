@@ -23,7 +23,7 @@ public class SBeaconTest {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         byte[] bytes = hexStringToByteArray("02011a1bff1801031501000100c502000000000000000003");
         SBeaconParser parser = new SBeaconParser();
-        SBeacon sBeacon = (SBeacon) parser.fromScanData(bytes, -55, null);
+        SBeacon sBeacon = (SBeacon) parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("SBeacon should be not null if parsed successfully", sBeacon);
         assertEquals("id should be parsed", "0x000000000003", sBeacon.getId());
         assertEquals("group should be parsed", 1, sBeacon.getGroup());
@@ -87,7 +87,7 @@ public class SBeaconTest {
         private static final String TAG = "SBeaconParser";
 
         @Override
-        public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
+        public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device, long timestamp) {
             int startByte = 2;
             while (startByte <= 5) {
                 // "m:2-3=0203,i:2-2,i:7-8,i:14-19,d:10-13,p:9-9"

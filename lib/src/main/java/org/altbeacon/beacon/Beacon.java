@@ -177,6 +177,11 @@ public class Beacon implements Parcelable, Serializable {
     protected boolean mMultiFrameBeacon = false;
 
     /**
+     * The timestamp of the beacon detection in milliseconds or -1 if getting the timestamp has failed.
+     */
+    protected long mTimestampMs = -1L;
+
+    /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
      */
@@ -257,6 +262,7 @@ public class Beacon implements Parcelable, Serializable {
         mRunningAverageRssi = (Double) in.readValue(null);
         mRssiMeasurementCount = in.readInt();
         mPacketCount = in.readInt();
+        mTimestampMs = in.readLong();
     }
 
     /**
@@ -281,6 +287,7 @@ public class Beacon implements Parcelable, Serializable {
         this.mParserIdentifier = otherBeacon.mParserIdentifier;
         this.mMultiFrameBeacon = otherBeacon.mMultiFrameBeacon;
         this.mManufacturer = otherBeacon.mManufacturer;
+        this.mTimestampMs = otherBeacon.mTimestampMs;
     }
 
     /**
@@ -530,6 +537,8 @@ public class Beacon implements Parcelable, Serializable {
      */
     public boolean isMultiFrameBeacon() { return mMultiFrameBeacon; }
 
+    public long getTimestampMs() { return mTimestampMs; }
+
     /**
      * Calculate a hashCode for this beacon
      * @return
@@ -636,6 +645,7 @@ public class Beacon implements Parcelable, Serializable {
         out.writeValue(mRunningAverageRssi);
         out.writeInt(mRssiMeasurementCount);
         out.writeInt(mPacketCount);
+        out.writeLong(mTimestampMs);
     }
 
     /**
@@ -724,6 +734,7 @@ public class Beacon implements Parcelable, Serializable {
             setRssi(beacon.getRssi());
             setServiceUuid(beacon.getServiceUuid());
             setMultiFrameBeacon(beacon.isMultiFrameBeacon());
+            setTimestampMs(beacon.getTimestampMs());
             return this;
         }
 
@@ -893,6 +904,14 @@ public class Beacon implements Parcelable, Serializable {
             return this;
         }
 
+        /**
+         * @see Beacon#mTimestampMs
+         * @return mTimestampMs
+         */
+        public Builder setTimestampMs(long timestampMs) {
+            mBeacon.mTimestampMs = timestampMs;
+            return this;
+        }
     }
 
 }

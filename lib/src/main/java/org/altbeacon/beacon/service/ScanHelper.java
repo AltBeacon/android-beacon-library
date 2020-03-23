@@ -153,12 +153,12 @@ class ScanHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    void processScanResult(BluetoothDevice device, int rssi, byte[] scanRecord) {
+    void processScanResult(BluetoothDevice device, int rssi, byte[] scanRecord, long timestampMs) {
         NonBeaconLeScanCallback nonBeaconLeScanCallback = mBeaconManager.getNonBeaconLeScanCallback();
 
         try {
             new ScanHelper.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(getExecutor(),
-                    new ScanHelper.ScanData(device, rssi, scanRecord));
+                    new ScanHelper.ScanData(device, rssi, scanRecord, timestampMs));
         } catch (RejectedExecutionException e) {
             LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");
         } catch (OutOfMemoryError e) {
@@ -257,8 +257,8 @@ class ScanHelper {
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         @Override
         @MainThread
-        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            processScanResult(device, rssi, scanRecord);
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord, long timestampMs) {
+            processScanResult(device, rssi, scanRecord, timestampMs);
         }
 
         @Override
@@ -362,10 +362,11 @@ class ScanHelper {
      * <strong>This class is not thread safe.</strong>
      */
     private class ScanData {
-        ScanData(@NonNull BluetoothDevice device, int rssi, @NonNull byte[] scanRecord) {
+        ScanData(@NonNull BluetoothDevice device, int rssi, @NonNull byte[] scanRecord, long timestampMs) {
             this.device = device;
             this.rssi = rssi;
             this.scanRecord = scanRecord;
+            this.timestampMs = timestampMs;
         }
 
         final int rssi;
@@ -375,6 +376,9 @@ class ScanHelper {
 
         @NonNull
         byte[] scanRecord;
+
+        @NonNull
+        long timestampMs;
     }
 
     private class ScanProcessor extends AsyncTask<ScanHelper.ScanData, Void, Void> {
@@ -394,7 +398,7 @@ class ScanHelper {
 
             for (BeaconParser parser : ScanHelper.this.mBeaconParsers) {
                 beacon = parser.fromScanData(scanData.scanRecord,
-                        scanData.rssi, scanData.device);
+                        scanData.rssi, scanData.device, scanData.timestampMs);
 
                 if (beacon != null) {
                     break;

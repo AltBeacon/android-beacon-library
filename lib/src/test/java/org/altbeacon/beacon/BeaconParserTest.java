@@ -82,7 +82,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("02011a1aff180112342f234454cf6d4a0fadf2f4911ba9ffa600010002c5");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=1234,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
         assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(0).toString());
         assertEquals("id2 should be parsed", "1", beacon.getIdentifier(1).toString());
@@ -98,7 +98,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("02011a1aff180112342f234454cf6d4a0fadf2f4911ba9ffa600010002c5");
         BeaconParser parser = new BeaconParser("my_beacon_type");
         parser.setBeaconLayout("m:2-3=1234,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertEquals("parser identifier should be accessible", "my_beacon_type", beacon.getParserIdentifier());
     }
 
@@ -109,7 +109,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("02011a1aff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c5000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
         assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(0).toString());
         assertEquals("id2 should be parsed", "1", beacon.getIdentifier(1).toString());
@@ -128,7 +128,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:0-3=1801beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
         assertEquals("uuid should be parsed", "2f234454-cf6d-4a0f-adf2-f4911ba9ffa6", beacon.getIdentifier(0).toString());
         assertEquals("id2 should be parsed", "1", beacon.getIdentifier(1).toString());
@@ -143,7 +143,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
         byte[] expectedMatch = Arrays.copyOfRange(bytes, 7, bytes.length);
         assertArrayEquals("beacon advertisement bytes should be the same after re-encoding", expectedMatch, regeneratedBytes);
@@ -155,7 +155,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("0201060303aafe1516aafe2001021203130414243405152535");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout(BeaconParser.EDDYSTONE_TLM_LAYOUT);
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
         byte[] expectedMatch = Arrays.copyOfRange(bytes, 11, bytes.length);
         assertEquals("beacon advertisement bytes should be the same after re-encoding", byteArrayToHexString(expectedMatch), byteArrayToHexString(regeneratedBytes));
@@ -167,7 +167,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("02011a1bff1801beac0102030405060708090a0b0c0d0e0f1011121314c50900000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-9,i:10-15l,i:16-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertEquals("mRssi should be as passed in", -55, beacon.getRssi());
         assertEquals("id1 should be big endian", "0x010203040506", beacon.getIdentifier(0).toString());
         assertEquals("id2 should be little endian", "0x0c0b0a090807", beacon.getIdentifier(1).toString());
@@ -182,7 +182,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("02011a1bff1801beac0102030405060708090a0b0c0d0e0f1011121314c509");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-9,i:10-15l,i:16-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         byte[] regeneratedBytes = parser.getBeaconAdvertisementData(beacon);
         byte[] expectedMatch = Arrays.copyOfRange(bytes, 7, bytes.length);
         System.err.println(byteArrayToHexString(expectedMatch));
@@ -197,7 +197,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("0201061bffaabbbeace2c56db5dffb48d2b060d0f5a71096e000010004c50000000000000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertEquals("manufacturer should be parsed", "bbaa", String.format("%04x", beacon.getManufacturer()));
     }
 
@@ -209,7 +209,7 @@ public class BeaconParserTest {
         BeaconParser parser = new BeaconParser();
         parser.setAllowPduOverflow(false);
         parser.setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNull("beacon should not be parsed", beacon);
     }
 
@@ -219,7 +219,7 @@ public class BeaconParserTest {
         byte[] bytes = hexStringToByteArray("0201060303aafe0d16aafe10e70102030405060708090a0b0c0d0e0f0102030405060708090a0b0c0d0e0f00000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v");
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertEquals("URL Identifier should be truncated at 8 bytes", 8, beacon.getId1().toByteArray().length);
     }
 
@@ -234,7 +234,7 @@ public class BeaconParserTest {
         parser.setAllowPduOverflow(false);
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
 
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNull("beacon should not be parsed", beacon);
     }
 
@@ -249,7 +249,7 @@ public class BeaconParserTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
 
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("beacon should be parsed", beacon);
     }
 
@@ -277,7 +277,7 @@ public class BeaconParserTest {
         System.arraycopy(headerBytes, 0, advBytes, 0, headerBytes.length);
         System.arraycopy(bytes, 0, advBytes, headerBytes.length, bytes.length);
 
-        Beacon parsedBeacon = p.fromScanData(advBytes, -59, null);
+        Beacon parsedBeacon = p.fromScanData(advBytes, -59, null, 123456L);
         assertNotNull(String.format("Parsed beacon from %s should not be null", byteArrayToHexString(advBytes)), parsedBeacon);
         double parsedLatitude = Long.parseLong(parsedBeacon.getId2().toString().substring(2), 16) / 10000.0 - 90.0;
         double parsedLongitude = Long.parseLong(parsedBeacon.getId3().toString().substring(2), 16) / 10000.0 - 180.0;
@@ -315,7 +315,7 @@ public class BeaconParserTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
 
-        Beacon beacon = parser.fromScanData(bytes, -55, null);
+        Beacon beacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNull("beacon not be parsed without an exception being thrown", beacon);
     }
 
@@ -348,7 +348,7 @@ public class BeaconParserTest {
         System.arraycopy(bodyBytes, 0, bytes, headerBytes.length, bodyBytes.length);
 
         // Try parsing the byte array
-        Beacon parsedBeacon = parser.fromScanData(bytes, -59, null);
+        Beacon parsedBeacon = parser.fromScanData(bytes, -59, null, 123456L);
 
         assertEquals("parsed beacon should contain a valid data on index 0", now, parsedBeacon.getDataFields().get(0));
         assertEquals("parsed beacon should contain a valid data on index 1", Long.valueOf(1234L), parsedBeacon.getDataFields().get(1));

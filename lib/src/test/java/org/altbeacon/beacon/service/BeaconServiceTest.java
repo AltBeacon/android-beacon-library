@@ -51,7 +51,7 @@ public class BeaconServiceTest {
         int activeThreadCountBeforeScan = executor.getActiveCount();
 
         byte[] scanRecord = new byte[1];
-        callback.onLeScan(null, -59, scanRecord);
+        callback.onLeScan(null, -59, scanRecord, 123456L);
 
         int activeThreadCountAfterScan = executor.getActiveCount();
 

@@ -11,6 +11,7 @@ import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.SystemClock;
 
 import androidx.annotation.Nullable;
 
@@ -83,7 +84,8 @@ public class ScanJob extends JobService {
                     ScanRecord scanRecord = result.getScanRecord();
                     if (scanRecord != null) {
                         if (mScanHelper != null) {
-                            mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes());
+                            mScanHelper.processScanResult(result.getDevice(), result.getRssi(), scanRecord.getBytes(),
+                                    System.currentTimeMillis() - SystemClock.elapsedRealtime() + result.getTimestampNanos() / 1000000);
                         }
                     }
                 }

@@ -250,7 +250,7 @@ class ScanHelper {
     PendingIntent getScanCallbackIntent() {
         Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
         intent.putExtra("o-scan", true);
-        return PendingIntent.getBroadcast(mContext,0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {

@@ -79,7 +79,7 @@ public class ScanJob extends JobService {
                 }
 
                 List<ScanResult> queuedScanResults =  new ArrayList<>(ScanJobScheduler.getInstance().dumpBackgroundScanResultQueue());
-                LogManager.d(TAG, "Processing %d queued scan resuilts", queuedScanResults.size());
+                LogManager.d(TAG, "Processing %d queued scan results", queuedScanResults.size());
                 for (ScanResult result : queuedScanResults) {
                     ScanRecord scanRecord = result.getScanRecord();
                     if (scanRecord != null) {
@@ -89,7 +89,7 @@ public class ScanJob extends JobService {
                         }
                     }
                 }
-                LogManager.d(TAG, "Done processing queued scan resuilts");
+                LogManager.d(TAG, "Done processing queued scan results");
 
                 // This syncronized block is around the scan start.
                 // Without it, it is possilbe that onStopJob is called in another thread and

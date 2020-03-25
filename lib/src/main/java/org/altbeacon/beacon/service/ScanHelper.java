@@ -397,8 +397,7 @@ class ScanHelper {
             Beacon beacon = null;
 
             for (BeaconParser parser : ScanHelper.this.mBeaconParsers) {
-                beacon = parser.fromScanData(scanData.scanRecord,
-                        scanData.rssi, scanData.device, scanData.timestampMs);
+                beacon = parser.fromScanData(scanData.scanRecord, scanData.rssi, scanData.device, scanData.timestampMs);
 
                 if (beacon != null) {
                     break;

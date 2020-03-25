@@ -177,9 +177,14 @@ public class Beacon implements Parcelable, Serializable {
     protected boolean mMultiFrameBeacon = false;
 
     /**
-     * The timestamp of the beacon detection in milliseconds or -1 if getting the timestamp has failed.
+     * The timestamp of the first packet detected in milliseconds.
      */
-    protected long mTimestampMs = -1L;
+    protected long mFirstCycleDetectionTimestamp = 0L;
+
+    /**
+     * The timestamp of the last packet detected in milliseconds.
+     */
+    protected long mLastCycleDetectionTimestamp = 0L;
 
     /**
      * Required for making object Parcelable.  If you override this class, you must provide an
@@ -262,7 +267,8 @@ public class Beacon implements Parcelable, Serializable {
         mRunningAverageRssi = (Double) in.readValue(null);
         mRssiMeasurementCount = in.readInt();
         mPacketCount = in.readInt();
-        mTimestampMs = in.readLong();
+        mFirstCycleDetectionTimestamp = in.readLong();
+        mLastCycleDetectionTimestamp = in.readLong();
     }
 
     /**
@@ -287,7 +293,8 @@ public class Beacon implements Parcelable, Serializable {
         this.mParserIdentifier = otherBeacon.mParserIdentifier;
         this.mMultiFrameBeacon = otherBeacon.mMultiFrameBeacon;
         this.mManufacturer = otherBeacon.mManufacturer;
-        this.mTimestampMs = otherBeacon.mTimestampMs;
+        this.mFirstCycleDetectionTimestamp = otherBeacon.mFirstCycleDetectionTimestamp;
+        this.mLastCycleDetectionTimestamp = otherBeacon.mLastCycleDetectionTimestamp;
     }
 
     /**
@@ -321,6 +328,38 @@ public class Beacon implements Parcelable, Serializable {
      */
     public void setPacketCount(int packetCount) {
         mPacketCount = packetCount;
+    }
+
+    /**
+     * Returns the timestamp of the first packet detected
+     */
+    public long getFirstCycleDetectionTimestamp() {
+        return mFirstCycleDetectionTimestamp;
+    }
+
+    /**
+     * Sets the timestamp of the first packet detected
+     *
+     * @param firstCycleDetectionTimestamp
+     */
+    public void setFirstCycleDetectionTimestamp(long firstCycleDetectionTimestamp) {
+        mFirstCycleDetectionTimestamp = firstCycleDetectionTimestamp;
+    }
+
+    /**
+     * Returns the timestamp of the last packet detected
+     */
+    public long getLastCycleDetectionTimestamp() {
+        return mLastCycleDetectionTimestamp;
+    }
+
+    /**
+     * Sets the timestamp of the last packet detected
+     *
+     * @param lastCycleDetectionTimestamp
+     */
+    public void setLastCycleDetectionTimestamp(long lastCycleDetectionTimestamp) {
+        mLastCycleDetectionTimestamp = lastCycleDetectionTimestamp;
     }
 
     /**
@@ -537,8 +576,6 @@ public class Beacon implements Parcelable, Serializable {
      */
     public boolean isMultiFrameBeacon() { return mMultiFrameBeacon; }
 
-    public long getTimestampMs() { return mTimestampMs; }
-
     /**
      * Calculate a hashCode for this beacon
      * @return
@@ -645,7 +682,8 @@ public class Beacon implements Parcelable, Serializable {
         out.writeValue(mRunningAverageRssi);
         out.writeInt(mRssiMeasurementCount);
         out.writeInt(mPacketCount);
-        out.writeLong(mTimestampMs);
+        out.writeLong(mFirstCycleDetectionTimestamp);
+        out.writeLong(mLastCycleDetectionTimestamp);
     }
 
     /**
@@ -734,7 +772,6 @@ public class Beacon implements Parcelable, Serializable {
             setRssi(beacon.getRssi());
             setServiceUuid(beacon.getServiceUuid());
             setMultiFrameBeacon(beacon.isMultiFrameBeacon());
-            setTimestampMs(beacon.getTimestampMs());
             return this;
         }
 
@@ -897,19 +934,11 @@ public class Beacon implements Parcelable, Serializable {
 
         /**
          * @see Beacon#mMultiFrameBeacon
-         * @return multiFrameBeacon
+         * @param multiFrameBeacon
+         * @return builder
          */
         public Builder setMultiFrameBeacon(boolean multiFrameBeacon) {
             mBeacon.mMultiFrameBeacon = multiFrameBeacon;
-            return this;
-        }
-
-        /**
-         * @see Beacon#mTimestampMs
-         * @return mTimestampMs
-         */
-        public Builder setTimestampMs(long timestampMs) {
-            mBeacon.mTimestampMs = timestampMs;
             return this;
         }
     }

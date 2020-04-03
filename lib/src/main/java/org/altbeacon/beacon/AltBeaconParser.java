@@ -60,11 +60,12 @@ public class AltBeaconParser extends BeaconParser {
      * @param scanData The actual packet bytes
      * @param rssi The measured signal strength of the packet
      * @param device The Bluetooth device that was detected
+     * @param timestampMs The timestamp in milliseconds of the scan execution
      * @return An instance of an <code>Beacon</code>
      */
     @Override
-    public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
-        return fromScanData(scanData, rssi, device, new AltBeacon());
+    public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device, long timestampMs) {
+        return fromScanData(scanData, rssi, device, timestampMs, new AltBeacon());
     }
 
 }

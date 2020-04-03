@@ -39,7 +39,7 @@ import java.io.Serializable;
 public class Callback implements Serializable {
     private static final String TAG = "Callback";
 
-    //TODO: Remove this constructor in favor of an empty one, as the packae name is no longer needed
+    //TODO: Remove this constructor in favor of an empty one, as the package name is no longer needed
     public Callback(String intentPackageName) {
     }
 

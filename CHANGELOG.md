@@ -1,3 +1,7 @@
+### Development
+
+- Add timestamps of precsely when first and last packet was detected for beacon (#956, Rémi Latapy)
+
 ### 2.16.4 / 2020-01-26
 
 - Fix Bluetooth Medic notifications on apps targeting API 26+ (#943 Anu Vakkachen)

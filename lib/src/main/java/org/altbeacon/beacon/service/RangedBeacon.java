@@ -22,6 +22,8 @@ public class RangedBeacon implements Serializable {
     Beacon mBeacon;
     protected transient RssiFilter mFilter = null;
     private int packetCount = 0;
+    private long firstCycleDetectionTimestamp = 0;
+    private long lastCycleDetectionTimestamp = 0;
 
     public RangedBeacon(Beacon beacon) {
         updateBeacon(beacon);
@@ -30,6 +32,10 @@ public class RangedBeacon implements Serializable {
     public void updateBeacon(Beacon beacon) {
         packetCount += 1;
         mBeacon = beacon;
+        if(firstCycleDetectionTimestamp == 0) {
+            firstCycleDetectionTimestamp = beacon.getFirstCycleDetectionTimestamp();
+        }
+        lastCycleDetectionTimestamp = beacon.getLastCycleDetectionTimestamp();
         addMeasurement(mBeacon.getRssi());
     }
 
@@ -57,7 +63,11 @@ public class RangedBeacon implements Serializable {
             LogManager.d(TAG, "No measurements available to calculate running average");
         }
         mBeacon.setPacketCount(packetCount);
+        mBeacon.setFirstCycleDetectionTimestamp(firstCycleDetectionTimestamp);
+        mBeacon.setLastCycleDetectionTimestamp(lastCycleDetectionTimestamp);
         packetCount = 0;
+        firstCycleDetectionTimestamp = 0L;
+        lastCycleDetectionTimestamp = 0L;
     }
 
     public void addMeasurement(Integer rssi) {

@@ -111,7 +111,7 @@ public class CycledLeScannerForJellyBeanMr2 extends CycledLeScanner {
                         public void onLeScan(final BluetoothDevice device, final int rssi,
                                              final byte[] scanRecord) {
                             LogManager.d(TAG, "got record");
-                            mCycledLeScanCallback.onLeScan(device, rssi, scanRecord);
+                            mCycledLeScanCallback.onLeScan(device, rssi, scanRecord, System.currentTimeMillis());
                             if (mBluetoothCrashResolver != null) {
                                 mBluetoothCrashResolver.notifyScannedDevice(device, getLeScanCallback());
                             }

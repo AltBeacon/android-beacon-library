@@ -412,13 +412,14 @@ public class BeaconParser implements Serializable {
      * @param scanData The actual packet bytes
      * @param rssi The measured signal strength of the packet
      * @param device The Bluetooth device that was detected
+     * @param timestampMs The timestamp in milliseconds of the scan execution
      * @return An instance of a <code>Beacon</code>
      */
-    public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
-        return fromScanData(scanData, rssi, device, new Beacon());
+    public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device, long timestampMs) {
+        return fromScanData(scanData, rssi, device, timestampMs, new Beacon());
     }
 
-    protected Beacon fromScanData(byte[] bytesToProcess, int rssi, BluetoothDevice device, Beacon beacon) {
+    protected Beacon fromScanData(byte[] bytesToProcess, int rssi, BluetoothDevice device, long timestampMs, Beacon beacon) {
         BleAdvertisement advert = new BleAdvertisement(bytesToProcess);
         boolean parseFailed = false;
         Pdu pduToParse = null;
@@ -616,6 +617,8 @@ public class BeaconParser implements Serializable {
             beacon.mManufacturer = manufacturer;
             beacon.mParserIdentifier = mIdentifier;
             beacon.mMultiFrameBeacon = extraParsers.size() > 0 || mExtraFrame;
+            beacon.mFirstCycleDetectionTimestamp = timestampMs;
+            beacon.mLastCycleDetectionTimestamp = timestampMs;
         }
         return beacon;
     }

@@ -13,6 +13,6 @@ import androidx.annotation.MainThread;
  */
 @MainThread
 public interface CycledLeScanCallback {
-    void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord);
+    void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord, long timestampMs);
     void onCycleEnd();
 }

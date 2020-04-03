@@ -177,6 +177,16 @@ public class Beacon implements Parcelable, Serializable {
     protected boolean mMultiFrameBeacon = false;
 
     /**
+     * The timestamp of the first packet detected in milliseconds.
+     */
+    protected long mFirstCycleDetectionTimestamp = 0L;
+
+    /**
+     * The timestamp of the last packet detected in milliseconds.
+     */
+    protected long mLastCycleDetectionTimestamp = 0L;
+
+    /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
      */
@@ -257,6 +267,8 @@ public class Beacon implements Parcelable, Serializable {
         mRunningAverageRssi = (Double) in.readValue(null);
         mRssiMeasurementCount = in.readInt();
         mPacketCount = in.readInt();
+        mFirstCycleDetectionTimestamp = in.readLong();
+        mLastCycleDetectionTimestamp = in.readLong();
     }
 
     /**
@@ -281,6 +293,8 @@ public class Beacon implements Parcelable, Serializable {
         this.mParserIdentifier = otherBeacon.mParserIdentifier;
         this.mMultiFrameBeacon = otherBeacon.mMultiFrameBeacon;
         this.mManufacturer = otherBeacon.mManufacturer;
+        this.mFirstCycleDetectionTimestamp = otherBeacon.mFirstCycleDetectionTimestamp;
+        this.mLastCycleDetectionTimestamp = otherBeacon.mLastCycleDetectionTimestamp;
     }
 
     /**
@@ -314,6 +328,38 @@ public class Beacon implements Parcelable, Serializable {
      */
     public void setPacketCount(int packetCount) {
         mPacketCount = packetCount;
+    }
+
+    /**
+     * Returns the timestamp of the first packet detected
+     */
+    public long getFirstCycleDetectionTimestamp() {
+        return mFirstCycleDetectionTimestamp;
+    }
+
+    /**
+     * Sets the timestamp of the first packet detected
+     *
+     * @param firstCycleDetectionTimestamp
+     */
+    public void setFirstCycleDetectionTimestamp(long firstCycleDetectionTimestamp) {
+        mFirstCycleDetectionTimestamp = firstCycleDetectionTimestamp;
+    }
+
+    /**
+     * Returns the timestamp of the last packet detected
+     */
+    public long getLastCycleDetectionTimestamp() {
+        return mLastCycleDetectionTimestamp;
+    }
+
+    /**
+     * Sets the timestamp of the last packet detected
+     *
+     * @param lastCycleDetectionTimestamp
+     */
+    public void setLastCycleDetectionTimestamp(long lastCycleDetectionTimestamp) {
+        mLastCycleDetectionTimestamp = lastCycleDetectionTimestamp;
     }
 
     /**
@@ -636,6 +682,8 @@ public class Beacon implements Parcelable, Serializable {
         out.writeValue(mRunningAverageRssi);
         out.writeInt(mRssiMeasurementCount);
         out.writeInt(mPacketCount);
+        out.writeLong(mFirstCycleDetectionTimestamp);
+        out.writeLong(mLastCycleDetectionTimestamp);
     }
 
     /**
@@ -886,13 +934,13 @@ public class Beacon implements Parcelable, Serializable {
 
         /**
          * @see Beacon#mMultiFrameBeacon
-         * @return multiFrameBeacon
+         * @param multiFrameBeacon
+         * @return builder
          */
         public Builder setMultiFrameBeacon(boolean multiFrameBeacon) {
             mBeacon.mMultiFrameBeacon = multiFrameBeacon;
             return this;
         }
-
     }
 
 }

@@ -34,7 +34,7 @@ public class GattBeaconTest {
         byte[] bytes = hexStringToByteArray("020106030334121516341200e72f234454f4911ba9ffa6000000000001000000000000000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=00,p:3-3:-41,i:4-13,i:14-19");
         assertNotNull("Service uuid parsed should not be null", parser.getServiceUuid());
-        Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        Beacon gattBeacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
         assertEquals("id1 should be parsed", "0x2f234454f4911ba9ffa6", gattBeacon.getId1().toString());
         assertEquals("id2 should be parsed", "0x000000000001", gattBeacon.getId2().toString());
@@ -49,7 +49,7 @@ public class GattBeaconTest {
         LogManager.setVerboseLoggingEnabled(true);
         byte[] bytes = hexStringToByteArray("020106030334121616341210ec007261646975736e6574776f726b7373070000000000000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=10,p:3-3:-41,i:4-20v");
-        Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        Beacon gattBeacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
         assertEquals("GattBeacon identifier length should be proper length",
                 17,
@@ -65,7 +65,7 @@ public class GattBeaconTest {
         LogManager.d("GattBeaconTest", "Parsing short packet");
         byte[] bytes = hexStringToByteArray("020106030334121516341210ec007261646975736e6574776f726b7307000000000000000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=10,p:3-3:-41,i:4-20v");
-        Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        Beacon gattBeacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
         assertEquals("GattBeacon identifier length should be adjusted smaller if packet is short",
                      16,
@@ -90,7 +90,7 @@ public class GattBeaconTest {
         LogManager.setVerboseLoggingEnabled(true);
         byte[] bytes = hexStringToByteArray("0201060303aafe1516aafe00e700010203040506070809010203040506000000000000000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser().setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT);
-        Beacon eddystoneUidBeacon = parser.fromScanData(bytes, -55, null);
+        Beacon eddystoneUidBeacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("Eddystone-UID should be not null if parsed successfully", eddystoneUidBeacon);
     }
 
@@ -104,7 +104,7 @@ public class GattBeaconTest {
         byte[] bytes = hexStringToByteArray("020106030334120a16341210ed00636e6e070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=1234,m:2-2=10,p:3-3:-41,i:4-20v");
         LogManager.d("xxx", "------");
-        Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        Beacon gattBeacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("GattBeacon should be not null if parsed successfully", gattBeacon);
         assertEquals("GattBeacon identifier length should be adjusted smaller if packet is short",
                 5,
@@ -148,7 +148,7 @@ public class GattBeaconTest {
         byte[] bytes = {2, 1, 4, 3, 3, (byte) 216, (byte) 254, 19, 22, (byte) 216, (byte) 254, 0, (byte) 242, 3, 103, 111, 111, 46, 103, 108, 47, 104, 113, 66, 88, 69, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=fed8,m:2-2=00,p:3-3:-41,i:4-21v");
         LogManager.d("xxx", "------");
-        Beacon uriBeacon = parser.fromScanData(bytes, -55, null);
+        Beacon uriBeacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNotNull("UriBeacon should be not null if parsed successfully", uriBeacon);
         assertEquals("UriBeacon identifier length should be correct",
                 14,
@@ -167,7 +167,7 @@ public class GattBeaconTest {
         byte[] bytes = hexStringToByteArray("0201060303aafe0416aafe100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
         BeaconParser parser = new BeaconParser().setBeaconLayout("s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-20v");
         LogManager.d("xxx", "------");
-        Beacon gattBeacon = parser.fromScanData(bytes, -55, null);
+        Beacon gattBeacon = parser.fromScanData(bytes, -55, null, 123456L);
         assertNull("GattBeacon should be null when not parsed successfully", gattBeacon);
     }
 

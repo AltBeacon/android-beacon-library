@@ -50,7 +50,7 @@ public class BeaconSimulatorTest {
     public void testSetBeacons(){
         StaticBeaconSimulator staticBeaconSimulator = new StaticBeaconSimulator();
         byte[] beaconBytes = hexStringToByteArray("02011a1bff1801beac2f234454cf6d4a0fadf2f4911ba9ffa600010002c509");
-        Beacon beacon = new AltBeaconParser().fromScanData(beaconBytes, -55, null);
+        Beacon beacon = new AltBeaconParser().fromScanData(beaconBytes, -55, null,123456L);
         ArrayList<Beacon> beacons = new ArrayList<Beacon>();
         beacons.add(beacon);
         staticBeaconSimulator.setBeacons(beacons);

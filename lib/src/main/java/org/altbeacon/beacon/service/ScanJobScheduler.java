@@ -109,7 +109,7 @@ public class ScanJobScheduler {
         synchronized (this) {
             // We typically get a bunch of calls in a row here, separated by a few millis.  Only do this once.
             if (System.currentTimeMillis() - mScanJobScheduleTime > MIN_MILLIS_BETWEEN_SCAN_JOB_SCHEDULING) {
-                LogManager.d(TAG, "scheduling an immediate scan job because last did "+(System.currentTimeMillis() - mScanJobScheduleTime)+"seconds ago.");
+                LogManager.d(TAG, "scheduling an immediate scan job because last did "+(System.currentTimeMillis() - mScanJobScheduleTime)+"millis ago.");
                 mScanJobScheduleTime = System.currentTimeMillis();
             }
             else {

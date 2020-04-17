@@ -78,9 +78,9 @@ Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beaco
 
 To transmit as a beacon, Android 5+ and firmware supporting Bluetooth Low Energy Peripheral Mode are required.
 
-### Covid Contract Tracing Beacon Support
+### Covid Contact Tracing Beacon Support
 
-The library supports both advertising and detection of the [Covid contract trancing beacon standard](https://covid19-static.cdn-apple.com/applications/covid19/current/static/contact-tracing/pdf/ContactTracing-BluetoothSpecificationv1.1.pdf) announced by Apple and Google.  You can read more about that [here](http://www.davidgyoungtech.com/2020/04/11/saving-the-world-with-bluetooth). The following beacon layout works to transmit and detect this format:
+The library supports both advertising and detection of the [Covid contact tracing beacon standard](https://covid19-static.cdn-apple.com/applications/covid19/current/static/contact-tracing/pdf/ContactTracing-BluetoothSpecificationv1.1.pdf) announced by Apple and Google.  You can read more about that [here](http://www.davidgyoungtech.com/2020/04/11/saving-the-world-with-bluetooth). The following beacon layout works to transmit and detect this format:
 
 `new BeaconParser().setBeaconLayout("s:0-1=fd6f,p:0-0:-63,i:2-17")`
 

@@ -48,7 +48,7 @@ public class BeaconParser implements Serializable {
     private static final Pattern M_PATTERN = Pattern.compile("m\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern S_PATTERN = Pattern.compile("s\\:(\\d+)-(\\d+)\\=([0-9A-Fa-f]+)");
     private static final Pattern D_PATTERN = Pattern.compile("d\\:(\\d+)\\-(\\d+)([bl]*)?");
-    private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)\\-(\\d+)\\:?([\\-\\d]+)?");
+    private static final Pattern P_PATTERN = Pattern.compile("p\\:(\\d+)?\\-(\\d+)?\\:?([\\-\\d]+)?");
     private static final Pattern X_PATTERN = Pattern.compile("x");
     private static final char[] HEX_ARRAY = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
     private static final String LITTLE_ENDIAN_SUFFIX = "l";
@@ -207,20 +207,26 @@ public class BeaconParser implements Serializable {
                 }
             }
             matcher = P_PATTERN.matcher(term);
+
             while (matcher.find()) {
                 found = true;
+                String correctionString = "none";
                 try {
-                    int startOffset = Integer.parseInt(matcher.group(1));
-                    int endOffset = Integer.parseInt(matcher.group(2));
+                    if (matcher.group(1) != null && matcher.group(2) != null) {
+                        int startOffset = Integer.parseInt(matcher.group(1));
+                        int endOffset = Integer.parseInt(matcher.group(2));
+                        mPowerStartOffset=startOffset;
+                        mPowerEndOffset=endOffset;
+                    }
+
                     int dBmCorrection = 0;
                     if (matcher.group(3) != null) {
-                        dBmCorrection = Integer.parseInt(matcher.group(3));
+                        correctionString = matcher.group(3);
+                        dBmCorrection = Integer.parseInt(correctionString);
                     }
                     mDBmCorrection=dBmCorrection;
-                    mPowerStartOffset=startOffset;
-                    mPowerEndOffset=endOffset;
                 } catch (NumberFormatException e) {
-                    throw new BeaconLayoutException("Cannot parse integer power byte offset in term: " + term);
+                    throw new BeaconLayoutException("Cannot parse integer power byte offset ("+correctionString+") in term: " + term);
                 }
             }
             matcher = M_PATTERN.matcher(term);
@@ -271,18 +277,6 @@ public class BeaconParser implements Serializable {
                 LogManager.d(TAG, "cannot parse term %s", term);
                 throw new BeaconLayoutException("Cannot parse beacon layout term: " + term);
             }
-        }
-        if (!mExtraFrame) {
-            // extra frames do not have to have identifiers or power fields, but other types do
-            if (mIdentifierStartOffsets.size() == 0 || mIdentifierEndOffsets.size() == 0) {
-                throw new BeaconLayoutException("You must supply at least one identifier offset with a prefix of 'i'");
-            }
-            if (mPowerStartOffset == null || mPowerEndOffset == null) {
-                throw new BeaconLayoutException("You must supply a power byte offset with a prefix of 'p'");
-            }
-        }
-        if (mMatchingBeaconTypeCodeStartOffset == null || mMatchingBeaconTypeCodeEndOffset == null) {
-            throw new BeaconLayoutException("You must supply a matching beacon type expression with a prefix of 'm'");
         }
         mLayoutSize = calculateLayoutSize();
         return this;
@@ -360,6 +354,9 @@ public class BeaconParser implements Serializable {
      * @return
      */
     public Long getMatchingBeaconTypeCode() {
+        if (mMatchingBeaconTypeCode == null) {
+            return -1l;
+        }
         return mMatchingBeaconTypeCode;
     }
 
@@ -368,6 +365,9 @@ public class BeaconParser implements Serializable {
      * @return
      */
     public int getMatchingBeaconTypeCodeStartOffset() {
+        if (mMatchingBeaconTypeCodeStartOffset == null) {
+            return -1;
+        }
         return mMatchingBeaconTypeCodeStartOffset;
     }
 
@@ -376,6 +376,9 @@ public class BeaconParser implements Serializable {
      * @return
      */
     public int getMatchingBeaconTypeCodeEndOffset() {
+        if (mMatchingBeaconTypeCodeEndOffset == null) {
+            return -1;
+        }
         return mMatchingBeaconTypeCodeEndOffset;
     }
 
@@ -450,21 +453,35 @@ public class BeaconParser implements Serializable {
         }
         else {
             byte[] serviceUuidBytes = null;
-            byte[] typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset - mMatchingBeaconTypeCodeStartOffset + 1);
+            byte[] typeCodeBytes = {};
+            if (mMatchingBeaconTypeCodeEndOffset != null && mMatchingBeaconTypeCodeStartOffset >= 0) {
+                typeCodeBytes = longToByteArray(getMatchingBeaconTypeCode(), mMatchingBeaconTypeCodeEndOffset - mMatchingBeaconTypeCodeStartOffset + 1);
+            }
             if (getServiceUuid() != null) {
                 serviceUuidBytes = longToByteArray(getServiceUuid(), mServiceUuidEndOffset - mServiceUuidStartOffset + 1, false);
             }
             startByte = pduToParse.getStartIndex();
             boolean patternFound = false;
 
-            if (getServiceUuid() == null) {
-                if (byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes)) {
-                    patternFound = true;
+             if (getServiceUuid() == null || getServiceUuid() == -1) {
+                 if (mMatchingBeaconTypeCodeEndOffset != null) {
+                     if (byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes)) {
+                         patternFound = true;
+                     }
                 }
             } else {
-                if (byteArraysMatch(bytesToProcess, startByte + mServiceUuidStartOffset, serviceUuidBytes) &&
-                        byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes)) {
-                    patternFound = true;
+                if (byteArraysMatch(bytesToProcess, startByte + mServiceUuidStartOffset, serviceUuidBytes)) {
+                    if (mMatchingBeaconTypeCodeEndOffset != null) {
+                         if (byteArraysMatch(bytesToProcess, startByte + mMatchingBeaconTypeCodeStartOffset, typeCodeBytes)) {
+                            patternFound = true;
+                         }
+                    }
+                    else {
+                        if (pduToParse.getType() == Pdu.GATT_SERVICE_UUID_PDU_TYPE) {
+                            patternFound = true;
+                        }
+                    }
+
                 }
             }
 
@@ -479,12 +496,16 @@ public class BeaconParser implements Serializable {
                     }
                 } else {
                     if (LogManager.isVerboseLoggingEnabled()) {
+                        int offset = 0;
+                        if (mMatchingBeaconTypeCodeStartOffset != null) {
+                            offset = mMatchingBeaconTypeCodeStartOffset;
+                        }
                         LogManager.d(TAG, "This is not a matching Beacon advertisement. Was expecting %s at offset %d and %s at offset %d.  "
                                         + "The bytes I see are: %s",
                                 byteArrayToString(serviceUuidBytes),
                                 startByte + mServiceUuidStartOffset,
                                 byteArrayToString(typeCodeBytes),
-                                startByte + mMatchingBeaconTypeCodeStartOffset,
+                                startByte + offset,
                                 bytesToHex(bytesToProcess));
                     }
                 }
@@ -578,6 +599,11 @@ public class BeaconParser implements Serializable {
                         // keep default value
                     }
                 }
+                else {
+                    if (mDBmCorrection != null) {
+                        beacon.mTxPower = mDBmCorrection;
+                    }
+                }
             }
         }
 
@@ -585,10 +611,11 @@ public class BeaconParser implements Serializable {
             beacon = null;
         }
         else {
-            int beaconTypeCode = 0;
-            String beaconTypeString = byteArrayToFormattedString(bytesToProcess, mMatchingBeaconTypeCodeStartOffset+startByte, mMatchingBeaconTypeCodeEndOffset+startByte, false);
-            beaconTypeCode = Integer.parseInt(beaconTypeString);
-            // TODO: error handling needed on the parse
+            int beaconTypeCode = -1;
+            if (mMatchingBeaconTypeCodeEndOffset != null) {
+                String beaconTypeString = byteArrayToFormattedString(bytesToProcess, mMatchingBeaconTypeCodeStartOffset+startByte, mMatchingBeaconTypeCodeEndOffset+startByte, false);
+                beaconTypeCode = Integer.parseInt(beaconTypeString);
+            }
 
             int manufacturer = 0;
             String manufacturerString = byteArrayToFormattedString(bytesToProcess, startByte, startByte+1, true);
@@ -667,12 +694,13 @@ public class BeaconParser implements Serializable {
         lastIndex += adjustedIdentifiersLength;
 
         advertisingBytes = new byte[lastIndex+1-2];
-        long beaconTypeCode = this.getMatchingBeaconTypeCode();
-
-        // set type code
-        for (int index = this.mMatchingBeaconTypeCodeStartOffset; index <= this.mMatchingBeaconTypeCodeEndOffset; index++) {
-            byte value = (byte) (this.getMatchingBeaconTypeCode() >> (8*(this.mMatchingBeaconTypeCodeEndOffset-index)) & 0xff);
-            advertisingBytes[index-2] = value;
+        if (mMatchingBeaconTypeCodeEndOffset != null) {
+            long beaconTypeCode = this.getMatchingBeaconTypeCode();
+            // set type code
+            for (int index = this.mMatchingBeaconTypeCodeStartOffset; index <= this.mMatchingBeaconTypeCodeEndOffset; index++) {
+                byte value = (byte) (this.getMatchingBeaconTypeCode() >> (8*(this.mMatchingBeaconTypeCodeEndOffset-index)) & 0xff);
+                advertisingBytes[index-2] = value;
+            }
         }
 
         // set identifiers
@@ -717,8 +745,7 @@ public class BeaconParser implements Serializable {
         }
 
         // set power
-
-        if (this.mPowerStartOffset != null && this.mPowerEndOffset != null) {
+        if (this.mPowerStartOffset != null && this.mPowerEndOffset != null  && this.mPowerStartOffset >= 2) {
             for (int index = this.mPowerStartOffset; index <= this.mPowerEndOffset; index ++) {
                 advertisingBytes[index-2] = (byte) (beacon.getTxPower() >> (8*(index - this.mPowerStartOffset)) & 0xff);
             }

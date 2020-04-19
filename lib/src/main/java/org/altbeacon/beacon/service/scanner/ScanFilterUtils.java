@@ -44,19 +44,25 @@ public class ScanFilterUtils {
             // Note: the -2 here is because we want the filter and mask to start after the
             // two-byte manufacturer code, and the beacon parser expression is based on offsets
             // from the start of the two byte code
-            byte[] filter = new byte[endOffset + 1 - 2];
-            byte[] mask = new byte[endOffset + 1 - 2];
-            byte[] typeCodeBytes = BeaconParser.longToByteArray(typeCode, endOffset-startOffset+1);
-            for (int layoutIndex = 2; layoutIndex <= endOffset; layoutIndex++) {
-                int filterIndex = layoutIndex-2;
-                if (layoutIndex < startOffset) {
-                    filter[filterIndex] = 0;
-                    mask[filterIndex] = 0;
-                } else {
-                    filter[filterIndex] = typeCodeBytes[layoutIndex-startOffset];
-                    mask[filterIndex] = (byte) 0xff;
+            int length = endOffset + 1 - 2;
+            byte[] filter = new byte[0];
+            byte[] mask = new byte[0];
+            if (length > 0) {
+                filter = new byte[length];
+                mask = new byte[length];
+                byte[] typeCodeBytes = BeaconParser.longToByteArray(typeCode, endOffset-startOffset+1);
+                for (int layoutIndex = 2; layoutIndex <= endOffset; layoutIndex++) {
+                    int filterIndex = layoutIndex-2;
+                    if (layoutIndex < startOffset) {
+                        filter[filterIndex] = 0;
+                        mask[filterIndex] = 0;
+                    } else {
+                        filter[filterIndex] = typeCodeBytes[layoutIndex-startOffset];
+                        mask[filterIndex] = (byte) 0xff;
+                    }
                 }
             }
+
             ScanFilterData sfd = new ScanFilterData();
             sfd.manufacturer = manufacturer;
             sfd.filter = filter;

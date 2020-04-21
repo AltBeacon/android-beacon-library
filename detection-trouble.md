@@ -23,3 +23,9 @@ If your phone is not detecting beacons there are a number of things to check:
 * If you are not detecting on Samsung only, does your hardware beacon advertise a non-standard manufacturer ID?  This can cause scan filters (required on Samsung) to fail to detect.  Fixing this means finding the custom manufacturer ide and adding that to the BeaconParser in use.
 
 * If you are not detecting after some period in the background, you may be running into OS limitations.  Read [here](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8) about Android 8+ limitations and [here](http://www.davidgyoungtech.com/2019/04/30/the-rise-of-the-nasty-forks) about custom power saver systems especially as implemented by Nokia and Chinese phone OEMs.
+
+
+If you have gone through the list above and still cannot get detection working in your custom app, you might open a new question on StackOverflow.com to get help.  You will need to show your custom code and describe everything in the above list that you have checked and eliminated as a possibility.  Please describe exactly what beacon detection callback methods you see and do not see.
+
+If you suspect a problem with the library itself, please first reproduce the issue with the [the reference app](https://github.com/AltBeacon/android-beacon-library-reference), then open a Github issue on the library repo that describes how to reproduce.  Please also include what you have tried on the troubleshooting list above.
+

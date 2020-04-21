@@ -4,22 +4,22 @@ layout: android-beacon-library
 
 ### Why can I not detect beacons?
 
-If your phone is not detecting beacons there are a few things to check:
+If your phone is not detecting beacons there are a number of things to check:
 
-1. Is your beacon really advertising? Try an off-the-shelf app like [BeaconScope](https://play.google.com/store/apps/details?id=com.davidgyoungtech.beaconscanner&hl=en_US) and make sure it is detected.
+* Is your beacon really advertising? Try an off-the-shelf app like [BeaconScope](https://play.google.com/store/apps/details?id=com.davidgyoungtech.beaconscanner&hl=en_US) and make sure it is detected.
 
-2. Did you dynamically request and obtain location permission from the user? You cannot detect beacons unless you do so.  Read [here](https://altbeacon.github.io/android-beacon-library/requesting_permission.html).
+* Did you dynamically request and obtain location permission from the user? You cannot detect beacons unless you do so.  Read [here](https://altbeacon.github.io/android-beacon-library/requesting_permission.html).
 
-3. If you check app permissions does it confirm that location permission has been granted to your app?   Go to Settings -> Applications -> Your App and check the granted permissions.
+* If you check app permissions does it confirm that location permission has been granted to your app?   Go to Settings -> Applications -> Your App and check the granted permissions.
 
-4. Did you set a BeaconParser for the type of beacon you are using?  If you are using AltBeacon you don't need to do this. But if using iBeacon, Eddystone or other formats you do.
+* Did you set a BeaconParser for the type of beacon you are using?  If you are using AltBeacon you don't need to do this. But if using iBeacon, Eddystone or other formats you do.
 
-5. Is bluetooth turned on?
+* Is bluetooth turned on in phone settings?
 
-6. Is location turn on in phone settings?
+* Is location turn on in phone settings?
 
-7. If doing monitoring, do you get a call to `didDetermineStateForRegion`? Does it say you are already inside the region? If so, it may be that your beacon is detected, but the library thinks it is already in the region (it remembers this across restarts) so it never calls `didEnterRegion` again.
+* If doing monitoring, do you get a call to `didDetermineStateForRegion`? Does it say you are already inside the region? If so, it may be that your beacon is detected, but the library thinks it is already in the region (it remembers this across restarts) so it never calls `didEnterRegion` again.
 
-8. If you are not detecting on Samsung only, does your hardware beacon advertise a non-standard manufacturer ID?  This can cause scan filters (required on Samsung) to fail to detect.  Fixing this means finding the custom manufacturer ide and adding that to the BeaconParser in use.
+* If you are not detecting on Samsung only, does your hardware beacon advertise a non-standard manufacturer ID?  This can cause scan filters (required on Samsung) to fail to detect.  Fixing this means finding the custom manufacturer ide and adding that to the BeaconParser in use.
 
-9. If you are not detecting after some period in the background, you may be running into OS limitations.  Read [here](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8) about Android 8+ limitations and [here](http://www.davidgyoungtech.com/2019/04/30/the-rise-of-the-nasty-forks) about custom power saver systems especially as implemented by Nokia and Chinese phone OEMs.
+* If you are not detecting after some period in the background, you may be running into OS limitations.  Read [here](http://www.davidgyoungtech.com/2017/08/07/beacon-detection-with-android-8) about Android 8+ limitations and [here](http://www.davidgyoungtech.com/2019/04/30/the-rise-of-the-nasty-forks) about custom power saver systems especially as implemented by Nokia and Chinese phone OEMs.

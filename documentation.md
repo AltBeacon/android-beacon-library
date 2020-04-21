@@ -4,6 +4,8 @@ layout: android-beacon-library
 
 ## Documentation
 
+<p><a href='detection-trouble.html'>Why can I not detect beacons?</a>
+
 ### General Features and Topics
 
 <ul>

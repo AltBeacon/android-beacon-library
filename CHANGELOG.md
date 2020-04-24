@@ -1,5 +1,6 @@
-### Development
+### 2.17 / 2020-04-19
 
+- Make BeaconParser more flexible so as to support covid beacon proposal (#965, David G. Young)
 - Add timestamps of precsely when first and last packet was detected for beacon (#956, Rémi Latapy)
 
 ### 2.16.4 / 2020-01-26

@@ -4,10 +4,10 @@ layout: android-beacon-library
 
 ### Why can I not detect beacons?
 
+If your phone is not detecting beacons there are a number of things to check:
+
 <ol>
 <li>
-If your phone is not detecting beacons there are a number of things to check:
-</li><li>
 Is your beacon really advertising? Try an off-the-shelf app like [BeaconScope](https://play.google.com/store/apps/details?id=com.davidgyoungtech.beaconscanner&hl=en_US) and make sure it is detected.
 </li><li>
 Did you dynamically request and obtain location permission from the user? You cannot detect beacons unless you do so.  Read [here](https://altbeacon.github.io/android-beacon-library/requesting_permission.html).

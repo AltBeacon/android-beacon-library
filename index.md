@@ -80,9 +80,9 @@ To transmit as a beacon, Android 5+ and firmware supporting Bluetooth Low Energy
 
 ### Covid Contact Tracing Beacon Support
 
-The library supports both advertising and detection of the [Covid contact tracing beacon standard](https://covid19-static.cdn-apple.com/applications/covid19/current/static/contact-tracing/pdf/ContactTracing-BluetoothSpecificationv1.1.pdf) announced by Apple and Google.  You can read more about that [here](http://www.davidgyoungtech.com/2020/04/11/saving-the-world-with-bluetooth). The following beacon layout works to transmit and detect this format:
+The library supports both advertising and detection of the [Exposure Notification Service beacon standard](https://covid19-static.cdn-apple.com/applications/covid19/current/static/contact-tracing/pdf/ContactTracing-BluetoothSpecificationv1.1.pdf) announced by Apple and Google.  You can read more about that [here](http://www.davidgyoungtech.com/2020/04/24/hacking-with-contact-tracing-beacons). The following beacon layout works with library version 2.7+ to transmit and detect this format:
 
-`new BeaconParser().setBeaconLayout("s:0-1=fd6f,p:0-0:-63,i:2-17")`
+`new BeaconParser().setBeaconLayout("s:0-1=fd6f,p:0-0:-63,i:2-17,d:18-21")`
 
 ### Eddystone Support
 

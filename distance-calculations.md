@@ -13,6 +13,7 @@ are visible.
 At close proximity of about 1 meter, you can expect to see distance estimates between 0.5-2 meters.  At further distances you will see more variation.
 At 20 meters or actual distance, the estimate provided by the library may vary from 10-40 meters.  The variation is caused by noise on the signal measurement, along with
 signal reflections and obstructions.
+**CAUTION:** Before building an app using distance estimates, be sure you [read up on the limitations of this technology.](http://www.davidgyoungtech.com/2020/05/15/how-far-can-you-go)
 
 #### Variations in time
 

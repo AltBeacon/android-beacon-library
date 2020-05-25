@@ -45,6 +45,8 @@ public class ScanJobScheduler {
     private List<ScanResult> mBackgroundScanResultQueue = new ArrayList<>();
     @Nullable
     private BeaconLocalBroadcastProcessor mBeaconNotificationProcessor;
+    @NonNull
+    private boolean mBackgroundScanJobFirstRun = true;
 
     @NonNull
     public static ScanJobScheduler getInstance() {
@@ -86,17 +88,12 @@ public class ScanJobScheduler {
         // if this is the first time we want to schedule a job and we are in background mode
         // trigger an immediate scan job in order to install the hw filter
         boolean startBackgroundImmediateScan = false;
-        if (scanState.getBackgroundScanJobFirstRun() && scanState.getBackgroundMode()) {
+        if (this.mBackgroundScanJobFirstRun && scanState.getBackgroundMode()) {
             LogManager.d(TAG, "This is the first time we schedule a job and we are in background, set immediate scan flag to true in order to trigger the HW filter install.");
             startBackgroundImmediateScan = true;
         }
 
         schedule(context, scanState, startBackgroundImmediateScan);
-
-        if (!scanState.getBackgroundScanJobFirstRun() && beaconManager.getBackgroundScanJobFirstRun()) {
-            LogManager.d(TAG, "Notify beacon manager that the immediate scan job in background was scheduled successful.");
-            beaconManager.setBackgroundScanJobFirstRun(false);
-        }
     }
 
     public void applySettingsToScheduledJob(Context context, BeaconManager beaconManager) {
@@ -114,6 +111,8 @@ public class ScanJobScheduler {
         if (mBeaconNotificationProcessor != null) {
             mBeaconNotificationProcessor.unregister();
         }
+
+        mBackgroundScanJobFirstRun = true;
     }
 
     public void scheduleAfterBackgroundWakeup(Context context, List<ScanResult> scanResults) {
@@ -185,9 +184,9 @@ public class ScanJobScheduler {
                     int error = jobScheduler.schedule(immediateJob);
                     if (error < 0) {
                         LogManager.e(TAG, "Failed to schedule an immediate scan job.  Beacons will not be detected. Error: "+error);
-                    } else if (scanState.getBackgroundScanJobFirstRun() == true) {
+                    } else if (this.mBackgroundScanJobFirstRun) {
                         LogManager.d(TAG, "First immediate scan job scheduled successful, change the flag to false.");
-                        scanState.setBackgroundScanJobFirstRun(false);
+                        this.mBackgroundScanJobFirstRun = false;
                     }
                 } else {
                     LogManager.d(TAG, "Not scheduling immediate scan, assuming periodic is about to run");

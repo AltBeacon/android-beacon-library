@@ -1,3 +1,7 @@
+### 2.17.1 / 2020-05-25
+
+- Improve HW filter detection mechanism in order to detect beacons immediately after starting in background (#974, Vlad Vladau)
+
 ### 2.17 / 2020-04-19
 
 - Make BeaconParser more flexible so as to support covid beacon proposal (#965, David G. Young)

@@ -193,17 +193,6 @@ public class ScanState implements Serializable {
                 outputStream = mContext.openFileOutput(TEMP_STATUS_PRESERVATION_FILE_NAME, MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(outputStream);
                 objectOutputStream.writeObject(this);
-                File file = new File(mContext.getFilesDir(), STATUS_PRESERVATION_FILE_NAME);
-                File tempFile = new File(mContext.getFilesDir(), TEMP_STATUS_PRESERVATION_FILE_NAME);
-                LogManager.d(TAG, "Temp file is "+tempFile.getAbsolutePath());
-                LogManager.d(TAG, "Perm file is "+file.getAbsolutePath());
-
-                if (!file.delete()) {
-                    LogManager.e(TAG, "Error while saving scan status to file: Cannot delete existing file.");
-                }
-                if (!tempFile.renameTo(file)) {
-                    LogManager.e(TAG, "Error while saving scan status to file: Cannot rename temp file.");
-                }
             } catch (IOException e) {
                 LogManager.e(TAG, "Error while saving scan status to file: ", e.getMessage());
             } finally {
@@ -220,6 +209,19 @@ public class ScanState implements Serializable {
                     }
                 }
             }
+
+            File file = new File(mContext.getFilesDir(), STATUS_PRESERVATION_FILE_NAME);
+            File tempFile = new File(mContext.getFilesDir(), TEMP_STATUS_PRESERVATION_FILE_NAME);
+            LogManager.d(TAG, "Temp file is "+tempFile.getAbsolutePath());
+            LogManager.d(TAG, "Perm file is "+file.getAbsolutePath());
+
+            if (!file.delete()) {
+                LogManager.e(TAG, "Error while saving scan status to file: Cannot delete existing file.");
+            }
+            if (!tempFile.renameTo(file)) {
+                LogManager.e(TAG, "Error while saving scan status to file: Cannot rename temp file.");
+            }
+
             mMonitoringStatus.saveMonitoringStatusIfOn();
         }
     }

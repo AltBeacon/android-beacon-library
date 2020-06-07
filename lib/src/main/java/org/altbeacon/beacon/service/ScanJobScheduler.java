@@ -45,6 +45,8 @@ public class ScanJobScheduler {
     private List<ScanResult> mBackgroundScanResultQueue = new ArrayList<>();
     @Nullable
     private BeaconLocalBroadcastProcessor mBeaconNotificationProcessor;
+    @NonNull
+    private boolean mBackgroundScanJobFirstRun = true;
 
     @NonNull
     public static ScanJobScheduler getInstance() {
@@ -82,7 +84,16 @@ public class ScanJobScheduler {
     private void applySettingsToScheduledJob(Context context, BeaconManager beaconManager, ScanState scanState) {
         scanState.applyChanges(beaconManager);
         LogManager.d(TAG, "Applying scan job settings with background mode "+scanState.getBackgroundMode());
-        schedule(context, scanState, false);
+
+        // if this is the first time we want to schedule a job and we are in background mode
+        // trigger an immediate scan job in order to install the hw filter
+        boolean startBackgroundImmediateScan = false;
+        if (this.mBackgroundScanJobFirstRun && scanState.getBackgroundMode()) {
+            LogManager.d(TAG, "This is the first time we schedule a job and we are in background, set immediate scan flag to true in order to trigger the HW filter install.");
+            startBackgroundImmediateScan = true;
+        }
+
+        schedule(context, scanState, startBackgroundImmediateScan);
     }
 
     public void applySettingsToScheduledJob(Context context, BeaconManager beaconManager) {
@@ -100,6 +111,8 @@ public class ScanJobScheduler {
         if (mBeaconNotificationProcessor != null) {
             mBeaconNotificationProcessor.unregister();
         }
+
+        mBackgroundScanJobFirstRun = true;
     }
 
     public void scheduleAfterBackgroundWakeup(Context context, List<ScanResult> scanResults) {
@@ -133,7 +146,7 @@ public class ScanJobScheduler {
 
         long millisToNextJobStart;
         if (backgroundWakeup) {
-            LogManager.d(TAG, "We just woke up in the background based on a new scan result.  Start scan job immediately.");
+            LogManager.d(TAG, "We just woke up in the background based on a new scan result or first run of the app. Start scan job immediately.");
             millisToNextJobStart = 0;
         }
         else {
@@ -170,7 +183,10 @@ public class ScanJobScheduler {
                             .setOverrideDeadline(millisToNextJobStart).build();
                     int error = jobScheduler.schedule(immediateJob);
                     if (error < 0) {
-                        LogManager.e(TAG, "Failed to schedule scan job.  Beacons will not be detected. Error: "+error);
+                        LogManager.e(TAG, "Failed to schedule an immediate scan job.  Beacons will not be detected. Error: "+error);
+                    } else if (this.mBackgroundScanJobFirstRun) {
+                        LogManager.d(TAG, "First immediate scan job scheduled successful, change the flag to false.");
+                        this.mBackgroundScanJobFirstRun = false;
                     }
                 } else {
                     LogManager.d(TAG, "Not scheduling immediate scan, assuming periodic is about to run");
@@ -194,10 +210,10 @@ public class ScanJobScheduler {
                 periodicJobBuilder.setPeriodic(scanState.getScanJobIntervalMillis()).build();
             }
             final JobInfo jobInfo = periodicJobBuilder.build();
-            LogManager.d(TAG, "Scheduling ScanJob " + jobInfo + " to run every "+scanState.getScanJobIntervalMillis()+" millis");
+            LogManager.d(TAG, "Scheduling periodic ScanJob " + jobInfo + " to run every "+scanState.getScanJobIntervalMillis()+" millis");
             int error = jobScheduler.schedule(jobInfo);
             if (error < 0) {
-                LogManager.e(TAG, "Failed to schedule scan job.  Beacons will not be detected. Error: "+error);
+                LogManager.e(TAG, "Failed to schedule a periodic scan job.  Beacons will not be detected. Error: "+error);
             }
 
         }

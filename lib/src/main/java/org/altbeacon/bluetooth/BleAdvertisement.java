@@ -17,12 +17,19 @@ public class BleAdvertisement {
     private byte[] mBytes;
     public BleAdvertisement(byte[] bytes) {
         mBytes = bytes;
-        mPdus = parsePdus();
-    }
-    private List<Pdu> parsePdus() {
         ArrayList<Pdu> pdus = new ArrayList<Pdu>();
+        // Get PDUs from the main advert
+        parsePdus(0, bytes.length < 31 ? bytes.length : 31, pdus);
+        // Get PDUs from the scan response
+        // Android puts the scan response at offset 31
+        if (bytes.length > 31) {
+            parsePdus(31, bytes.length, pdus);
+        }
+        mPdus = pdus;
+    }
+    private void parsePdus(int startIndex, int endIndex, ArrayList<Pdu> pdus) {
+        int index = startIndex;
         Pdu pdu = null;
-        int index = 0;
         do {
             pdu = Pdu.parse(mBytes, index);
             if (pdu != null) {
@@ -30,10 +37,8 @@ public class BleAdvertisement {
                 pdus.add(pdu);
             }
         }
-        while (pdu != null && index < mBytes.length);
-        return pdus;
+        while (pdu != null && index < endIndex);
     }
-
 
     /**
      * The list of PDUs inside the advertisement

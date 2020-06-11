@@ -8,13 +8,19 @@ layout: android-beacon-library
 Binary distributions are provided in aar format for users of Gradle and Android Studio.  See [configuring your project](configure.html) for more information on how to use the binary distribution.
 
 
-#### Latest Stable Release 2.17
+#### Latest Stable Release 2.17.1
+
+<i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.17.1.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.17.1/android-beacon-library-2.17.1.aar)
+
+[Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.17.1)
+
+#### Archived Releases
 
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.17.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.17/android-beacon-library-2.17.aar)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.17)
 
-#### Archived Releases
+
 <i class="fa fa-cloud-download" style="color: #3abeee;"></i>  [android-beacon-library-2.16.4.aar](https://github.com/AltBeacon/android-beacon-library/releases/download/2.16.4/android-beacon-library-2.16.4.aar)
 
 [Release Notes](https://github.com/AltBeacon/android-beacon-library/releases/tag/2.16.4)

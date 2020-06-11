@@ -2,6 +2,7 @@
 
 - Parse multiple manufacturer sections in the advertisement and the scan response to look for beacons.  (#970, David G. Young)
 - Improve HW filter detection mechanism in order to detect beacons immediately after starting in background (#974, Vlad Vladau)
+- Fix crash on BluetoothMedic when started on thread without a looper (#980, David G. Young)
 
 ### 2.17 / 2020-04-19
 

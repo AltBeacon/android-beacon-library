@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.PersistableBundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -86,7 +87,7 @@ public class BluetoothMedic {
     @Nullable
     private LocalBroadcastManager mLocalBroadcastManager;
     @NonNull
-    private Handler mHandler = new Handler();
+    private Handler mHandler = new Handler(Looper.getMainLooper());
     private int mTestType = 0;
     @Nullable
     private Boolean mTransmitterTestResult = null;

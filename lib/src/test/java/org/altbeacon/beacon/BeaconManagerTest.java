@@ -57,4 +57,26 @@ public class BeaconManagerTest {
     assertEquals(beaconManager.getRangedRegions().size(), 2);
   }
 
+  @Test
+  public void stopRangingBeaconsInRegionTest() throws Exception {
+    BeaconManager beaconManager = BeaconManager
+        .getInstanceForApplication(RuntimeEnvironment.application);
+
+    String id = "id";
+    Region region1 = new Region(id, Collections.<Identifier>emptyList());
+    Region region2 = new Region(id, "00:11:22:33:FF:EE");
+    Region region3 = new Region(id + "-other", Collections.<Identifier>emptyList());
+
+    beaconManager.startRangingBeaconsInRegion(region1);
+    beaconManager.startRangingBeaconsInRegion(region2);
+    beaconManager.startRangingBeaconsInRegion(region3);
+    assertEquals(beaconManager.getRangedRegions().size(), 2);
+
+    beaconManager.stopRangingBeaconsInRegion(region1);
+    assertEquals(beaconManager.getRangedRegions().size(), 1);
+
+    beaconManager.stopRangingBeaconsInRegion(region3);
+    assertEquals(beaconManager.getRangedRegions().size(), 0);
+  }
+
 }

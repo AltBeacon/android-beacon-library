@@ -34,7 +34,7 @@ d=A*(r/t)^B+C, where d is the distance in meters, r is the RSSI measured by the 
 
 #### Data for specific models
 
-The list of models with specific calculations is available in the config file <a href='https://github.com/AltBeacon/android-beacon-library/blob/master/src/main/resources/model-distance-calculations.json'>here</a>.  If you don't see your model listed, see the section below on how you can get it added
+The list of models with specific calculations is available in the config file <a href='https://github.com/AltBeacon/android-beacon-library/blob/master/lib/src/main/resources/model-distance-calculations.json'>here</a>.  If you don't see your model listed, see the section below on how you can get it added
 
 #### Getting new Android device models added to the list
 

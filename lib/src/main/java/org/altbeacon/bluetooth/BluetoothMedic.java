@@ -459,7 +459,6 @@ public class BluetoothMedic {
         }
     }
 
-    @RequiresApi(21)
     private void createNotificationChannel(Context context, String channelId) {
         // On Android 8.0 and above posting a notification without a
         // channel is an error. So create a notification channel 'err'

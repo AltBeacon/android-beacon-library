@@ -18,6 +18,7 @@ android {
             buildConfigField "String", "${constantName}", "\"${constantValue}\""
         }
         addConstant("VERSION_NAME", version)
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -30,6 +31,23 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE'
+    }
+
+    testOptions {
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
+        animationsDisabled true
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
@@ -38,6 +56,18 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.robolectric:robolectric:4.1'
+    testImplementation 'com.google.android:android-test:4.1.1.4'
+    testImplementation 'com.squareup:fest-android:1.0.8@aar'
+    testImplementation 'org.mockito:mockito-core:2.23.4'
+
+    androidTestUtil 'androidx.test:orchestrator:1.1.0'
+
+    androidTestImplementation 'androidx.test:rules:1.1.0'
+    androidTestImplementation 'org.apache.commons:commons-math3:3.6.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
 }
 
 ext {

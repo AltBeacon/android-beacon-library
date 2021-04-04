@@ -17,12 +17,12 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
+import org.altbeacon.bluetooth.BluetoothMedic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -372,9 +372,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 @MainThread
                 @Override
                 public void onScanFailed(int errorCode) {
-                    Intent intent = new Intent("onScanFailed");
-                    intent.putExtra("errorCode", errorCode);
-                    LocalBroadcastManager.getInstance(CycledLeScannerForLollipop.this.mContext).sendBroadcast(intent);
+                    BluetoothMedic.getInstance().processMedicAction("onScanFailed", errorCode);
                     switch (errorCode) {
                         case SCAN_FAILED_ALREADY_STARTED:
                             LogManager.e(

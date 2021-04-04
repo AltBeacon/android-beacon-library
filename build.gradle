@@ -15,7 +15,8 @@ buildscript {
 
 ext {
     // setting release property breaks maven plugin
-    //isSnapshot = !project.hasProperty('release')
+    // so instead we indicate snapshots with -Psnapshot
+    isSnapshot = project.hasProperty('snapshot')
     isSnapCi = System.getenv('SNAP_CI') != null
     isSnapPullRequest = System.getenv('SNAP_PULL_REQUEST_NUMBER') != null
 }

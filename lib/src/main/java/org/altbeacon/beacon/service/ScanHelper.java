@@ -78,6 +78,7 @@ class ScanHelper {
     private Context mContext;
 
     ScanHelper(Context context) {
+        LogManager.d(TAG, "new ScanHelper");
         mContext = context;
         mBeaconManager = BeaconManager.getInstanceForApplication(context);
     }
@@ -127,6 +128,7 @@ class ScanHelper {
     }
 
     void setRangedRegionState(Map<Region, RangeState> rangedRegionState) {
+        LogManager.d(TAG, "rangeRegionState updated with %d regions", rangedRegionState.size());
         synchronized (mRangedRegionState) {
             mRangedRegionState.clear();
             mRangedRegionState.putAll(rangedRegionState);

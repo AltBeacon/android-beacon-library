@@ -831,6 +831,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void startRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "startRangingBeaconsInRegion");
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -840,6 +841,7 @@ public class BeaconManager {
         }
         synchronized (rangedRegions) {
             rangedRegions.add(region);
+            LogManager.d(TAG, "startRangingBeaconsInRegion regionCount: "+rangedRegions.size());
         }
         applyChangesToServices(BeaconService.MSG_START_RANGING, region);
     }
@@ -856,6 +858,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "stopRangingBeaconsInRegion");
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -871,6 +874,7 @@ public class BeaconManager {
                 }
             }
             rangedRegions.remove(regionToRemove);
+            LogManager.d(TAG, "stopRangingBeaconsInRegion count "+rangedRegions.size());
         }
         applyChangesToServices(BeaconService.MSG_STOP_RANGING, region);
     }

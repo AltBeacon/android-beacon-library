@@ -67,7 +67,7 @@ public class ScanJobScheduler {
 
     void ensureNotificationProcessorSetup(Context context) {
         if (mBeaconNotificationProcessor == null) {
-            mBeaconNotificationProcessor = new BeaconLocalBroadcastProcessor(context);
+            mBeaconNotificationProcessor = BeaconLocalBroadcastProcessor.getInstance(context);
         }
         mBeaconNotificationProcessor.register();
     }

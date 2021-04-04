@@ -252,7 +252,7 @@ public class BeaconService extends Service {
 
     private void ensureNotificationProcessorSetup() {
         if (mBeaconNotificationProcessor == null) {
-            mBeaconNotificationProcessor = new BeaconLocalBroadcastProcessor(this);
+            mBeaconNotificationProcessor = BeaconLocalBroadcastProcessor.getInstance(this);
             mBeaconNotificationProcessor.register();
         }
     }

@@ -56,7 +56,6 @@ import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 import org.altbeacon.beacon.utils.ProcessUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -141,7 +140,7 @@ public class BeaconManager {
     protected final Set<MonitorNotifier> monitorNotifiers = new CopyOnWriteArraySet<>();
 
     @NonNull
-    private final ArrayList<Region> rangedRegions = new ArrayList<>();
+    private final Set<Region> rangedRegions = new CopyOnWriteArraySet<>();
 
     @NonNull
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
@@ -838,9 +837,8 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        synchronized (rangedRegions) {
-            rangedRegions.add(region);
-        }
+        rangedRegions.remove(region);
+        rangedRegions.add(region);
         applyChangesToServices(BeaconService.MSG_START_RANGING, region);
     }
 
@@ -863,15 +861,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        synchronized (rangedRegions) {
-            Region regionToRemove = null;
-            for (Region rangedRegion : rangedRegions) {
-                if (region.getUniqueId().equals(rangedRegion.getUniqueId())) {
-                    regionToRemove = rangedRegion;
-                }
-            }
-            rangedRegions.remove(regionToRemove);
-        }
+        rangedRegions.remove(region);
         applyChangesToServices(BeaconService.MSG_STOP_RANGING, region);
     }
 
@@ -1096,13 +1086,23 @@ public class BeaconManager {
     }
 
     /**
-     * @return the list of regions currently being ranged
+     * Read-only access to the {@link Region} instances currently being ranged
+     * <p>
+     * This provides a thread-safe "read-only" view.
+     * Attempts to modify the returned set, or its iterator, will throw an
+     * {@link UnsupportedOperationException}. Modifications to the underlying set should be made
+     * through {@link #startRangingBeaconsInRegion(Region)} and
+     * {@link #stopRangingBeaconsInRegion(Region)}.
+     *
+     * @return a thread-safe {@linkplain Collections#unmodifiableSet(Set) unmodifiable view}
+     * providing "read-only" access to the registered {@link Region} instances
+     * @see #startRangingBeaconsInRegion(Region)
+     * @see #stopRangingBeaconsInRegion(Region)
+     * @see Collections#unmodifiableSet(Set)
      */
     @NonNull
     public Collection<Region> getRangedRegions() {
-        synchronized(this.rangedRegions) {
-            return new ArrayList<>(this.rangedRegions);
-        }
+        return Collections.unmodifiableSet(rangedRegions);
     }
 
     /**

@@ -369,7 +369,8 @@ public class BeaconService extends Service {
         synchronized (mScanHelper.getRangedRegionState()) {
             if (mScanHelper.getRangedRegionState().containsKey(region)) {
                 LogManager.i(TAG, "Already ranging that region -- will replace existing region.");
-                mScanHelper.getRangedRegionState().remove(region); // need to remove it, otherwise the old object will be retained because they are .equal //FIXME That is not true
+                // Need to explicitly remove because only value is updated for equals keys.
+                mScanHelper.getRangedRegionState().remove(region);
             }
             mScanHelper.getRangedRegionState().put(region, new RangeState(callback));
             LogManager.d(TAG, "Currently ranging %s regions.", mScanHelper.getRangedRegionState().size());

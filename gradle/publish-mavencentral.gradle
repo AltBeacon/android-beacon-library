@@ -38,20 +38,12 @@ artifacts {
 group = PUBLISH_GROUP_ID
 version = PUBLISH_VERSION
 
-//ext["signing.keyId"] = ''
-//ext["signing.password"] = ''
-//ext["signing.secretKeyRingFile"] = ''
-//ext["ossrhUsername"] = ''
-//ext["ossrhPassword"] = ''
-//ext["sonatypeStagingProfileId"] = ''
-
-
 ext["signing.keyId"] = project.hasProperty('signing.keyId') ? project.getProperty('signing.keyId') : System.getenv('SIGNING_KEY_ID')
 ext["signing.password"] = project.hasProperty('signing.password') ? project.getProperty('signing.password') : System.getenv('SIGNING_PASSWORD')
 ext["signing.secretKeyRingFile"] = project.hasProperty('signing.secretKeyRingFile') ? project.getProperty('signing.secretKeyRingFile') : System.getenv('SIGNING_SECRET_KEY_RING_FILE')
 ext["ossrhUsername"] = project.hasProperty('ossrhUsername') ? project.getProperty('ossrhUsername') : System.getenv('OSSRH_USERNAME')
 ext["ossrhPassword"] = project.hasProperty('ossrhPassword') ? project.getProperty('ossrhPassword') : System.getenv('OSSRH_PASSWORD')
-ext["sonatypeStagingProfileId"] = project.hasProperty('sonatypeStagingProfileId') ? project.getProperty('sonatypeStagingProfileId'): System.getenv('SONATYPE_STAGING_PROFILE_ID')
+ext["sonatypeStagingProfileId"] = project.hasProperty('sonatypeStagingProfileId') ? project.getProperty('sonatypeStagingProfileId') : System.getenv('SONATYPE_STAGING_PROFILE_ID')
 
 publishing {
     publications {
@@ -118,9 +110,17 @@ publishing {
     }
 }
 
+nexusStaging {
+    packageGroup = PUBLISH_GROUP_ID
+    stagingProfileId = sonatypeStagingProfileId
+    username = ossrhUsername
+    password = ossrhPassword
+}
+
 signing {
     sign publishing.publications
 }
+
 
 task release(dependsOn: [ 'clean', 'build', 'renameAarForRelease', 'androidSourcesJar']) {
     doLast {

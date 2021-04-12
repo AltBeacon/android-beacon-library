@@ -63,8 +63,8 @@ publishing {
 
             pom {
                 name = PUBLISH_ARTIFACT_ID
-                description = 'Stream Chat official Android SDK'
-                url = 'https://github.com/getstream/stream-chat-android'
+                description = 'Android Beacon Library'
+                url = 'https://altbeacon.github.io/android-beacon-library'
                 licenses {
                     license {
                         name = 'Apache 2'

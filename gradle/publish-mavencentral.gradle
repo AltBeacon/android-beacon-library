@@ -67,22 +67,20 @@ publishing {
                 url = 'https://github.com/getstream/stream-chat-android'
                 licenses {
                     license {
-                        name = 'Stream License'
-                        url = 'https://github.com/GetStream/stream-chat-android/blob/master/LICENSE'
+                        name = 'Apache 2'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
                     }
                 }
                 developers {
                     developer {
-                        id = 'zsmb13'
-                        name = 'Marton Braun'
-                        email = 'marton@getstream.io'
+                        name = 'David G. Young'
+                        email = 'tech@davidgyoung.com'
                     }
-                    // Other devs...
                 }
                 scm {
-                    connection = 'scm:git:github.com/getstream/stream-chat-android.git'
-                    developerConnection = 'scm:git:ssh://github.com/getstream/stream-chat-android.git'
-                    url = 'https://github.com/getstream/stream-chat-android/tree/main'
+                    connection = 'scm:git:github.com/AltBeacon/android-beacon-library.git'
+                    developerConnection = 'scm:git:ssh://github.com/AltBeacon/android-beacon-library.git'
+                    url = 'https://github.com/AltBeacon/android-beacon-library'
                 }
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')

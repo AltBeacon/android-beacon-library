@@ -28,7 +28,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import java.util.List;
 
 import org.altbeacon.beacon.logging.LogManager;
@@ -84,8 +83,6 @@ public class BluetoothMedic {
     private static final String TAG = BluetoothMedic.class.getSimpleName();
     @Nullable
     private BluetoothAdapter mAdapter;
-    @Nullable
-    private LocalBroadcastManager mLocalBroadcastManager;
     @NonNull
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private int mTestType = 0;
@@ -100,6 +97,38 @@ public class BluetoothMedic {
     private static final long MIN_MILLIS_BETWEEN_BLUETOOTH_POWER_CYCLES = 60000L;
     @Nullable
     private static BluetoothMedic sInstance;
+    private boolean powerCycleOnFailureEnabled = false;
+    @Nullable
+    private Context mContext = null;
+
+    public void processMedicAction(String action, int errorCode) {
+        if (powerCycleOnFailureEnabled) {
+            if(action.equalsIgnoreCase("onScanFailed")) {
+                if(errorCode == 2) {
+                    LogManager.i(BluetoothMedic.TAG,
+                            "Detected a SCAN_FAILED_APPLICATION_REGISTRATION_FAILED.  We need to cycle bluetooth to recover");
+                    BluetoothMedic.this.sendScreenNotification( "scan failed",
+                            "Power cycling bluetooth");
+                    if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
+                        BluetoothMedic.this.sendScreenNotification( "scan failed", "" +
+                                "Cannot power cycle bluetooth again");
+                    }
+                }
+            } else if(action.equalsIgnoreCase("onStartFailed")) {
+                if(errorCode == 4) {
+                    LogManager.i(BluetoothMedic.TAG, "advertising failed: Expected failure.  Power cycling.");
+                    BluetoothMedic.this.sendScreenNotification("advertising failed",
+                            "Expected failure.  Power cycling.");
+                    if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
+                        BluetoothMedic.this.sendScreenNotification("advertising failed",
+                                "Cannot power cycle bluetooth again");
+                    }
+                }
+            } else {
+                LogManager.d(BluetoothMedic.TAG, "Unknown event.");
+            }
+        }
+    }
     @RequiresApi(21)
     private BroadcastReceiver mBluetoothEventReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -110,22 +139,22 @@ public class BluetoothMedic {
                 if(action.equalsIgnoreCase("onScanFailed")) {
                     errorCode = intent.getIntExtra("errorCode", -1);
                     if(errorCode == 2) {
-                        BluetoothMedic.this.sendNotification(context, "scan failed",
+                        BluetoothMedic.this.sendScreenNotification("scan failed",
                                 "Power cycling bluetooth");
                         LogManager.d(BluetoothMedic.TAG,
                                 "Detected a SCAN_FAILED_APPLICATION_REGISTRATION_FAILED.  We need to cycle bluetooth to recover");
                         if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
-                            BluetoothMedic.this.sendNotification(context, "scan failed", "" +
+                            BluetoothMedic.this.sendScreenNotification( "scan failed", "" +
                                     "Cannot power cycle bluetooth again");
                         }
                     }
                 } else if(action.equalsIgnoreCase("onStartFailed")) {
                     errorCode = intent.getIntExtra("errorCode", -1);
                     if(errorCode == 4) {
-                        BluetoothMedic.this.sendNotification(context, "advertising failed",
+                        BluetoothMedic.this.sendScreenNotification( "advertising failed",
                                 "Expected failure.  Power cycling.");
                         if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
-                            BluetoothMedic.this.sendNotification(context, "advertising failed",
+                            BluetoothMedic.this.sendScreenNotification( "advertising failed",
                                     "Cannot power cycle bluetooth again");
                         }
                     }
@@ -135,6 +164,7 @@ public class BluetoothMedic {
             }
         }
     };
+
 
 
     /**
@@ -153,13 +183,12 @@ public class BluetoothMedic {
 
     @RequiresApi(21)
     private void initializeWithContext(Context context) {
-        if (this.mAdapter == null || this.mLocalBroadcastManager == null) {
+        if (this.mAdapter == null) {
             BluetoothManager manager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
             if(manager == null) {
                 throw new NullPointerException("Cannot get BluetoothManager");
             } else {
                 this.mAdapter = manager.getAdapter();
-                this.mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
             }
         }
     }
@@ -173,16 +202,11 @@ public class BluetoothMedic {
     @SuppressWarnings("unused")
     @RequiresApi(21)
     public void enablePowerCycleOnFailures(Context context) {
+        mContext = context.getApplicationContext();
+        powerCycleOnFailureEnabled = true;
         initializeWithContext(context);
-        if (this.mLocalBroadcastManager != null) {
-            this.mLocalBroadcastManager.registerReceiver(this.mBluetoothEventReceiver,
-                    new IntentFilter("onScanFailed"));
-            this.mLocalBroadcastManager.registerReceiver(this.mBluetoothEventReceiver,
-                    new IntentFilter("onStartFailure"));
-            LogManager.d(TAG,
-                    "Medic monitoring for transmission and scan failure notifications with receiver: "
-                            + this.mBluetoothEventReceiver);
-        }
+        LogManager.d(TAG,
+                    "Medic monitoring for transmission and scan failure notifications");
     }
 
     /**
@@ -238,19 +262,12 @@ public class BluetoothMedic {
 
                 public void onScanFailed(int errorCode) {
                     super.onScanFailed(errorCode);
-                    LogManager.d(BluetoothMedic.TAG, "Sending onScanFailed broadcast with " +
-                            BluetoothMedic.this.mLocalBroadcastManager);
-                    Intent intent = new Intent("onScanFailed");
-                    intent.putExtra("errorCode", errorCode);
-                    if (BluetoothMedic.this.mLocalBroadcastManager != null) {
-                        BluetoothMedic.this.mLocalBroadcastManager.sendBroadcast(intent);
-                    }
-                    LogManager.d(BluetoothMedic.TAG, "broadcast: " + intent +
-                            " should be received by " + BluetoothMedic.this.mBluetoothEventReceiver);
+                    LogManager.d(BluetoothMedic.TAG, "Sending onScanFailed event");
+                    BluetoothMedic.this.processMedicAction("onScanFailed", errorCode);
                     if(errorCode == 2) {
                         LogManager.w(BluetoothMedic.TAG,
                                 "Scan test failed in a way we consider a failure");
-                        BluetoothMedic.this.sendNotification(context,
+                        BluetoothMedic.this.sendScreenNotification(
                                 "scan failed", "bluetooth not ok");
                         BluetoothMedic.this.mScanTestResult = false;
                     } else {
@@ -326,25 +343,17 @@ public class BluetoothMedic {
 
                     public void onStartFailure(int errorCode) {
                         super.onStartFailure(errorCode);
-                        Intent intent = new Intent("onStartFailed");
-                        intent.putExtra("errorCode", errorCode);
-                        LogManager.d(BluetoothMedic.TAG, "Sending onStartFailure broadcast with "
-                                + BluetoothMedic.this.mLocalBroadcastManager);
-                        if (BluetoothMedic.this.mLocalBroadcastManager != null) {
-                            BluetoothMedic.this.mLocalBroadcastManager.sendBroadcast(intent);
-                        }
+                        LogManager.d(BluetoothMedic.TAG, "Sending onStartFailure event");
+                        BluetoothMedic.this.processMedicAction("onStartFailed", errorCode);
                         if(errorCode == 4) {
                             BluetoothMedic.this.mTransmitterTestResult = false;
                             LogManager.w(BluetoothMedic.TAG,
                                     "Transmitter test failed in a way we consider a test failure");
-                            BluetoothMedic.this.sendNotification(context, "transmitter failed",
-                                    "bluetooth not ok");
                         } else {
                             BluetoothMedic.this.mTransmitterTestResult = true;
                             LogManager.i(BluetoothMedic.TAG,
                                     "Transmitter test failed, but not in a way we consider a test failure");
                         }
-
                     }
                 });
             } else {
@@ -418,7 +427,12 @@ public class BluetoothMedic {
     }
 
     @RequiresApi(21)
-    private void sendNotification(Context context, String message, String detail) {
+    private void sendScreenNotification(String message, String detail) {
+        Context context = mContext;
+        if (context == null) {
+            LogManager.e(TAG, "congtext is unexpectedly null");
+            return;
+        }
         initializeWithContext(context);
         if(this.mNotificationsEnabled) {
             if (!this.mNotificationChannelCreated) {
@@ -445,7 +459,6 @@ public class BluetoothMedic {
         }
     }
 
-    @RequiresApi(21)
     private void createNotificationChannel(Context context, String channelId) {
         // On Android 8.0 and above posting a notification without a
         // channel is an error. So create a notification channel 'err'

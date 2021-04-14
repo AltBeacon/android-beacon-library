@@ -28,7 +28,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import androidx.annotation.NonNull;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.altbeacon.beacon.logging.LogManager;
 
@@ -49,42 +48,43 @@ import org.altbeacon.beacon.logging.LogManager;
  */
 public class BeaconLocalBroadcastProcessor {
     private static final String TAG = "BeaconLocalBroadcastProcessor";
+    private static BeaconLocalBroadcastProcessor mInstance = null;
 
     public static final String RANGE_NOTIFICATION = "org.altbeacon.beacon.range_notification";
     public static final String MONITOR_NOTIFICATION = "org.altbeacon.beacon.monitor_notification";
+
+    public static synchronized BeaconLocalBroadcastProcessor getInstance(Context context) {
+        if (mInstance == null) {
+            mInstance = new BeaconLocalBroadcastProcessor(context);
+        }
+        return mInstance;
+    }
 
     @NonNull
     private Context mContext;
     private BeaconLocalBroadcastProcessor() {
 
     }
-    public BeaconLocalBroadcastProcessor(Context context) {
+    private BeaconLocalBroadcastProcessor(Context context) {
         mContext = context;
 
     }
 
-    static int registerCallCount = 0;
-    int registerCallCountForInstnace = 0;
+    int registerCallCount = 0;
     public void register() {
         registerCallCount += 1;
-        registerCallCountForInstnace += 1;
-        LogManager.d(TAG, "Register calls: global="+registerCallCount+" instance="+registerCallCountForInstnace);
+        LogManager.d(TAG, "Register calls: global="+registerCallCount);
         unregister();
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mLocalBroadcastReceiver,
-                new IntentFilter(RANGE_NOTIFICATION));
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mLocalBroadcastReceiver,
-                new IntentFilter(MONITOR_NOTIFICATION));
     }
 
     public void unregister() {
-        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mLocalBroadcastReceiver);
+        registerCallCount -= 1;
     }
 
 
-    private BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
+    public void onReceive(Context context, Intent intent) {
+        if (registerCallCount > 0) {
             new IntentHandler().convertIntentsToCallbacks(context, intent);
         }
-    };
+    }
 }

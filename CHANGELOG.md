@@ -1,3 +1,9 @@
+### 2.18 / 2021-04-14
+
+- Remove dependency on androidx.localbroadcastmanager.content.LocalBroadcastManager (#1022, David G. Young)
+- Redo build scripts and publishing setup for Maven Central due to JCenter sunset (#1022, David G. Young)
+- Prevent internal growth of rangedRegions tracking set  (#922, Oleksandr Vandalko)
+
 ### 2.17.1 / 2020-06-11
 
 - Parse multiple manufacturer sections in the advertisement and the scan response to look for beacons.  (#970, David G. Young)

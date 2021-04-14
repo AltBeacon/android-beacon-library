@@ -830,6 +830,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void startRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "startRangingBeaconsInRegion");
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -854,6 +855,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "stopRangingBeaconsInRegion");
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;

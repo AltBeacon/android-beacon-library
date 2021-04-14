@@ -12,8 +12,8 @@ import java.util.Set;
 
 /**
  * Converts internal Intents for ranging/monitoring to notifier callbacks.
- * These may be local broadcast intents from BeaconLocalBroadcastProcessor or
- * global broadcast intents fro BeaconIntentProcessor
+ * These may be direct method calls from BeaconLocalBroadcastProcessor or
+ * global broadcast intents from BeaconIntentProcessor
  *
  * Internal library class.  Do not use directly from outside the library
  *

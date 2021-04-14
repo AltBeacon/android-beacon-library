@@ -1,0 +1,140 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    if (project.plugins.findPlugin("com.android.library")) {
+        from android.sourceSets.main.java.srcDirs
+        //from android.sourceSets.main.kotlin.srcDirs
+    } else {
+        from sourceSets.main.java.srcDirs
+        from sourceSets.main.kotlin.srcDirs
+    }
+    doLast {
+        println "Making source jar from ${android.sourceSets.main.java.srcDirs}"
+    }
+}
+
+task renameAarForRelease(type: Copy, dependsOn: build) {
+    description = "Rename the aar for easy release publishing"
+
+    from "$buildDir/outputs/aar/" //${project.name}-release.aar
+    into "$buildDir/outputs/aar/" //${project.name}-${project.version}.aar"
+    include "${project.name}-release.aar"
+    rename { String fileName ->
+        fileName = "${project.name}-${project.version}.aar"
+    }
+    println "Renamed aar to ${project.name}-${project.version}.aar"
+
+}
+
+artifacts {
+    archives androidSourcesJar
+    //archives javadocJar
+}
+
+
+group = PUBLISH_GROUP_ID
+version = PUBLISH_VERSION
+
+ext["signing.keyId"] = project.hasProperty('signing.keyId') ? project.getProperty('signing.keyId') : System.getenv('SIGNING_KEY_ID')
+ext["signing.password"] = project.hasProperty('signing.password') ? project.getProperty('signing.password') : System.getenv('SIGNING_PASSWORD')
+ext["signing.secretKeyRingFile"] = project.hasProperty('signing.secretKeyRingFile') ? project.getProperty('signing.secretKeyRingFile') : System.getenv('SIGNING_SECRET_KEY_RING_FILE')
+ext["ossrhUsername"] = project.hasProperty('ossrhUsername') ? project.getProperty('ossrhUsername') : System.getenv('OSSRH_USERNAME')
+ext["ossrhPassword"] = project.hasProperty('ossrhPassword') ? project.getProperty('ossrhPassword') : System.getenv('OSSRH_PASSWORD')
+ext["sonatypeStagingProfileId"] = project.hasProperty('sonatypeStagingProfileId') ? project.getProperty('sonatypeStagingProfileId') : System.getenv('SONATYPE_STAGING_PROFILE_ID')
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId PUBLISH_GROUP_ID
+            artifactId PUBLISH_ARTIFACT_ID
+            version PUBLISH_VERSION
+
+            if (project.plugins.findPlugin("com.android.library")) {
+                artifact("$buildDir/outputs/aar/${project.name}-release.aar")
+               //artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+            } else {
+                artifact("$buildDir/libs/${project.getName()}-${version}.jar")
+            }
+
+            artifact androidSourcesJar
+
+            pom {
+                name = PUBLISH_ARTIFACT_ID
+                description = 'Android Beacon Library'
+                url = 'https://altbeacon.github.io/android-beacon-library'
+                licenses {
+                    license {
+                        name = 'Apache 2'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'David G. Young'
+                        email = 'tech@davidgyoung.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com/AltBeacon/android-beacon-library.git'
+                    developerConnection = 'scm:git:ssh://github.com/AltBeacon/android-beacon-library.git'
+                    url = 'https://github.com/AltBeacon/android-beacon-library'
+                }
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    project.configurations.implementation.allDependencies.each {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+            credentials {
+                username ossrhUsername
+                password ossrhPassword
+            }
+        }
+    }
+}
+
+nexusStaging {
+    packageGroup = PUBLISH_GROUP_ID
+    stagingProfileId = sonatypeStagingProfileId
+    username = ossrhUsername
+    password = ossrhPassword
+}
+
+signing {
+    sign publishing.publications
+}
+
+
+task release(dependsOn: [ 'clean', 'build', 'renameAarForRelease', 'androidSourcesJar']) {
+    doLast {
+        println "Building with version=$version"
+    }
+}
+
+task mavenPublish(dependsOn: ['release','publishReleasePublicationToSonatypeRepository']) {
+    doLast {
+        println "Publishing"
+    }
+}
+
+build.mustRunAfter clean
+renameAarForRelease.mustRunAfter build
+publishReleasePublicationToSonatypeRepository.mustRunAfter release
+androidSourcesJar.mustRunAfter clean
+
+

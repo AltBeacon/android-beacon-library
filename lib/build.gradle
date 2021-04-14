@@ -1,34 +1,36 @@
-apply plugin: 'com.android.library'
-apply from: '../gradle/version.gradle'
-apply plugin: "com.vanniktech.android.javadoc"
+plugins {
+    id 'com.android.library'
+}
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
 
     defaultConfig {
-        // Unfortunately 'com.android.support:appcompat-v7:26.0.0'
-        // requires minSdkVersion 14, forcing a bump verson minSdkVersion 7
-        // But since only 0.8% of Android devices have < SDK 14 as of Une 2017, this will become
-        // the new min version for this library in order to target Android O
-        minSdkVersion 14
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 30
         versionCode 1
-        versionName version
-        consumerProguardFiles 'proguard-rules.pro'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+        // The hack below is because VERSION_NAME has been removed from BuildConfig as of Gradle Plugin 4.1
+        def addConstant = {constantName, constantValue ->
+            manifestPlaceholders += [ (constantName):constantValue]
+            buildConfigField "String", "${constantName}", "\"${constantValue}\""
+        }
+        addConstant("VERSION_NAME", version)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
     compileOptions {
-        encoding "UTF-8"
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
-
-    lintOptions {
-        abortOnError false
-    }
-
     packagingOptions {
         exclude 'LICENSE.txt'
         exclude 'META-INF/LICENSE'
@@ -43,14 +45,17 @@ android {
             includeAndroidResources = true
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
-
-    implementation fileTree ( dir: 'libs', include: ['*.jar'] )
-    
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.annotation:annotation:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.3.0'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.robolectric:robolectric:4.1'
@@ -65,6 +70,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
 }
 
-apply from: '../gradle/package.gradle'
-
-
+ext {
+    PUBLISH_GROUP_ID = 'org.altbeacon'
+    PUBLISH_VERSION = version
+    PUBLISH_ARTIFACT_ID = 'android-beacon-library'
+}
+apply from: "../gradle/publish-mavencentral.gradle"

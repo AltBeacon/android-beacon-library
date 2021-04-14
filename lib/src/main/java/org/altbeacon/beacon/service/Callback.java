@@ -27,10 +27,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import org.altbeacon.beacon.BeaconLocalBroadcastProcessor;
-import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
 
 import java.io.IOException;
@@ -52,37 +49,21 @@ public class Callback implements Serializable {
      * @return false if it callback cannot be made
      */
     public boolean call(Context context, String dataName, Bundle data) {
-        boolean useLocalBroadcast = BeaconManager.getInstanceForApplication(context).isMainProcess();
         boolean success = false;
 
-        if(useLocalBroadcast) {
-            String action = null;
-            if (dataName == "rangingData") {
-                action = BeaconLocalBroadcastProcessor.RANGE_NOTIFICATION;
-            }
-            else {
-                action = BeaconLocalBroadcastProcessor.MONITOR_NOTIFICATION;
-            }
-            Intent intent = new Intent(action);
-            intent.putExtra(dataName, data);
-            LogManager.d(TAG, "attempting callback via local broadcast intent: %s",action);
-            success = LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-        }
-        else {
-            Intent intent = new Intent();
-            intent.setComponent(new ComponentName(context.getPackageName(), "org.altbeacon.beacon.BeaconIntentProcessor"));
-            intent.putExtra(dataName, data);
-            LogManager.d(TAG, "attempting callback via global broadcast intent: %s",intent.getComponent());
-            try {
-                context.startService(intent);
-                success = true;
-            } catch (Exception e) {
-                LogManager.e(
-                        TAG,
-                        "Failed attempting to start service: " + intent.getComponent().flattenToString(),
-                        e
-                );
-            }
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName(context.getPackageName(), "org.altbeacon.beacon.BeaconIntentProcessor"));
+        intent.putExtra(dataName, data);
+        LogManager.d(TAG, "attempting callback via global broadcast intent: %s",intent.getComponent());
+        try {
+            context.startService(intent);
+            success = true;
+        } catch (Exception e) {
+            LogManager.e(
+                    TAG,
+                    "Failed attempting to start service: " + intent.getComponent().flattenToString(),
+                    e
+            );
         }
         return success;
     }

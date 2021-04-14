@@ -18,14 +18,7 @@ at a frequency of approximately 1Hz.
 
 ## Documentation
 
-The [project website](http://altbeacon.github.io/android-beacon-library/) has [full documentation](http://altbeacon.github.io/android-beacon-library/documentation.html) including [Javadocs.](http://altbeacon.github.io/android-beacon-library/javadoc/)
-
-## Changes from the 0.x library version
-
-This library has changed significantly from the 0.x library version and is now designed to work with
-open AltBeacons which fully support Android without any intellectual property restrictions.  For
-more information on how to migrate projects using the 0.x APIs to the 2.x APIs, see
-[API migration.](api-migrate.md)
+The [project website](http://altbeacon.github.io/android-beacon-library/) has [full documentation](http://altbeacon.github.io/android-beacon-library/documentation.html) 
 
 ## Downloads
 
@@ -33,13 +26,13 @@ more information on how to migrate projects using the 0.x APIs to the 2.x APIs, 
 
 You may [download binary releases here.](http://altbeacon.github.io/android-beacon-library/download.html)
 
-### JCenter
+### Maven
 
 Add JCenter to your build file's list of repositories.
 
 ```groovy
 repositories {
-    jcenter()
+   mavenCentral()
 }
 ```
 
@@ -58,13 +51,13 @@ replacing `${altbeacon.version}` with the version you wish to use.
 ## How to build this Library
 
 This project uses an AndroidStudio/gradle build system and is known working with Android Studio
-3.4.1 and Gradle 5.1.1
+4.1.3 and Gradle 6.5
 
 Key Gradle build targets:
 
-    ./gradlew test # run unit tests
+    ./gradlew test # run unit tests. To see results: `open lib/build/reports/tests/testDebugUnitTest/index.html`
     ./gradlew build # development build
-    ./gradlew release -Prelease # release build
+    ./gradlew release # release build
 
 ## License
 
@@ -88,23 +81,23 @@ If you want to help with the open source project, contact david@radiusnetworks.c
 
 The following instructions are for project administrators.
 
-1. Upload you Sonotype signing keypair to Bintray
+1. Prerequisites: https://getstream.io/blog/publishing-libraries-to-mavencentral-2021/ 
 
 2. Configure your  ~/.gradle/gradle.properties with:
 
         signing.keyId=<my key id>
         signing.password=<my passphrase>
-        signing.secretKeyRingFile=~/.gnupg/secring.gpg
-        signingPassword=<my passphrase>
-        
-        bintrayUserName=<bintray username>
-        bintrayKey=<bintray api key>
+        signing.secretKeyRingFile=<path to exported gpg file>
+        signing.password=<my passphrase>
+        ossrhUsername=<sonotype server username>
+        ossrhPassword=<sonotype server password>
 
 3. Run the build and upload
 
         git tag <version>
         git push --tags 
-        ./gradlew release -Prelease
-        ./gradlew bintrayUpload -Prelease
+        ./gradlew release 
+        ./gradlew mavenPublish
+        ./gradlew closeAndReleaseRepository
 
-4. Log in to JCenter, hit the button to publish the release, then select the Maven tab and enter your credentials to Sync to Maven
+4. Keep checking for a half hour or so at https://repo1.maven.org/maven2/org/altbeacon/android-beacon-library/ to see that the new release shows up.

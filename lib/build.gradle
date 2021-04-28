@@ -7,7 +7,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 14
         targetSdkVersion 30
         versionCode 1
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -75,4 +75,8 @@ ext {
     PUBLISH_VERSION = version
     PUBLISH_ARTIFACT_ID = 'android-beacon-library'
 }
-apply from: "../gradle/publish-mavencentral.gradle"
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("release") ||
+        getGradle().getStartParameter().getTaskRequests().toString().contains("mavenPublish") ||
+        getGradle().getStartParameter().getTaskRequests().toString().contains("closeAndReleaseRepository")) {
+    apply from: "../gradle/publish-mavencentral.gradle"
+}

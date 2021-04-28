@@ -54,5 +54,9 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-apply plugin: 'io.codearte.nexus-staging'
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("release") ||
+        getGradle().getStartParameter().getTaskRequests().toString().contains("mavenPublish") ||
+        getGradle().getStartParameter().getTaskRequests().toString().contains("closeAndReleaseRepository")) {
+    apply plugin: 'io.codearte.nexus-staging'
+}
 

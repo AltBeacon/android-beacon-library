@@ -96,7 +96,7 @@ The following instructions are for project administrators.
 
         git tag <version>
         git push --tags 
-        ./gradlew release 
+        ./gradlew release
         ./gradlew mavenPublish
         ./gradlew closeAndReleaseRepository
 

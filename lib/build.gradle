@@ -77,8 +77,12 @@ ext {
     PUBLISH_VERSION = version
     PUBLISH_ARTIFACT_ID = 'android-beacon-library'
 }
-apply from: "../gradle/publish-mavencentral.gradle"
 apply plugin: 'kotlin-android'
 repositories {
     mavenCentral()
+}
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("release") ||
+        getGradle().getStartParameter().getTaskRequests().toString().contains("mavenPublish") ||
+        getGradle().getStartParameter().getTaskRequests().toString().contains("closeAndReleaseRepository")) {
+    apply from: "../gradle/publish-mavencentral.gradle"
 }

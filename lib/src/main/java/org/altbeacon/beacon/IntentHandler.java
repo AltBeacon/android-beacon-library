@@ -56,17 +56,21 @@ class IntentHandler {
             if (dataNotifier != null) {
                 dataNotifier.didRangeBeaconsInRegion(beacons, rangingData.getRegion());
             }
+            if (BeaconManager.getInstanceForApplication(context).isRegionViewModelInitialized(rangingData.getRegion())) {
+                RegionViewModel regionViewModel = BeaconManager.getInstanceForApplication(context).getRegionViewModel(rangingData.getRegion());
+                regionViewModel.getRangedBeacons().postValue(rangingData.getBeacons());
+            }
         }
 
         if (monitoringData != null) {
             LogManager.d(TAG, "got monitoring data");
             Set<MonitorNotifier> notifiers = BeaconManager.getInstanceForApplication(context).getMonitoringNotifiers();
+            Region region = monitoringData.getRegion();
+            Integer state = monitoringData.isInside() ? MonitorNotifier.INSIDE :
+                    MonitorNotifier.OUTSIDE;
             if (notifiers != null) {
                 for(MonitorNotifier notifier : notifiers) {
                     LogManager.d(TAG, "Calling monitoring notifier: %s", notifier);
-                    Region region = monitoringData.getRegion();
-                    Integer state = monitoringData.isInside() ? MonitorNotifier.INSIDE :
-                            MonitorNotifier.OUTSIDE;
                     notifier.didDetermineStateForRegion(state, region);
                     // In case the beacon scanner is running in a separate process, the monitoring
                     // status in this process  will not have been updated yet as a result of this
@@ -79,6 +83,11 @@ class IntentHandler {
                     }
                 }
             }
+            if (BeaconManager.getInstanceForApplication(context).isRegionViewModelInitialized(monitoringData.getRegion())) {
+                RegionViewModel regionViewModel = BeaconManager.getInstanceForApplication(context).getRegionViewModel(monitoringData.getRegion());
+                regionViewModel.getRegionState().postValue(state);
+            }
+
         }
 
     }

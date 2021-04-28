@@ -7,7 +7,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 14
         targetSdkVersion 30
         versionCode 1
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -68,6 +68,8 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.1.0'
     androidTestImplementation 'org.apache.commons:commons-math3:3.6.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    implementation "androidx.core:core-ktx:+"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 ext {
@@ -76,3 +78,7 @@ ext {
     PUBLISH_ARTIFACT_ID = 'android-beacon-library'
 }
 apply from: "../gradle/publish-mavencentral.gradle"
+apply plugin: 'kotlin-android'
+repositories {
+    mavenCentral()
+}

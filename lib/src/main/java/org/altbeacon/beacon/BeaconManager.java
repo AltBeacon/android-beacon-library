@@ -58,6 +58,7 @@ import org.altbeacon.beacon.utils.ProcessUtils;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -215,6 +216,27 @@ public class BeaconManager {
     private long foregroundBetweenScanPeriod = DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD;
     private long backgroundScanPeriod = DEFAULT_BACKGROUND_SCAN_PERIOD;
     private long backgroundBetweenScanPeriod = DEFAULT_BACKGROUND_BETWEEN_SCAN_PERIOD;
+    private HashMap<Region,RegionViewModel> mRegionViewModels = new HashMap<Region,RegionViewModel>();
+
+    /**
+     * LiveData object for getting beacon ranging and monitoring updates
+     * @return
+     */
+    public @NonNull RegionViewModel getRegionViewModel(Region region) {
+        RegionViewModel regionViewModel = mRegionViewModels.get(region);
+        if (regionViewModel != null) {
+            return regionViewModel;
+        }
+        else {
+            regionViewModel = new RegionViewModel();
+            mRegionViewModels.put(region,regionViewModel);
+            return regionViewModel;
+        }
+    }
+
+    public boolean isRegionViewModelInitialized(Region region) {
+        return mRegionViewModels.get(region) != null;
+    }
 
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.

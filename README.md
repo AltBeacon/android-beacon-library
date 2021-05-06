@@ -87,7 +87,7 @@ The following instructions are for project administrators.
 
         signing.keyId=<my key id>
         signing.password=<my passphrase>
-        signing.secretKeyRingFile=<1ath to exported gpg file>
+        signing.secretKeyRingFile=<path to exported gpg file>
         signing.password=<my passphrase>
         ossrhUsername=<sonotype server username>
         ossrhPassword=<sonotype server password>

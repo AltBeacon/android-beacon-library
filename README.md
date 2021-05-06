@@ -28,7 +28,7 @@ You may [download binary releases here.](http://altbeacon.github.io/android-beac
 
 ### Maven
 
-Add JCenter to your build file's list of repositories.
+Add Maven Central to your build file's list of repositories.
 
 ```groovy
 repositories {
@@ -36,7 +36,7 @@ repositories {
 }
 ```
 
-to use the JCenter Repository
+to use the Maven Central Repository
 
 ```groovy
 dependencies {
@@ -87,7 +87,7 @@ The following instructions are for project administrators.
 
         signing.keyId=<my key id>
         signing.password=<my passphrase>
-        signing.secretKeyRingFile=<path to exported gpg file>
+        signing.secretKeyRingFile=<1ath to exported gpg file>
         signing.password=<my passphrase>
         ossrhUsername=<sonotype server username>
         ossrhPassword=<sonotype server password>

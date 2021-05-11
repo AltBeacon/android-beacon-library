@@ -11,6 +11,12 @@ import org.altbeacon.beacon.logging.LogManager;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+/**
+ * Utility class for detecting when an Android device enters and leaves various Doze modes
+ * April 02, 2019
+ * (c) 2019 David G. Young
+ * Apache 2 License
+ */
 public class DozeDetector {
     private static final String TAG = DozeDetector.class.getSimpleName();
 

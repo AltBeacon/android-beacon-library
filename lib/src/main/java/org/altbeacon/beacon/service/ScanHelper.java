@@ -298,7 +298,6 @@ class ScanHelper {
         }
     };
 
-    @RestrictTo(Scope.TESTS)
     CycledLeScanCallback getCycledLeScanCallback() {
         return mCycledLeScanCallback;
     }

@@ -44,6 +44,7 @@ import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.service.Callback;
+import org.altbeacon.beacon.service.IntentScanStrategyCoordinator;
 import org.altbeacon.beacon.service.MonitoringStatus;
 import org.altbeacon.beacon.service.RangeState;
 import org.altbeacon.beacon.service.RangedBeacon;
@@ -156,6 +157,8 @@ public class BeaconManager {
     @Nullable
     private Boolean mScannerInSameProcess = null;
     private boolean mScheduledScanJobsEnabled = false;
+    @Nullable
+    private IntentScanStrategyCoordinator mIntentScanStrategyCoordinator = null;
     private static boolean sAndroidLScanningDisabled = false;
     private static boolean sManifestCheckingDisabled = false;
 
@@ -436,7 +439,11 @@ public class BeaconManager {
             }
             else {
                 LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
-                if (mScheduledScanJobsEnabled) {
+                if (mIntentScanStrategyCoordinator != null) {
+                    mIntentScanStrategyCoordinator.start();
+                    consumer.onBeaconServiceConnect();
+                }
+                else if (mScheduledScanJobsEnabled) {
                     LogManager.d(TAG, "Not starting beacon scanning service. Using scheduled jobs");
                     consumer.onBeaconServiceConnect();
                 }
@@ -477,7 +484,11 @@ public class BeaconManager {
         synchronized (consumers) {
             if (consumers.containsKey(consumer)) {
                 LogManager.d(TAG, "Unbinding");
-                if (mScheduledScanJobsEnabled) {
+
+                if (mIntentScanStrategyCoordinator != null) {
+                    LogManager.d(TAG, "Not unbinding as we are using intent scanning strategy");
+                }
+                else if (mScheduledScanJobsEnabled) {
                     LogManager.d(TAG, "Not unbinding from scanning service as we are using scan jobs.");
                 }
                 else {
@@ -497,6 +508,10 @@ public class BeaconManager {
                             ScanJobScheduler.getInstance().cancelSchedule(mContext);
                         }
                     }
+                    else if (mIntentScanStrategyCoordinator != null) {
+                        mIntentScanStrategyCoordinator.stop();
+                    }
+
                 }
             }
             else {
@@ -533,7 +548,7 @@ public class BeaconManager {
     public boolean isAnyConsumerBound() {
         synchronized(consumers) {
             return !consumers.isEmpty() &&
-                    (mScheduledScanJobsEnabled || serviceMessenger != null);
+                    (mIntentScanStrategyCoordinator != null || mScheduledScanJobsEnabled || serviceMessenger != null);
         }
     }
 
@@ -614,7 +629,34 @@ public class BeaconManager {
         }
         mScheduledScanJobsEnabled = enabled;
     }
-    
+
+    public void setIntentScanningStrategyEnabled(boolean enabled) {
+        if (isAnyConsumerBound()) {
+            LogManager.e(TAG, "IntentScanningStrategy may not be configured because a consumer is" +
+                    " already bound.");
+            throw new IllegalStateException("Method must be called before calling bind()");
+        }
+        if (enabled && android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            LogManager.e(TAG, "IntentScanningStrategy may not be configured because Intent Scanning is not" +
+                    " availble prior to Android 8.0");
+            return;
+        }
+        if(enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ScanJobScheduler.getInstance().cancelSchedule(mContext);
+            mIntentScanStrategyCoordinator = new IntentScanStrategyCoordinator(mContext);
+        }
+        else {
+            mIntentScanStrategyCoordinator = null;
+        }
+    }
+
+    /**
+     * Internal use only by the library.
+     * @return
+     */
+    public IntentScanStrategyCoordinator getIntentScanStrategyCoordinator() {
+        return mIntentScanStrategyCoordinator;
+    }
     public boolean getScheduledScanJobsEnabled() {
         return mScheduledScanJobsEnabled;
     }
@@ -909,6 +951,10 @@ public class BeaconManager {
     }
 
     protected void syncSettingsToService() {
+        if (mIntentScanStrategyCoordinator != null) {
+            mIntentScanStrategyCoordinator.applySettings();
+            return;
+        }
         if (mScheduledScanJobsEnabled) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
@@ -942,7 +988,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (mScheduledScanJobsEnabled) {
+        if (mScheduledScanJobsEnabled || mIntentScanStrategyCoordinator != null) {
             MonitoringStatus.getInstanceForApplication(mContext).addRegion(region, new Callback(callbackPackageName()));
         }
         applyChangesToServices(BeaconService.MSG_START_MONITORING, region);
@@ -973,7 +1019,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (mScheduledScanJobsEnabled) {
+        if (mScheduledScanJobsEnabled || mIntentScanStrategyCoordinator != null) {
             MonitoringStatus.getInstanceForApplication(mContext).removeRegion(region);
         }
         applyChangesToServices(BeaconService.MSG_STOP_MONITORING, region);
@@ -1006,6 +1052,10 @@ public class BeaconManager {
     private void applyChangesToServices(int type, Region region) throws RemoteException {
         if (!isAnyConsumerBound()) {
             LogManager.w(TAG, "The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
+            return;
+        }
+        if (mIntentScanStrategyCoordinator != null) {
+            mIntentScanStrategyCoordinator.applySettings();
             return;
         }
         if (mScheduledScanJobsEnabled) {

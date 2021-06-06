@@ -161,6 +161,10 @@ public class Region implements Parcelable, Serializable {
         return mIdentifiers.size() > i ? mIdentifiers.get(i) : null;
     }
 
+    public List<Identifier> getIdentifiers() {
+        return new ArrayList<>(mIdentifiers);
+    }
+
     /**
      * Returns the identifier used to start or stop ranging/monitoring this region when calling
      * the <code>BeaconManager</code> methods.

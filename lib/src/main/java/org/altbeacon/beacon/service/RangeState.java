@@ -62,6 +62,12 @@ public class RangeState implements Serializable {
         }
     }
 
+    public int count() {
+        synchronized (mRangedBeacons) {
+            return mRangedBeacons.size();
+        }
+    }
+
     // returns a list of beacons that are tracked, and then removes any from the list that should not
     // be there for the next cycle
     public synchronized Collection<Beacon> finalizeBeacons() {

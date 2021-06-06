@@ -57,6 +57,7 @@ import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 import org.altbeacon.beacon.utils.ProcessUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -471,6 +472,30 @@ public class BeaconManager {
     }
 
     /**
+     * Internal library use only.
+     * This will trigger a failover from the intent scan strategy to jobs or a foreground service
+     */
+    public void handleStategyFailover() {
+        if (mIntentScanStrategyCoordinator != null) {
+            if (mIntentScanStrategyCoordinator.getDisableOnFailure() && mIntentScanStrategyCoordinator.getStrategyFailureDetected()) {
+                mIntentScanStrategyCoordinator = null;
+                LogManager.d(TAG, "unbinding all consumers for failover from intent strategy");
+                List<BeaconConsumer> oldConsumers = new ArrayList<BeaconConsumer>(consumers.keySet());
+                for (BeaconConsumer consumer: oldConsumers) {
+                    this.unbind(consumer);
+                }
+                // No reason to delay between the two of these because there is no asynchonous behavior
+                // on unbinding with the intent scan strategy -- it is not a service
+                LogManager.d(TAG, "binding all consumers for failover from intent strategy");
+                for (BeaconConsumer consumer: oldConsumers) {
+                    this.bind(consumer);
+                }
+                LogManager.d(TAG, "Done with failover");
+            }
+        }
+    }
+
+    /**
      * Unbinds an Android <code>Activity</code> or <code>Service</code> to the <code>BeaconService</code>.  This should
      * typically be called in the onDestroy() method.
      *
@@ -502,16 +527,12 @@ public class BeaconManager {
                     // release the serviceMessenger.
                     serviceMessenger = null;
                     // If we are using scan jobs, we cancel the active scan job
-                    if (mScheduledScanJobsEnabled) {
+                    if (mScheduledScanJobsEnabled || mIntentScanStrategyCoordinator != null) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             LogManager.i(TAG, "Cancelling scheduled jobs after unbind of last consumer.");
                             ScanJobScheduler.getInstance().cancelSchedule(mContext);
                         }
                     }
-                    else if (mIntentScanStrategyCoordinator != null) {
-                        mIntentScanStrategyCoordinator.stop();
-                    }
-
                 }
             }
             else {
@@ -641,7 +662,7 @@ public class BeaconManager {
                     " availble prior to Android 8.0");
             return;
         }
-        if(enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if(enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ScanJobScheduler.getInstance().cancelSchedule(mContext);
             mIntentScanStrategyCoordinator = new IntentScanStrategyCoordinator(mContext);
         }

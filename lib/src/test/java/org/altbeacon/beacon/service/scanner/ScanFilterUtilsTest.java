@@ -46,7 +46,7 @@ public class ScanFilterUtilsTest {
         org.robolectric.shadows.ShadowLog.stream = System.err;
         BeaconParser parser = new AltBeaconParser();
         BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
-        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser, null);
         assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
         ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("manufacturer should be right", 0x0118, sfd.manufacturer);
@@ -60,7 +60,7 @@ public class ScanFilterUtilsTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:2-3=1111,i:4-6,p:24-24");
         BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
-        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser, null);
         assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
         ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("manufacturer should be right", 0x004c, sfd.manufacturer);
@@ -75,7 +75,7 @@ public class ScanFilterUtilsTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout(BeaconParser.EDDYSTONE_UID_LAYOUT);
         BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
-        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser, null);
         assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
         ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("serviceUuid should be right", new Long(0xfeaa), sfd.serviceUuid);
@@ -87,7 +87,7 @@ public class ScanFilterUtilsTest {
         BeaconParser parser = new BeaconParser();
         parser.setBeaconLayout("m:0-3=11223344,i:4-6,p:24-24");
         BeaconManager.setsManifestCheckingDisabled(true); // no manifest available in robolectric
-        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser);
+        List<ScanFilterUtils.ScanFilterData> scanFilterDatas = new ScanFilterUtils().createScanFilterDataForBeaconParser(parser, null);
         assertEquals("scanFilters should be of correct size", 1, scanFilterDatas.size());
         ScanFilterUtils.ScanFilterData sfd = scanFilterDatas.get(0);
         assertEquals("manufacturer should be right", 0x004c, sfd.manufacturer);

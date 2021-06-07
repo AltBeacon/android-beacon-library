@@ -221,7 +221,9 @@ public class BeaconManager {
     /**
      * LiveData object for getting beacon ranging and monitoring updates
      * @return
+     * @deprecated this method is experimental and subject to modification or removal at any time.
      */
+    @Deprecated
     public @NonNull RegionViewModel getRegionViewModel(Region region) {
         RegionViewModel regionViewModel = mRegionViewModels.get(region);
         if (regionViewModel != null) {

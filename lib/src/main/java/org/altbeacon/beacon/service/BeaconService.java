@@ -196,6 +196,7 @@ public class BeaconService extends Service {
     @MainThread
     @Override
     public void onCreate() {
+        this.startForegroundIfConfigured();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             bluetoothCrashResolver = new BluetoothCrashResolver(this);
             bluetoothCrashResolver.start();
@@ -246,7 +247,6 @@ public class BeaconService extends Service {
         } catch (Exception e) {
             LogManager.e(e, TAG, "Cannot get simulated Scan data.  Make sure your org.altbeacon.beacon.SimulatedScanData class defines a field with the signature 'public static List<Beacon> beacons'");
         }
-        this.startForegroundIfConfigured();
     }
 
 

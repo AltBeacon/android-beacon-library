@@ -1,3 +1,9 @@
+### 2.19-beta / 2021-04028
+
+- Reduce crashes on starting foreground service (#1024, David G. Young)
+- Reduce minSdk to 14 (#1023 David G. Young)
+- Add experimental LiveData interface (#1025, David G. Young)
+
 ### 2.18 / 2021-04-14
 
 - Remove dependency on androidx.localbroadcastmanager.content.LocalBroadcastManager (#1022, David G. Young)

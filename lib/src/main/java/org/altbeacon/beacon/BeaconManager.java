@@ -477,7 +477,7 @@ public class BeaconManager {
      */
     public void handleStategyFailover() {
         if (mIntentScanStrategyCoordinator != null) {
-            if (mIntentScanStrategyCoordinator.getDisableOnFailure() && mIntentScanStrategyCoordinator.getStrategyFailureDetected()) {
+            if (mIntentScanStrategyCoordinator.getDisableOnFailure() && mIntentScanStrategyCoordinator.getLastStrategyFailureDetectionCount() > 0) {
                 mIntentScanStrategyCoordinator = null;
                 LogManager.d(TAG, "unbinding all consumers for failover from intent strategy");
                 List<BeaconConsumer> oldConsumers = new ArrayList<BeaconConsumer>(consumers.keySet());

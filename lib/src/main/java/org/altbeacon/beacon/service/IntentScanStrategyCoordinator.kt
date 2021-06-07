@@ -13,7 +13,6 @@ import androidx.annotation.RequiresApi
 import org.altbeacon.beacon.BeaconManager
 import org.altbeacon.beacon.Region
 import org.altbeacon.beacon.logging.LogManager
-import org.altbeacon.bluetooth.BluetoothMedic
 import java.util.*
 
 class IntentScanStrategyCoordinator(val context: Context) {
@@ -23,7 +22,8 @@ class IntentScanStrategyCoordinator(val context: Context) {
     private var started = false
     private var longScanForcingEnabled = false
     private var lastCycleEnd: Long = 0
-    var strategyFailureDetected = false
+    var strategyFailureDetectionCount = 0
+    var lastStrategyFailureDetectionCount = 0
     var disableOnFailure = false
 
     fun ensureInitialized() {
@@ -145,12 +145,18 @@ class IntentScanStrategyCoordinator(val context: Context) {
         ensureInitialized()
         for (scanResult in scanResults) {
             if (scanResult != null) {
-                LogManager.d(TAG, "Got scan result: "+scanResult)
+                //LogManager.d(TAG, "Got scan result: "+scanResult)
                 scanHelper.processScanResult(scanResult.device, scanResult.rssi, scanResult.scanRecord?.bytes, scanResult.timestampNanos/1000)
             }
         }
         val now = java.lang.System.currentTimeMillis()
-        if (now - lastCycleEnd > BeaconManager.getInstanceForApplication(context).getForegroundScanPeriod()) {
+        val beaconManager = BeaconManager.getInstanceForApplication(context)
+        var scanPeriod = beaconManager.foregroundScanPeriod
+        if (beaconManager.backgroundMode) {
+            scanPeriod = beaconManager.backgroundScanPeriod
+        }
+
+        if (now - lastCycleEnd > scanPeriod) {
             LogManager.d(TAG, "End of scan cycle");
             lastCycleEnd = now
             scanHelper.getCycledLeScanCallback().onCycleEnd()
@@ -181,7 +187,9 @@ class IntentScanStrategyCoordinator(val context: Context) {
         var anythingDetectedWithIntentScan = scanHelper.anyBeaconsDetectedThisCycle()
         if (anythingDetectedWithIntentScan) {
             LogManager.d(TAG, "We have detected beacons with the intent scan.  No need to do a backup scan.")
-            // return
+            strategyFailureDetectionCount = 0
+            lastStrategyFailureDetectionCount = 0
+            return
         }
 
         if (adapter != null) {
@@ -221,10 +229,11 @@ class IntentScanStrategyCoordinator(val context: Context) {
                         if (scanHelper.anyBeaconsDetectedThisCycle()) {
                             // We have detected beacons with the backup scan but we failed to do so with the regular scan
                             // this indicates a failure in the intent scanning technique.
-                            if (!strategyFailureDetected) {
+                            if (strategyFailureDetectionCount == lastStrategyFailureDetectionCount) {
                                 LogManager.e(TAG, "We have detected a beacon with the backup scan without a filter.  We never detected one with the intent scan with a filter.  This technique will not work.")
                             }
-                            strategyFailureDetected = true
+                            lastStrategyFailureDetectionCount = strategyFailureDetectionCount
+                            strategyFailureDetectionCount++
                         }
                     }
                     scanner.stopScan(callback)
@@ -239,7 +248,7 @@ class IntentScanStrategyCoordinator(val context: Context) {
             }
         }
         LogManager.d(TAG, "backup scan complete")
-        if (disableOnFailure && strategyFailureDetected) {
+        if (disableOnFailure && strategyFailureDetectionCount > 0) {
             BeaconManager.getInstanceForApplication(context).handleStategyFailover()
         }
         // Call this a  second time to clear out beacons detected in the log 5-25 minute region

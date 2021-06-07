@@ -1,6 +1,6 @@
 ### 2.19-beta2 / 2021-06-07
 
-- Add experimental IntentScanStrategy to eliminate a foreground service for some background scan use cases. (#1034, David G. Young)
+- Add experimental IntentScanStrategy to eliminate a foreground service for some background scan use cases. (#1030, David G. Young)
 - Update service declarations as required for Android 12 (#1033, David G. Young)
 
 ### 2.19-beta / 2021-04-28

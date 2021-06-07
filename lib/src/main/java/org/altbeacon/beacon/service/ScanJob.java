@@ -66,6 +66,17 @@ public class ScanJob extends JobService {
         LogManager.d(TAG, "ScanJob Lifecycle START: "+ScanJob.this);
         new Thread(new Runnable() {
             public void run() {
+                IntentScanStrategyCoordinator intentStrategyCoord = BeaconManager.getInstanceForApplication(ScanJob.this).getIntentScanStrategyCoordinator();
+                if (intentStrategyCoord != null) {
+                    // If we are using the intent scan strategy, we simply make an extra call to deliver no
+                    // scan results.  This will trigger processing that will exit a region if no detections
+                    // have happneed recently.  This ensures that a region exit will happen at least on every job
+                    // cycle.
+                    LogManager.d(TAG, "Scan job calling IntentScanStrategyCoordinator");
+                    intentStrategyCoord.performPeriodicProcessing(ScanJob.this);
+                    ScanJob.this.jobFinished(jobParameters , false);
+                    return;
+                }
                 if (!initialzeScanHelper()) {
                     LogManager.e(TAG, "Cannot allocate a scanner to look for beacons.  System resources are low.");
                     ScanJob.this.jobFinished(jobParameters , false);
@@ -164,15 +175,7 @@ public class ScanJob extends JobService {
     private void startPassiveScanIfNeeded() {
         if (mScanState != null) {
             LogManager.d(TAG, "Checking to see if we need to start a passive scan");
-            boolean insideAnyRegion = false;
-            // Clone the collection before iterating to prevent ConcurrentModificationException per #577
-            List<Region> regions = new ArrayList<>(mScanState.getMonitoringStatus().regions());
-            for (Region region : regions) {
-                RegionMonitoringState state = mScanState.getMonitoringStatus().stateOf(region);
-                if (state != null && state.getInside()) {
-                    insideAnyRegion = true;
-                }
-            }
+            boolean insideAnyRegion = mScanState.getMonitoringStatus().insideAnyRegion();
             if (insideAnyRegion) {
                 // TODO: Set up a scan filter for not detecting a beacon pattern
                 LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");

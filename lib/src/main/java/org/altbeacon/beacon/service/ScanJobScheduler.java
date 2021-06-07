@@ -139,6 +139,27 @@ public class ScanJobScheduler {
         schedule(context, scanState, false);
     }
 
+    public void scheduleForIntentScanStrategy(Context context) {
+        JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(ScanJob.getPeriodicScanJobId(context), new ComponentName(context, ScanJob.class))
+                .setPersisted(true) // This makes it restart after reboot
+                .setExtras(new PersistableBundle());
+
+        long fifteenMinutesMillis = 15*60*1000;
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            periodicJobBuilder.setPeriodic(fifteenMinutesMillis, 0L).build();
+        }
+        else {
+            periodicJobBuilder.setPeriodic(fifteenMinutesMillis).build();
+        }
+        final JobInfo jobInfo = periodicJobBuilder.build();
+        LogManager.d(TAG, "Scheduling periodic ScanJob " + jobInfo + " to run every 15 minutes");
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        int error = jobScheduler.schedule(jobInfo);
+        if (error < 0) {
+            LogManager.e(TAG, "Failed to schedule a periodic scan job to look for region exits. Error: "+error);
+        }
+    }
+
     private void schedule(Context context, ScanState scanState, boolean backgroundWakeup) {
         ensureNotificationProcessorSetup(context);
 

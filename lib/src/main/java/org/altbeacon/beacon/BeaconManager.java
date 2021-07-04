@@ -146,6 +146,12 @@ public class BeaconManager {
     private final Set<Region> rangedRegions = new CopyOnWriteArraySet<>();
 
     @NonNull
+    private final Set<Region> autoBindRangedRegions = new CopyOnWriteArraySet<>();
+    @NonNull
+    private final Set<Region> autoBindMonitoredRegions = new CopyOnWriteArraySet<>();
+
+
+    @NonNull
     private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
 
     @Nullable
@@ -931,6 +937,38 @@ public class BeaconManager {
     }
 
     /**
+     * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
+     * <code>Region</code> object, and providing updates on the estimated mDistance every seconds while
+     * beacons in the Region are visible.  Note that the Region's unique identifier must be retained to
+     * later call the stopRangingBeaconsInRegion method.
+     *
+     * This is an auto-binding variant of the call that relies on a single beacon consumer.  Do not
+     * combine calls to this method with manual calls to bind() and unbind().
+     *
+     * @param region
+     * @see BeaconManager#setRangeNotifier(RangeNotifier)
+     * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
+     * @see RangeNotifier
+     * @see Region
+     */
+    @TargetApi(18)
+    public void startRangingBeacons(@NonNull Region region) {
+        LogManager.d(TAG, "startRanging");
+        if (isAnyConsumerBound()) {
+            try {
+                startRangingBeaconsInRegion(region);
+            } catch (RemoteException e) {
+                LogManager.e(TAG, "Failed to start ranging", e);
+            }
+        }
+        else {
+            autoBindRangedRegions.remove(region);
+            autoBindRangedRegions.add(region);
+            autoBind();
+        }
+    }
+
+    /**
      * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
      * <code>Region</code> object and providing mDistance information for them.
      *
@@ -952,6 +990,34 @@ public class BeaconManager {
         }
         rangedRegions.remove(region);
         applyChangesToServices(BeaconService.MSG_STOP_RANGING, region);
+    }
+
+    /**
+     * Tells the library to stop looking for beacons that match the passed
+     * <code>Region</code> object and providing distance information for them.
+     *
+     * @param region
+     * @see #setMonitorNotifier(MonitorNotifier notifier)
+     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see MonitorNotifier
+     * @see Region
+     *
+     * This is an auto-bind variant of this method.  Do not combine use of this method with manual
+     * calls to bind() and unbind()
+     */
+    @TargetApi(18)
+    public void stopRangingBeacons(@NonNull Region region) {
+        LogManager.d(TAG, "stopRangingBeacons");
+        if (isAnyConsumerBound()) {
+            try {
+                stopRangingBeaconsInRegion(region);
+            } catch (RemoteException e) {
+                LogManager.e(TAG, "Cannot stop ranging", e);
+            }
+        }
+        else {
+            autoBindMonitoredRegions.remove(region);
+        }
     }
 
     /**
@@ -998,6 +1064,7 @@ public class BeaconManager {
      *
      * @param region
      * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     *
      * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
      * @see Region
@@ -1023,7 +1090,39 @@ public class BeaconManager {
     }
 
     /**
-     * Tells the <code>BeaconService</code> to stop looking for beacons that match the passed
+     * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
+     * <code>Region</code> object.  Note that the Region's unique identifier must be retained to
+     * later call the stopMonitoringBeaconsInRegion method.
+     *
+     * @param region
+     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     *
+     * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
+     * @see MonitorNotifier
+     * @see Region
+     *
+     * This is an auto-bind variant of this method.  Do not combine its use with manual calls to
+     * bind() and unbind()
+     */
+    @TargetApi(18)
+    public void startMonitoringBeacons(@NonNull Region region) {
+        if (isAnyConsumerBound()) {
+            try {
+                startMonitoringBeaconsInRegion(region);
+            } catch (RemoteException e) {
+                LogManager.e(TAG, "Failed to start monitoring", e);
+            }
+
+        }
+        else {
+            autoBindMonitoredRegions.remove(region);
+            autoBindMonitoredRegions.add(region);
+            autoBind();
+        }
+    }
+
+    /**
+     * Tells the library to stop looking for beacons that match the passed
      * <code>Region</code> object.  Note that the Region's unique identifier is used to match it to
      * an existing monitored Region.
      *
@@ -1048,6 +1147,34 @@ public class BeaconManager {
         applyChangesToServices(BeaconService.MSG_STOP_MONITORING, region);
         if (isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).removeLocalRegion(region);
+        }
+    }
+
+    /**
+     * Tells the library to stop looking for beacons that match the passed
+     * <code>Region</code> object.  Note that the Region's unique identifier is used to match it to
+     * an existing monitored Region.
+     *
+     * @param region
+     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)
+     * @see MonitorNotifier
+     * @see Region
+     *
+     * This is an auto-bind variant of this method.  Do not combine its use with manual calls to
+     * bind() and unbind()
+     */
+    @TargetApi(18)
+    public void stopMonitoringBeacons(@NonNull Region region) {
+        if (isAnyConsumerBound()) {
+            try {
+                stopRangingBeaconsInRegion(region);
+            } catch (RemoteException e) {
+                LogManager.e(TAG, "Failed to stop monitoring", e);
+            }
+        }
+        else {
+            autoBindMonitoredRegions.remove(region);
         }
     }
 
@@ -1550,5 +1677,73 @@ public class BeaconManager {
 
     private void setScheduledScanJobsEnabledDefault() {
         mScheduledScanJobsEnabled = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
+
+    @Nullable
+    private BeaconConsumer autoBindConsumer = null;
+
+    public boolean isAutoBindActive() {
+        return autoBindConsumer != null;
+    }
+
+    /**
+     * When using auto-bind, this method will shut down the foreground service or scheduled jobs
+     * needed to keep scanning going if there are no longer any ranged or monitored regions.
+     * @return true if services were shut down.
+     */
+    public boolean shutdownIfIdle() {
+        if (autoBindConsumer != null) {
+            if (rangedRegions.size() == 0 && getMonitoredRegions().size() == 0) {
+                if (autoBindConsumer != null) {
+                    unbind(autoBindConsumer);
+                    autoBindConsumer = null;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private synchronized void autoBind() {
+        if (autoBindConsumer == null) {
+            autoBindConsumer = new BeaconConsumer() {
+
+                @Override
+                public void onBeaconServiceConnect() {
+                    for (Region region: autoBindRangedRegions) {
+                        try {
+                            startRangingBeaconsInRegion(region);
+                        } catch (RemoteException e) {
+                            LogManager.e(TAG, "Failed to start ranging", e);
+                        }
+                    }
+                    for (Region region: autoBindMonitoredRegions) {
+                        try {
+                            startMonitoringBeaconsInRegion(region);
+                        } catch (RemoteException e) {
+                            LogManager.e(TAG, "Failed to start monitoring", e);
+                        }
+                    }
+                    autoBindMonitoredRegions.clear();
+                    autoBindRangedRegions.clear();
+                }
+
+                @Override
+                public Context getApplicationContext() {
+                    return mContext;
+                }
+
+                @Override
+                public void unbindService(ServiceConnection connection) {
+                    mContext.unbindService(connection);
+                }
+
+                @Override
+                public boolean bindService(Intent intent, ServiceConnection connection, int mode) {
+                    return mContext.bindService(intent, connection, mode);
+                }
+            };
+        }
+        bind(autoBindConsumer);
     }
 }

@@ -1,3 +1,9 @@
+### 2.19-beta3 / 2021-07-04
+
+- Add experimental autobind methods for starting beacon ranging/monitoring without a manual call to bind(). (#10351, David G. Young)
+- Add support for beacon parsers based on 128-bit service UUIDs (#1035, David G. Young)
+
+
 ### 2.19-beta2 / 2021-06-07
 
 - Add experimental IntentScanStrategy to eliminate a foreground service for some background scan use cases. (#1030, David G. Young)

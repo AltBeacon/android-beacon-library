@@ -23,6 +23,7 @@ public class ScanFilterUtils {
     public static final String TAG = "ScanFilterUtils";
     class ScanFilterData {
         public Long serviceUuid = null;
+        public byte[] serviceUuid128Bit = {};
         public int manufacturer;
         public byte[] filter;
         public byte[] mask;
@@ -77,6 +78,7 @@ public class ScanFilterUtils {
                     sfd.mask[i] = (byte) 0xff;
                 }
                 sfd.serviceUuid = null;
+                sfd.serviceUuid128Bit = new byte[0];
                 scanFilters.add(sfd);
                 return scanFilters;
             }
@@ -109,6 +111,7 @@ public class ScanFilterUtils {
             sfd.filter = filter;
             sfd.mask = mask;
             sfd.serviceUuid = serviceUuid;
+            sfd.serviceUuid128Bit = beaconParser.getServiceUuid128Bit();
             scanFilters.add(sfd);
 
         }
@@ -144,9 +147,23 @@ public class ScanFilterUtils {
                         }
                         builder.setServiceUuid(parcelUuid, parcelUuidMask);
                     }
+                    else if (sfd.serviceUuid128Bit.length != 0) {
+                        String serviceUuidString = Identifier.fromBytes(sfd.serviceUuid128Bit, 0, 16, true).toString();
+                        String serviceUuidMaskString = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF";
+                        ParcelUuid parcelUuid = ParcelUuid.fromString(serviceUuidString);
+                        ParcelUuid parcelUuidMask = ParcelUuid.fromString(serviceUuidMaskString);
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "making scan filter for service: "+serviceUuidString+" "+parcelUuid);
+                            LogManager.d(TAG, "making scan filter with service mask: "+serviceUuidMaskString+" "+parcelUuidMask);
+                        }
+                        builder.setServiceUuid(parcelUuid, parcelUuidMask);
+                    }
                     else {
                         builder.setServiceUuid(null);
                         builder.setManufacturerData((int) sfd.manufacturer, sfd.filter, sfd.mask);
+                        if (LogManager.isVerboseLoggingEnabled()) {
+                            LogManager.d(TAG, "making scan filter for manufacturer: "+sfd.manufacturer+" "+sfd.filter);
+                        }
                     }
                     ScanFilter scanFilter = builder.build();
                     if (LogManager.isVerboseLoggingEnabled()) {

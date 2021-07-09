@@ -13,7 +13,7 @@ Make sure you have a jcenter() entry in your repositories like so:
 
    ```
    repositories {
-     jcenter()
+     mavenCentral()
    }
    ```
 

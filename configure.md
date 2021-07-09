@@ -9,7 +9,7 @@ layout: android-beacon-library
 
 Step 1. Configure your app's build.gradle File
 
-Make sure you have a jcenter() entry in your repositories like so:
+Make sure you have a mavenCentral() entry in your repositories like so:
 
    ```
    repositories {

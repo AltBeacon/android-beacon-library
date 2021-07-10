@@ -42,6 +42,7 @@ import androidx.annotation.Nullable;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
+import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.service.Callback;
 import org.altbeacon.beacon.service.IntentScanStrategyCoordinator;
@@ -51,6 +52,7 @@ import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.ScanJobScheduler;
+import org.altbeacon.beacon.service.ScanState;
 import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
@@ -61,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -146,9 +149,9 @@ public class BeaconManager {
     private final Set<Region> rangedRegions = new CopyOnWriteArraySet<>();
 
     @NonNull
-    private final Set<Region> autoBindRangedRegions = new CopyOnWriteArraySet<>();
+    private final Set<Region> autoBindRangedRegions = new HashSet<>();
     @NonNull
-    private final Set<Region> autoBindMonitoredRegions = new CopyOnWriteArraySet<>();
+    private final Set<Region> autoBindMonitoredRegions = new HashSet<>();
 
 
     @NonNull
@@ -231,7 +234,6 @@ public class BeaconManager {
     /**
      * LiveData object for getting beacon ranging and monitoring updates
      * @return
-     * @deprecated this method is experimental and subject to modification or removal at any time.
      */
     @Deprecated
     public @NonNull RegionViewModel getRegionViewModel(Region region) {
@@ -607,6 +609,13 @@ public class BeaconManager {
         }
         mBackgroundModeUninitialized = false;
         if (backgroundMode != mBackgroundMode) {
+            // If we are using the intent scan strategy, use a transition to foreground as an
+            // opportunity to check for region exits and do a backup scan.
+            if (!backgroundMode) {
+                if (getIntentScanStrategyCoordinator() != null) {
+                    getIntentScanStrategyCoordinator().performPeriodicProcessing(mContext);
+                }
+            }
             mBackgroundMode = backgroundMode;
             try {
                 this.updateScanPeriods();
@@ -778,7 +787,7 @@ public class BeaconManager {
      *
      * @param notifier The {@link MonitorNotifier} to register.
      * @see MonitorNotifier
-     * @see #startMonitoringBeaconsInRegion(Region)
+     * @see #startMonitoring(Region)
      * @see Region
      * @deprecated replaced by {@link #addMonitorNotifier}
      */
@@ -803,7 +812,7 @@ public class BeaconManager {
      *
      * @param notifier The {@link MonitorNotifier} to register.
      * @see MonitorNotifier
-     * @see #startMonitoringBeaconsInRegion(Region)
+     * @see #startMonitoring(Region)
      * @see Region
      */
     public void addMonitorNotifier(@NonNull MonitorNotifier notifier) {
@@ -830,7 +839,7 @@ public class BeaconManager {
      *
      * @param notifier The {@link MonitorNotifier} to unregister.
      * @see MonitorNotifier
-     * @see #startMonitoringBeaconsInRegion(Region)
+     * @see #startMonitoring(Region)
      * @see Region
      */
     public boolean removeMonitorNotifier(@NonNull MonitorNotifier notifier) {
@@ -920,6 +929,8 @@ public class BeaconManager {
      * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
      * @see RangeNotifier
      * @see Region
+     *
+     * @deprecated use startRangingBeacons which does not require manually calling bind
      */
     @TargetApi(18)
     public void startRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
@@ -950,10 +961,12 @@ public class BeaconManager {
      * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
      * @see RangeNotifier
      * @see Region
+     *
      */
     @TargetApi(18)
     public void startRangingBeacons(@NonNull Region region) {
         LogManager.d(TAG, "startRanging");
+        ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
                 startRangingBeaconsInRegion(region);
@@ -962,8 +975,10 @@ public class BeaconManager {
             }
         }
         else {
-            autoBindRangedRegions.remove(region);
-            autoBindRangedRegions.add(region);
+            synchronized (autoBindRangedRegions) {
+                autoBindRangedRegions.remove(region);
+                autoBindRangedRegions.add(region);
+            }
             autoBind();
         }
     }
@@ -974,9 +989,11 @@ public class BeaconManager {
      *
      * @param region
      * @see #setMonitorNotifier(MonitorNotifier notifier)
-     * @see #startMonitoringBeaconsInRegion(Region region)
+     * @see #startMonitoring(Region region)
      * @see MonitorNotifier
      * @see Region
+     *
+     * @deprecated use stopRangingBeacons which does not require manually calling bind
      */
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
@@ -997,10 +1014,7 @@ public class BeaconManager {
      * <code>Region</code> object and providing distance information for them.
      *
      * @param region
-     * @see #setMonitorNotifier(MonitorNotifier notifier)
-     * @see #startMonitoringBeaconsInRegion(Region region)
-     * @see MonitorNotifier
-     * @see Region
+     * @see #startRangingBeacons(Region region)
      *
      * This is an auto-bind variant of this method.  Do not combine use of this method with manual
      * calls to bind() and unbind()
@@ -1008,6 +1022,7 @@ public class BeaconManager {
     @TargetApi(18)
     public void stopRangingBeacons(@NonNull Region region) {
         LogManager.d(TAG, "stopRangingBeacons");
+        ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
                 stopRangingBeaconsInRegion(region);
@@ -1016,7 +1031,9 @@ public class BeaconManager {
             }
         }
         else {
-            autoBindMonitoredRegions.remove(region);
+            synchronized (autoBindMonitoredRegions) {
+                autoBindMonitoredRegions.remove(region);
+            }
         }
     }
 
@@ -1068,6 +1085,9 @@ public class BeaconManager {
      * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
      * @see Region
+     * @see BeaconManager#startMonitoring(Region region)
+     *
+     * @deprecated use stopMonitoring() which does not require manually calling bind
      */
     @TargetApi(18)
     public void startMonitoringBeaconsInRegion(@NonNull Region region) throws RemoteException {
@@ -1095,9 +1115,9 @@ public class BeaconManager {
      * later call the stopMonitoringBeaconsInRegion method.
      *
      * @param region
-     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     * @see BeaconManager#addMonitorNotifier(MonitorNotifier)
      *
-     * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
+     * @see BeaconManager#stopMonitoring(Region region)
      * @see MonitorNotifier
      * @see Region
      *
@@ -1105,7 +1125,8 @@ public class BeaconManager {
      * bind() and unbind()
      */
     @TargetApi(18)
-    public void startMonitoringBeacons(@NonNull Region region) {
+    public void startMonitoring(@NonNull Region region) {
+        ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
                 startMonitoringBeaconsInRegion(region);
@@ -1115,8 +1136,10 @@ public class BeaconManager {
 
         }
         else {
-            autoBindMonitoredRegions.remove(region);
-            autoBindMonitoredRegions.add(region);
+            synchronized(autoBindMonitoredRegions) {
+                autoBindMonitoredRegions.remove(region);
+                autoBindMonitoredRegions.add(region);
+            }
             autoBind();
         }
     }
@@ -1131,6 +1154,9 @@ public class BeaconManager {
      * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
      * @see Region
+     * @see BeaconManager#startMonitoring(Region region)
+     *
+     * @depredated  Use stopMonitoring(Region region)
      */
     @TargetApi(18)
     public void stopMonitoringBeaconsInRegion(@NonNull Region region) throws RemoteException {
@@ -1156,8 +1182,8 @@ public class BeaconManager {
      * an existing monitored Region.
      *
      * @param region
-     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
-     * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)
+     * @see BeaconManager#addMonitorNotifier(MonitorNotifier)
+     * @see BeaconManager#startMonitoring(Region region)
      * @see MonitorNotifier
      * @see Region
      *
@@ -1165,7 +1191,8 @@ public class BeaconManager {
      * bind() and unbind()
      */
     @TargetApi(18)
-    public void stopMonitoringBeacons(@NonNull Region region) {
+    public void stopMonitoring(@NonNull Region region) {
+        ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
                 stopRangingBeaconsInRegion(region);
@@ -1174,7 +1201,9 @@ public class BeaconManager {
             }
         }
         else {
-            autoBindMonitoredRegions.remove(region);
+            synchronized (autoBindMonitoredRegions) {
+                autoBindMonitoredRegions.remove(region);
+            }
         }
     }
 
@@ -1692,6 +1721,12 @@ public class BeaconManager {
      * @return true if services were shut down.
      */
     public boolean shutdownIfIdle() {
+        // We do not execute this automatically from stopRangingBeacons / stopMonitoring calls
+        // because it may cause race conditions if you stop on region and start another one
+        // instead, we expect the user to call this manually to shut down if desired.
+        // There is really no reason to call this to force an unbind anyway unless you really
+        // want to stop a foreground service that was already started.  In this case, it is under
+        // your control when that stops by calling this method.
         if (autoBindConsumer != null) {
             if (rangedRegions.size() == 0 && getMonitoredRegions().size() == 0) {
                 if (autoBindConsumer != null) {
@@ -1704,28 +1739,45 @@ public class BeaconManager {
         return false;
     }
 
+    @Nullable
+    BackgroundPowerSaver mInternalBackgroundPowerSaver = null;
+    private void ensureBackgroundPowerSaver() {
+        if (mInternalBackgroundPowerSaver == null) {
+            mInternalBackgroundPowerSaver = new BackgroundPowerSaver(mContext);
+        }
+    }
+
     private synchronized void autoBind() {
         if (autoBindConsumer == null) {
             autoBindConsumer = new BeaconConsumer() {
 
                 @Override
                 public void onBeaconServiceConnect() {
-                    for (Region region: autoBindRangedRegions) {
-                        try {
-                            startRangingBeaconsInRegion(region);
-                        } catch (RemoteException e) {
-                            LogManager.e(TAG, "Failed to start ranging", e);
-                        }
+                    if (!isBleAvailableOrSimulated()) {
+                        LogManager.w(TAG, "Method invocation will be ignored -- no BLE.");
+                        return;
                     }
-                    for (Region region: autoBindMonitoredRegions) {
-                        try {
-                            startMonitoringBeaconsInRegion(region);
-                        } catch (RemoteException e) {
-                            LogManager.e(TAG, "Failed to start monitoring", e);
+                    synchronized(autoBindRangedRegions) {
+                        for (Region region: autoBindRangedRegions) {
+                            try {
+                                startRangingBeaconsInRegion(region);
+                            } catch (RemoteException e) {
+                                LogManager.e(TAG, "Failed to start ranging", e);
+                            }
                         }
+                        autoBindRangedRegions.clear();
                     }
-                    autoBindMonitoredRegions.clear();
-                    autoBindRangedRegions.clear();
+
+                    synchronized(autoBindMonitoredRegions) {
+                        for (Region region: autoBindMonitoredRegions) {
+                            try {
+                                startMonitoringBeaconsInRegion(region);
+                            } catch (RemoteException e) {
+                                LogManager.e(TAG, "Failed to start monitoring", e);
+                            }
+                        }
+                        autoBindMonitoredRegions.clear();
+                    }
                 }
 
                 @Override

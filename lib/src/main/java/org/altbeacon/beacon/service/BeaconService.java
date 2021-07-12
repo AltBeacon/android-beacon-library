@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import static android.app.PendingIntent.FLAG_ONE_SHOT;
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
 import static android.app.PendingIntent.getBroadcast;
 
 /**
@@ -358,7 +359,7 @@ public class BeaconService extends Service {
 
     private PendingIntent getRestartIntent() {
         Intent restartIntent = new Intent(getApplicationContext(), StartupBroadcastReceiver.class);
-        return getBroadcast(getApplicationContext(), 1, restartIntent, FLAG_ONE_SHOT);
+        return getBroadcast(getApplicationContext(), 1, restartIntent, FLAG_ONE_SHOT | FLAG_IMMUTABLE);
     }
 
     /**

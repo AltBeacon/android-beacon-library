@@ -28,6 +28,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.altbeacon.beacon.BeaconIntentProcessor;
+import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.IntentHandler;
 import org.altbeacon.beacon.logging.LogManager;
 
 import java.io.IOException;
@@ -54,16 +57,23 @@ public class Callback implements Serializable {
         Intent intent = new Intent();
         intent.setComponent(new ComponentName(context.getPackageName(), "org.altbeacon.beacon.BeaconIntentProcessor"));
         intent.putExtra(dataName, data);
-        LogManager.d(TAG, "attempting callback via global broadcast intent: %s",intent.getComponent());
-        try {
-            context.startService(intent);
-            success = true;
-        } catch (Exception e) {
-            LogManager.e(
-                    TAG,
-                    "Failed attempting to start service: " + intent.getComponent().flattenToString(),
-                    e
-            );
+        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context);
+        if (beaconManager.isScannerInDifferentProcess()) {
+            LogManager.d(TAG, "attempting callback via global broadcast intent: %s",intent.getComponent());
+            try {
+                context.startService(intent);
+                success = true;
+            } catch (Exception e) {
+                LogManager.e(
+                        TAG,
+                        "Failed attempting to start service: " + intent.getComponent().flattenToString(),
+                        e
+                );
+            }
+        }
+        else {
+            LogManager.d(TAG, "attempting callback via direct method call");
+            new IntentHandler().convertIntentsToCallbacks(context, intent);
         }
         return success;
     }

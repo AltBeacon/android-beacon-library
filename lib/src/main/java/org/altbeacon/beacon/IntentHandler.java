@@ -21,8 +21,7 @@ import java.util.Set;
  * Created by dyoung on 7/20/17.
  */
 
-/* package private*/
-class IntentHandler {
+public class IntentHandler {
     private static final String TAG = IntentHandler.class.getSimpleName();
     public void convertIntentsToCallbacks(Context context, Intent intent) {
         MonitoringData monitoringData = null;

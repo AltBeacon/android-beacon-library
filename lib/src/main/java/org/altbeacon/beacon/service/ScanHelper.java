@@ -25,6 +25,7 @@ import androidx.annotation.RestrictTo.Scope;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
@@ -186,9 +187,13 @@ class ScanHelper {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers) {
+        startAndroidOBackgroundScan(beaconParsers, null);
+    }
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    void startAndroidOBackgroundScan(Set<BeaconParser> beaconParsers, List<Region> regions) {
         ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
         List<ScanFilter> filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                new ArrayList<BeaconParser>(beaconParsers));
+                new ArrayList<BeaconParser>(beaconParsers), regions);
         try {
             final BluetoothManager bluetoothManager =
                     (BluetoothManager) mContext.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
@@ -298,7 +303,6 @@ class ScanHelper {
         }
     };
 
-    @RestrictTo(Scope.TESTS)
     CycledLeScanCallback getCycledLeScanCallback() {
         return mCycledLeScanCallback;
     }
@@ -358,6 +362,17 @@ class ScanHelper {
                 }
             }
         }
+    }
+    
+    public boolean anyBeaconsDetectedThisCycle() {
+        synchronized (mRangedRegionState) {
+            for (RangeState rangeState: mRangedRegionState.values()) {
+                if (rangeState.count() > 0) {
+                    return true;
+                }
+            }
+        }
+        return mMonitoringStatus.insideAnyRegion();
     }
 
     /**

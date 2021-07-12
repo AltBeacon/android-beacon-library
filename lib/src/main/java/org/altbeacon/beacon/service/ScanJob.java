@@ -63,9 +63,28 @@ public class ScanJob extends JobService {
         // We start off on the main UI thread here.
         // But the ScanState restore from storage sometimes hangs, so we start new thread here just
         // to kick that off.  This way if the restore hangs, we don't hang the UI thread.
-        LogManager.d(TAG, "ScanJob Lifecycle START: "+ScanJob.this);
+        LogManager.i(TAG, "ScanJob Lifecycle START: "+ScanJob.this);
         new Thread(new Runnable() {
             public void run() {
+                IntentScanStrategyCoordinator intentStrategyCoord = BeaconManager.getInstanceForApplication(ScanJob.this).getIntentScanStrategyCoordinator();
+                if (intentStrategyCoord != null) {
+                    // If we are using the intent scan strategy, we simply make an extra call to deliver no
+                    // scan results.  This will trigger processing that will exit a region if no detections
+                    // have happneed recently.  This ensures that a region exit will happen at least on every job
+                    // cycle.
+                    synchronized(ScanJob.this) {
+                        if (mStopCalled) {
+                            LogManager.d(TAG, "Quitting scan job before we even start.  Somebody told us to stop.");
+                            ScanJob.this.jobFinished(jobParameters, false);
+                            return;
+                        }
+                        LogManager.d(TAG, "Scan job calling IntentScanStrategyCoordinator");
+                        intentStrategyCoord.performPeriodicProcessing(ScanJob.this);
+                        LogManager.d(TAG, "Scan job finished.  Calling jobFinished");
+                        ScanJob.this.jobFinished(jobParameters , false);
+                        return;
+                    }
+                }
                 if (!initialzeScanHelper()) {
                     LogManager.e(TAG, "Cannot allocate a scanner to look for beacons.  System resources are low.");
                     ScanJob.this.jobFinished(jobParameters , false);
@@ -164,15 +183,7 @@ public class ScanJob extends JobService {
     private void startPassiveScanIfNeeded() {
         if (mScanState != null) {
             LogManager.d(TAG, "Checking to see if we need to start a passive scan");
-            boolean insideAnyRegion = false;
-            // Clone the collection before iterating to prevent ConcurrentModificationException per #577
-            List<Region> regions = new ArrayList<>(mScanState.getMonitoringStatus().regions());
-            for (Region region : regions) {
-                RegionMonitoringState state = mScanState.getMonitoringStatus().stateOf(region);
-                if (state != null && state.getInside()) {
-                    insideAnyRegion = true;
-                }
-            }
+            boolean insideAnyRegion = mScanState.getMonitoringStatus().insideAnyRegion();
             if (insideAnyRegion) {
                 // TODO: Set up a scan filter for not detecting a beacon pattern
                 LogManager.i(TAG, "We are inside a beacon region.  We will not scan between cycles.");
@@ -192,6 +203,7 @@ public class ScanJob extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters params) {
+        LogManager.d(TAG, "onStopJob called");
         // See corresponding synchronized block in onStartJob
         synchronized(ScanJob.this) {
             mStopCalled = true;
@@ -201,9 +213,15 @@ public class ScanJob extends JobService {
             else {
                 LogManager.i(TAG, "onStopJob called for immediate scan " + this);
             }
-            LogManager.d(TAG, "ScanJob Lifecycle STOP: "+ScanJob.this);
+            LogManager.i(TAG, "ScanJob Lifecycle STOP: "+ScanJob.this);
             // Cancel the stop timer.  The OS is stopping prematurely
             mStopHandler.removeCallbacksAndMessages(null);
+
+            IntentScanStrategyCoordinator intentStrategyCoord = BeaconManager.getInstanceForApplication(ScanJob.this).getIntentScanStrategyCoordinator();
+            if (intentStrategyCoord != null) {
+                LogManager.d(TAG, "ScanJob completed for intent scan strategy.");
+                return false;
+            }
 
             stopScanning();
             startPassiveScanIfNeeded();

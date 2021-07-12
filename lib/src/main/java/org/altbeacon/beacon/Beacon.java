@@ -156,6 +156,16 @@ public class Beacon implements Parcelable, Serializable {
 
     protected int mServiceUuid = -1;
 
+
+    /**
+     * A 128 bit service uuid for the beacon
+     *
+     * This is valid only for GATT-based beacons.   If the beacon is a manufacturer data-based
+     * beacon, this field will be -1
+     */
+
+    protected byte[] mServiceUuid128Bit = {};
+
     /**
      * The Bluetooth device name.  This is a field transmitted by the remote beacon device separate
      * from the advertisement data
@@ -250,6 +260,13 @@ public class Beacon implements Parcelable, Serializable {
         mBluetoothAddress = in.readString();
         mBeaconTypeCode = in.readInt();
         mServiceUuid = in.readInt();
+        boolean hasServiceUuid128bit = in.readBoolean();
+        if (hasServiceUuid128bit) {
+            mServiceUuid128Bit = new byte[16];
+            for (int i = 0; i < 16; i++) {
+                mServiceUuid128Bit[i]= in.readByte();
+            }
+        }
         int dataSize = in.readInt();
         this.mDataFields = new ArrayList<Long>(dataSize);
         for (int i = 0; i < dataSize; i++) {
@@ -289,6 +306,7 @@ public class Beacon implements Parcelable, Serializable {
         this.mBluetoothAddress = otherBeacon.mBluetoothAddress;
         this.mBeaconTypeCode = otherBeacon.getBeaconTypeCode();
         this.mServiceUuid = otherBeacon.getServiceUuid();
+        this.mServiceUuid128Bit = otherBeacon.getServiceUuid128Bit();
         this.mBluetoothName = otherBeacon.mBluetoothName;
         this.mParserIdentifier = otherBeacon.mParserIdentifier;
         this.mMultiFrameBeacon = otherBeacon.mMultiFrameBeacon;
@@ -421,6 +439,10 @@ public class Beacon implements Parcelable, Serializable {
      */
     public int getServiceUuid() {
         return mServiceUuid;
+    }
+
+    public byte[] getServiceUuid128Bit() {
+        return mServiceUuid128Bit;
     }
 
     /**
@@ -667,6 +689,13 @@ public class Beacon implements Parcelable, Serializable {
         out.writeString(mBluetoothAddress);
         out.writeInt(mBeaconTypeCode);
         out.writeInt(mServiceUuid);
+        out.writeBoolean(mServiceUuid128Bit.length != 0);
+        if (mServiceUuid128Bit.length != 0) {
+            for (int i = 0; i < 16; i++) {
+                out.writeByte(mServiceUuid128Bit[i]);
+            }
+        }
+
         out.writeInt(mDataFields.size());
         for (Long dataField: mDataFields) {
             out.writeLong(dataField);
@@ -868,6 +897,11 @@ public class Beacon implements Parcelable, Serializable {
          */
         public Builder setServiceUuid(int serviceUuid) {
             mBeacon.mServiceUuid = serviceUuid;
+            return this;
+        }
+
+        public Builder setServiceUuid128Bit(byte[] serviceUuid128Bit) {
+            mBeacon.mServiceUuid128Bit = serviceUuid128Bit;
             return this;
         }
 

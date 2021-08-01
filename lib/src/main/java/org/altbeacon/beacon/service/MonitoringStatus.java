@@ -114,6 +114,18 @@ public class MonitoringStatus {
         }
     }
 
+    public synchronized boolean insideAnyRegion() {
+        Iterator<Region> monitoredRegionIterator = regions().iterator();
+        while (monitoredRegionIterator.hasNext()) {
+            Region region = monitoredRegionIterator.next();
+            RegionMonitoringState state = stateOf(region);
+            if (state != null && state.getInside() == true) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public synchronized void updateNewlyInsideInRegionsContaining(Beacon beacon) {
         List<Region> matchingRegions = regionsMatchingTo(beacon);
         boolean needsMonitoringStateSaving = false;

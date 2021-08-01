@@ -1195,7 +1195,7 @@ public class BeaconManager {
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
-                stopRangingBeaconsInRegion(region);
+                stopMonitoringBeaconsInRegion(region);
             } catch (RemoteException e) {
                 LogManager.e(TAG, "Failed to stop monitoring", e);
             }

@@ -448,7 +448,7 @@ public class BluetoothMedic {
 
             PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
                     0,
-                    PendingIntent.FLAG_UPDATE_CURRENT
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
             builder.setContentIntent(resultPendingIntent);
             NotificationManager notificationManager =

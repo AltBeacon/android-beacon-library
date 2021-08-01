@@ -223,6 +223,7 @@ public class ScanState implements Serializable {
             }
 
             mMonitoringStatus.saveMonitoringStatusIfOn();
+
         }
     }
 

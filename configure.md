@@ -9,11 +9,11 @@ layout: android-beacon-library
 
 Step 1. Configure your app's build.gradle File
 
-Make sure you have a jcenter() entry in your repositories like so:
+Make sure you have a mavenCentral() entry in your repositories like so:
 
    ```
    repositories {
-     jcenter()
+     mavenCentral()
    }
    ```
 
@@ -25,34 +25,8 @@ add the library AAR as a dependency like so:
    }
    ```
 
-#### Eclipse
+Step 2. Ask the User for Location Permission
 
-Step 1. Get the Library and Import it to Eclipse
-
-Download the [tar.gz file](download.html)
-
-Extract the above file
-
-Launch Eclipse and import the android-beacon-library folder above as an existing project in the workspace
-
-
-Step 2. Configure your Eclipse project
-
-Go to Project -> Properties -> Android -> Library -> Add, then select the imported project from step 1.
-
-Add the following sdk and permission declarations to your AndroidManifest.xml
-
-```
-   <uses-sdk
-        android:minSdkVersion="18"
-        android:targetSdkVersion="18" />
-         <uses-permission android:name="android.permission.BLUETOOTH"/>
-         <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-```
-
-Edit your project.properties file and add the line:
-   ```
-     manifestmerger.enabled=true
-   ```
-
-
+In order for the operating system to let you detect beacons, you will need to ask the user for LOCATION and optionally BACKGROUND_LOCATION permission.
+See [here](requesting_permission.html) for more info. 
+_

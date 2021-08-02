@@ -2,7 +2,7 @@
 layout: android-beacon-library
 ---
 
-[Kotlin]((/android-beacon-library/samples-java.html)) | **Java**
+[Kotlin]((/android-beacon-library/samples.html) | **Java**
 
 ## Reference Application
 

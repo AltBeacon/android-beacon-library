@@ -30,7 +30,10 @@ import java.util.List;
  * effectively disabling it.  When using the RegionBootstrap, any custom monitoring code must
  * therefore be placed in the callback methods in the BootstrapNotifier implementation passed to the
  * RegionBootstrap.
+ *
+ * @deprecated Will be removed in 3.0.  See http://altbeacon.github.io/android-beacon-library/autobind.html
  */
+@Deprecated
 public class RegionBootstrap {
 
     protected static final String TAG = "AppStarter";

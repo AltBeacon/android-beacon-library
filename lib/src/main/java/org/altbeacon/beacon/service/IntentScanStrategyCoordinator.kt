@@ -63,11 +63,12 @@ class IntentScanStrategyCoordinator(val context: Context) {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun applySettings() {
         scanState.applyChanges(BeaconManager.getInstanceForApplication(context))
         reinitialize()
-        restartBackgroundScan()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            restartBackgroundScan()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

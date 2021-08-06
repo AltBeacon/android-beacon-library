@@ -42,7 +42,7 @@ import androidx.annotation.Nullable;
 
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
-import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
+import org.altbeacon.beacon.powersave.BackgroundPowerSaverInternal;
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.service.Callback;
 import org.altbeacon.beacon.service.IntentScanStrategyCoordinator;
@@ -52,7 +52,6 @@ import org.altbeacon.beacon.service.RangedBeacon;
 import org.altbeacon.beacon.service.RegionMonitoringState;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.ScanJobScheduler;
-import org.altbeacon.beacon.service.ScanState;
 import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
@@ -74,48 +73,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * A class used to set up interaction with beacons from an <code>Activity</code> or <code>Service</code>.
- * This class is used in conjunction with <code>BeaconConsumer</code> interface, which provides a callback
- * when the <code>BeaconService</code> is ready to use.  Until this callback is made, ranging and monitoring
- * of beacons is not possible.
- *
- * In the example below, an Activity implements the <code>BeaconConsumer</code> interface, binds
- * to the service, then when it gets the callback saying the service is ready, it starts ranging.
- *
- * <pre><code>
- *  public class RangingActivity extends Activity implements BeaconConsumer {
- *      protected static final String TAG = "RangingActivity";
- *      private BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
- *      {@literal @}Override
- *      protected void onCreate(Bundle savedInstanceState) {
- *          super.onCreate(savedInstanceState);
- *          setContentView(R.layout.activity_ranging);
- *          beaconManager.bind(this);
- *      }
- *      {@literal @}Override
- *      protected void onDestroy() {
- *          super.onDestroy();
- *          beaconManager.unbind(this);
- *      }
- *      {@literal @}Override
- *      public void onBeaconServiceConnect() {
- *          beaconManager.setRangeNotifier(new RangeNotifier() {
- *              {@literal @}Override
- *              public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
- *                  if (beacons.size() > 0) {
- *                      Log.i(TAG, "The first beacon I see is about "+beacons.iterator().next().getDistance()+" meters away.");
- *                  }
- *              }
- *          });
- *
- *          try {
- *              beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
- *          } catch (RemoteException e) {
- *              e.printStackTrace();
- *          }
- *      }
- *  }
- *  </code></pre>
+ * A class used to set up interaction with beacons and start/stop beacon ranging/monitoring.
  *
  * @author David G. Young
  * @author Andrew Reitz <andrew@andrewreitz.com>
@@ -131,7 +89,7 @@ public class BeaconManager {
     protected static volatile BeaconManager sInstance = null;
 
     @NonNull
-    private final ConcurrentMap<BeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<InternalBeaconConsumer, ConsumerInfo> consumers = new ConcurrentHashMap<>();
 
     @Nullable
     private Messenger serviceMessenger = null;
@@ -235,7 +193,6 @@ public class BeaconManager {
      * LiveData object for getting beacon ranging and monitoring updates
      * @return
      */
-    @Deprecated
     public @NonNull RegionViewModel getRegionViewModel(Region region) {
         RegionViewModel regionViewModel = mRegionViewModels.get(region);
         if (regionViewModel != null) {
@@ -436,8 +393,17 @@ public class BeaconManager {
      * that it can get a callback when the service is ready to use.
      *
      * @param consumer the <code>Activity</code> or <code>Service</code> that will receive the callback when the service is ready.
+     * @deprecated  This method will be removed in 3.0, see http://altbeacon.github.io/android-beacon-library/autobind.html
      */
+    @Deprecated
     public void bind(@NonNull BeaconConsumer consumer) {
+        bindInternal(consumer);
+    }
+
+    /**
+     * @hide internal use only
+     */
+    public void bindInternal(@NonNull InternalBeaconConsumer consumer) {
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -490,15 +456,15 @@ public class BeaconManager {
             if (mIntentScanStrategyCoordinator.getDisableOnFailure() && mIntentScanStrategyCoordinator.getLastStrategyFailureDetectionCount() > 0) {
                 mIntentScanStrategyCoordinator = null;
                 LogManager.d(TAG, "unbinding all consumers for failover from intent strategy");
-                List<BeaconConsumer> oldConsumers = new ArrayList<BeaconConsumer>(consumers.keySet());
-                for (BeaconConsumer consumer: oldConsumers) {
-                    this.unbind(consumer);
+                List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
+                for (InternalBeaconConsumer consumer: oldConsumers) {
+                    this.unbindInternal(consumer);
                 }
                 // No reason to delay between the two of these because there is no asynchonous behavior
                 // on unbinding with the intent scan strategy -- it is not a service
                 LogManager.d(TAG, "binding all consumers for failover from intent strategy");
-                for (BeaconConsumer consumer: oldConsumers) {
-                    this.bind(consumer);
+                for (InternalBeaconConsumer consumer: oldConsumers) {
+                    this.bindInternal(consumer);
                 }
                 LogManager.d(TAG, "Done with failover");
             }
@@ -510,8 +476,17 @@ public class BeaconManager {
      * typically be called in the onDestroy() method.
      *
      * @param consumer the <code>Activity</code> or <code>Service</code> that no longer needs to use the service.
+     * @deprecated  This method will be removed in 3.0, see http://altbeacon.github.io/android-beacon-library/autobind.html
      */
+    @Deprecated
     public void unbind(@NonNull BeaconConsumer consumer) {
+        unbindInternal(consumer);
+    }
+
+    /**
+     * @hide internal use only
+     */
+    public void unbindInternal(@NonNull InternalBeaconConsumer consumer) {
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -548,8 +523,8 @@ public class BeaconManager {
             else {
                 LogManager.d(TAG, "This consumer is not bound to: %s", consumer);
                 LogManager.d(TAG, "Bound consumers: ");
-                Set<Map.Entry<BeaconConsumer, ConsumerInfo>> consumers = this.consumers.entrySet();
-                for (Map.Entry<BeaconConsumer, ConsumerInfo> consumerEntry : consumers) {
+                Set<Map.Entry<InternalBeaconConsumer, ConsumerInfo>> consumers = this.consumers.entrySet();
+                for (Map.Entry<InternalBeaconConsumer, ConsumerInfo> consumerEntry : consumers) {
                     LogManager.d(TAG, String.valueOf(consumerEntry.getValue()));
                 }
             }
@@ -601,8 +576,18 @@ public class BeaconManager {
      * @see #setForegroundBetweenScanPeriod(long p)
      * @see #setBackgroundScanPeriod(long p)
      * @see #setBackgroundBetweenScanPeriod(long p)
+     * @deprecated This method will be removed in 3.0, see http://altbeacon.github.io/android-beacon-library/autobind.html
      */
+    @Deprecated
     public void setBackgroundMode(boolean backgroundMode) {
+        setBackgroundModeInternal(backgroundMode);
+    }
+
+     /**
+     * Reserved for internal use by the library.
+     * @hide
+     */
+    public void setBackgroundModeInternal(boolean backgroundMode) {
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -641,8 +626,8 @@ public class BeaconManager {
      * can prohibit delivery of callbacks when the app is in the background unless the scanning
      * process is running in a foreground service.
      *
-     * This method may only be called if bind() has not yet been called, otherwise an
-     * `IllegalStateException` is thown.
+     * This method may only be called if ranging or monitoring have not yet been started otherwise an
+     * `IllegalStateException` is thrown.
      *
      * @param enabled
      */
@@ -651,7 +636,7 @@ public class BeaconManager {
         if (isAnyConsumerBound()) {
             LogManager.e(TAG, "ScanJob may not be configured because a consumer is" +
                     " already bound.");
-            throw new IllegalStateException("Method must be called before calling bind()");
+            throw new IllegalStateException("Method must be called before starting ranging or monitoring");
         }
         if (enabled && android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             LogManager.e(TAG, "ScanJob may not be configured because JobScheduler is not" +
@@ -672,7 +657,7 @@ public class BeaconManager {
         if (isAnyConsumerBound()) {
             LogManager.e(TAG, "IntentScanningStrategy may not be configured because a consumer is" +
                     " already bound.");
-            throw new IllegalStateException("Method must be called before calling bind()");
+            throw new IllegalStateException("Method must be called before starting ranging or monitoring");
         }
         if (enabled && android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             LogManager.e(TAG, "IntentScanningStrategy may not be configured because Intent Scanning is not" +
@@ -930,8 +915,9 @@ public class BeaconManager {
      * @see RangeNotifier
      * @see Region
      *
-     * @deprecated use startRangingBeacons which does not require manually calling bind
+     * @deprecated use startRangingBeacons.   This method will be removed in 3.0, see http://altbeacon.github.io/android-beacon-library/autobind.html
      */
+    @Deprecated
     @TargetApi(18)
     public void startRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
         LogManager.d(TAG, "startRangingBeaconsInRegion");
@@ -948,7 +934,7 @@ public class BeaconManager {
     }
 
     /**
-     * Tells the <code>BeaconService</code> to start looking for beacons that match the passed
+     * Tells the <code>BeaconService</code> tteo start looking for beacons that match the passed
      * <code>Region</code> object, and providing updates on the estimated mDistance every seconds while
      * beacons in the Region are visible.  Note that the Region's unique identifier must be retained to
      * later call the stopRangingBeaconsInRegion method.
@@ -993,8 +979,9 @@ public class BeaconManager {
      * @see MonitorNotifier
      * @see Region
      *
-     * @deprecated use stopRangingBeacons which does not require manually calling bind
+     * @deprecated use stopRangingBeacons.   This method will be removed in 3.0, see http://altbeacon.github.io/android-beacon-library/autobind.html
      */
+    @Deprecated
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
         LogManager.d(TAG, "stopRangingBeaconsInRegion");
@@ -1087,8 +1074,10 @@ public class BeaconManager {
      * @see Region
      * @see BeaconManager#startMonitoring(Region region)
      *
-     * @deprecated use stopMonitoring() which does not require manually calling bind
+     * @deprecated use stopMonitoring() This method will be removed in 3.0, see http://altbeacon.github.io/android-beacon-library/autobind.html
+
      */
+    @Deprecated
     @TargetApi(18)
     public void startMonitoringBeaconsInRegion(@NonNull Region region) throws RemoteException {
         if (!isBleAvailableOrSimulated()) {
@@ -1156,8 +1145,9 @@ public class BeaconManager {
      * @see Region
      * @see BeaconManager#startMonitoring(Region region)
      *
-     * @depredated  Use stopMonitoring(Region region)
+     * @deprecated  Use stopMonitoring(Region region).  This method will be remove in 3.0
      */
+    @Deprecated
     @TargetApi(18)
     public void stopMonitoringBeaconsInRegion(@NonNull Region region) throws RemoteException {
         if (!isBleAvailableOrSimulated()) {
@@ -1534,9 +1524,9 @@ public class BeaconManager {
             // This will sync settings to the scanning service if it is in a different process
             applySettings();
             synchronized(consumers) {
-                Iterator<Map.Entry<BeaconConsumer, ConsumerInfo>> iter = consumers.entrySet().iterator();
+                Iterator<Map.Entry<InternalBeaconConsumer, ConsumerInfo>> iter = consumers.entrySet().iterator();
                 while (iter.hasNext()) {
-                    Map.Entry<BeaconConsumer, ConsumerInfo> entry = iter.next();
+                    Map.Entry<InternalBeaconConsumer, ConsumerInfo> entry = iter.next();
 
                     if (!entry.getValue().isConnected) {
                         entry.getKey().onBeaconServiceConnect();
@@ -1730,7 +1720,7 @@ public class BeaconManager {
         if (autoBindConsumer != null) {
             if (rangedRegions.size() == 0 && getMonitoredRegions().size() == 0) {
                 if (autoBindConsumer != null) {
-                    unbind(autoBindConsumer);
+                    unbindInternal(autoBindConsumer);
                     autoBindConsumer = null;
                     return true;
                 }
@@ -1740,10 +1730,10 @@ public class BeaconManager {
     }
 
     @Nullable
-    BackgroundPowerSaver mInternalBackgroundPowerSaver = null;
+    BackgroundPowerSaverInternal mInternalBackgroundPowerSaver = null;
     private void ensureBackgroundPowerSaver() {
         if (mInternalBackgroundPowerSaver == null) {
-            mInternalBackgroundPowerSaver = new BackgroundPowerSaver(mContext);
+            mInternalBackgroundPowerSaver = new BackgroundPowerSaverInternal(mContext);
         }
     }
 
@@ -1796,6 +1786,6 @@ public class BeaconManager {
                 }
             };
         }
-        bind(autoBindConsumer);
+        bindInternal(autoBindConsumer);
     }
 }

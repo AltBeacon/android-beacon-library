@@ -47,6 +47,7 @@ def getVersionName = {
 allprojects {
     repositories {
         google()
+        mavenCentral()
         jcenter()
     }
     version = getVersionName()

@@ -84,9 +84,8 @@ Because the library's built-in foreground service is designed for scanning purpo
 Here's Application class code that can set up a foreground service for the purpose of keeping a transmitter alive with effectively no beacon scanning:
 
 ```java
-public class AndroidProximityReferenceApplication extends Application implements BootstrapNotifier {
+public class AndroidProximityReferenceApplication extends Application implements MonitorNotifier {
     private static final String TAG = "AndroidProximityReferenceApplication";
-    private RegionBootstrap regionBootstrap;
 
     public void onCreate() {
         super.onCreate();
@@ -128,7 +127,8 @@ public class AndroidProximityReferenceApplication extends Application implements
         // The following code block activates the foreground service by starting background scanning
         Region region = new Region("dummy-region",
                 Identifier.parse("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"), 65535, 65535);
-        regionBootstrap = new RegionBootstrap(this, region);
+        beaconManager.startMonitoring(region);
+        beaconManager.addMonitorNotifier(this);
 
         // This code block starts beacon transmission
 

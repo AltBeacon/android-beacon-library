@@ -33,22 +33,22 @@ or launch itself in the background.
 
 #### How do I set this up?
 
-In order to launch your app from the background, you first create a custom `AndroidApplication` class for your app that implements the `BootstrapNotifier` interface.  You then construct the `RegionBootstrap` class with a `Region` that defines the beacons that you want to
-trigger your app to launch.   The `didEnterRegion` method of your `AndroidApplication` class will get called when a matching beacon is seen.
+In order to launch your app from the background, you first create a custom `AndroidApplication` class for your app that implements the `MonitorNotifier` interface.  You then call `beaconManager.startMonitoring(region)` with a `Region` that defines the beacons that you want to
+trigger your app to launch.   If you call `beaconManager.addMonitorNotifier(this)`, the `didEnterRegion` method of your `AndroidApplication` class will get called when a matching beacon is seen.
 
 It's actually easier than it sounds.  Here's an example that launches an app's MainActivity when any beacon with the first identifier set to `2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6` is seen:
 
 ```
 ...
-public class AndroidProximityReferenceApplication extends Application implements BootstrapNotifier {
+public class AndroidProximityReferenceApplication extends Application implements MonitorNotifier {
     private static final String TAG = "AndroidProximityReferenceApplication";
-    private RegionBootstrap regionBootstrap;
 
     public void onCreate() {
         super.onCreate();
         Region region = new Region("com.example.backgroundRegion",
                 Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"), null, null);
-        regionBootstrap = new RegionBootstrap(this, region);
+        BeaconManager.getInstanceForApplication(this).startMonitoring(region);
+        BeaconManager.addMonitorNotifier(this);
     }
 
     @Override

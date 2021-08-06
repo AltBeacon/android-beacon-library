@@ -28,6 +28,7 @@ layout: android-beacon-library
 <li><a href='block-diagram.html'>Library Block Diagram</a></li>
 <li><a href='alternate-configuration.html'>Alternate Configuration (JAR only)</a></li>
 <li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
+<li><a href='autobind.html'>Using autobind APIs</a></li>
 </ul>
 
 ### Background Detection

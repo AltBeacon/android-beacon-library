@@ -17,7 +17,7 @@ the link to see the code you need to add to your activity to get this permission
 
 ```java
 
-public class MonitoringActivity extends Activity implements BeaconConsumer {
+public class MonitoringActivity extends Activity {
     protected static final String TAG = "MonitoringActivity";
     private BeaconManager beaconManager;
 
@@ -30,16 +30,6 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
         // type.  Do a web search for "setBeaconLayout" to get the proper expression.
         // beaconManager.getBeaconParsers().add(new BeaconParser().
         //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
-        beaconManager.bind(this);
-    }
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        beaconManager.unbind(this);
-    }
-    @Override
-    public void onBeaconServiceConnect() {
-        beaconManager.removeAllMonitorNotifiers();
         beaconManager.addMonitorNotifier(new MonitorNotifier() {
         @Override
         public void didEnterRegion(Region region) {
@@ -57,9 +47,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
             }
         });
 
-        try {
-            beaconManager.startMonitoringBeaconsInRegion(new Region("myMonitoringUniqueId", null, null, null));
-        } catch (RemoteException e) {    }
+        beaconManager.startMonitoring(new Region("myMonitoringUniqueId", null, null, null));
     }
 
 }
@@ -71,7 +59,7 @@ public class MonitoringActivity extends Activity implements BeaconConsumer {
 
 ```java
 
-public class RangingActivity extends Activity implements BeaconConsumer {
+public class RangingActivity extends Activity {
     protected static final String TAG = "RangingActivity";
     private BeaconManager beaconManager;
 
@@ -84,16 +72,6 @@ public class RangingActivity extends Activity implements BeaconConsumer {
         // type.  Do a web search for "setBeaconLayout" to get the proper expression.
         // beaconManager.getBeaconParsers().add(new BeaconParser().
         //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
-        beaconManager.bind(this);
-    }
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        beaconManager.unbind(this);
-    }
-    @Override
-    public void onBeaconServiceConnect() {
-        beaconManager.removeAllRangeNotifiers();
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
@@ -103,9 +81,7 @@ public class RangingActivity extends Activity implements BeaconConsumer {
             }
         });
 
-        try {
-            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-        } catch (RemoteException e) {    }
+        beaconManager.startRangingBeacons(new Region("myRangingUniqueId", null, null, null));
     }
 }
 
@@ -146,9 +122,8 @@ And here is an example Application class.  This will launch the MainActivity as 
 
 ```java
 
-public class MyApplicationName extends Application implements BootstrapNotifier {
+public class MyApplicationName extends Application implements MonitorNotifier {
     private static final String TAG = ".MyApplicationName";
-    private RegionBootstrap regionBootstrap;
 
     @Override
     public void onCreate() {
@@ -162,7 +137,8 @@ public class MyApplicationName extends Application implements BootstrapNotifier 
 
         // wake up the app when any beacon is seen (you can specify specific id filers in the parameters below)
         Region region = new Region("com.example.myapp.boostrapRegion", null, null, null);
-        regionBootstrap = new RegionBootstrap(this, region);
+        BeaconManager.getInstanceForApplication(this).startMonitoring(region);
+        BeaconManager.getInstanceForApplication(this).addMonitorNotifier(this);
     }
 
     @Override
@@ -175,7 +151,8 @@ public class MyApplicationName extends Application implements BootstrapNotifier 
         Log.d(TAG, "Got a didEnterRegion call");
         // This call to disable will make it so the activity below only gets launched the first time a beacon is seen (until the next time the app is launched)
         // if you want the Activity to launch every single time beacons come into view, remove this call.
-        regionBootstrap.disable();
+        Region region = new Region("com.example.myapp.boostrapRegion", null, null, null);
+        BeaconManager.getInstanceForApplication(this).stopMonitoring(region);
         Intent intent = new Intent(this, MainActivity.class);
         // IMPORTANT: in the AndroidManifest.xml definition of this activity, you must set android:launchMode="singleInstance" or you will get two instances
         // created when a user launches the activity manually and it gets launched from here.
@@ -213,21 +190,6 @@ BeaconTransmitter beaconTransmitter = new BeaconTransmitter(getApplicationContex
 beaconTransmitter.startAdvertising(beacon);
 ```
 
-## Auto Battery Saving Example Code
-
-```java
-
-public class MyApplication extends Application implements BootstrapNotifier {
-    private BackgroundPowerSaver backgroundPowerSaver;
-
-    public void onCreate() {
-        super.onCreate();
-        // Simply constructing this class and holding a reference to it in your custom Application class
-        // enables auto battery saving of about 60%
-        backgroundPowerSaver = new BackgroundPowerSaver(this);
-    }
-}
-```
 
 ## Eddystone Examples
 

@@ -35,7 +35,8 @@ scans than otherwise would be performed by the library, more battery will be use
 #### How do I set this up?
 
 The [reference app](https://github.com/AltBeacon/android-beacon-library-reference) has code you can uncomment to start a foreground service, which has code similar
-to shown below.  You need to put this code in your app before you call `beaconManager.bind(...);` or construct a `RegionBootstrap`.
+to shown below.  You need to put this code in your app before you start ranging or monitoring.
+
 
 ```
 ...

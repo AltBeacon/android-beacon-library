@@ -95,7 +95,7 @@ Two steps:
 1. Delete any references to `BackgroundPowerSaver`
 2. Switch to using the autobind methods `startRangingBeacons(...)` and `startMontioring(...)` that automatically construct a `BackgroundPowerSaver` internally if one does not yet exist.
 
-#### Migrating codee that manually changes backgroundMode
+#### Migrating code that manually changes backgroundMode
 `
 Apps that manually change background mode with calls to `setBackgroundMode(...)` will no longer be able to do so with the new autobind methods.  Consider removing these calls and allowing the library to
 automatically switch between background and foreground mode.  If the goal is to standardize the scan periods between foreground and background, you may set those scan periods to be the same.

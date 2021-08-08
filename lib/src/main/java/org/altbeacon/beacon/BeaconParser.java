@@ -672,7 +672,12 @@ public class BeaconParser implements Serializable {
             String name = null;
             if (device != null) {
                 macAddress = device.getAddress();
-                name = device.getName();
+                try {
+                  name = device.getName();
+                }
+                catch (SecurityException e) {
+                  Log.d(TAG,"Cannot read device name without Manifest.permission.BLUETOOTH_CONNECT");
+                }
             }
 
             beacon.mIdentifiers = identifiers;

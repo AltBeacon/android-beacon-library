@@ -242,6 +242,11 @@ public class ScanJobScheduler {
             LogManager.d(TAG, "We are not monitoring or ranging any regions.  We are going to cancel all scan jobs.");
             jobScheduler.cancel(ScanJob.getImmediateScanJobId(context));
             jobScheduler.cancel(ScanJob.getPeriodicScanJobId(context));
+            // We also need to cancel any passive scans left on if we are between scan jobs
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ScanHelper scanHelper = new ScanHelper(context);
+                scanHelper.stopAndroidOBackgroundScan();
+            }
         }
     }
 }

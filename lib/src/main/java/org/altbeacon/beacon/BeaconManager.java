@@ -536,7 +536,9 @@ public class BeaconManager {
      *
      * @param consumer
      * @return
+     * @deprecated This method will be removed in 3.0, see http://altbeacon.github.io/android-beacon-library/autobind.html
      */
+    @Deprecated
     public boolean isBound(@NonNull BeaconConsumer consumer) {
         synchronized(consumers) {
             // Annotation doesn't guarantee we get a non-null, but raising an NPE here is excessive
@@ -550,6 +552,7 @@ public class BeaconManager {
      * Tells you if the any beacon consumer is bound to the service
      *
      * @return
+     *
      */
     public boolean isAnyConsumerBound() {
         synchronized(consumers) {
@@ -1019,9 +1022,10 @@ public class BeaconManager {
         }
         else {
             synchronized (autoBindMonitoredRegions) {
-                autoBindMonitoredRegions.remove(region);
+                autoBindRangedRegions.remove(region);
             }
         }
+        autoUnbindIfNeeded();
     }
 
     /**
@@ -1087,7 +1091,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (mScheduledScanJobsEnabled || mIntentScanStrategyCoordinator != null) {
+        if (!isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).addRegion(region, new Callback(callbackPackageName()));
         }
         applyChangesToServices(BeaconService.MSG_START_MONITORING, region);
@@ -1157,12 +1161,24 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (mScheduledScanJobsEnabled || mIntentScanStrategyCoordinator != null) {
+        if (!isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).removeRegion(region);
         }
         applyChangesToServices(BeaconService.MSG_STOP_MONITORING, region);
         if (isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).removeLocalRegion(region);
+        }
+        autoUnbindIfNeeded();
+    }
+
+    private void autoUnbindIfNeeded() {
+        if (getMonitoredRegions().size() == 0 && getRangedRegions().size() == 0) {
+            if (autoBindConsumer != null) {
+                unbindInternal(autoBindConsumer);
+                autoBindConsumer = null;
+                autoBindRangedRegions.clear();
+                autoBindMonitoredRegions.clear();
+            }
         }
     }
 
@@ -1193,6 +1209,7 @@ public class BeaconManager {
         else {
             synchronized (autoBindMonitoredRegions) {
                 autoBindMonitoredRegions.remove(region);
+                MonitoringStatus.getInstanceForApplication(mContext).removeRegion(region);
             }
         }
     }
@@ -1214,7 +1231,9 @@ public class BeaconManager {
         }
         LogManager.d(TAG, "updating background flag to %s", mBackgroundMode);
         LogManager.d(TAG, "updating scan period to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
-        applyChangesToServices(BeaconService.MSG_SET_SCAN_PERIODS, null);
+        if (isAnyConsumerBound()) {
+            applyChangesToServices(BeaconService.MSG_SET_SCAN_PERIODS, null);
+        }
     }
 
     @TargetApi(18)

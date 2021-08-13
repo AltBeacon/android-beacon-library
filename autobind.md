@@ -88,6 +88,8 @@ class MyApplication : Application(), MonitorNotifier {
 }
 ```
 
+See the secion below regarding the initial background state depending on where you put the initial call to `startMonitoring`
+
 #### Migrating code that uses BackgroundPowerSaver
 
 Two steps:
@@ -95,10 +97,14 @@ Two steps:
 1. Delete any references to `BackgroundPowerSaver`
 2. Switch to using the autobind methods `startRangingBeacons(...)` and `startMontioring(...)` that automatically construct a `BackgroundPowerSaver` internally if one does not yet exist.
 
-#### Migrating code that manually changes backgroundMode
+There are subtle changes with the initial background state when using autobind.  If you use autobind methods to start ranging or monitoring from `Application.onCreate` or any method in its call stack, then the library will start scanning in background mode.  If you initiate scanning at any other time (from a custom service or from an activity or fragment) then the library will start out in foreground mode provided that the screen is on.  Previously, the library always started out in foreground mode unless using `RegionBootstrap`, in which case it started out in background mode.
+
+
+
+#### Migrating code that manually changes background mode
 `
-Apps that manually change background mode with calls to `setBackgroundMode(...)` will no longer be able to do so with the new autobind methods.  Consider removing these calls and allowing the library to
-automatically switch between background and foreground mode.  If the goal is to standardize the scan periods between foreground and background, you may set those scan periods to be the same.
+Apps that manually change background mode with calls to `setBackgroundMode(...)` will no longer be able to do so with the new autobind methods as the library will override the background mode with automatic switching.  Consider removing these calls and use the autobind methods that allow the library to
+automatically switch between background and foreground mode.  If the goal is to standardize the scan periods between foreground and background, you may set those scan periods to be the same so it doesn't matter whether the library is in foreground or background mode.
 
 #### Why is this changing?
 
@@ -107,9 +113,9 @@ Two reasons: simplicity and clarity
 **Simplicity:** Requiring manual calls to bind/unbind is unintuitive, as no requivalent for similar APIs on iOS, and is a frequent source of bugs.  App code is much simpler without this.` 
 
 
-**Clarity:** The whole idea of binding to a scanning service assumes there is an Android service doing the scanning.  But as of Android 8, that is often not the case, as the library's default way of doing scans in with the job scheduler.  It just doesn't make sense anymore for most uses of this library.  The use of "magic" utlity classes like `RegionBootsrap` confuses things further, when the regular monitoring APIs work fine for setting up brackground detections.
+**Clarity:** The whole idea of binding to a scanning service assumes there is an Android service doing the scanning.  But as of Android 8, that is often not the case, as the library's default way of doing scans in with the job scheduler.  It just doesn't make sense anymore for default operation of this library.  The use of "magic" utlity classes like `RegionBootsrap` confuses things further, when the regular monitoring APIs work fine for setting up brackground detections.
 
-#### What if I want to stop scanning?
+#### What if I want to stop scanning with unbind?
 
 The library will automatically stop scanning when there is no monitoring or ranging active.  Simply call `stopRangingBeacons(region)` and `stopMonitoring(region)` for all regions and scanning will stop just as if you had manually called `unbind()`
 
@@ -117,6 +123,6 @@ If you do not explicitly make calls to stop ranging/monitoring, it will continue
 
 #### When will deprecated methods, classes and interfaces be removed?
 
-Deprecated methods will be removed in the 3.0 release of the library, planned for 2022.  Library versions 2.x wil continue to work with deprecated methods, although their use is now discouraged.
+Deprecated methods will be removed in the 3.0 release of the library, planned for 2022.  Library versions 2.x wil continue to work with deprecated methods, although their use is now discouraged and support is ending.
 
 

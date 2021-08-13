@@ -74,4 +74,4 @@ granted and a foreground service if you add `android:foregroundServiceType="loca
 
 #### Forked OEM Limitations
 
-Some phone OEMs fork their Android limitations to add custom battery saving code that kills background apps including foreground services.  Huawei, ZTE, OnePlus and Nokia devices are known to be affected.  Read more [here](http://www.davidgyoungtech.com/2019/04/30/the-rise-of-the-nasty-forks).
+Some phone OEMs fork their Android limitations to add custom battery saving code that kills background apps including foreground services.  Huawei, Xiaomi, Redmei and OnePlus devices are known to be affected.  Read more [here](http://www.davidgyoungtech.com/2019/04/30/the-rise-of-the-nasty-forks).

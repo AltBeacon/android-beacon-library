@@ -20,22 +20,23 @@ Our tests show that a Nexus 4 drains the battery at a rate of 90mA when looking 
 
 #### How do I set this up?
 
-Setting this up is super easy.  Simply create a custom Android Application class and construct the BackgroundPowerSaver class.  Like this:
+Starting with library version 2.19 this is automatically enabled with calls to `startRangingBeacons(...)` and `startMonitoring(...)`.  If you want your app to start looking for beacons immediately and continue in the background, we recommand putting the code that starts it in the `onCreate()` method of a custom Application class like this:
 
 ```
 ...
-import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
+class MyApplication:  Application() {
+    override fun onCreate() {
+        super.onCreate()
 
-public class MyApplication extends Application {
-    private BackgroundPowerSaver backgroundPowerSaver;
-
-    public void onCreate() {
-        super.onCreate();
-        backgroundPowerSaver = new BackgroundPowerSaver(this);
+        val beaconManager = BeaconManager.getInstanceForApplication(this)
+        beaconManager.start.startMonitoring(region)
     }
 }
-
 ```
+
+By starting monitoring or ranging in `Application.onCreate()` or anywhere in its call stack, the library will start out scanning in background mode, and switch to foreground mode automatically as activities come into view.
+
+If you start monitoring or ranging outside `Application.onCreate()` the library will start out in foreground mode (so long as the screen is on) and switch to background mode if your application goes out of view or if the sceen goes off.
 
 #### How do I customize the background scan rate?
 
@@ -46,10 +47,12 @@ Below is an example of a rather extreme battery savings configuration:
 
 ```
 // set the duration of the scan to be 1.1 seconds
-beaconManager.setBackgroundScanPeriod(1100l);
+beaconManager.setBackgroundScanPeriod(1100l)
 // set the time between each scan to be 1 hour (3600 seconds)
-beaconManager.setBackgroundBetweenScanPeriod(3600000l);
+beaconManager.setBackgroundBetweenScanPeriod(3600000l)
 ```
+
+
 
 #### Background detections between scan cycles
 
@@ -65,16 +68,9 @@ technique described above.  Once all beacons disappear, it will resume doing a c
 response times.
 
 Starting with version 2.1 of this library, these new Android 5.0 APIs are used automatically on devices that
-have them, and scanning never stops.  The BetweenScanPeriods are effectively ignored.  For devices without
-Android 5.0, behavior is as described above.
+have them during the BetweenScanPeriods provided thqt no beacons are visible.
 
-If you wish to disable use of Android 5.0 APIs for scanning, you may call:
-
-```
-beaconManager.setAndroidLScanningDisabled(true);
-```
-
-#### Android 8.0+ Scan Limitations
+Android 8.0+ Scan Limitations
 
 Android versions 8+ restrict background processes to run for at most 15 minutes after an app was
 last in the foreground.  Beyond this, the JobScheduler must be used to execute periodic

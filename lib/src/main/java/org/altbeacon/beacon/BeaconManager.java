@@ -1584,6 +1584,7 @@ public class BeaconManager {
      * scan for beacons
      *
      * @param disabled
+     * @deprecated This will be removed in the 3.0 release
      */
     public static void setAndroidLScanningDisabled(boolean disabled) {
         sAndroidLScanningDisabled = disabled;
@@ -1753,6 +1754,7 @@ public class BeaconManager {
     private void ensureBackgroundPowerSaver() {
         if (mInternalBackgroundPowerSaver == null) {
             mInternalBackgroundPowerSaver = new BackgroundPowerSaverInternal(mContext);
+            mInternalBackgroundPowerSaver.enableDefaultBackgroundStateInference();
         }
     }
 

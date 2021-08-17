@@ -209,27 +209,28 @@ class IntentScanStrategyCoordinator(val context: Context) {
             val scanStartTime = System.currentTimeMillis()
 
             if (adapter != null) {
-                val scanner: BluetoothLeScanner = adapter.getBluetoothLeScanner()
-                val callback: ScanCallback = object : ScanCallback() {
-                    override fun onScanResult(callbackType: Int, result: ScanResult) {
-                        super.onScanResult(callbackType, result)
-                        scanHelper.processScanResult(result.device, result.rssi, result.scanRecord?.bytes, result.timestampNanos)
-                        try {
-                            scanner.stopScan(this)
-                        } catch (e: IllegalStateException) { /* do nothing */
-                        } // caught if bluetooth is off here
-                    }
-
-                    override fun onBatchScanResults(results: List<ScanResult>) {
-                        super.onBatchScanResults(results)
-                    }
-
-                    override fun onScanFailed(errorCode: Int) {
-                        super.onScanFailed(errorCode)
-                        LogManager.d(TAG, "Sending onScanFailed event")
-                    }
-                }
+                val scanner: BluetoothLeScanner? = adapter.getBluetoothLeScanner()
                 if (scanner != null) {
+                    val callback: ScanCallback = object : ScanCallback() {
+                        override fun onScanResult(callbackType: Int, result: ScanResult) {
+                            super.onScanResult(callbackType, result)
+                            scanHelper.processScanResult(result.device, result.rssi, result.scanRecord?.bytes, result.timestampNanos)
+                            try {
+                                scanner.stopScan(this)
+                            } catch (e: IllegalStateException) { /* do nothing */
+                            } // caught if bluetooth is off here
+                        }
+
+                        override fun onBatchScanResults(results: List<ScanResult>) {
+                            super.onBatchScanResults(results)
+                        }
+
+                        override fun onScanFailed(errorCode: Int) {
+                            super.onScanFailed(errorCode)
+                            LogManager.d(TAG, "Sending onScanFailed event")
+                        }
+                    }
+                
                     try {
                         scanner.startScan(callback)
                         while (beaconDetected == false) {

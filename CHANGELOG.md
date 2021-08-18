@@ -1,3 +1,7 @@
+### 2.19.2 / 2021-08-18
+
+- Fix NullPointerException in IntentScanStrategyCoordinator (#1053, PhilipTocsen)
+
 ### 2.19.1 / 2021-08-13
 
 - Improve default background mode with autobind (#1051, David G. Young)

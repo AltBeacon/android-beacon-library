@@ -579,6 +579,10 @@ public class Beacon implements Parcelable, Serializable {
     }
 
     /**
+     * This returns the bluetooth name of the device if detected by the OS
+     * from the advertisement data.  This field will never be populated for apps targeting Android
+     * SDK 31+ unless the app has obtained BLUETOOTH_CONNECT permission, as that permission is a
+     * new requirement from Android to read this field.
      * @see #mBluetoothName
      * @return mBluetoothName
      */

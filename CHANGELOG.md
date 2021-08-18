@@ -1,4 +1,8 @@
-### 2.19 /2021 / 2021-08-09
+### 2.19.1 / 2021-08-13
+
+- Improve default background mode with autobind (#1051, David G. Young)
+
+### 2.19 / 2021-08-09
 
 - Manual binding/unbinding deprecated.  (#1046, David G. Young)
 - Android 12 changes. (#1043, Nick Badal, David G. Young)

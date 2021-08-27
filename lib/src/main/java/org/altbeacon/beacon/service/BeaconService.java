@@ -23,16 +23,12 @@
  */
 package org.altbeacon.beacon.service;
 
-
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageItemInfo;
-import android.content.pm.PackageManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -66,6 +62,7 @@ import java.util.List;
 import static android.app.PendingIntent.FLAG_ONE_SHOT;
 import static android.app.PendingIntent.FLAG_IMMUTABLE;
 import static android.app.PendingIntent.getBroadcast;
+import static org.altbeacon.beacon.utils.ManifestMetaDataParser.getManifestMetadataValueAsBoolean;
 
 /**
  * @author dyoung
@@ -225,8 +222,8 @@ public class BeaconService extends Service {
             LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
 
-        String longScanForcingEnabled = getManifestMetadataValue("longScanForcingEnabled");
-        if (longScanForcingEnabled != null && longScanForcingEnabled.equals("true")) {
+        boolean longScanForcingEnabled = getManifestMetadataValueAsBoolean(this, "longScanForcingEnabled");
+        if (longScanForcingEnabled) {
             LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
             if (mScanHelper.getCycledScanner() != null) {
                 mScanHelper.getCycledScanner().setLongScanForcingEnabled(true);
@@ -274,19 +271,6 @@ public class BeaconService extends Service {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             this.startForeground(notificationId, notification);
         }
-    }
-
-    private String getManifestMetadataValue(String key) {
-        String value = null;
-        try {
-            PackageItemInfo info = this.getPackageManager().getServiceInfo(new ComponentName(this, BeaconService.class), PackageManager.GET_META_DATA);
-            if (info != null && info.metaData != null) {
-                return info.metaData.get(key).toString();
-            }
-        }
-        catch (PackageManager.NameNotFoundException e) {
-        }
-        return null;
     }
 
     @Override

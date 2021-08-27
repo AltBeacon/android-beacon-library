@@ -16,13 +16,22 @@ private fun Context.getManifestMetadataValue(key: String): String? {
             ComponentName(this, BeaconService::class.java),
             PackageManager.GET_META_DATA
         )
-        info.metaData[key]?.toString()
+        if (info.metaData != null) {
+            info.metaData.get(key).toString();
+        } else {
+            null
+        }
     } catch (e: PackageManager.NameNotFoundException) {
         null
     }
 }
 
-/**
- * Returns the corresponding metadata with the given key name as [Boolean].
- */
-internal fun Context.getManifestMetadataValueAsBoolean(key: String): Boolean = getManifestMetadataValue(key) == "true"
+internal fun Context.getLongScanForcingEnabledAttribute(): Boolean {
+    val value = getManifestMetadataValue("longScanForcingEnabled") ?: return false
+    return value == "true"
+}
+
+internal fun Context.getJobPersistedEnabledAttribute(): Boolean {
+    val value = getManifestMetadataValue("jobPersistedEnabled") ?: return true
+    return value == "true"
+}

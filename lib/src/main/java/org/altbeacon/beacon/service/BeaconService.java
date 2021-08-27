@@ -51,6 +51,7 @@ import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
+import org.altbeacon.beacon.utils.ManifestMetaDataParser;
 import org.altbeacon.beacon.utils.ProcessUtils;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 
@@ -62,7 +63,6 @@ import java.util.List;
 import static android.app.PendingIntent.FLAG_ONE_SHOT;
 import static android.app.PendingIntent.FLAG_IMMUTABLE;
 import static android.app.PendingIntent.getBroadcast;
-import static org.altbeacon.beacon.utils.ManifestMetaDataParser.getManifestMetadataValueAsBoolean;
 
 /**
  * @author dyoung
@@ -222,7 +222,7 @@ public class BeaconService extends Service {
             LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
 
-        boolean longScanForcingEnabled = getManifestMetadataValueAsBoolean(this, "longScanForcingEnabled");
+        boolean longScanForcingEnabled = ManifestMetaDataParser.getLongScanForcingEnabledAttribute(this);
         if (longScanForcingEnabled) {
             LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
             if (mScanHelper.getCycledScanner() != null) {

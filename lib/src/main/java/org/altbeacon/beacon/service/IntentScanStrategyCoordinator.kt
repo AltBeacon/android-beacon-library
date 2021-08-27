@@ -12,7 +12,7 @@ import org.altbeacon.beacon.BeaconManager
 import org.altbeacon.beacon.Region
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator
 import org.altbeacon.beacon.logging.LogManager
-import org.altbeacon.beacon.utils.getManifestMetadataValueAsBoolean
+import org.altbeacon.beacon.utils.getLongScanForcingEnabledAttribute
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -75,7 +75,7 @@ class IntentScanStrategyCoordinator(val context: Context) {
             BeaconManager.getInstanceForApplication(context)
         scanHelper.setExtraDataBeaconTracker(ExtraDataBeaconTracker())
         beaconManager.setScannerInSameProcess(true)
-        val longScanForcingEnabled = context.getManifestMetadataValueAsBoolean("longScanForcingEnabled")
+        val longScanForcingEnabled = context.getLongScanForcingEnabledAttribute()
         if (longScanForcingEnabled) {
             LogManager.i(
                 BeaconService.TAG,

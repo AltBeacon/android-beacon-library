@@ -15,18 +15,12 @@ class ManifestMetaDataParserTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
     @Test
-    fun `longScanForcingEnabled exists and return true`() {
-        assertTrue(context.getManifestMetadataValueAsBoolean("longScanForcingEnabled"))
-        assertTrue(context.getManifestMetadataValueAsBoolean("longScanForcingEnabled"))
+    fun `getLongScanForcingEnabledAttribute returns false by default`() {
+        assertFalse(context.getLongScanForcingEnabledAttribute())
     }
 
     @Test
-    fun `jobPersistedEnabled exists and return false`() {
-        assertFalse(context.getManifestMetadataValueAsBoolean("jobPersistedEnabled"))
-    }
-
-    @Test
-    fun `doesNotExistFlag does not exist and return false`() {
-        assertFalse(context.getManifestMetadataValueAsBoolean("doesNotExistFlag"))
+    fun `getJobPersistedEnabledAttribute returns true by default`() {
+        assertTrue(context.getJobPersistedEnabledAttribute())
     }
 }

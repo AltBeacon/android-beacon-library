@@ -15,11 +15,10 @@ import androidx.annotation.RequiresApi;
 import org.altbeacon.beacon.BeaconLocalBroadcastProcessor;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.beacon.utils.ManifestMetaDataParser;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.altbeacon.beacon.utils.ManifestMetaDataParser.getManifestMetadataValueAsBoolean;
 
 /**
  * Schedules two types of ScanJobs:
@@ -142,7 +141,7 @@ public class ScanJobScheduler {
     }
 
     public void scheduleForIntentScanStrategy(Context context) {
-        boolean persisted = getManifestMetadataValueAsBoolean(context, "jobPersistedEnabled");
+        boolean persisted = ManifestMetaDataParser.getJobPersistedEnabledAttribute(context);
         JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(ScanJob.getPeriodicScanJobId(context), new ComponentName(context, ScanJob.class))
                 .setPersisted(persisted) // This makes it restart after reboot
                 .setExtras(new PersistableBundle());
@@ -190,7 +189,7 @@ public class ScanJobScheduler {
         }
 
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        boolean persisted = getManifestMetadataValueAsBoolean(context, "jobPersistedEnabled");
+        boolean persisted = ManifestMetaDataParser.getJobPersistedEnabledAttribute(context);
         int monitoredAndRangedRegionCount = scanState.getMonitoringStatus().regions().size() + scanState.getRangedRegionState().size();
         if (monitoredAndRangedRegionCount > 0) {
             if (backgroundWakeup || !scanState.getBackgroundMode()) {

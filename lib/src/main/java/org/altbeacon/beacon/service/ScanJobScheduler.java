@@ -19,6 +19,8 @@ import org.altbeacon.beacon.logging.LogManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.altbeacon.beacon.utils.ManifestMetaDataParser.getManifestMetadataValueAsBoolean;
+
 /**
  * Schedules two types of ScanJobs:
  *  1. Periodic, which are set to go every scanPeriod+betweenScanPeriod
@@ -140,8 +142,9 @@ public class ScanJobScheduler {
     }
 
     public void scheduleForIntentScanStrategy(Context context) {
+        boolean persisted = getManifestMetadataValueAsBoolean(context, "jobPersistedEnabled");
         JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(ScanJob.getPeriodicScanJobId(context), new ComponentName(context, ScanJob.class))
-                .setPersisted(true) // This makes it restart after reboot
+                .setPersisted(persisted) // This makes it restart after reboot
                 .setExtras(new PersistableBundle());
 
         long fifteenMinutesMillis = 15*60*1000;
@@ -187,7 +190,7 @@ public class ScanJobScheduler {
         }
 
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-
+        boolean persisted = getManifestMetadataValueAsBoolean(context, "jobPersistedEnabled");
         int monitoredAndRangedRegionCount = scanState.getMonitoringStatus().regions().size() + scanState.getRangedRegionState().size();
         if (monitoredAndRangedRegionCount > 0) {
             if (backgroundWakeup || !scanState.getBackgroundMode()) {
@@ -198,7 +201,7 @@ public class ScanJobScheduler {
                     // we schedule it for that specific time.
                     LogManager.d(TAG, "Scheduling immediate ScanJob to run in "+millisToNextJobStart+" millis");
                     JobInfo immediateJob = new JobInfo.Builder(ScanJob.getImmediateScanJobId(context), new ComponentName(context, ScanJob.class))
-                            .setPersisted(true) // This makes it restart after reboot
+                            .setPersisted(persisted) // This makes it restart after reboot
                             .setExtras(new PersistableBundle())
                             .setMinimumLatency(millisToNextJobStart)
                             .setOverrideDeadline(millisToNextJobStart).build();
@@ -219,7 +222,7 @@ public class ScanJobScheduler {
             }
 
             JobInfo.Builder periodicJobBuilder = new JobInfo.Builder(ScanJob.getPeriodicScanJobId(context), new ComponentName(context, ScanJob.class))
-                    .setPersisted(true) // This makes it restart after reboot
+                    .setPersisted(persisted) // This makes it restart after reboot
                     .setExtras(new PersistableBundle());
 
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

@@ -4,20 +4,16 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
-import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageItemInfo
-import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Handler
 import androidx.annotation.RequiresApi
 import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.BeaconManager
 import org.altbeacon.beacon.Region
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator
 import org.altbeacon.beacon.logging.LogManager
+import org.altbeacon.beacon.utils.getManifestMetadataValueAsBoolean
 import java.util.*
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class IntentScanStrategyCoordinator(val context: Context) {
@@ -79,13 +75,13 @@ class IntentScanStrategyCoordinator(val context: Context) {
             BeaconManager.getInstanceForApplication(context)
         scanHelper.setExtraDataBeaconTracker(ExtraDataBeaconTracker())
         beaconManager.setScannerInSameProcess(true)
-        val longScanForcingEnabledString =  getManifestMetadataValue("longScanForcingEnabled")
-        if (longScanForcingEnabledString != null && longScanForcingEnabledString == "true") {
+        val longScanForcingEnabled = context.getManifestMetadataValueAsBoolean("longScanForcingEnabled")
+        if (longScanForcingEnabled) {
             LogManager.i(
                 BeaconService.TAG,
                 "longScanForcingEnabled to keep scans going on Android N for > 30 minutes"
             )
-            longScanForcingEnabled = true
+            this.longScanForcingEnabled = true
         }
         scanHelper.reloadParsers()
         LogManager.d(TAG, "starting background scan")
@@ -118,23 +114,6 @@ class IntentScanStrategyCoordinator(val context: Context) {
         scanHelper.startAndroidOBackgroundScan(scanState.getBeaconParsers(), ArrayList<Region>(regions))
         lastCycleEnd = java.lang.System.currentTimeMillis()
         ScanJobScheduler.getInstance().scheduleForIntentScanStrategy(context)
-    }
-
-    private fun getManifestMetadataValue(key: String): String? {
-        val value: String? = null
-        try {
-            val info: PackageItemInfo = context.getPackageManager().getServiceInfo(
-                ComponentName(
-                    context,
-                    BeaconService::class.java
-                ), PackageManager.GET_META_DATA
-            )
-            if (info != null && info.metaData != null) {
-                return info.metaData[key].toString()
-            }
-        } catch (e: PackageManager.NameNotFoundException) {
-        }
-        return null
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

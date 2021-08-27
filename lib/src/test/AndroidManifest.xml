@@ -19,8 +19,10 @@
             android:exported="false"
             android:isolatedProcess="false"
             android:label="beacon"
-            android:name=".service.BeaconService"
-            />
+            android:name=".service.BeaconService">
+            <meta-data android:name="longScanForcingEnabled" android:value="true"/>
+            <meta-data android:name="jobPersistedEnabled" android:value="false"/>
+        </service>
 
         <service android:name=".BeaconIntentProcessor"
             android:enabled="true"

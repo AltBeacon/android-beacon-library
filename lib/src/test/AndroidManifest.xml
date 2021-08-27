@@ -19,7 +19,8 @@
             android:exported="false"
             android:isolatedProcess="false"
             android:label="beacon"
-            android:name=".service.BeaconService" />
+            android:name=".service.BeaconService"
+            />
 
         <service android:name=".BeaconIntentProcessor"
             android:enabled="true"

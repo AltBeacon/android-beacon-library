@@ -254,10 +254,17 @@ class ScanHelper {
     }
 
     // Low power scan results in the background will be delivered via Intent
+    @SuppressLint("WrongConstant")
     PendingIntent getScanCallbackIntent() {
         Intent intent = new Intent(mContext, StartupBroadcastReceiver.class);
         intent.putExtra("o-scan", true);
-        return PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        /* Android 12 (SDK 31) requires that all PendingIntents be created with either FLAG_MUTABLE or
+           FLAG_IMMUTABLE.  In this case we must use FLAG_MUTABLE because the scan will set additional flags
+           on the intent -- that is how Andorid's Intent-driven scan APIs work.  But because this library
+           is being compiled with SDK 30, the FLAG_MUTABLE is not available yet. We therefore use the hard-coded
+           value for this flag from SDK 31 release 1 and will fix that once the final SDK 31 is tested with this library.
+         */
+        return PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | 0x02000000);
     }
 
     private final CycledLeScanCallback mCycledLeScanCallback = new CycledLeScanCallback() {

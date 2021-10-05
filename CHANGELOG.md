@@ -1,6 +1,6 @@
 ### 2.19.3 / 2021-10-5
 
-- Fix failing intent-backed scans broken by Android 12 changes in the 2.19 release.
+- Fix failing intent-backed scans broken by Android 12 changes in the 2.19 release. (#1059, David G. Young)
 
 ### 2.19.2 / 2021-08-18
 

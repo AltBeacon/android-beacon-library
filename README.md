@@ -97,7 +97,7 @@ The following instructions are for project administrators.
         git tag <version>
         git push --tags 
         ./gradlew release
-        ./gradlew mavenPublish
+        ./gradlew mavenPublish # Wait 10 mins before using the next command
         ./gradlew closeAndReleaseRepository
 
 4. Keep checking for a half hour or so at https://repo1.maven.org/maven2/org/altbeacon/android-beacon-library/ to see that the new release shows up.

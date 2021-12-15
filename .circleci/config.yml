@@ -1,33 +1,40 @@
-version: 2
+# Execute unit tests on Circle CI.
+#
+# References:
+# https://circleci.com/developer/orbs/orb/circleci/android
+# https://circleci.com/blog/building-android-on-circleci
+
+version: 2.1
+
+orbs:
+  android: circleci/android@2.0.0
+
 jobs:
   build:
     working_directory: ~/code
-    docker:
-      - image: circleci/android:api-25-alpha
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
     environment:
-      JVM_OPTS: -Xmx3200m
+      JVM_OPTS: -Xmx3200m -Dfile.encoding=utf-8
     steps:
-      - run: yes | sdkmanager --licenses || true
-      - run: yes | sdkmanager --update || exit 0
       - checkout
-      - restore_cache:
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "./build.gradle" }}
-#      - run:
-#         name: Chmod permissions #if permission for Gradlew Dependencies fail, use this.
-#         command: sudo chmod +x ./gradlew
       - run:
-          name: Download Dependencies
-          command: ./gradlew androidDependencies
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "./build.gradle" }}
+          name: Display version
+          command: ./gradlew --version
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - android/run-tests:
+          test-command: ./gradlew testRelease
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
-          name: Run Tests
-          command: ./gradlew test
-      - store_artifacts:
-          path: ./build/reports
-          destination: reports
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
       - store_test_results:
-          path: ./build/test-results
-      # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit

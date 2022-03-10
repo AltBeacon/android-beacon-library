@@ -64,6 +64,7 @@ public class ScanJob extends JobService {
         // But the ScanState restore from storage sometimes hangs, so we start new thread here just
         // to kick that off.  This way if the restore hangs, we don't hang the UI thread.
         LogManager.i(TAG, "ScanJob Lifecycle START: "+ScanJob.this);
+        mStopCalled = false; // Same job instnace gets reused on Android 12, so this is needed to reset it
         new Thread(new Runnable() {
             public void run() {
                 IntentScanStrategyCoordinator intentStrategyCoord = BeaconManager.getInstanceForApplication(ScanJob.this).getIntentScanStrategyCoordinator();

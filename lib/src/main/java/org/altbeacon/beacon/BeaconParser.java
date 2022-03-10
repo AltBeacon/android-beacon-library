@@ -168,6 +168,8 @@ public class BeaconParser implements Serializable {
      * @return the BeaconParser instance
      */
     public BeaconParser setBeaconLayout(String beaconLayout) {
+        LogManager.d(TAG, "API setBeaconLayout "+beaconLayout);
+
         mBeaconLayout = beaconLayout;
         Log.d(TAG, "Parsing beacon layout: "+beaconLayout);
 

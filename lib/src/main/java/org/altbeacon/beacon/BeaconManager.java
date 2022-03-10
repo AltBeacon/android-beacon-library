@@ -218,6 +218,7 @@ public class BeaconManager {
      * @param p
      */
     public void setForegroundScanPeriod(long p) {
+        LogManager.d(TAG, "API setForegroundScanPeriod "+p);
         foregroundScanPeriod = p;
     }
 
@@ -230,6 +231,7 @@ public class BeaconManager {
      * @param p
      */
     public void setForegroundBetweenScanPeriod(long p) {
+        LogManager.d(TAG, "API setForegroundBetweenScanPeriod "+p);
         foregroundBetweenScanPeriod = p;
     }
 
@@ -242,6 +244,7 @@ public class BeaconManager {
      * @param p
      */
     public void setBackgroundScanPeriod(long p) {
+        LogManager.d(TAG, "API setBackgroundScanPeriod "+p);
         backgroundScanPeriod = p;
     }
 
@@ -251,6 +254,7 @@ public class BeaconManager {
      * @param p
      */
     public void setBackgroundBetweenScanPeriod(long p) {
+        LogManager.d(TAG, "API setBackgroundBetweenScanPeriod "+p);
         backgroundBetweenScanPeriod = p;
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 backgroundBetweenScanPeriod < 15*60*1000 /* 15 min */) {
@@ -265,6 +269,7 @@ public class BeaconManager {
      * @param regionExitPeriod
      */
     public static void setRegionExitPeriod(long regionExitPeriod){
+        LogManager.d(TAG, "API setRegionExitPeriod "+regionExitPeriod);
         sExitRegionPeriod = regionExitPeriod;
         BeaconManager instance = sInstance;
         if (instance != null) {
@@ -306,6 +311,7 @@ public class BeaconManager {
                 instance = sInstance;
                 if (instance == null) {
                     sInstance = instance = new BeaconManager(context);
+                    LogManager.d(TAG, "API BeaconManager constructed ");
                 }
             }
         }
@@ -351,6 +357,7 @@ public class BeaconManager {
      * @hide
      */
     public void setScannerInSameProcess(boolean isScanner) {
+        LogManager.d(TAG, "API setScannerInSameProcess "+isScanner);
         mScannerInSameProcess = isScanner;
     }
 
@@ -370,7 +377,8 @@ public class BeaconManager {
      */
    @NonNull
     public List<BeaconParser> getBeaconParsers() {
-        return beaconParsers;
+       LogManager.d(TAG, "API getBeaconParsers, current count "+beaconParsers.size());
+       return beaconParsers;
     }
 
     /**
@@ -397,6 +405,7 @@ public class BeaconManager {
      */
     @Deprecated
     public void bind(@NonNull BeaconConsumer consumer) {
+        LogManager.d(TAG, "API bind");
         bindInternal(consumer);
     }
 
@@ -480,6 +489,7 @@ public class BeaconManager {
      */
     @Deprecated
     public void unbind(@NonNull BeaconConsumer consumer) {
+        LogManager.d(TAG, "API unbind");
         unbindInternal(consumer);
     }
 
@@ -583,6 +593,7 @@ public class BeaconManager {
      */
     @Deprecated
     public void setBackgroundMode(boolean backgroundMode) {
+        LogManager.d(TAG, "API setBackgroundMode "+backgroundMode);
         setBackgroundModeInternal(backgroundMode);
     }
 
@@ -591,6 +602,7 @@ public class BeaconManager {
      * @hide
      */
     public void setBackgroundModeInternal(boolean backgroundMode) {
+        LogManager.d(TAG, "API setBackgroundModeIternal "+backgroundMode);
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -636,6 +648,7 @@ public class BeaconManager {
      */
 
     public void setEnableScheduledScanJobs(boolean enabled) {
+        LogManager.d(TAG, "API setEnableScheduledScanJobs "+enabled);
         if (isAnyConsumerBound()) {
             LogManager.e(TAG, "ScanJob may not be configured because a consumer is" +
                     " already bound.");
@@ -657,6 +670,7 @@ public class BeaconManager {
     }
 
     public void setIntentScanningStrategyEnabled(boolean enabled) {
+        LogManager.d(TAG, "API setIntentScanningStrategyEnabled "+enabled);
         if (isAnyConsumerBound()) {
             LogManager.e(TAG, "IntentScanningStrategy may not be configured because a consumer is" +
                     " already bound.");
@@ -724,6 +738,7 @@ public class BeaconManager {
      */
     @Deprecated
     public void setRangeNotifier(@Nullable RangeNotifier notifier) {
+        LogManager.d(TAG, "API setRangeNotifier "+notifier);
         rangeNotifiers.clear();
         if (null != notifier) {
             addRangeNotifier(notifier);
@@ -742,6 +757,7 @@ public class BeaconManager {
      * @see RangeNotifier
      */
     public void addRangeNotifier(@NonNull RangeNotifier notifier) {
+        LogManager.d(TAG, "API addRangeNotifier "+notifier);
         //noinspection ConstantConditions
         if (notifier != null) {
             rangeNotifiers.add(notifier);
@@ -755,6 +771,7 @@ public class BeaconManager {
      * @see RangeNotifier
      */
     public boolean removeRangeNotifier(@NonNull RangeNotifier notifier) {
+        LogManager.d(TAG, "API removeRangeNotifier "+notifier);
         return rangeNotifiers.remove(notifier);
     }
 
@@ -762,6 +779,7 @@ public class BeaconManager {
      * Remove all the Range Notifiers.
      */
     public void removeAllRangeNotifiers() {
+        LogManager.d(TAG, "API removeAllRangeNotifiers");
         rangeNotifiers.clear();
     }
 
@@ -781,6 +799,7 @@ public class BeaconManager {
      */
     @Deprecated
     public void setMonitorNotifier(@Nullable MonitorNotifier notifier) {
+        LogManager.d(TAG, "API setMonitorNotifier "+notifier);
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
@@ -804,6 +823,7 @@ public class BeaconManager {
      * @see Region
      */
     public void addMonitorNotifier(@NonNull MonitorNotifier notifier) {
+        LogManager.d(TAG, "API addMonitorNotifier "+notifier);
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
@@ -831,6 +851,7 @@ public class BeaconManager {
      * @see Region
      */
     public boolean removeMonitorNotifier(@NonNull MonitorNotifier notifier) {
+        LogManager.d(TAG, "API removeMonitorNotifier "+notifier);
         if (determineIfCalledFromSeparateScannerProcess()) {
             return false;
         }
@@ -841,6 +862,7 @@ public class BeaconManager {
      * Remove all the Monitor Notifiers.
      */
     public void removeAllMonitorNotifiers() {
+        LogManager.d(TAG, "API removeAllMonitorNotifiers");
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
@@ -866,6 +888,7 @@ public class BeaconManager {
      * @param enabled true to enable the region state persistence, false to disable it.
      */
     public void setRegionStatePersistenceEnabled(boolean enabled) {
+        LogManager.d(TAG, "API setRegionStatePerisistenceEnabled "+enabled);
         mRegionStatePersistenceEnabled = enabled;
         if (!isScannerInDifferentProcess()) {
             if (enabled) {
@@ -923,6 +946,7 @@ public class BeaconManager {
     @Deprecated
     @TargetApi(18)
     public void startRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "API startRangingBeaconsInRegion "+region);
         LogManager.d(TAG, "startRangingBeaconsInRegion");
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
@@ -954,6 +978,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void startRangingBeacons(@NonNull Region region) {
+        LogManager.d(TAG, "API startRangingBeacons "+region);
         LogManager.d(TAG, "startRanging");
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
@@ -987,6 +1012,7 @@ public class BeaconManager {
     @Deprecated
     @TargetApi(18)
     public void stopRangingBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "API stopRangingBeacons "+region);
         LogManager.d(TAG, "stopRangingBeaconsInRegion");
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
@@ -1011,6 +1037,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void stopRangingBeacons(@NonNull Region region) {
+        LogManager.d(TAG, "API stopRangingBeacons "+region);
         LogManager.d(TAG, "stopRangingBeacons");
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
@@ -1034,6 +1061,7 @@ public class BeaconManager {
      * @see #isScannerInDifferentProcess()
      */
     public void applySettings() {
+        LogManager.d(TAG, "API applySettings");
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
@@ -1084,6 +1112,8 @@ public class BeaconManager {
     @Deprecated
     @TargetApi(18)
     public void startMonitoringBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "API startMonitoringBeaconsInRegion "+region);
+
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -1119,6 +1149,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void startMonitoring(@NonNull Region region) {
+        LogManager.d(TAG, "API startMonitoring "+region);
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
@@ -1154,6 +1185,7 @@ public class BeaconManager {
     @Deprecated
     @TargetApi(18)
     public void stopMonitoringBeaconsInRegion(@NonNull Region region) throws RemoteException {
+        LogManager.d(TAG, "API stopMonitoringBeaconsInRegion "+region);
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -1198,6 +1230,7 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void stopMonitoring(@NonNull Region region) {
+        LogManager.d(TAG, "API stopMonitoring "+region);
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
@@ -1222,6 +1255,8 @@ public class BeaconManager {
      */
     @TargetApi(18)
     public void updateScanPeriods() throws RemoteException {
+        LogManager.d(TAG, "API updateScanPeriods");
+
         if (!isBleAvailableOrSimulated()) {
             LogManager.w(TAG, "Method invocation will be ignored.");
             return;
@@ -1230,7 +1265,7 @@ public class BeaconManager {
             return;
         }
         LogManager.d(TAG, "updating background flag to %s", mBackgroundMode);
-        LogManager.d(TAG, "updating scan period to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
+        LogManager.d(TAG, "updating scan periods to %s, %s", this.getScanPeriod(), this.getBetweenScanPeriod());
         if (isAnyConsumerBound()) {
             applyChangesToServices(BeaconService.MSG_SET_SCAN_PERIODS, null);
         }
@@ -1440,10 +1475,12 @@ public class BeaconManager {
      * @param maxTrackingAge in milliseconds
      */
     public void setMaxTrackingAge(int maxTrackingAge) {
+        LogManager.d(TAG, "API setMaxTrackingAge "+maxTrackingAge);
         RangedBeacon.setMaxTrackinAge(maxTrackingAge);
     }
 
     public static void setBeaconSimulator(BeaconSimulator beaconSimulator) {
+        LogManager.d(TAG, "API setBeaconSimulator "+beaconSimulator);
         warnIfScannerNotInSameProcess();
         BeaconManager.beaconSimulator = beaconSimulator;
     }
@@ -1455,6 +1492,7 @@ public class BeaconManager {
 
 
     protected void setDataRequestNotifier(@Nullable RangeNotifier notifier) {
+        LogManager.d(TAG, "API setDataRequestNotifier "+notifier);
         this.dataRequestNotifier = notifier;
     }
 
@@ -1469,6 +1507,7 @@ public class BeaconManager {
     }
 
     public void setNonBeaconLeScanCallback(@Nullable NonBeaconLeScanCallback callback) {
+        LogManager.d(TAG, "API setNonBeaconLeScanCallback "+callback);
         mNonBeaconLeScanCallback = callback;
     }
 
@@ -1587,6 +1626,7 @@ public class BeaconManager {
      * @deprecated This will be removed in the 3.0 release
      */
     public static void setAndroidLScanningDisabled(boolean disabled) {
+        LogManager.d(TAG, "API setAndroidLScanningDisabled "+disabled);
         sAndroidLScanningDisabled = disabled;
         BeaconManager instance = sInstance;
         if (instance != null) {
@@ -1611,6 +1651,7 @@ public class BeaconManager {
      * @param disabled
      */
     public static void setManifestCheckingDisabled(boolean disabled) {
+        LogManager.d(TAG, "API setManifestCheckingDisabled "+disabled);
         sManifestCheckingDisabled = disabled;
     }
 
@@ -1648,6 +1689,8 @@ public class BeaconManager {
      */
     public void enableForegroundServiceScanning(Notification notification, int notificationId)
             throws IllegalStateException {
+        LogManager.d(TAG, "API enableForegroundServiceScanning "+notification);
+
         if (isAnyConsumerBound()) {
             throw new IllegalStateException("May not be called after consumers are already bound.");
         }
@@ -1671,6 +1714,7 @@ public class BeaconManager {
      * service
      */
     public void disableForegroundServiceScanning() throws IllegalStateException {
+        LogManager.d(TAG, "API disableForegroundServiceScanning");
         if (isAnyConsumerBound()) {
             throw new IllegalStateException("May not be called after consumers are already bound");
         }

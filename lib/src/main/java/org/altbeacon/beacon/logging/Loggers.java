@@ -36,6 +36,9 @@ public final class Loggers {
     /** Warning Logger Singleton. */
     private static final Logger WARNING_ANDROID_LOGGER = new WarningAndroidLogger();
 
+    /** Api Tracking Logger Singleton. */
+    private static final ApiTrackingLogger API_TRACKING_ANDROID_LOGGER = new ApiTrackingLogger();
+
     /**
      * @return Get a logger that does nothing.
      */
@@ -65,6 +68,14 @@ public final class Loggers {
      */
     public static Logger warningLogger() {
         return WARNING_ANDROID_LOGGER;
+    }
+
+    /**
+     * @return Get a logger that logs all messages to default Android logs and tracks api calls
+     * @see android.util.Log
+     */
+    public static ApiTrackingLogger apiTrackingLogger() {
+        return API_TRACKING_ANDROID_LOGGER;
     }
 
     private Loggers() {

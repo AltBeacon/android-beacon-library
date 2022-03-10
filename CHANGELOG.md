@@ -1,5 +1,6 @@
 ### Development
 
+- Add ApiTrackingLogger (#1078, David G. Young)
 - Allow scanning with only BLUETOOTH_SCAN permission and not just location permissions. (#1065, Marcel Schnelle)
 - Fix bug blocking job scheduler scans on Android 12. (#1077, David G. Young)
 

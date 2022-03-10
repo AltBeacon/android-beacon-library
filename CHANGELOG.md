@@ -1,5 +1,6 @@
 ### Development
 
+- Add ApiTrackingLogger (#1078, David G. Young)
 - Allow scanning with only BLUETOOTH_SCAN permission and not just location permissions. (#1065, Marcel Schnelle)
 
 ### 2.19.3 / 2021-10-5

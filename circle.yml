@@ -1,6 +1,6 @@
 machine:
   java:
-    version: openjdk8
+    version: openjdk11
 dependencies:
   pre:
     - echo y | android update sdk --no-ui --all --filter "tools,android-30,build-tools-30.0.3,platform-tools,extra-android-m2repository,extra-google-m2repository"

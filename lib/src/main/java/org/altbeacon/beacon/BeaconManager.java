@@ -43,6 +43,7 @@ import androidx.annotation.Nullable;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaverInternal;
+import org.altbeacon.beacon.service.AppChangeDetector;
 import org.altbeacon.beacon.service.BeaconService;
 import org.altbeacon.beacon.service.Callback;
 import org.altbeacon.beacon.service.IntentScanStrategyCoordinator;
@@ -320,6 +321,9 @@ public class BeaconManager {
          }
         this.beaconParsers.add(new AltBeaconParser());
         setScheduledScanJobsEnabledDefault();
+        if (new AppChangeDetector().checkForAppChange(context)) {
+            // TODO: Clear storage
+        }
     }
 
     /***

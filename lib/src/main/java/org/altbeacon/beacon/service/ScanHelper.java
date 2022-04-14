@@ -14,6 +14,8 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.util.Log;
+
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,6 +45,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -64,6 +67,8 @@ class ScanHelper {
     private static final String TAG = ScanHelper.class.getSimpleName();
     @Nullable
     private ExecutorService mExecutor;
+    private Date scanResultQueuedTime = new Date();
+    private Date scanResultProcessedTime = new Date();
     private BeaconManager mBeaconManager;
     @Nullable
     private CycledLeScanner mCycledScanner;
@@ -85,7 +90,11 @@ class ScanHelper {
     }
 
     private ExecutorService getExecutor() {
+        if (mExecutor != null && mExecutor.isShutdown()) {
+            LogManager.d(TAG, "API ThreadPoolExecutor unexpectedly shut down");
+        }
         if (mExecutor == null) {
+            LogManager.d(TAG, "API ThreadPoolExecutor created");
             mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
         }
         return mExecutor;
@@ -160,6 +169,18 @@ class ScanHelper {
         NonBeaconLeScanCallback nonBeaconLeScanCallback = mBeaconManager.getNonBeaconLeScanCallback();
 
         try {
+            long millisSinceScanProcessed = scanResultQueuedTime.getTime() - scanResultProcessedTime.getTime();
+            if (millisSinceScanProcessed > 30*60*1000) {
+                LogManager.e(TAG, "API ThreadPoolExecutor has stalled for %ld millis.  Killing it.",millisSinceScanProcessed);
+                mExecutor.shutdown();
+                mExecutor = null;
+            }
+            else if (millisSinceScanProcessed > 0) {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "ThreadPoolExecutor has not run in %ld millis",millisSinceScanProcessed);
+                }
+            }
+            scanResultQueuedTime = new Date();
             new ScanHelper.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(getExecutor(),
                     new ScanHelper.ScanData(device, rssi, scanRecord, timestampMs));
         } catch (RejectedExecutionException e) {
@@ -419,6 +440,10 @@ class ScanHelper {
         protected Void doInBackground(ScanHelper.ScanData... params) {
             ScanHelper.ScanData scanData = params[0];
             Beacon beacon = null;
+            scanResultProcessedTime = new Date();
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "Processing packet");
+            }
 
             for (BeaconParser parser : ScanHelper.this.mBeaconParsers) {
                 beacon = parser.fromScanData(scanData.scanRecord, scanData.rssi, scanData.device, scanData.timestampMs);

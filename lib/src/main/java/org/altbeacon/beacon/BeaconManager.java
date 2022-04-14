@@ -133,6 +133,7 @@ public class BeaconManager {
     @Nullable
     private Notification mForegroundServiceNotification = null;
     private int mForegroundServiceNotificationId = -1;
+    public static boolean useAsyncTask = true;
 
     /**
      * Private lock object for singleton initialization protecting against denial-of-service attack.

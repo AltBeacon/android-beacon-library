@@ -171,18 +171,24 @@ class ScanHelper {
         try {
             long millisSinceScanProcessed = scanResultQueuedTime.getTime() - scanResultProcessedTime.getTime();
             if (millisSinceScanProcessed > 30*60*1000) {
-                LogManager.e(TAG, "API ThreadPoolExecutor has stalled for %ld millis.  Killing it.",millisSinceScanProcessed);
+                LogManager.e(TAG, "API ThreadPoolExecutor has stalled for %d millis.  Killing it.",millisSinceScanProcessed);
                 mExecutor.shutdown();
                 mExecutor = null;
             }
             else if (millisSinceScanProcessed > 0) {
                 if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "ThreadPoolExecutor has not run in %ld millis",millisSinceScanProcessed);
+                    LogManager.d(TAG, "ThreadPoolExecutor has not run in %d millis",millisSinceScanProcessed);
                 }
             }
             scanResultQueuedTime = new Date();
-            new ScanHelper.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(getExecutor(),
-                    new ScanHelper.ScanData(device, rssi, scanRecord, timestampMs));
+
+            if (BeaconManager.useAsyncTask) {
+                new ScanHelper.ScanProcessor(nonBeaconLeScanCallback).executeOnExecutor(getExecutor(),
+                        new ScanHelper.ScanData(device, rssi, scanRecord, timestampMs));
+            }
+            else {
+                getExecutor().execute(new ScanProcessorRunnable(nonBeaconLeScanCallback, new ScanHelper.ScanData(device, rssi, scanRecord, timestampMs)));
+            }
         } catch (RejectedExecutionException e) {
             LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");
         } catch (OutOfMemoryError e) {
@@ -424,6 +430,52 @@ class ScanHelper {
 
         @NonNull
         long timestampMs;
+    }
+
+    private class ScanProcessorRunnable implements Runnable {
+        DetectionTracker detectionTracker = DetectionTracker.getInstance();
+        NonBeaconLeScanCallback nonBeaconLeScanCallback;
+        ScanHelper.ScanData scanData;
+
+        ScanProcessorRunnable(NonBeaconLeScanCallback nonBeaconLeScanCallback, ScanData scanData) {
+            this.nonBeaconLeScanCallback = nonBeaconLeScanCallback;
+            this.scanData = scanData;
+        }
+
+        @Override
+        public void run() {
+            Beacon beacon = null;
+            scanResultProcessedTime = new Date();
+            if (LogManager.isVerboseLoggingEnabled()) {
+                LogManager.d(TAG, "Processing packet");
+            }
+
+            for (BeaconParser parser : ScanHelper.this.mBeaconParsers) {
+                beacon = parser.fromScanData(scanData.scanRecord, scanData.rssi, scanData.device, scanData.timestampMs);
+
+                if (beacon != null) {
+                    break;
+                }
+            }
+            if (beacon != null) {
+                if (LogManager.isVerboseLoggingEnabled()) {
+                    LogManager.d(TAG, "Beacon packet detected for: "+beacon+" with rssi "+beacon.getRssi());
+                }
+                detectionTracker.recordDetection();
+                if (mCycledScanner != null && !mCycledScanner.getDistinctPacketsDetectedPerScan()) {
+                    if (!mDistinctPacketDetector.isPacketDistinct(scanData.device.getAddress(),
+                            scanData.scanRecord)) {
+                        LogManager.i(TAG, "Non-distinct packets detected in a single scan.  Restarting scans unecessary.");
+                        mCycledScanner.setDistinctPacketsDetectedPerScan(true);
+                    }
+                }
+                processBeaconFromScan(beacon);
+            } else {
+                if (nonBeaconLeScanCallback != null) {
+                    nonBeaconLeScanCallback.onNonBeaconLeScan(scanData.device, scanData.rssi, scanData.scanRecord);
+                }
+            }
+        }
     }
 
     private class ScanProcessor extends AsyncTask<ScanHelper.ScanData, Void, Void> {

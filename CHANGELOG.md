@@ -1,6 +1,6 @@
 ### 2.19.5-beta1 / 2022-04-14
 
-- Add checking to see if ThreadPoolExecutor is stalled and try to recover. (TBD, David G. Young)
+- Add checking to see if ThreadPoolExecutor is stalled and try to recover. (#1081, David G. Young)
 
 ### 2.19.4 / 2022-03-10
 

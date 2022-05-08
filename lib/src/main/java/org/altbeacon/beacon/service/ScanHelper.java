@@ -150,6 +150,10 @@ class ScanHelper {
     }
 
     void setBeaconParsers(Set<BeaconParser> beaconParsers) {
+        Log.d(TAG, "BeaconParsers set to  count: "+beaconParsers.size());
+        if (beaconParsers.size() > 0) {
+            Log.d(TAG, "First parser layout: "+beaconParsers.iterator().next().getLayout());
+        }
         mBeaconParsers = beaconParsers;
     }
 
@@ -206,6 +210,10 @@ class ScanHelper {
                 matchBeaconsByServiceUUID = false;
                 newBeaconParsers.addAll(beaconParser.getExtraDataParsers());
             }
+        }
+        Log.d(TAG, "Parser reload count: "+newBeaconParsers.size());
+        if (newBeaconParsers.size() > 0) {
+            Log.d(TAG, "First parser layout: "+newBeaconParsers.iterator().next().getLayout());
         }
         mBeaconParsers = newBeaconParsers;
         //initialize the extra data beacon tracker
@@ -449,6 +457,12 @@ class ScanHelper {
             if (LogManager.isVerboseLoggingEnabled()) {
                 LogManager.d(TAG, "Processing packet");
             }
+            if (ScanHelper.this.mBeaconParsers.size() > 0) {
+                Log.d(TAG, "Decoding beacon. First parser layout: "+mBeaconParsers.iterator().next().getLayout());
+            }
+            else {
+                Log.w(TAG, "No beacon parsers registered when decoding beacon");
+            }
 
             for (BeaconParser parser : ScanHelper.this.mBeaconParsers) {
                 beacon = parser.fromScanData(scanData.scanRecord, scanData.rssi, scanData.device, scanData.timestampMs);
@@ -495,6 +509,13 @@ class ScanHelper {
             scanResultProcessedTime = new Date();
             if (LogManager.isVerboseLoggingEnabled()) {
                 LogManager.d(TAG, "Processing packet");
+            }
+
+            if (ScanHelper.this.mBeaconParsers.size() > 0) {
+                Log.d(TAG, "Decoding beacon. First parser layout: "+mBeaconParsers.iterator().next().getLayout());
+            }
+            else {
+                Log.w(TAG, "No beacon parsers registered when decoding beacon");
             }
 
             for (BeaconParser parser : ScanHelper.this.mBeaconParsers) {

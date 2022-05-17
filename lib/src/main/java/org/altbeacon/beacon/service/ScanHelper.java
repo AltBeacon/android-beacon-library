@@ -461,7 +461,7 @@ class ScanHelper {
                 Log.d(TAG, "Decoding beacon. First parser layout: "+mBeaconParsers.iterator().next().getLayout());
             }
             else {
-                Log.w(TAG, "No beacon parsers registered when decoding beacon");
+                Log.w(TAG, "API No beacon parsers registered when decoding beacon");
             }
 
             for (BeaconParser parser : ScanHelper.this.mBeaconParsers) {

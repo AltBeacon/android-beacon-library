@@ -1057,9 +1057,7 @@ public class BeaconManager {
     }
 
     /**
-     * Call this method if you are running the scanner service in a different process in order to
-     * synchronize any configuration settings, including BeaconParsers to the scanner
-     * @see #isScannerInDifferentProcess()
+     * Call this method in order to apply your settings changes to the already running scanning process
      */
     public void applySettings() {
         LogManager.d(TAG, "API applySettings");
@@ -1068,11 +1066,8 @@ public class BeaconManager {
         }
         if (!isAnyConsumerBound()) {
             LogManager.d(TAG, "Not synchronizing settings to service, as it has not started up yet");
-        } else if (isScannerInDifferentProcess()) {
-            LogManager.d(TAG, "Synchronizing settings to service");
-            syncSettingsToService();
         } else {
-            LogManager.d(TAG, "Not synchronizing settings to service, as it is in the same process");
+            syncSettingsToService();
         }
     }
 

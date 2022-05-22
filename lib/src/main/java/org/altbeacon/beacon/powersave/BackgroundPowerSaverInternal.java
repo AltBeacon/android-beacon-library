@@ -127,7 +127,7 @@ public class BackgroundPowerSaverInternal implements Application.ActivityLifecyc
         if (beaconManager.isBackgroundModeUninitialized()) {
             LogManager.i(TAG, "Background mode not set.  We assume we are in the foreground.");
         }
-    }
+    }inferBackground
     private void inferBackground(String inferenceMechanism) {
         if (beaconManager.isBackgroundModeUninitialized()) {
             LogManager.i(TAG, "We have inferred by "+inferenceMechanism+" that we are in the background.");

@@ -1379,7 +1379,7 @@ public class BeaconManager {
      */
     @NonNull
     public Collection<Region> getMonitoredRegions() {
-        return MonitoringStatus.getInstanceForApplication(mContext).regions();
+        return MonitoringStatus.getInstanceForApplication(mContext).getActiveRegions();
     }
 
     /**

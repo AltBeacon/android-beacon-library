@@ -84,10 +84,10 @@ class ScanHelper {
 
     private ExecutorService getExecutor() {
         if (mExecutor != null && mExecutor.isShutdown()) {
-            LogManager.d(TAG, "API ThreadPoolExecutor unexpectedly shut down");
+            LogManager.w(TAG, "ThreadPoolExecutor unexpectedly shut down");
         }
         if (mExecutor == null) {
-            LogManager.d(TAG, "API ThreadPoolExecutor created");
+            LogManager.d(TAG, "ThreadPoolExecutor created");
             mExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
         }
         return mExecutor;

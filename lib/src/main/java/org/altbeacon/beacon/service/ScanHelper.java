@@ -12,7 +12,6 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
@@ -21,13 +20,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.WorkerThread;
-import androidx.annotation.RestrictTo;
-import androidx.annotation.RestrictTo.Scope;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
@@ -45,7 +41,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,8 +62,6 @@ class ScanHelper {
     private static final String TAG = ScanHelper.class.getSimpleName();
     @Nullable
     private ExecutorService mExecutor;
-    private Date scanResultQueuedTime = new Date();
-    private Date scanResultProcessedTime = new Date();
     private BeaconManager mBeaconManager;
     @Nullable
     private CycledLeScanner mCycledScanner;
@@ -173,19 +166,6 @@ class ScanHelper {
         NonBeaconLeScanCallback nonBeaconLeScanCallback = mBeaconManager.getNonBeaconLeScanCallback();
 
         try {
-            long millisSinceScanProcessed = scanResultQueuedTime.getTime() - scanResultProcessedTime.getTime();
-            if (millisSinceScanProcessed > 30*60*1000) {
-                LogManager.e(TAG, "API ThreadPoolExecutor has stalled for %d millis.  Killing it.",millisSinceScanProcessed);
-                mExecutor.shutdown();
-                mExecutor = null;
-            }
-            else if (millisSinceScanProcessed > 0) {
-                if (LogManager.isVerboseLoggingEnabled()) {
-                    LogManager.d(TAG, "ThreadPoolExecutor has not run in %d millis",millisSinceScanProcessed);
-                }
-            }
-            scanResultQueuedTime = new Date();
-
             getExecutor().execute(new ScanProcessorRunnable(nonBeaconLeScanCallback, new ScanHelper.ScanData(device, rssi, scanRecord, timestampMs)));
         } catch (RejectedExecutionException e) {
             LogManager.w(TAG, "Ignoring scan result because we cannot keep up.");
@@ -204,10 +184,6 @@ class ScanHelper {
                 matchBeaconsByServiceUUID = false;
                 newBeaconParsers.addAll(beaconParser.getExtraDataParsers());
             }
-        }
-        Log.d(TAG, "API Parser reload count: "+newBeaconParsers.size());
-        if (newBeaconParsers.size() > 0) {
-            Log.d(TAG, "API First parser layout: "+newBeaconParsers.iterator().next().getLayout());
         }
         mBeaconParsers = newBeaconParsers;
         //initialize the extra data beacon tracker
@@ -447,7 +423,6 @@ class ScanHelper {
         @Override
         public void run() {
             Beacon beacon = null;
-            scanResultProcessedTime = new Date();
             if (LogManager.isVerboseLoggingEnabled()) {
                 LogManager.d(TAG, "Processing packet");
             }

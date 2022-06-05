@@ -23,7 +23,6 @@
  */
 package org.altbeacon.beacon;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.ServiceStartNotAllowedException;
@@ -437,9 +436,7 @@ public class BeaconManager {
                     LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
                 }
                 if (mIntentScanStrategyCoordinator != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        mIntentScanStrategyCoordinator.start();
-                    }
+                    mIntentScanStrategyCoordinator.start();
                     consumer.onBeaconServiceConnect();
                 }
                 else if (mScheduledScanJobsEnabled) {
@@ -510,14 +507,14 @@ public class BeaconManager {
         }
 
         if (shouldFailover) {
-            LogManager.i(TAG, "unbinding all consumers for stategy failover");
+            LogManager.i(TAG, "unbinding all consumers for failover from intent strategy");
             List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
             for (InternalBeaconConsumer consumer: oldConsumers) {
                 this.unbindInternal(consumer);
             }
             // No reason to delay between the two of these because there is no asynchonous behavior
             // on unbinding with the intent scan strategy or scheduled jobs -- they are not services
-            LogManager.i(TAG, "binding all consumers for strategy failover");
+            LogManager.i(TAG, "binding all consumers for failover from intent strategy");
             for (InternalBeaconConsumer consumer: oldConsumers) {
                 this.bindInternal(consumer);
             }
@@ -1750,41 +1747,6 @@ public class BeaconManager {
         setEnableScheduledScanJobs(false);
         mForegroundServiceNotification = notification;
         mForegroundServiceNotificationId = notificationId;
-    }
-
-    /**
-     *  Because Android 12 blocks starting foreground services under some conditions, the library
-     *  may fall back to using the Job Scheduler to schedule scans in these cases.  When this
-     *  happens, it may be possible to start a foreground service at a later time once a
-     *  qualifying event happens.  The library will automatically do this if the app comes to
-     *  the foreground (one example of a qualifying event.)  But the app itself may detect other
-     *  qualifying events defined here:
-     *
-     *  https://developer.android.com/guide/components/foreground-services#background-start-restrictions
-     *
-     *  If the app detects one of these events and wants to retry starting foreground service
-     *  scanning, call this method.
-     *
-     *  Calling this method does not guarantee that the retry will succeed, and if it does not,
-     *  the Job Scheduler will continue to be used.
-     *
-     * @see #foregroundServiceStartFailed() to determine if this method call may be helpful.
-     */
-    public void retryForegroundServiceScanning() {
-        if (foregroundServiceStartFailed()) {
-            handleStategyFailover();
-        }
-    }
-
-    /**
-     * Returns whether Android has blocked using a requsted foreground service to do scans.
-     *
-     *  @see #retryForegroundServiceScanning() for more info.
-     *
-     * @return
-     */
-    public boolean foregroundServiceStartFailed() {
-        return mScheduledScanJobsEnabledByFallback;
     }
 
     /**

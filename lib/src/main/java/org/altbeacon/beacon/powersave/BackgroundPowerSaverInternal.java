@@ -59,11 +59,6 @@ public class BackgroundPowerSaverInternal implements Application.ActivityLifecyc
         }
         beaconManager.setBackgroundMode(false);
         LogManager.d(TAG, "activity resumed: %s active activities: %s", activity, activeActivityCount);
-        // If we are in a fallback from a foreground service to the scan jobs due to
-        // Android restrictions on starting foreground services, this is an opportunity
-        // to legally start the foreground service now.
-        BeaconManager.getInstanceForApplication(applicationContext).retryForegroundServiceScanning();
-
     }
 
     @Override
@@ -132,7 +127,7 @@ public class BackgroundPowerSaverInternal implements Application.ActivityLifecyc
         if (beaconManager.isBackgroundModeUninitialized()) {
             LogManager.i(TAG, "Background mode not set.  We assume we are in the foreground.");
         }
-    }
+    }inferBackground
     private void inferBackground(String inferenceMechanism) {
         if (beaconManager.isBackgroundModeUninitialized()) {
             LogManager.i(TAG, "We have inferred by "+inferenceMechanism+" that we are in the background.");

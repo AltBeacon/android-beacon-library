@@ -40,6 +40,12 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
                 if (errorCode != -1) {
                     LogManager.w(TAG, "Passive background scan failed.  Code; "+errorCode);
                 }
+                else {
+                    // If we are in a fallback from a foreground service to the scan jobs due to
+                    // Android restrictions on starting foreground services, this is an opportunity
+                    // to legally start the foreground service now.
+                    BeaconManager.getInstanceForApplication(context).handleStategyFailover();
+                }
                 ArrayList<ScanResult> scanResults = intent.getParcelableArrayListExtra(BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT);
 
                 if (beaconManager.getIntentScanStrategyCoordinator() != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

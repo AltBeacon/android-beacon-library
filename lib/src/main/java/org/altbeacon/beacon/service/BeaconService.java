@@ -172,7 +172,7 @@ public class BeaconService extends Service {
                     }
                 }
                 else if (msg.what == MSG_SYNC_SETTINGS) {
-                    LogManager.i(TAG, "Received settings update");
+                    LogManager.i(TAG, "Received settings update from other process");
                     SettingsData settingsData = SettingsData.fromBundle(msg.getData());
                     if (settingsData != null) {
                         settingsData.apply(service);

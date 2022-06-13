@@ -1,5 +1,6 @@
 ### Development
 
+- Handle Foreground Service Start Failures in Android 12 (#1090, David G. Young)
 - Fix region persistence usability problems (#1089, David G. Young)
 - Fix bugs with changing BeaconParsers for running scan service (#1091, David G. Young)
 

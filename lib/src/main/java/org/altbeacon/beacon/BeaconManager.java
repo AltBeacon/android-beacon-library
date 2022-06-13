@@ -33,7 +33,9 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -56,6 +58,8 @@ import org.altbeacon.beacon.service.SettingsData;
 import org.altbeacon.beacon.service.StartRMData;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
+import org.altbeacon.beacon.utils.ChangeAwareCopyOnWriteArrayList;
+import org.altbeacon.beacon.utils.ChangeAwareCopyOnWriteArrayListNotifier;
 import org.altbeacon.beacon.utils.ProcessUtils;
 
 import java.util.ArrayList;
@@ -69,7 +73,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -113,7 +116,7 @@ public class BeaconManager {
 
 
     @NonNull
-    private final List<BeaconParser> beaconParsers = new CopyOnWriteArrayList<>();
+    private final List<BeaconParser> beaconParsers;
 
     @Nullable
     private NonBeaconLeScanCallback mNonBeaconLeScanCallback;
@@ -133,6 +136,9 @@ public class BeaconManager {
     @Nullable
     private Notification mForegroundServiceNotification = null;
     private int mForegroundServiceNotificationId = -1;
+
+    private Handler mServiceSyncHandler = new Handler(Looper.getMainLooper());
+    private boolean mServiceSyncScheduled = false;
 
     /**
      * Private lock object for singleton initialization protecting against denial-of-service attack.
@@ -324,6 +330,16 @@ public class BeaconManager {
         if (!sManifestCheckingDisabled) {
            verifyServiceDeclaration();
          }
+        ChangeAwareCopyOnWriteArrayList<BeaconParser> beaconParsers =  new ChangeAwareCopyOnWriteArrayList<>();
+        beaconParsers.setNotifier(new ChangeAwareCopyOnWriteArrayListNotifier() {
+            @Override
+            public void onChange() {
+                LogManager.d(TAG, "API Beacon parsers changed");
+                BeaconManager.this.applySettings();
+            }
+        });
+
+        this.beaconParsers = beaconParsers;
         this.beaconParsers.add(new AltBeaconParser());
         setScheduledScanJobsEnabledDefault();
     }
@@ -377,7 +393,6 @@ public class BeaconManager {
      */
    @NonNull
     public List<BeaconParser> getBeaconParsers() {
-       LogManager.d(TAG, "API getBeaconParsers, current count "+beaconParsers.size());
        return beaconParsers;
     }
 
@@ -1056,9 +1071,7 @@ public class BeaconManager {
     }
 
     /**
-     * Call this method if you are running the scanner service in a different process in order to
-     * synchronize any configuration settings, including BeaconParsers to the scanner
-     * @see #isScannerInDifferentProcess()
+     * Call this method in order to apply your settings changes to the already running scanning process
      */
     public void applySettings() {
         LogManager.d(TAG, "API applySettings");
@@ -1067,15 +1080,12 @@ public class BeaconManager {
         }
         if (!isAnyConsumerBound()) {
             LogManager.d(TAG, "Not synchronizing settings to service, as it has not started up yet");
-        } else if (isScannerInDifferentProcess()) {
-            LogManager.d(TAG, "Synchronizing settings to service");
-            syncSettingsToService();
         } else {
-            LogManager.d(TAG, "Not synchronizing settings to service, as it is in the same process");
+            syncSettingsToService();
         }
     }
 
-    protected void syncSettingsToService() {
+    protected synchronized void syncSettingsToService() {
         if (mIntentScanStrategyCoordinator != null) {
             mIntentScanStrategyCoordinator.applySettings();
             return;
@@ -1086,10 +1096,32 @@ public class BeaconManager {
             }
             return;
         }
-        try {
-            applyChangesToServices(BeaconService.MSG_SYNC_SETTINGS, null);
-        } catch (RemoteException e) {
-            LogManager.e(TAG, "Failed to sync settings to service", e);
+        if (!isAnyConsumerBound()) {
+            // If no services are bound, there is no reason to sync settings
+            LogManager.d(TAG, "No settings sync to running service -- service not bound");
+            return;
+        }
+
+        // Because may API calls may be called in sequence, here we batch the sync to the service.
+        if (mServiceSyncScheduled == false) {
+            // call this at most every 100ms
+            mServiceSyncScheduled = true;
+            LogManager.d(TAG, "API Scheduling settings sync to running service.");
+            mServiceSyncHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mServiceSyncScheduled = false;
+                    try {
+                        LogManager.d(TAG, "API Performing settings sync to running service.");
+                        applyChangesToServices(BeaconService.MSG_SYNC_SETTINGS, null);
+                    } catch (RemoteException e) {
+                        LogManager.e(TAG, "Failed to sync settings to service", e);
+                    }
+                }
+            }, 100l);
+        }
+        else {
+            LogManager.d(TAG, "Already scheduled settings sync to running service.");
         }
     }
 

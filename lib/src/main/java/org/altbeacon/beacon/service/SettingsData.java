@@ -53,45 +53,51 @@ public class SettingsData implements Serializable {
     }
 
     public void apply(@NonNull BeaconService scanService) {
-        LogManager.d(TAG, "Applying settings changes to scanner in other process");
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(scanService);
-        List<BeaconParser> beaconParsers = beaconManager.getBeaconParsers();
-        boolean beaconParsersChanged = false;
-        if (beaconParsers.size() == mBeaconParsers.size()) {
-            for (int i = 0; i < beaconParsers.size(); i++) {
-                if (!beaconParsers.get(i).equals(mBeaconParsers.get(i))) {
-                    LogManager.d(TAG, "Beacon parsers have changed to: "+mBeaconParsers.get(i).getLayout());
-                    beaconParsersChanged = true;
-                    break;
-                }
-            }
-        }
-        else {
-            beaconParsersChanged = true;
-            LogManager.d(TAG, "Beacon parsers have been added or removed.");
-        }
-        if (beaconParsersChanged) {
-            LogManager.d(TAG, "Updating beacon parsers");
-            beaconManager.getBeaconParsers().clear();
-            beaconManager.getBeaconParsers().addAll(mBeaconParsers);
+        if (beaconManager.isMainProcess()) {
+            LogManager.d(TAG, "API Applying settings changes to scanner service");
             scanService.reloadParsers();
         }
         else {
-            LogManager.d(TAG, "Beacon parsers unchanged.");
+            LogManager.d(TAG, "API Applying settings changes to scanner in other process");
+            List<BeaconParser> beaconParsers = beaconManager.getBeaconParsers();
+            boolean beaconParsersChanged = false;
+            if (beaconParsers.size() == mBeaconParsers.size()) {
+                for (int i = 0; i < beaconParsers.size(); i++) {
+                    if (!beaconParsers.get(i).equals(mBeaconParsers.get(i))) {
+                        LogManager.d(TAG, "Beacon parsers have changed to: "+mBeaconParsers.get(i).getLayout());
+                        beaconParsersChanged = true;
+                        break;
+                    }
+                }
+            }
+            else {
+                beaconParsersChanged = true;
+                LogManager.d(TAG, "Beacon parsers have been added or removed.");
+            }
+            if (beaconParsersChanged) {
+                LogManager.d(TAG, "Updating beacon parsers");
+                beaconManager.getBeaconParsers().clear();
+                beaconManager.getBeaconParsers().addAll(mBeaconParsers);
+                scanService.reloadParsers();
+            }
+            else {
+                LogManager.d(TAG, "Beacon parsers unchanged.");
+            }
+            MonitoringStatus monitoringStatus = MonitoringStatus.getInstanceForApplication(scanService);
+            if (monitoringStatus.isStatePreservationOn() &&
+                    !mRegionStatePersistenceEnabled) {
+                monitoringStatus.stopStatusPreservation();
+            }
+            else if (!monitoringStatus.isStatePreservationOn() &&
+                    mRegionStatePersistenceEnabled) {
+                monitoringStatus.startStatusPreservation();
+            }
+            beaconManager.setAndroidLScanningDisabled(mAndroidLScanningDisabled);
+            BeaconManager.setRegionExitPeriod(mRegionExitPeriod);
+            RangeState.setUseTrackingCache(mUseTrackingCache);
+            Beacon.setHardwareEqualityEnforced(mHardwareEqualityEnforced);
         }
-        MonitoringStatus monitoringStatus = MonitoringStatus.getInstanceForApplication(scanService);
-        if (monitoringStatus.isStatePreservationOn() &&
-                !mRegionStatePersistenceEnabled) {
-            monitoringStatus.stopStatusPreservation();
-        }
-        else if (!monitoringStatus.isStatePreservationOn() &&
-                mRegionStatePersistenceEnabled) {
-            monitoringStatus.startStatusPreservation();
-        }
-        beaconManager.setAndroidLScanningDisabled(mAndroidLScanningDisabled);
-        BeaconManager.setRegionExitPeriod(mRegionExitPeriod);
-        RangeState.setUseTrackingCache(mUseTrackingCache);
-        Beacon.setHardwareEqualityEnforced(mHardwareEqualityEnforced);
     }
 
     public SettingsData collect(@NonNull Context context) {

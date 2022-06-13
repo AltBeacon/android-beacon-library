@@ -1,4 +1,4 @@
-### Development
+### 2.19.5-beta6 / 2022-06-13
 
 - Fix region persistence usability problems (#1089, David G. Young)
 - Fix bugs with changing BeaconParsers for running scan service (#1091, David G. Young)

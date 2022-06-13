@@ -86,8 +86,10 @@ public class MonitoringStatusTest {
         }
         monitoringStatus.saveMonitoringStatusIfOn();
         monitoringStatus.restoreMonitoringStatus();
+        Collection<Region> restoredRegions = monitoringStatus.regions();
+        assertEquals("tracked regions should be restored", 50, restoredRegions.size());
         Collection<Region> regions = beaconManager.getMonitoredRegions();
-        assertEquals("beaconManager should return restored regions", 50, regions.size());
+        assertEquals("beaconManager should not return regions it did not register", 0, regions.size());
     }
 
 

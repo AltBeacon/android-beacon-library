@@ -26,7 +26,7 @@ import java.util.Set;
 import static android.content.Context.MODE_PRIVATE;
 
 /**
- * Stores the full state of scanning for the libary, including all settings so it can be ressurrected easily
+ * Stores the full state of scanning for the library, including all settings so it can be ressurrected easily
  * for running from a scheduled job
  *
  * Created by dyoung on 3/26/17.
@@ -281,6 +281,14 @@ public class ScanState implements Serializable {
             if (!existingRangedRegions.contains(newRangedRegion)) {
                 LogManager.d(TAG, "Starting ranging region: "+newRangedRegion);
                 mRangedRegionState.put(newRangedRegion, new RangeState(new Callback(mContext.getPackageName())));
+            }
+            else {
+                // In case the user has changed the definition, update it.
+                Region existingRegion = existingRangedRegions.get(existingMonitoredRegions.indexOf(newRangedRegion));
+                if (newRangedRegion.hasSameIdentifiers(existingRegion)) {
+                    mRangedRegionState.remove(existingRegion);
+                    mRangedRegionState.put(newRangedRegion, new RangeState(new Callback(mContext.getPackageName())));
+                }
             }
         }
         for (Region existingRangedRegion: existingRangedRegions) {

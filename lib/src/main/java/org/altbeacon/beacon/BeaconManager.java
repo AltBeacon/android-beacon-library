@@ -23,8 +23,10 @@
  */
 package org.altbeacon.beacon;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.ServiceStartNotAllowedException;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -128,6 +130,7 @@ public class BeaconManager {
     @Nullable
     private Boolean mScannerInSameProcess = null;
     private boolean mScheduledScanJobsEnabled = false;
+    private boolean mScheduledScanJobsEnabledByFallback = false;
     @Nullable
     private IntentScanStrategyCoordinator mIntentScanStrategyCoordinator = null;
     private static boolean sAndroidLScanningDisabled = false;
@@ -435,13 +438,23 @@ public class BeaconManager {
         synchronized (consumers) {
             ConsumerInfo newConsumerInfo = new ConsumerInfo();
             ConsumerInfo alreadyBoundConsumerInfo = consumers.putIfAbsent(consumer, newConsumerInfo);
-            if (alreadyBoundConsumerInfo != null) {
+            boolean needToBind = mScheduledScanJobsEnabledByFallback || alreadyBoundConsumerInfo == null;
+            if (!needToBind) {
                 LogManager.d(TAG, "This consumer is already bound");
             }
             else {
-                LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
+                if (mScheduledScanJobsEnabledByFallback) {
+                    LogManager.d(TAG, "Need to rebind for switch to foreground service", consumer);
+                    // we are going to disable the fallbac so we can try a foreground service again
+                    mScheduledScanJobsEnabledByFallback = false;
+                }
+                else {
+                    LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
+                }
                 if (mIntentScanStrategyCoordinator != null) {
-                    mIntentScanStrategyCoordinator.start();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        mIntentScanStrategyCoordinator.start();
+                    }
                     consumer.onBeaconServiceConnect();
                 }
                 else if (mScheduledScanJobsEnabled) {
@@ -453,16 +466,33 @@ public class BeaconManager {
                     Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                             this.getForegroundServiceNotification() != null) {
-                        if (isAnyConsumerBound()) {
+                        if (isAnyConsumerBound() && !mScheduledScanJobsEnabledByFallback) {
                             LogManager.i(TAG, "Not starting foreground beacon scanning" +
                                     " service.  A consumer is already bound, so it should be started");
                         }
                         else {
-                            LogManager.i(TAG, "Starting foreground beacon scanning service.");
-                            mContext.startForegroundService(intent);
+                            LogManager.i(TAG, "Attempting to starting foreground beacon scanning service.");
+                            try {
+                                mContext.startForegroundService(intent);
+                                if (mScheduledScanJobsEnabledByFallback) {
+                                    LogManager.i(TAG, "Successfully switched to foreground service from fallback");
+                                    mScheduledScanJobsEnabledByFallback = false;
+                                    ScanJobScheduler.getInstance().cancelSchedule(mContext);
+                                }
+                                else {
+                                    LogManager.i(TAG, "successfully started foreground beacon scanning service.");
+                                }
+                            }
+                            catch (ServiceStartNotAllowedException e) {
+                                // This happens on Android 12+ if you try to start a service from the background without a
+                                // qualifying event
+                                LogManager.w(TAG, "Foreground service blocked by ServiceStartNotAllowedException.  Falling back to job scheduler");
+                                mScheduledScanJobsEnabledByFallback = true;
+                                syncSettingsToService();
+                                return;
+                            }
                         }
-                    }
-                    else {
+
                     }
                     consumer.bindService(intent, newConsumerInfo.beaconServiceConnection, Context.BIND_AUTO_CREATE);
                 }
@@ -473,25 +503,40 @@ public class BeaconManager {
 
     /**
      * Internal library use only.
-     * This will trigger a failover from the intent scan strategy to jobs or a foreground service
+     * This will trigger a failover from:
+     *   a) the intent scan strategy to jobs or a foreground service
+     *   b) the job scheduler (running on fallback) to the foreground service
      */
     public void handleStategyFailover() {
+        boolean shouldFailover = false;
+        if (mScheduledScanJobsEnabledByFallback) {
+            if (isAnyConsumerBound()) {
+                shouldFailover = true;
+            }
+            else {
+                mScheduledScanJobsEnabledByFallback = false;
+            }
+        }
         if (mIntentScanStrategyCoordinator != null) {
             if (mIntentScanStrategyCoordinator.getDisableOnFailure() && mIntentScanStrategyCoordinator.getLastStrategyFailureDetectionCount() > 0) {
+                shouldFailover = true;
                 mIntentScanStrategyCoordinator = null;
-                LogManager.d(TAG, "unbinding all consumers for failover from intent strategy");
-                List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
-                for (InternalBeaconConsumer consumer: oldConsumers) {
-                    this.unbindInternal(consumer);
-                }
-                // No reason to delay between the two of these because there is no asynchonous behavior
-                // on unbinding with the intent scan strategy -- it is not a service
-                LogManager.d(TAG, "binding all consumers for failover from intent strategy");
-                for (InternalBeaconConsumer consumer: oldConsumers) {
-                    this.bindInternal(consumer);
-                }
-                LogManager.d(TAG, "Done with failover");
             }
+        }
+
+        if (shouldFailover) {
+            LogManager.i(TAG, "unbinding all consumers for stategy failover");
+            List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
+            for (InternalBeaconConsumer consumer: oldConsumers) {
+                this.unbindInternal(consumer);
+            }
+            // No reason to delay between the two of these because there is no asynchonous behavior
+            // on unbinding with the intent scan strategy or scheduled jobs -- they are not services
+            LogManager.i(TAG, "binding all consumers for strategy failover");
+            for (InternalBeaconConsumer consumer: oldConsumers) {
+                this.bindInternal(consumer);
+            }
+            LogManager.i(TAG, "Done with failover");
         }
     }
 
@@ -523,7 +568,7 @@ public class BeaconManager {
                 if (mIntentScanStrategyCoordinator != null) {
                     LogManager.d(TAG, "Not unbinding as we are using intent scanning strategy");
                 }
-                else if (mScheduledScanJobsEnabled) {
+                else if (mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback) {
                     LogManager.d(TAG, "Not unbinding from scanning service as we are using scan jobs.");
                 }
                 else {
@@ -537,7 +582,7 @@ public class BeaconManager {
                     // release the serviceMessenger.
                     serviceMessenger = null;
                     // If we are using scan jobs, we cancel the active scan job
-                    if (mScheduledScanJobsEnabled || mIntentScanStrategyCoordinator != null) {
+                    if (mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback || mIntentScanStrategyCoordinator != null) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             LogManager.i(TAG, "Cancelling scheduled jobs after unbind of last consumer.");
                             ScanJobScheduler.getInstance().cancelSchedule(mContext);
@@ -569,7 +614,7 @@ public class BeaconManager {
             // Annotation doesn't guarantee we get a non-null, but raising an NPE here is excessive
             //noinspection ConstantConditions
             return consumer != null && consumers.get(consumer) != null &&
-                    (mScheduledScanJobsEnabled || serviceMessenger != null);
+                    (mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback || serviceMessenger != null);
         }
     }
 
@@ -582,7 +627,7 @@ public class BeaconManager {
     public boolean isAnyConsumerBound() {
         synchronized(consumers) {
             return !consumers.isEmpty() &&
-                    (mIntentScanStrategyCoordinator != null || mScheduledScanJobsEnabled || serviceMessenger != null);
+                    (mIntentScanStrategyCoordinator != null || mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback || serviceMessenger != null);
         }
     }
 
@@ -678,10 +723,13 @@ public class BeaconManager {
             LogManager.w(TAG, "Disabling ScanJobs on Android 8+ may disable delivery of "+
                     "beacon callbacks in the background unless a foreground service is active.");
         }
-        if(!enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ScanJobScheduler.getInstance().cancelSchedule(mContext);
+        if (enabled) {
+            mScheduledScanJobsEnabledByFallback = false;
         }
         mScheduledScanJobsEnabled = enabled;
+        if(!(mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback) && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ScanJobScheduler.getInstance().cancelSchedule(mContext);
+        }
     }
 
     public void setIntentScanningStrategyEnabled(boolean enabled) {
@@ -697,6 +745,8 @@ public class BeaconManager {
             return;
         }
         if(enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mScheduledScanJobsEnabled = false;
+            mScheduledScanJobsEnabledByFallback = false;
             ScanJobScheduler.getInstance().cancelSchedule(mContext);
             mIntentScanStrategyCoordinator = new IntentScanStrategyCoordinator(mContext);
         }
@@ -1090,7 +1140,7 @@ public class BeaconManager {
             mIntentScanStrategyCoordinator.applySettings();
             return;
         }
-        if (mScheduledScanJobsEnabled) {
+        if (mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
             }
@@ -1313,7 +1363,7 @@ public class BeaconManager {
             mIntentScanStrategyCoordinator.applySettings();
             return;
         }
-        if (mScheduledScanJobsEnabled) {
+        if (mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ScanJobScheduler.getInstance().applySettingsToScheduledJob(mContext, this);
             }
@@ -1732,6 +1782,41 @@ public class BeaconManager {
         setEnableScheduledScanJobs(false);
         mForegroundServiceNotification = notification;
         mForegroundServiceNotificationId = notificationId;
+    }
+
+    /**
+     *  Because Android 12 blocks starting foreground services under some conditions, the library
+     *  may fall back to using the Job Scheduler to schedule scans in these cases.  When this
+     *  happens, it may be possible to start a foreground service at a later time once a
+     *  qualifying event happens.  The library will automatically do this if the app comes to
+     *  the foreground (one example of a qualifying event.)  But the app itself may detect other
+     *  qualifying events defined here:
+     *
+     *  https://developer.android.com/guide/components/foreground-services#background-start-restrictions
+     *
+     *  If the app detects one of these events and wants to retry starting foreground service
+     *  scanning, call this method.
+     *
+     *  Calling this method does not guarantee that the retry will succeed, and if it does not,
+     *  the Job Scheduler will continue to be used.
+     *
+     * @see #foregroundServiceStartFailed() to determine if this method call may be helpful.
+     */
+    public void retryForegroundServiceScanning() {
+        if (foregroundServiceStartFailed()) {
+            handleStategyFailover();
+        }
+    }
+
+    /**
+     * Returns whether Android has blocked using a requsted foreground service to do scans.
+     *
+     *  @see #retryForegroundServiceScanning() for more info.
+     *
+     * @return
+     */
+    public boolean foregroundServiceStartFailed() {
+        return mScheduledScanJobsEnabledByFallback;
     }
 
     /**

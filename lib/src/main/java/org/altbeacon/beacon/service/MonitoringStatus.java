@@ -16,6 +16,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class MonitoringStatus {
     private static final String TAG = MonitoringStatus.class.getSimpleName();
     public static final String STATUS_PRESERVATION_FILE_NAME =
             "org.altbeacon.beacon.service.monitoring_status_state";
+    private boolean inactiveRegionsExist = false;
     private Map<Region, RegionMonitoringState> mRegionsStatesMap;
 
     private Context mContext;
@@ -86,6 +88,42 @@ public class MonitoringStatus {
         return getRegionsStateMap().keySet();
     }
 
+    // These are regions that have been re-registered since app launch, although other persisted
+    // regions may exist.  We could consider purging these regions after the first region exit.
+    public synchronized Set<Region> getActiveRegions() {
+        HashSet<Region> activeRegions = new HashSet<>();
+        for (Region region:  getRegionsStateMap().keySet()) {
+            RegionMonitoringState state = getRegionsStateMap().get(region);
+            if (state.getActiveSinceAppLaunch()) {
+                activeRegions.add(region);
+            }
+        }
+        return activeRegions;
+    }
+
+    public synchronized void purgeInactiveRegions() {
+        if (inactiveRegionsExist) {
+            LogManager.d(TAG, "Time to purge inactive regions.");
+            boolean somethingChanged = false;
+            HashMap<Region, RegionMonitoringState> activeRegionsStateMap = new HashMap<>();
+            for (Region region:  getRegionsStateMap().keySet()) {
+                RegionMonitoringState state = getRegionsStateMap().get(region);
+                if (state.getActiveSinceAppLaunch()) {
+                    activeRegionsStateMap.put(region, state);
+                }
+                else {
+                    somethingChanged = true;
+                    LogManager.d(TAG, "We will purge this inactive region: "+region);
+                }
+            }
+            if (somethingChanged) {
+                mRegionsStatesMap = activeRegionsStateMap;
+                saveMonitoringStatusIfOn();
+            }
+            inactiveRegionsExist = false;
+        }
+    }
+
     public synchronized int regionsCount() {
         return regions().size();
     }
@@ -95,6 +133,9 @@ public class MonitoringStatus {
     }
 
     public synchronized void updateNewlyOutside() {
+        if (inactiveRegionsExist) {
+            purgeInactiveRegions();
+        }
         Iterator<Region> monitoredRegionIterator = regions().iterator();
         boolean needsMonitoringStateSaving = false;
         while (monitoredRegionIterator.hasNext()) {
@@ -133,8 +174,17 @@ public class MonitoringStatus {
             RegionMonitoringState state = getRegionsStateMap().get(region);
             if (state != null && state.markInside()) {
                 needsMonitoringStateSaving = true;
-                state.getCallback().call(mContext, "monitoringData",
-                        new MonitoringData(state.getInside(), region).toBundle());
+                // We have to check if the region is active here, because we send these callbacks
+                // for inside right when the beacon is detected before the end of the scan cycle.
+                // We will purge inactive regions then, but likely hasn't happened yet.
+                if (state.getActiveSinceAppLaunch()) {
+                    state.getCallback().call(mContext, "monitoringData",
+                            new MonitoringData(state.getInside(), region).toBundle());
+                }
+                else {
+                    LogManager.d(TAG, "Not sending region update for region not active since last launch.");
+                }
+
             }
         }
         if (needsMonitoringStateSaving) {
@@ -247,6 +297,7 @@ public class MonitoringStatus {
             // Mark all beacons that were inside again so they don't trigger as a new exit - enter.
             for (RegionMonitoringState regionMonitoringState : obj.values())
             {
+                inactiveRegionsExist = true;
                 if (regionMonitoringState.getInside())
                 {
                     regionMonitoringState.markInside();
@@ -333,6 +384,10 @@ public class MonitoringStatus {
             for (Region existingRegion : getRegionsStateMap().keySet()) {
                 if (existingRegion.equals(region)) {
                     if (existingRegion.hasSameIdentifiers(region)) {
+                        if (inactiveRegionsExist) {
+                            // we need to mark this region as active
+                            break;
+                        }
                         return getRegionsStateMap().get(existingRegion);
                     }
                     else {
@@ -347,6 +402,8 @@ public class MonitoringStatus {
             }
         }
         RegionMonitoringState monitoringState = new RegionMonitoringState(callback);
+        LogManager.d(TAG, "Region marked as active: "+region);
+        monitoringState.setActiveSinceAppLaunch(true); // Indicates we should send callbacks on this region
         getRegionsStateMap().put(region, monitoringState);
         return monitoringState;
     }

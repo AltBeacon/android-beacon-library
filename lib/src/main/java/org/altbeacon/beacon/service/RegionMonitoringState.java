@@ -35,6 +35,7 @@ public class RegionMonitoringState implements Serializable {
     private boolean inside = false;
     private long lastSeenTime = 0l;
     private final Callback callback;
+    private transient boolean activeSinceAppLaunch = false;
 
     public RegionMonitoringState(Callback c) {
         callback = c;
@@ -76,4 +77,7 @@ public class RegionMonitoringState implements Serializable {
     public boolean getInside() {
         return inside;
     }
+
+    public boolean getActiveSinceAppLaunch() { return activeSinceAppLaunch; }
+    public void setActiveSinceAppLaunch(boolean active) {  activeSinceAppLaunch = active; }
 }

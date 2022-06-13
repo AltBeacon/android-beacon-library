@@ -1,3 +1,8 @@
+### Development
+
+- Fix region persistence usability problems (#1089, David G. Young)
+- Fix bugs with changing BeaconParsers for running scan service (#1091, David G. Young)
+
 ### 2.19.4 / 2022-03-10
 
 - Add ApiTrackingLogger (#1078, David G. Young)

@@ -1,7 +1,7 @@
 ---
 layout: android-beacon-library
 ---
-
+ 
 <style>
 .app-icon { width: 100px; height:100px }
 .app-block {

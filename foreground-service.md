@@ -34,22 +34,22 @@ scans than otherwise would be performed by the library, more battery will be use
 
 #### How do I set this up?
 
-The [reference app](https://github.com/AltBeacon/android-beacon-library-reference) has code you can uncomment to start a foreground service, which has code similar
+The [reference app](https://github.com/davidgyoung/android-beacon-library-reference-kotlin) has code you can uncomment to start a foreground service, which has code similar
 to shown below.  You need to put this code in your app before you start ranging or monitoring.
 
 
 ```
 ...
-Notification.Builder builder = new Notification.Builder(this);
-builder.setSmallIcon(R.mipmap.ic_launcher);
-builder.setContentTitle("Scanning for Beacons");
-Intent intent = new Intent(this, MonitoringActivity.class);
-PendingIntent pendingIntent = PendingIntent.getActivity(
+val builder = Notification.Builder(this)
+builder.setSmallIcon(R.mipmap.ic_launcher)
+builder.setContentTitle("Scanning for Beacons")
+val intent = new Intent(this, MonitoringActivity.class)
+val pendingIntent = PendingIntent.getActivity(
     this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-);
-builder.setContentIntent(pendingIntent);
-beaconManager.enableForegroundServiceScanning(builder.build(), 456);
-beaconManager.setEnableScheduledScanJobs(false);
+)
+builder.setContentIntent(pendingIntent)
+beaconManager.enableForegroundServiceScanning(builder.build(), 456)
+beaconManager.setEnableScheduledScanJobs(false)
 
 ```
 
@@ -63,14 +63,36 @@ between scans, the longer it will take to detect a beacon.  And the more reduce 
 Below is an example of constantly scanning in the background on a 1.1 second cycle:
 
 ```
-beaconManager.setBackgroundBetweenScanPeriod(0);
-beaconManager.setBackgroundScanPeriod(1100);
+beaconManager.setBackgroundBetweenScanPeriod(0)
+beaconManager.setBackgroundScanPeriod(1100)
 ```
 
-#### Android 10 permissions
+#### Android permissions
 
-On Android 10, you generally must have obtained ACCESS_BACKGROUND_LOCATION for beacon detection to work when your app is not visible.  However, it is possible to scan with only foreground location permission
+On Android 9+, you must delcare android.permission.FOREGROUND_SERVICE in your Menifest.  
+
+On Android 10+, you generally must have obtained ACCESS_BACKGROUND_LOCATION for beacon detection to work when your app is not visible.  However, it is possible to scan with only foreground location permission
 granted and a foreground service if you add `android:foregroundServiceType="location"` to your the foreground service declaration in the manifest.  See [here](https://developer.android.com/training/location/receive-location-updates) for details.
+
+#### Restrictions on Foreground Service Start
+
+On Android 12+, apps are usually forbidden from starting foreground services from the background (except on `android.intent.action.BOOT_COMPLETED`) and a few other specific events.  This can cause crashes with library versions prior to 2.19.5-beta6.  Starting with that version, the library will catch the Exception caused by the operating system refusing to let you start a foreground service and fall back to using the Job Scheduler to perform scans at most every ~15 minutes.  If this fallback happens, the library will automatically switch to using a forground service the next time it detects the app goes to the foreground.
+
+In addition to the library's automatic restart of the foreground service described  above, if your app handles events that may temporarily allow starting a foreground service, you can tell the library to try again to start a foreground service.  Like this:
+
+```
+// Call this on an event you are temporarily allowed e.g. on geofence crossing
+if (beaconManager.foregroundServiceStartFailed()) {
+    beaconManager.retryForegroundServiceScanning()
+}
+```
+
+There is no guarantee the above retry will succeed, and if it does not, `beaconManager.foregroundServiceStartFailed()` will remain true.
+
+Read [here](https://developer.android.com/guide/components/foreground-services#background-start-restrictions) for more info on the background restrictions on Android 12.
+
+Because of the above restrictions, understand that if you configure the library to use a foreground service on Android 12, it may or may not be started depending on operating system restictions.  One possible scenario is if your app with a foreground service crashes while running in the background.  The library will generally restart your app automatically, but when it does so, it will likely not be able to re-start the foreground service leaving it using the Job Scheduler for scanning.
+ 
 
 #### Forked OEM Limitations
 

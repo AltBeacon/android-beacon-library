@@ -280,7 +280,7 @@ public class BeaconService extends Service {
         String value = null;
         try {
             PackageItemInfo info = this.getPackageManager().getServiceInfo(new ComponentName(this, BeaconService.class), PackageManager.GET_META_DATA);
-            if (info != null && info.metaData != null) {
+            if (info != null && info.metaData != null && info.metaData.get(key) != null) {
                 return info.metaData.get(key).toString();
             }
         }

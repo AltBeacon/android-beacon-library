@@ -76,7 +76,7 @@ granted and a foreground service if you add `android:foregroundServiceType="loca
 
 #### Restrictions on Foreground Service Start
 
-On Android 12+, apps are usually forbidden from starting foreground services from the background (except on `android.intent.action.BOOT_COMPLETED`) and a few other specific events.  This can cause crashes with library versions prior to 2.19.5-beta6.  Starting with that version, the library will catch the Exception caused by the operating system refusing to let you start a foreground service and fall back to using the Job Scheduler to perform scans at most every ~15 minutes.  If this fallback happens, the library will automatically switch to using a forground service the next time it detects the app goes to the foreground.
+On Android 12+, apps are usually [forbidden from starting foreground services](http://www.davidgyoungtech.com/2022/06/25/the-rise-and-fall-of-the-foreground-service) from the background (except on `android.intent.action.BOOT_COMPLETED`) and a few other specific events.  This can cause crashes with library versions prior to 2.19.5-beta6.  Starting with that version, the library will catch the Exception caused by the operating system refusing to let you start a foreground service and fall back to using the Job Scheduler to perform scans at most every ~15 minutes.  If this fallback happens, the library will automatically switch to using a forground service the next time it detects the app goes to the foreground.
 
 In addition to the library's automatic restart of the foreground service described  above, if your app handles events that may temporarily allow starting a foreground service, you can tell the library to try again to start a foreground service.  Like this:
 

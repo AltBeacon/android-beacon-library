@@ -288,8 +288,24 @@ public class Beacon implements Parcelable, Serializable {
         mPacketCount = in.readInt();
         mFirstCycleDetectionTimestamp = in.readLong();
         mLastCycleDetectionTimestamp = in.readLong();
+        BeaconManager.setDebug(true);
+
         byte[] bytes = new byte[62];
-        in.readByteArray(bytes);
+        try {
+            in.readByteArray(bytes); // This sometimes fails even though iterating as below works fine
+        }
+        catch (RuntimeException e) {
+            try {
+                for (int i = 0; i < 62; i++) {
+                    byte b = in.readByte();
+                    bytes[b] = b;
+                }
+            }
+            catch (RuntimeException e2) {
+                // do nothing
+            }
+        }
+        mLastPacketRawBytes = bytes;
     }
 
     /**
@@ -738,7 +754,15 @@ public class Beacon implements Parcelable, Serializable {
         out.writeInt(mPacketCount);
         out.writeLong(mFirstCycleDetectionTimestamp);
         out.writeLong(mLastCycleDetectionTimestamp);
-        out.writeByteArray(mLastPacketRawBytes);
+        int rawByteCountToWrite = mLastPacketRawBytes.length;
+        if (rawByteCountToWrite > 62) {
+            rawByteCountToWrite = 62;
+        }
+        out.writeByteArray(mLastPacketRawBytes, 0, rawByteCountToWrite);
+        while (rawByteCountToWrite < 62) {
+            out.writeByte((byte) 0x00);
+            rawByteCountToWrite += 1;
+        }
     }
 
     /**

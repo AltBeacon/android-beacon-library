@@ -12,6 +12,7 @@ public class Pdu {
     public static final byte MANUFACTURER_DATA_PDU_TYPE = (byte) 0xff;
     public static final byte GATT_SERVICE_UUID_PDU_TYPE = (byte) 0x16;
     public static final byte GATT_SERVICE_UUID_128_BIT_PDU_TYPE = (byte) 0x21;
+    public static final byte GATT_SERVICE_FULL_UUID_128_BIT_PDU_TYPE = (byte) 0x07;
 
     private byte mType;
     private int mDeclaredLength;

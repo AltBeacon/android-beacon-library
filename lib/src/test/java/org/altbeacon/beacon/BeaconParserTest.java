@@ -257,7 +257,7 @@ public class BeaconParserTest {
     @Test
     public void testCanParseLocationBeacon() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
-        BeaconManager.setDebug(true);
+        //BeaconManager.setDebug(true);
 
         double latitude = 38.93;
         double longitude = -77.23;

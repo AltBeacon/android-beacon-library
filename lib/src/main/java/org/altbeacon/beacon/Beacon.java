@@ -196,6 +196,8 @@ public class Beacon implements Parcelable, Serializable {
      */
     protected long mLastCycleDetectionTimestamp = 0L;
 
+    protected byte[] mLastPacketRawBytes = {};
+
     /**
      * Required for making object Parcelable.  If you override this class, you must provide an
      * equivalent version of this method.
@@ -286,6 +288,8 @@ public class Beacon implements Parcelable, Serializable {
         mPacketCount = in.readInt();
         mFirstCycleDetectionTimestamp = in.readLong();
         mLastCycleDetectionTimestamp = in.readLong();
+        byte[] bytes = new byte[62];
+        in.readByteArray(bytes);
     }
 
     /**
@@ -313,6 +317,7 @@ public class Beacon implements Parcelable, Serializable {
         this.mManufacturer = otherBeacon.mManufacturer;
         this.mFirstCycleDetectionTimestamp = otherBeacon.mFirstCycleDetectionTimestamp;
         this.mLastCycleDetectionTimestamp = otherBeacon.mLastCycleDetectionTimestamp;
+        this.mLastPacketRawBytes = otherBeacon.mLastPacketRawBytes;
     }
 
     /**
@@ -378,6 +383,22 @@ public class Beacon implements Parcelable, Serializable {
      */
     public void setLastCycleDetectionTimestamp(long lastCycleDetectionTimestamp) {
         mLastCycleDetectionTimestamp = lastCycleDetectionTimestamp;
+    }
+
+    /**
+     * Returns the raw bytes of the last detection
+     */
+    public byte[] getLastPacketRawBytes() {
+        return mLastPacketRawBytes;
+    }
+
+    /**
+     * Sets the raw bytes of the last detection
+     *
+     * @param bytes
+     */
+    public void setLastPacketRawBytes(byte[] bytes) {
+        mLastPacketRawBytes = bytes;
     }
 
     /**
@@ -717,6 +738,7 @@ public class Beacon implements Parcelable, Serializable {
         out.writeInt(mPacketCount);
         out.writeLong(mFirstCycleDetectionTimestamp);
         out.writeLong(mLastCycleDetectionTimestamp);
+        out.writeByteArray(mLastPacketRawBytes);
     }
 
     /**

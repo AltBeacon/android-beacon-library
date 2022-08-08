@@ -284,7 +284,7 @@ public class ScanState implements Serializable {
             }
             else {
                 // In case the user has changed the definition, update it.
-                Region existingRegion = existingRangedRegions.get(existingMonitoredRegions.indexOf(newRangedRegion));
+                Region existingRegion = existingRangedRegions.get(existingRangedRegions.indexOf(newRangedRegion));
                 if (newRangedRegion.hasSameIdentifiers(existingRegion)) {
                     mRangedRegionState.remove(existingRegion);
                     mRangedRegionState.put(newRangedRegion, new RangeState(new Callback(mContext.getPackageName())));

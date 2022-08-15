@@ -9,6 +9,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
+import java.util.logging.LogManager;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -62,6 +63,7 @@ public class AltBeaconTest {
     @Test
     public void testCanSerializeParcelable() {
         org.robolectric.shadows.ShadowLog.stream = System.err;
+        BeaconManager.setDebug(true);
         final Beacon original = new AltBeacon.Builder().setMfgReserved(2)
                                                        .setBluetoothAddress("aa:bb:cc:dd:ee:ff")
                                                        .setBluetoothName("Any Bluetooth")

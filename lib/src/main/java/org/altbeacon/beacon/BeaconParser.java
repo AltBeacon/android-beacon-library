@@ -465,7 +465,9 @@ public class BeaconParser implements Serializable {
 
         for (Pdu pdu: advert.getPdus()) {
             if ((pdu.getType() == Pdu.GATT_SERVICE_UUID_PDU_TYPE && mServiceUuid != null) ||
-                (pdu.getType() == Pdu.GATT_SERVICE_UUID_128_BIT_PDU_TYPE && mServiceUuid128Bit.length != 0)  || pdu.getType() == Pdu.MANUFACTURER_DATA_PDU_TYPE) {
+                (pdu.getType() == Pdu.GATT_SERVICE_UUID_128_BIT_PDU_TYPE && mServiceUuid128Bit.length != 0)  ||
+                (pdu.getType() == Pdu.GATT_SERVICE_FULL_UUID_128_BIT_PDU_TYPE && mServiceUuid128Bit.length != 0)  ||
+                pdu.getType() == Pdu.MANUFACTURER_DATA_PDU_TYPE) {
 
                 pdusToParse.add(pdu);
                 if (LogManager.isVerboseLoggingEnabled()) {
@@ -508,6 +510,11 @@ public class BeaconParser implements Serializable {
                 else {
                     boolean lengthIsExpected = false;
                     if (pduToParse.getType() == Pdu.GATT_SERVICE_UUID_128_BIT_PDU_TYPE) {
+                        if (serviceUuidBytes.length == 16) {
+                            lengthIsExpected = true;
+                        }
+                    }
+                    if (pduToParse.getType() == Pdu.GATT_SERVICE_FULL_UUID_128_BIT_PDU_TYPE) {
                         if (serviceUuidBytes.length == 16) {
                             lengthIsExpected = true;
                         }
@@ -678,7 +685,7 @@ public class BeaconParser implements Serializable {
                   name = device.getName();
                 }
                 catch (SecurityException e) {
-                  Log.d(TAG,"Cannot read device name without Manifest.permission.BLUETOOTH_CONNECT");
+                  LogManager.d(TAG,"Cannot read device name without Manifest.permission.BLUETOOTH_CONNECT");
                 }
             }
 
@@ -700,6 +707,7 @@ public class BeaconParser implements Serializable {
             beacon.mMultiFrameBeacon = extraParsers.size() > 0 || mExtraFrame;
             beacon.mFirstCycleDetectionTimestamp = timestampMs;
             beacon.mLastCycleDetectionTimestamp = timestampMs;
+            beacon.mLastPacketRawBytes = bytesToProcess;
             beacon.mTxPower = txPower;
             return beacon;
         }

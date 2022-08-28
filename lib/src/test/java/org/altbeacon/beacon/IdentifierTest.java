@@ -83,6 +83,7 @@ public class IdentifierTest {
         assertEquals("first byte of hex is converted properly", 0x01, bytes[0] & 0xFF);
         assertEquals("last byte of hex is converted properly", 0x06, bytes[5] & 0xFF);
     }
+
     @Test
     public void testToByteArrayConvertsDecimal() {
         Identifier identifier1 = Identifier.parse("65534");
@@ -186,39 +187,44 @@ public class IdentifierTest {
         Identifier id = Identifier.parse("123456789abcdef");
         assertEquals("Should parse and get prefixed hex value for big numbers", "0x0123456789abcdef", id.toString());
     }
+
     @Test
     public void testParseZeroPrefixedDecimalNumberAsHex() {
         Identifier id = Identifier.parse("0010");
         assertEquals("Should be treated as hex in parse, but converted back to decimal because it is small", "16", id.toString());
     }
+
     @Test
     public void testParseNonZeroPrefixedDecimalNumberAsDecimal() {
         Identifier id = Identifier.parse("10");
         assertEquals("Should be treated as decimal", "10", id.toString());
     }
+
     @Test
     public void testParseDecimalNumberWithSpecifiedLength() {
         Identifier id = Identifier.parse("10", 8);
         assertEquals("Should be treated as hex because it is long", "0x000000000000000a", id.toString());
         assertEquals("Byte count should be as specified", 8, id.getByteCount());
     }
+
     @Test
     public void testParseDecimalNumberWithSpecifiedShortLength() {
         Identifier id = Identifier.parse("10", 2);
         assertEquals("Should be treated as decimal because it is short", "10", id.toString());
         assertEquals("Byte count should be as specified", 2, id.getByteCount());
     }
+
     @Test
     public void testParseHexNumberWithSpecifiedLength() {
         Identifier id = Identifier.parse("2fffffffffffffffffff", 10);
         assertEquals("Should be treated as hex because it is long", "0x2fffffffffffffffffff", id.toString());
         assertEquals("Byte count should be as specified", 10, id.getByteCount());
     }
+
     @Test
     public void testParseZeroAsInteger() {
         Identifier id = Identifier.parse("0");
         assertEquals("Should be treated as int because it is a common integer", "0", id.toString());
         assertEquals("Byte count should be 2 for integers", 2, id.getByteCount());
     }
-
 }

@@ -1,9 +1,6 @@
-### 2.19.5-beta8 / 2022-07-26
+2.19.5 2022-12-28
 
 - Expose raw bytes of beacon and accept AD type 0x07 (#1098, David G. Young)
-
-### 2.19.5-beta7 / 2022-06-24
-
 - Fix Crash on Android 13 beta (#1095, David G. Young)
 - Handle Foreground Service Start Failures in Android 12 (#1090, David G. Young)
 - Fix region persistence usability problems (#1089, David G. Young)

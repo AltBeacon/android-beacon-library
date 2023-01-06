@@ -158,15 +158,34 @@ public class BluetoothMedic {
         }
     }
 
+
+
     /**
      * If set to true, bluetooth will be power cycled on any tests run that determine bluetooth is
-     * in a bad state.
+     * in a bad state.  This only works on Anroid 4.3-12.x devices, as the ability to power cycle
+     * Bluetooth has been blocked from 3rd party apps on Android 13.
+     *
+     * @param context
+     * @deprecated See legacyEnablePowerCycleOnFailures(Context context)
+     */
+    @SuppressWarnings("unused")
+    @RequiresApi(21)
+    @Deprecated
+    public void enablePowerCycleOnFailures(Context context) {
+        legacyEnablePowerCycleOnFailures(context);
+    }
+
+
+    /**
+     * If set to true, bluetooth will be power cycled on any tests run that determine bluetooth is
+     * in a bad state.  This only works on Anroid 4.3-12.x devices, as the ability to power cycle
+     * Bluetooth has been blocked from 3rd party apps on Android 13.
      *
      * @param context
      */
     @SuppressWarnings("unused")
     @RequiresApi(21)
-    public void enablePowerCycleOnFailures(Context context) {
+    public void legacyEnablePowerCycleOnFailures(Context context) {
         mContext = context.getApplicationContext();
         powerCycleOnFailureEnabled = true;
         initializeWithContext(context);

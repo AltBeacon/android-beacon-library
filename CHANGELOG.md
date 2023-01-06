@@ -1,4 +1,4 @@
-#### 2.19.6 / 2023-01-06
+#### 2.19.6-beta1 / 2023-01-06
 
 - Fix BluetoothMedic crashes on Android 12+ when permissions are missing
 

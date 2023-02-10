@@ -123,6 +123,6 @@ If you do not explicitly make calls to stop ranging/monitoring, it will continue
 
 #### When will deprecated methods, classes and interfaces be removed?
 
-Deprecated methods will be removed in the 3.0 release of the library, planned for 2022.  Library versions 2.x wil continue to work with deprecated methods, although their use is now discouraged and support is ending.
+Deprecated methods will be removed in the 3.0 release of the library.  Library versions 2.x wil continue to work with deprecated methods, although their use is now discouraged and support is ending.
 
 

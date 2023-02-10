@@ -4,7 +4,7 @@ layout: android-beacon-library
 
 ## Permission Requirements
 
-Newer versions of Android require that you request location permission from the user at runtime in order to detect beacons.  Failing to do so with cause detections to silently fail, but with a message like this in LogCat:
+Android requires that you request location permission from the user at runtime in order to detect beacons.  Failing to do so with cause detections to silently fail, but with a message like this in LogCat:
 
 ```
 09-22 22:35:20.152  5158  5254 E BluetoothUtils: Permission denial: Need ACCESS_FINE_LOCATION to
@@ -13,24 +13,35 @@ Newer versions of Android require that you request location permission from the 
 
 ## Adding permissions to the manifest
 
+The specific runtime permissions you request depend on the Android SDK version you are targeting (the "targetSdkVeion" in build.gradle") and the version of Android on which your app runs.  If 
+
 You must manually add this permission to the ApplicationManifest.xml:
 
 ```
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 ```
 
-And if you target SDK 29+ and want to access beacons in the background, you must also add:
+If you target Android 12 or higher (SDK 31+) you must also request:
+
+```
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+    <!-- Below is only needed if you want to read the device name or establish a bluetooth connection
+    -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <!-- Below is only needed if you want to emit beacon transmissions -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE/>
+```
+
+If you want to detect beacons in the background, you must also add:
 
 ```
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 ```
 
-Prior to Android 10, only ACCESS_COARSE_LOCATION was required, which is automatically included in the library manifest.  This is retained for backward compatibility only.  For
-new apps, please add the above permissions to your app manifest as is appropriate.  This will ensure you have ACCESS_FINE_LOCATION which is needed for Android 10+.
-
 ## Requesting permissions at runtime
 
-You must also add code like the following to an Activity.  Use the first code block if you target SDK 29+ and the second block if you are using an earlier target SDK
+You must also add code like the following to an Activity.  The code below shows how to request just two permissions at runtime, but more will be needed if targeting Android 12 or
+higher.  Since this gets complex, we recommend you use a dedicated Activity to get these permissions like this [PermissionsActivity.kt](https://github.com/davidgyoung/android-beacon-library-reference-kotlin/blob/master/app/src/main/java/org/altbeacon/beacon/permissions/PermissionsActivity.kt) shown in the official reference app.  You may wish to use this as a starting point.
 
 Code block 1:  For targetSDK=29 or higher
 

@@ -147,7 +147,7 @@ public class ScanState implements Serializable {
             } catch (FileNotFoundException fnfe) {
                 LogManager.w(TAG, "Serialized ScanState does not exist.  This may be normal on first run.");
             }
-            catch (IOException | ClassNotFoundException | ClassCastException e) {
+            catch (IllegalStateException | IOException | ClassNotFoundException | ClassCastException e) {
                 if (e instanceof InvalidClassException) {
                     LogManager.d(TAG, "Serialized ScanState has wrong class. Just ignoring saved state...");
                 }

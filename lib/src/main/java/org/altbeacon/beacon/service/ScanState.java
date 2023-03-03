@@ -38,11 +38,17 @@ public class ScanState implements Serializable {
     private static final String STATUS_PRESERVATION_FILE_NAME = "android-beacon-library-scan-state";
     private static final String TEMP_STATUS_PRESERVATION_FILE_NAME = "android-beacon-library-scan-state-temp";
     public static int MIN_SCAN_JOB_INTERVAL_MILLIS = 300000; //  5 minutes
+    private static long SANITY_FILE_SIZE_LIMIT = 100000; // ~100k
+    private static long SANITY_REGION_LIMIT = 1000;
+    private static long SANITY_PARSER_LIMIT = 1000;
 
     private Map<Region, RangeState> mRangedRegionState = new HashMap<Region, RangeState>();
     private transient MonitoringStatus mMonitoringStatus;
     private Set<BeaconParser> mBeaconParsers  = new HashSet<BeaconParser>();
-    private ExtraDataBeaconTracker mExtraBeaconDataTracker = new ExtraDataBeaconTracker();
+    // Don't persist extra beacon tracker because this could grow to be very very large if a huge
+    // number of beacons are in the vicinity, or if a smaller number rotate MACs or identifiers
+    // and appear to be a large number
+    private transient ExtraDataBeaconTracker mExtraBeaconDataTracker = new ExtraDataBeaconTracker();
     private long mForegroundBetweenScanPeriod;
     private long mBackgroundBetweenScanPeriod;
     private long mForegroundScanPeriod;
@@ -140,12 +146,25 @@ public class ScanState implements Serializable {
             FileInputStream inputStream = null;
             ObjectInputStream objectInputStream = null;
             try {
-                inputStream = context.openFileInput(STATUS_PRESERVATION_FILE_NAME);
-                objectInputStream = new ObjectInputStream(inputStream);
-                scanState = (ScanState) objectInputStream.readObject();
-                scanState.mContext = context;
-            } catch (FileNotFoundException fnfe) {
+                File file = context.getFileStreamPath(STATUS_PRESERVATION_FILE_NAME);
+                if (file.length() > SANITY_FILE_SIZE_LIMIT) {
+                    // make sure file size is reasonable.  If over 100k, do not restore
+                    // See issue #1129
+                    LogManager.e(TAG, "Refusing to restore file of size "+file.length());
+                }
+                else {
+                    inputStream = context.openFileInput(STATUS_PRESERVATION_FILE_NAME);
+                    objectInputStream = new ObjectInputStream(inputStream);
+                    scanState = (ScanState) objectInputStream.readObject();
+                    scanState.mContext = context;
+                }
+
+            }
+            catch (FileNotFoundException fnfe) {
                 LogManager.w(TAG, "Serialized ScanState does not exist.  This may be normal on first run.");
+            }
+            catch (IllegalStateException ise) {
+                LogManager.e(TAG, "Exception deserializing", ise);
             }
             catch (IOException | ClassNotFoundException | ClassCastException e) {
                 if (e instanceof InvalidClassException) {
@@ -185,8 +204,18 @@ public class ScanState implements Serializable {
 
     public void save() {
         synchronized (ScanState.class) {
-            // TODO: need to limit how big this object is somehow.
-            // Impose limits on ranged and monitored regions?
+            if (mRangedRegionState.size() > SANITY_REGION_LIMIT) {
+                LogManager.e(TAG, "Refusing to save scan state with excessive region count: "+mRangedRegionState.size());
+                return;
+            }
+            if (mMonitoringStatus.regions().size() > SANITY_REGION_LIMIT) {
+                LogManager.e(TAG, "Refusing to save scan state with excessive region count: "+mMonitoringStatus.regions().size());
+                return;
+            }
+            if (mBeaconParsers.size() > SANITY_PARSER_LIMIT) {
+                LogManager.e(TAG, "Refusing to save scan state with excessive parser count: "+mBeaconParsers.size());
+                return;
+            }
             FileOutputStream outputStream = null;
             ObjectOutputStream objectOutputStream = null;
             try {

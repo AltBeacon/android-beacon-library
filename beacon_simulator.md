@@ -8,8 +8,7 @@ layout: android-beacon-library
 You may simulate detection of beacons by creating a class within your project that overwrites the BeaconSimulator 
 class found in the Android Beacon Library. This is especially useful for when you are testing in an Emulator or on a 
 device without BluetoothLE capability. There is a sample of this built into the [Reference application for the Android Beacon Library](https://github.com/AltBeacon/android-beacon-library-reference) 
-called [TimedBeaconSimulator](https://github.com/AltBeacon/android-beacon-library-reference/blob/master/src/org/altbeacon/beacon/TimedBeaconSimulator.java).
-
+called [TimedBeaconSimulator](https://github.com/AltBeacon/android-beacon-library-reference/blob/master/app/src/org/altbeacon/beacon/TimedBeaconSimulator.java).
 To initialize a BeaconSimulator, place the following code within the onCreate method of your Activity, 
 making sure to place your Beacon Simulator class name within the < >.
 ```

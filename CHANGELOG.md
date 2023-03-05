@@ -1,8 +1,11 @@
-### 2.19.6-beta1 2023-03-04
+### 2.19.6-beta3 2023-03-04
 
 - Fix crash on scan state restore (#1131, David G. Young)
-
-### 2.19.5 2022-12-28
+- Fix BluetoothMedic crashes on Android 12+ when permissions are missing
+  and depracate medic power cycling no longer working on Android 13
+  (#1121, David G. Young)
+ 
+### 2.19.5 / 2022-12-28
 
 - Expose raw bytes of beacon and accept AD type 0x07 (#1098, David G. Young)
 - Fix Crash on Android 13 beta (#1095, David G. Young)

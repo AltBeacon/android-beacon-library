@@ -1,5 +1,7 @@
 package org.altbeacon.bluetooth;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -15,11 +17,10 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.AdvertiseSettings.Builder;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -27,10 +28,11 @@ import android.os.PersistableBundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import java.util.List;
-
 import org.altbeacon.beacon.logging.LogManager;
+import org.altbeacon.bluetooth.BluetoothTestJob;
 
 /**
  *
@@ -129,43 +131,6 @@ public class BluetoothMedic {
             }
         }
     }
-    @RequiresApi(21)
-    private BroadcastReceiver mBluetoothEventReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            LogManager.d(BluetoothMedic.TAG, "Broadcast notification received.");
-            int errorCode;
-            String action = intent.getAction();
-            if (action != null) {
-                if(action.equalsIgnoreCase("onScanFailed")) {
-                    errorCode = intent.getIntExtra("errorCode", -1);
-                    if(errorCode == 2) {
-                        BluetoothMedic.this.sendScreenNotification("scan failed",
-                                "Power cycling bluetooth");
-                        LogManager.d(BluetoothMedic.TAG,
-                                "Detected a SCAN_FAILED_APPLICATION_REGISTRATION_FAILED.  We need to cycle bluetooth to recover");
-                        if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
-                            BluetoothMedic.this.sendScreenNotification( "scan failed", "" +
-                                    "Cannot power cycle bluetooth again");
-                        }
-                    }
-                } else if(action.equalsIgnoreCase("onStartFailed")) {
-                    errorCode = intent.getIntExtra("errorCode", -1);
-                    if(errorCode == 4) {
-                        BluetoothMedic.this.sendScreenNotification( "advertising failed",
-                                "Expected failure.  Power cycling.");
-                        if(!BluetoothMedic.this.cycleBluetoothIfNotTooSoon()) {
-                            BluetoothMedic.this.sendScreenNotification( "advertising failed",
-                                    "Cannot power cycle bluetooth again");
-                        }
-                    }
-                } else {
-                    LogManager.d(BluetoothMedic.TAG, "Unknown event.");
-                }
-            }
-        }
-    };
-
-
 
     /**
      * Get a singleton instance of the BluetoothMedic
@@ -193,20 +158,39 @@ public class BluetoothMedic {
         }
     }
 
+
+
     /**
      * If set to true, bluetooth will be power cycled on any tests run that determine bluetooth is
-     * in a bad state.
+     * in a bad state.  This only works on Anroid 4.3-12.x devices, as the ability to power cycle
+     * Bluetooth has been blocked from 3rd party apps on Android 13.
+     *
+     * @param context
+     * @deprecated See legacyEnablePowerCycleOnFailures(Context context)
+     */
+    @SuppressWarnings("unused")
+    @RequiresApi(21)
+    @Deprecated
+    public void enablePowerCycleOnFailures(Context context) {
+        legacyEnablePowerCycleOnFailures(context);
+    }
+
+
+    /**
+     * If set to true, bluetooth will be power cycled on any tests run that determine bluetooth is
+     * in a bad state.  This only works on Anroid 4.3-12.x devices, as the ability to power cycle
+     * Bluetooth has been blocked from 3rd party apps on Android 13.
      *
      * @param context
      */
     @SuppressWarnings("unused")
     @RequiresApi(21)
-    public void enablePowerCycleOnFailures(Context context) {
+    public void legacyEnablePowerCycleOnFailures(Context context) {
         mContext = context.getApplicationContext();
         powerCycleOnFailureEnabled = true;
         initializeWithContext(context);
         LogManager.d(TAG,
-                    "Medic monitoring for transmission and scan failure notifications");
+                "Medic monitoring for transmission and scan failure notifications");
     }
 
     /**
@@ -236,16 +220,23 @@ public class BluetoothMedic {
      *
      * @return false if the test indicates a failure indicating a bad state of the bluetooth stack
      */
+    @SuppressLint("MissingPermission")
     @SuppressWarnings({"unused","WeakerAccess"})
     @RequiresApi(21)
     public boolean runScanTest(final Context context) {
         initializeWithContext(context);
+        if (isBleScanPermissionDenied()) {
+            LogManager.i(TAG, "Cant run scan test -- required scan permission is denied");
+            return true;
+        }
+
         this.mScanTestResult = null;
         LogManager.i(TAG, "Starting scan test");
         final long testStartTime = System.currentTimeMillis();
         if (this.mAdapter != null) {
             final BluetoothLeScanner scanner = this.mAdapter.getBluetoothLeScanner();
             final ScanCallback callback = new ScanCallback() {
+                @SuppressLint("MissingPermission")
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
                     BluetoothMedic.this.mScanTestResult = true;
@@ -320,10 +311,15 @@ public class BluetoothMedic {
      *
      * @return false if the test indicates a failure indicating a bad state of the bluetooth stack
      */
+    @SuppressLint("MissingPermission")
     @SuppressWarnings({"unused","WeakerAccess"})
     @RequiresApi(21)
     public boolean runTransmitterTest(final Context context) {
         initializeWithContext(context);
+        if (isBleAdvertisePermissionDenied()) {
+            LogManager.i(TAG, "Cannot run transmitter test -- advertise permission not granted");
+            return true;
+        }
         this.mTransmitterTestResult = null;
         long testStartTime = System.currentTimeMillis();
         if (mAdapter != null) {
@@ -406,10 +402,15 @@ public class BluetoothMedic {
         }
     }
 
+    @SuppressLint("MissingPermission")
     @RequiresApi(21)
     private void cycleBluetooth() {
-        LogManager.d(TAG, "Power cycling bluetooth");
-        LogManager.d(TAG, "Turning Bluetooth off.");
+        LogManager.i(TAG, "Power cycling bluetooth");
+        if (isBleConnectPermissionDenied()) {
+            LogManager.i(TAG, "Can't power cycle bleutooth.  Connect permisison is denied.");
+            return;
+        }
+        LogManager.i(TAG, "Turning Bluetooth off.");
         if (mAdapter != null) {
             this.mAdapter.disable();
             this.mHandler.postDelayed(new Runnable() {
@@ -506,4 +507,28 @@ public class BluetoothMedic {
         }
         return null;
     }
+
+    private boolean isAndroidSPermissionDenied(String androidSPermission) {
+        // Android S permissions only exists phones starting with Android S
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android S permissions are not used unless the app targets Android S or higher
+            if (mContext != null && mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.S) {
+                return ActivityCompat.checkSelfPermission(
+                        mContext, androidSPermission
+                ) != PackageManager.PERMISSION_GRANTED;
+            }
+        }
+        return false;
+    }
+
+    private boolean isBleScanPermissionDenied() {
+        return isAndroidSPermissionDenied(Manifest.permission.BLUETOOTH_SCAN);
+    }
+    private boolean isBleAdvertisePermissionDenied() {
+        return isAndroidSPermissionDenied(Manifest.permission.BLUETOOTH_ADVERTISE);
+    }
+    private boolean isBleConnectPermissionDenied() {
+        return isAndroidSPermissionDenied(Manifest.permission.BLUETOOTH_CONNECT);
+    }
+
 }

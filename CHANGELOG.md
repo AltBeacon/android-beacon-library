@@ -1,4 +1,4 @@
-### Development
+### 2.19.6-beta1 2023-03-04
 
 - Fix crash on scan state restore (#1131, David G. Young)
 

@@ -1,4 +1,8 @@
-2.19.5 2022-12-28
+### Development
+
+- Fix crash on scan state restore (#1131, David G. Young)
+
+### 2.19.5 2022-12-28
 
 - Expose raw bytes of beacon and accept AD type 0x07 (#1098, David G. Young)
 - Fix Crash on Android 13 beta (#1095, David G. Young)

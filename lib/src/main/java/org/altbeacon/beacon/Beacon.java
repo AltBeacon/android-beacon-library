@@ -851,6 +851,7 @@ public class Beacon implements Parcelable, Serializable {
             setRssi(beacon.getRssi());
             setServiceUuid(beacon.getServiceUuid());
             setMultiFrameBeacon(beacon.isMultiFrameBeacon());
+            setLastPacketRawBytes(beacon.getLastPacketRawBytes());
             return this;
         }
 
@@ -1023,6 +1024,16 @@ public class Beacon implements Parcelable, Serializable {
          */
         public Builder setMultiFrameBeacon(boolean multiFrameBeacon) {
             mBeacon.mMultiFrameBeacon = multiFrameBeacon;
+            return this;
+        }
+
+        /**
+         * @see Beacon#mLastPacketRawBytes
+         * @param lastPacketRawBytes
+         * @return builder
+         */
+        public Builder setLastPacketRawBytes(byte[] lastPacketRawBytes) {
+            mBeacon.mLastPacketRawBytes = lastPacketRawBytes;
             return this;
         }
     }

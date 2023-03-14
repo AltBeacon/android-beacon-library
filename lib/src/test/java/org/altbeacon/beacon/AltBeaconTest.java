@@ -130,7 +130,9 @@ public class AltBeaconTest {
                                                        .setRunningAverageRssi(-12.3)
                                                        .setServiceUuid(13)
                                                        .setTxPower(14)
+                                                       .setLastPacketRawBytes(new byte[]{ 0x1, 0x2})
                                                        .build();
+
         original.setPacketCount(15);
         original.setRssiMeasurementCount(16);
         final AltBeacon copied = new AltBeacon(original);
@@ -153,7 +155,8 @@ public class AltBeaconTest {
                         hasProperty("serviceUuid", equalTo(13)),
                         hasProperty("txPower", equalTo(14)),
                         hasProperty("packetCount", equalTo(15)),
-                        hasProperty("measurementCount", equalTo(16))
+                        hasProperty("measurementCount", equalTo(16)),
+                        hasProperty("lastPacketRawBytes", equalTo(new byte[]{ 0x1, 0x2}))
                 )
         );
     }

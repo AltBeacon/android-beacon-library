@@ -253,10 +253,7 @@ public class ScanJob extends JobService {
         if (mScanState != null) {
             ScanHelper scanHelper = new ScanHelper(this);
             mScanState.setLastScanStartTimeMillis(System.currentTimeMillis());
-            scanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
-            scanHelper.setRangedRegionState(mScanState.getRangedRegionState());
-            scanHelper.setBeaconParsers(mScanState.getBeaconParsers());
-            scanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
+            mScanState.getScanHelperInitialized(mScanState, scanHelper);
             if (scanHelper.getCycledScanner() == null) {
                 try {
                     scanHelper.createCycledLeScanner(mScanState.getBackgroundMode(), null);

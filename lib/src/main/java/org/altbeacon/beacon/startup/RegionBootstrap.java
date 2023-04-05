@@ -7,6 +7,7 @@ import android.os.RemoteException;
 
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.NotifierManager;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
@@ -38,6 +39,7 @@ public class RegionBootstrap {
 
     protected static final String TAG = "AppStarter";
     private BeaconManager beaconManager;
+    private NotifierManager notifierManager;
     private MonitorNotifier monitorNotifier;
     private Context context;
     private List<Region> regions;
@@ -210,7 +212,7 @@ public class RegionBootstrap {
         @Override
         public void onBeaconServiceConnect() {
             LogManager.d(TAG, "Activating background region monitoring");
-            beaconManager.addMonitorNotifier(monitorNotifier);
+            notifierManager.addMonitorNotifier(monitorNotifier);
             serviceConnected = true;
             try {
                 for (Region region : regions) {

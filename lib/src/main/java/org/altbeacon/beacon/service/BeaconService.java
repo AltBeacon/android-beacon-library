@@ -142,52 +142,111 @@ public class BeaconService extends Service {
             if (service != null) {
                 StartRMData startRMData = StartRMData.fromBundle(msg.getData());
                 if (startRMData != null) {
-                    switch (msg.what) {
-                        case MSG_START_RANGING:
-                            LogManager.i(TAG, "start ranging received");
-                            service.startRangingBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_STOP_RANGING:
-                            LogManager.i(TAG, "stop ranging received");
-                            service.stopRangingBeaconsInRegion(startRMData.getRegionData());
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_START_MONITORING:
-                            LogManager.i(TAG, "start monitoring received");
-                            service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_STOP_MONITORING:
-                            LogManager.i(TAG, "stop monitoring received");
-                            service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        case MSG_SET_SCAN_PERIODS:
-                            LogManager.i(TAG, "set scan intervals received");
-                            service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
-                            break;
-                        default:
-                            super.handleMessage(msg);
-                    }
+                    BeaconActionFactory actionFactory = new BeaconActionFactory();
+                    BeaconAction action = actionFactory.createAction(msg.what, service, startRMData);
+                    action.execute();
                 }
-                else if (msg.what == MSG_SYNC_SETTINGS) {
-                    LogManager.i(TAG, "Received settings update");
-                    SettingsData settingsData = SettingsData.fromBundle(msg.getData());
-                    if (settingsData != null) {
-                        settingsData.apply(service);
-                    }
-                    else {
-                        LogManager.w(TAG, "Settings data missing");
-                    }
-                }
-                else {
-                    LogManager.i(TAG, "Received unknown message from other process : "+msg.what);
-                }
-
             }
         }
-    }
+
+            // create an abstract BeaconAction class to represent actions that can be performed on Beacons
+            abstract class BeaconAction {
+                protected final BeaconService service;
+                protected final StartRMData startRMData;
+
+                public BeaconAction(BeaconService service, StartRMData startRMData) {
+                    this.service = service;
+                    this.startRMData = startRMData;
+                }
+
+                public abstract void execute();
+            }
+
+            // create subclasses of BeaconAction to represent each type of action
+            class StartRangingAction extends BeaconAction {
+                public StartRangingAction(BeaconService service, StartRMData startRMData) {
+                    super(service, startRMData);
+                }
+
+                @Override
+                public void execute() {
+                    LogManager.i(TAG, "start ranging received");
+                    service.startRangingBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
+                    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                }
+            }
+
+            class StopRangingAction extends BeaconAction {
+                public StopRangingAction(BeaconService service, StartRMData startRMData) {
+                    super(service, startRMData);
+                }
+
+                @Override
+                public void execute() {
+                    LogManager.i(TAG, "stop ranging received");
+                    service.stopRangingBeaconsInRegion(startRMData.getRegionData());
+                    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                }
+            }
+
+            class StartMonitoringAction extends BeaconAction {
+                public StartMonitoringAction(BeaconService service, StartRMData startRMData) {
+                    super(service, startRMData);
+                }
+
+                @Override
+                public void execute() {
+                    LogManager.i(TAG, "start monitoring received");
+                    service.startMonitoringBeaconsInRegion(startRMData.getRegionData(), new org.altbeacon.beacon.service.Callback(startRMData.getCallbackPackageName()));
+                    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                }
+            }
+
+            class StopMonitoringAction extends BeaconAction {
+                public StopMonitoringAction(BeaconService service, StartRMData startRMData) {
+                    super(service, startRMData);
+                }
+
+                @Override
+                public void execute() {
+                    LogManager.i(TAG, "stop monitoring received");
+                    service.stopMonitoringBeaconsInRegion(startRMData.getRegionData());
+                    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                }
+            }
+
+            class SetScanPeriodsAction extends BeaconAction {
+                public SetScanPeriodsAction(BeaconService service, StartRMData startRMData) {
+                    super(service, startRMData);
+                }
+
+                @Override
+                public void execute() {
+                    LogManager.i(TAG, "set scan intervals received");
+                    service.setScanPeriods(startRMData.getScanPeriod(), startRMData.getBetweenScanPeriod(), startRMData.getBackgroundFlag());
+                }
+            }
+
+             class BeaconActionFactory {
+                public BeaconAction createAction(int messageWhat, BeaconService service, StartRMData startRMData) {
+                    switch (messageWhat) {
+                        case MSG_START_RANGING:
+                            return new StartRangingAction(service, startRMData);
+                        case MSG_STOP_RANGING:
+                            return new StopRangingAction(service, startRMData);
+                        case MSG_START_MONITORING:
+                            return new StartMonitoringAction(service, startRMData);
+                        case MSG_STOP_MONITORING:
+                            return new StopMonitoringAction(service, startRMData);
+                        case MSG_SET_SCAN_PERIODS:
+                            return new SetScanPeriodsAction(service, startRMData);
+                        default:
+                            throw new IllegalArgumentException("Invalid messageWhat: " + messageWhat);
+                    }
+                }
+            }
+
+        }
 
     /**
      * Target we publish for clients to send messages to IncomingHandler.

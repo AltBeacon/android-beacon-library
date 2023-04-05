@@ -587,31 +587,22 @@ public class BeaconParser implements Serializable {
                     for (int i = 0; i < mIdentifierEndOffsets.size(); i++) {
                         int endIndex = mIdentifierEndOffsets.get(i) + startByte;
 
-                        if (endIndex > pduToParse.getEndIndex() && mIdentifierVariableLengthFlags.get(i)) {
-                            if (LogManager.isVerboseLoggingEnabled()) {
-                                LogManager.d(TAG, "Need to truncate identifier by "+(endIndex-pduToParse.getEndIndex()));
+                        if (endIndex > pduToParse.getEndIndex()) {
+                            if(mIdentifierVariableLengthFlags.get(i)){
+                               Identifier mIdentifier = handleVariableLengthidentifier(bytesToProcess, startByte, identifiers, pduToParse, i, endIndex);
+                                if(mIdentifier == null)
+                                    return null;
+                                identifiers.add(mIdentifier);
                             }
-                            // If this is a variable length identifier, we truncate it to the size that
-                            // is available in the packet
-                            int start = mIdentifierStartOffsets.get(i) + startByte;
-                            int end = pduToParse.getEndIndex()+1;
-                            if (end <= start) {
-                                LogManager.d(TAG, "PDU is too short for identifer.  Packet is malformed");
-                                return null;
-                            }
-                            Identifier identifier = Identifier.fromBytes(bytesToProcess, start, end, mIdentifierLittleEndianFlags.get(i));
-                            identifiers.add(identifier);
-                        }
-                        else if (endIndex > pduToParse.getEndIndex() && !mAllowPduOverflow) {
-                            parseFailed = true;
-                            if (LogManager.isVerboseLoggingEnabled()) {
-                                LogManager.d(TAG, "Cannot parse identifier "+i+" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+                            else if (!mAllowPduOverflow) {
+                                parseFailed = isParseFailed(pduToParse, i, endIndex);
                             }
                         }
-                        else {
-                            Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex+1, mIdentifierLittleEndianFlags.get(i));
-                            identifiers.add(identifier);
+                        else
+                        {
+                            handleFixedLengthIdentifier(bytesToProcess, startByte, identifiers, i, endIndex);
                         }
+
                     }
                     for (int i = 0; i < mDataEndOffsets.size(); i++) {
                         int endIndex = mDataEndOffsets.get(i) + startByte;
@@ -714,6 +705,36 @@ public class BeaconParser implements Serializable {
         else {
             return null;
         }
+    }
+
+    private static boolean isParseFailed(Pdu pduToParse, int i, int endIndex) {
+        boolean parseFailed = true;
+        if (LogManager.isVerboseLoggingEnabled()) {
+            LogManager.d(TAG, "Cannot parse identifier "+ i +" because PDU is too short.  endIndex: " + endIndex + " PDU endIndex: " + pduToParse.getEndIndex());
+        }
+        return parseFailed;
+    }
+
+    private void handleFixedLengthIdentifier(byte[] bytesToProcess, int startByte, ArrayList<Identifier> identifiers, int i, int endIndex) {
+        Identifier identifier = Identifier.fromBytes(bytesToProcess, mIdentifierStartOffsets.get(i) + startByte, endIndex +1, mIdentifierLittleEndianFlags.get(i));
+        identifiers.add(identifier);
+    }
+
+    private Identifier handleVariableLengthidentifier(byte[] bytesToProcess, int startByte, ArrayList<Identifier> identifiers, Pdu pduToParse, int i, int endIndex) {
+        Identifier mIdentifier = null;
+        if (LogManager.isVerboseLoggingEnabled()) {
+            LogManager.d(TAG, "Need to truncate identifier by "+(endIndex - pduToParse.getEndIndex()));
+        }
+        // If this is a variable length identifier, we truncate it to the size that
+        // is available in the packet
+        int start = mIdentifierStartOffsets.get(i) + startByte;
+        int end = pduToParse.getEndIndex()+1;
+        if (end <= start) {
+            LogManager.d(TAG, "PDU is too short for identifer.  Packet is malformed");
+            return mIdentifier;
+        }
+        mIdentifier = Identifier.fromBytes(bytesToProcess, start, end, mIdentifierLittleEndianFlags.get(i));
+        return mIdentifier;
     }
 
     /**

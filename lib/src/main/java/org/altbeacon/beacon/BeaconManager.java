@@ -472,25 +472,7 @@ public class BeaconManager {
                         }
                         else {
                             LogManager.i(TAG, "Attempting to starting foreground beacon scanning service.");
-                            try {
-                                mContext.startForegroundService(intent);
-                                if (mScheduledScanJobsEnabledByFallback) {
-                                    LogManager.i(TAG, "Successfully switched to foreground service from fallback");
-                                    mScheduledScanJobsEnabledByFallback = false;
-                                    ScanJobScheduler.getInstance().cancelSchedule(mContext);
-                                }
-                                else {
-                                    LogManager.i(TAG, "successfully started foreground beacon scanning service.");
-                                }
-                            }
-                            catch (ServiceStartNotAllowedException e) {
-                                // This happens on Android 12+ if you try to start a service from the background without a
-                                // qualifying event
-                                LogManager.w(TAG, "Foreground service blocked by ServiceStartNotAllowedException.  Falling back to job scheduler");
-                                mScheduledScanJobsEnabledByFallback = true;
-                                syncSettingsToService();
-                                return;
-                            }
+                            if (attemptStartForeground(intent)) return;
                         }
 
                     }
@@ -499,6 +481,29 @@ public class BeaconManager {
                 LogManager.d(TAG, "consumer count is now: %s", consumers.size());
             }
         }
+    }
+
+    private boolean attemptStartForeground(Intent intent) {
+        try {
+            mContext.startForegroundService(intent);
+            if (mScheduledScanJobsEnabledByFallback) {
+                LogManager.i(TAG, "Successfully switched to foreground service from fallback");
+                mScheduledScanJobsEnabledByFallback = false;
+                ScanJobScheduler.getInstance().cancelSchedule(mContext);
+            }
+            else {
+                LogManager.i(TAG, "successfully started foreground beacon scanning service.");
+            }
+        }
+        catch (ServiceStartNotAllowedException e) {
+            // This happens on Android 12+ if you try to start a service from the background without a
+            // qualifying event
+            LogManager.w(TAG, "Foreground service blocked by ServiceStartNotAllowedException.  Falling back to job scheduler");
+            mScheduledScanJobsEnabledByFallback = true;
+            syncSettingsToService();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -582,7 +587,8 @@ public class BeaconManager {
                     // release the serviceMessenger.
                     serviceMessenger = null;
                     // If we are using scan jobs, we cancel the active scan job
-                    if (mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback || mIntentScanStrategyCoordinator != null) {
+                    boolean scanEnabled = mScheduledScanJobsEnabled || mScheduledScanJobsEnabledByFallback || mIntentScanStrategyCoordinator != null;
+                    if (scanEnabled) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             LogManager.i(TAG, "Cancelling scheduled jobs after unbind of last consumer.");
                             ScanJobScheduler.getInstance().cancelSchedule(mContext);
@@ -790,151 +796,6 @@ public class BeaconManager {
     }
 
     /**
-     * Specifies a class that should be called each time the <code>BeaconService</code> gets ranging
-     * data, which is nominally once per second when beacons are detected.
-     * <p/>
-     * IMPORTANT:  Only one RangeNotifier may be active for a given application.  If two different
-     * activities or services set different RangeNotifier instances, the last one set will receive
-     * all the notifications.
-     *
-     * @param notifier The {@link RangeNotifier} to register.
-     * @see RangeNotifier
-     * @deprecated replaced by (@link #addRangeNotifier)
-     */
-    @Deprecated
-    public void setRangeNotifier(@Nullable RangeNotifier notifier) {
-        LogManager.d(TAG, "API setRangeNotifier "+notifier);
-        rangeNotifiers.clear();
-        if (null != notifier) {
-            addRangeNotifier(notifier);
-        }
-    }
-
-    /**
-     * Specifies a class that should be called each time the <code>BeaconService</code> gets ranging
-     * data, which is nominally once per second when beacons are detected.
-     * <p/>
-     * Permits to register several <code>RangeNotifier</code> objects.
-     * <p/>
-     * The notifier must be unregistered using (@link #removeRangeNotifier)
-     *
-     * @param notifier The {@link RangeNotifier} to register.
-     * @see RangeNotifier
-     */
-    public void addRangeNotifier(@NonNull RangeNotifier notifier) {
-        LogManager.d(TAG, "API addRangeNotifier "+notifier);
-        //noinspection ConstantConditions
-        if (notifier != null) {
-            rangeNotifiers.add(notifier);
-        }
-    }
-
-    /**
-     * Specifies a class to remove from the array of <code>RangeNotifier</code>
-     *
-     * @param notifier The {@link RangeNotifier} to unregister.
-     * @see RangeNotifier
-     */
-    public boolean removeRangeNotifier(@NonNull RangeNotifier notifier) {
-        LogManager.d(TAG, "API removeRangeNotifier "+notifier);
-        return rangeNotifiers.remove(notifier);
-    }
-
-    /**
-     * Remove all the Range Notifiers.
-     */
-    public void removeAllRangeNotifiers() {
-        LogManager.d(TAG, "API removeAllRangeNotifiers");
-        rangeNotifiers.clear();
-    }
-
-    /**
-     * Specifies a class that should be called each time the <code>BeaconService</code> sees
-     * or stops seeing a Region of beacons.
-     * <p/>
-     * IMPORTANT:  Only one MonitorNotifier may be active for a given application.  If two different
-     * activities or services set different MonitorNotifier instances, the last one set will receive
-     * all the notifications.
-     *
-     * @param notifier The {@link MonitorNotifier} to register.
-     * @see MonitorNotifier
-     * @see #startMonitoring(Region)
-     * @see Region
-     * @deprecated replaced by {@link #addMonitorNotifier}
-     */
-    @Deprecated
-    public void setMonitorNotifier(@Nullable MonitorNotifier notifier) {
-        LogManager.d(TAG, "API setMonitorNotifier "+notifier);
-        if (determineIfCalledFromSeparateScannerProcess()) {
-            return;
-        }
-        monitorNotifiers.clear();
-        if (null != notifier) {
-            addMonitorNotifier(notifier);
-        }
-    }
-
-    /**
-     * Specifies a class that should be called each time the <code>BeaconService</code> sees or
-     * stops seeing a Region of beacons.
-     * <p/>
-     * Permits to register several <code>MonitorNotifier</code> objects.
-     * <p/>
-     * Unregister the notifier using {@link #removeMonitoreNotifier}
-     *
-     * @param notifier The {@link MonitorNotifier} to register.
-     * @see MonitorNotifier
-     * @see #startMonitoring(Region)
-     * @see Region
-     */
-    public void addMonitorNotifier(@NonNull MonitorNotifier notifier) {
-        LogManager.d(TAG, "API addMonitorNotifier "+notifier);
-        if (determineIfCalledFromSeparateScannerProcess()) {
-            return;
-        }
-        //noinspection ConstantConditions
-        if (notifier != null) {
-            monitorNotifiers.add(notifier);
-        }
-    }
-
-    /**
-     * @see #removeMonitorNotifier
-     * @deprecated Misspelled. Replaced by {@link #removeMonitorNotifier}
-     */
-    @Deprecated
-    public boolean removeMonitoreNotifier(@NonNull MonitorNotifier notifier) {
-        return removeMonitorNotifier(notifier);
-    }
-
-    /**
-     * Specifies a class to remove from the array of <code>MonitorNotifier</code>.
-     *
-     * @param notifier The {@link MonitorNotifier} to unregister.
-     * @see MonitorNotifier
-     * @see #startMonitoring(Region)
-     * @see Region
-     */
-    public boolean removeMonitorNotifier(@NonNull MonitorNotifier notifier) {
-        LogManager.d(TAG, "API removeMonitorNotifier "+notifier);
-        if (determineIfCalledFromSeparateScannerProcess()) {
-            return false;
-        }
-        return monitorNotifiers.remove(notifier);
-    }
-
-    /**
-     * Remove all the Monitor Notifiers.
-     */
-    public void removeAllMonitorNotifiers() {
-        LogManager.d(TAG, "API removeAllMonitorNotifiers");
-        if (determineIfCalledFromSeparateScannerProcess()) {
-            return;
-        }
-        monitorNotifiers.clear();
-    }
-
-    /**
      * @see #setRegionStatePersistenceEnabled
      * @deprecated Misspelled. Replaced by {@link #setRegionStatePersistenceEnabled}
      */
@@ -1001,7 +862,7 @@ public class BeaconManager {
      * later call the stopRangingBeaconsInRegion method.
      *
      * @param region
-     * @see BeaconManager#setRangeNotifier(RangeNotifier)
+     * @see NotifierManager#setRangeNotifier(RangeNotifier)
      * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
      * @see RangeNotifier
      * @see Region
@@ -1035,7 +896,7 @@ public class BeaconManager {
      * combine calls to this method with manual calls to bind() and unbind().
      *
      * @param region
-     * @see BeaconManager#setRangeNotifier(RangeNotifier)
+     * @see NotifierManager#setRangeNotifier(RangeNotifier)
      * @see BeaconManager#stopRangingBeaconsInRegion(Region region)
      * @see RangeNotifier
      * @see Region
@@ -1067,7 +928,7 @@ public class BeaconManager {
      * <code>Region</code> object and providing mDistance information for them.
      *
      * @param region
-     * @see #setMonitorNotifier(MonitorNotifier notifier)
+     * @see NotifierManager#setMonitorNotifier(MonitorNotifier notifier)
      * @see #startMonitoring(Region region)
      * @see MonitorNotifier
      * @see Region
@@ -1181,7 +1042,7 @@ public class BeaconManager {
      * later call the stopMonitoringBeaconsInRegion method.
      *
      * @param region
-     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     * @see NotifierManager#setMonitorNotifier(MonitorNotifier)
      *
      * @see BeaconManager#stopMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
@@ -1220,7 +1081,7 @@ public class BeaconManager {
      * later call the stopMonitoringBeaconsInRegion method.
      *
      * @param region
-     * @see BeaconManager#addMonitorNotifier(MonitorNotifier)
+     * @see NotifierManager#addMonitorNotifier(MonitorNotifier)
      *
      * @see BeaconManager#stopMonitoring(Region region)
      * @see MonitorNotifier
@@ -1256,7 +1117,7 @@ public class BeaconManager {
      * an existing monitored Region.
      *
      * @param region
-     * @see BeaconManager#setMonitorNotifier(MonitorNotifier)
+     * @see NotifierManager#setMonitorNotifier(MonitorNotifier)
      * @see BeaconManager#startMonitoringBeaconsInRegion(Region region)
      * @see MonitorNotifier
      * @see Region
@@ -1302,7 +1163,7 @@ public class BeaconManager {
      * an existing monitored Region.
      *
      * @param region
-     * @see BeaconManager#addMonitorNotifier(MonitorNotifier)
+     * @see NotifierManager#addMonitorNotifier(MonitorNotifier)
      * @see BeaconManager#startMonitoring(Region region)
      * @see MonitorNotifier
      * @see Region
@@ -1408,13 +1269,13 @@ public class BeaconManager {
      * This provides a thread-safe "read-only" view of the {@link Set} of registered monitor
      * notifiers. Attempts to modify the returned set, or its iterator, will throw an
      * {@link UnsupportedOperationException}. Modifications to the underlying set should be made
-     * through {@link #addMonitorNotifier(MonitorNotifier)} and
-     * {@link #removeMonitorNotifier(MonitorNotifier)}.
+     * through {@link NotifierManager#addMonitorNotifier(MonitorNotifier)} and
+     * {@link NotifierManager#removeMonitorNotifier(MonitorNotifier)}.
      *
      * @return a thread-safe {@linkplain Collections#unmodifiableSet(Set) unmodifiable view}
      * providing "read-only" access to the registered {@link MonitorNotifier} instances
-     * @see #addMonitorNotifier(MonitorNotifier)
-     * @see #removeMonitorNotifier(MonitorNotifier)
+     * @see NotifierManager#addMonitorNotifier(MonitorNotifier)
+     * @see NotifierManager#removeMonitorNotifier(MonitorNotifier)
      * @see Collections#unmodifiableSet(Set)
      */
     @NonNull
@@ -1442,13 +1303,13 @@ public class BeaconManager {
      * This provides a thread-safe "read-only" view of the {@link Set} of registered range
      * notifiers. Attempts to modify the returned set, or its iterator, will throw an
      * {@link UnsupportedOperationException}. Modifications to the underlying set should be made
-     * through {@link #addRangeNotifier(RangeNotifier)} and
-     * {@link #removeRangeNotifier(RangeNotifier)}.
+     * through {@link NotifierManager#addRangeNotifier(RangeNotifier)} and
+     * {@link NotifierManager#removeRangeNotifier(RangeNotifier)}.
      *
      * @return a thread-safe {@linkplain Collections#unmodifiableSet(Set) unmodifiable view}
      * providing "read-only" access to the registered {@link RangeNotifier} instances
-     * @see #addRangeNotifier(RangeNotifier)
-     * @see #removeRangeNotifier(RangeNotifier)
+     * @see NotifierManager#addRangeNotifier(RangeNotifier)
+     * @see NotifierManager#removeRangeNotifier(RangeNotifier)
      * @see Collections#unmodifiableSet(Set)
      */
     @NonNull
@@ -1857,7 +1718,7 @@ public class BeaconManager {
     }
 
 
-    private boolean determineIfCalledFromSeparateScannerProcess() {
+    public boolean determineIfCalledFromSeparateScannerProcess() {
         if (isScannerInDifferentProcess() && !isMainProcess()) {
             LogManager.w(TAG, "Ranging/Monitoring may not be controlled from a separate "+
                     "BeaconScanner process.  To remove this warning, please wrap this call in:"+

@@ -302,4 +302,13 @@ public class ScanState implements Serializable {
         this.save();
     }
 
+    public void getScanHelperInitialized(ScanState mScanState, ScanHelper scanHelper)
+    {
+        scanHelper.setMonitoringStatus(mScanState.getMonitoringStatus());
+        scanHelper.setRangedRegionState(mScanState.getRangedRegionState());
+        scanHelper.setBeaconParsers(mScanState.getBeaconParsers());
+        scanHelper.setExtraDataBeaconTracker(mScanState.getExtraBeaconDataTracker());
+
+    }
+
 }

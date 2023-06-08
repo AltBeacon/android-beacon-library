@@ -243,7 +243,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                 }
                 else {
                     LogManager.d(TAG,
-                            "Successfully downloaded distance models from online database");
+                            "Successfully downloaded distance models from online database at %s", mRemoteUpdateUrlString);
                     try {
                         buildModelMapWithLock(body);
                         if (saveJson(body)) {

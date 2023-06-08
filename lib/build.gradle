@@ -2,16 +2,19 @@ plugins {
     id 'com.android.library'
     id("org.jetbrains.dokka") version "1.5.0"
 }
-
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 31
     buildToolsVersion "30.0.3"
 
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 31
-        versionCode 1
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
         // The hack below is because VERSION_NAME has been removed from BuildConfig as of Gradle Plugin 4.1
@@ -30,8 +33,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     packagingOptions {
         exclude 'LICENSE.txt'
@@ -50,6 +53,8 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    namespace 'org.altbeacon.beacon'
 }
 
 dependencies {
@@ -79,7 +84,7 @@ ext {
     PUBLISH_VERSION = version
     PUBLISH_ARTIFACT_ID = 'android-beacon-library'
 }
-apply plugin: 'kotlin-android'
+
 repositories {
     mavenCentral()
 }

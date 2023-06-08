@@ -4,6 +4,8 @@ plugins {
 }
 apply plugin: 'kotlin-android'
 
+android.buildFeatures.buildConfig true
+
 android {
     compileSdkVersion 31
     buildToolsVersion "30.0.3"

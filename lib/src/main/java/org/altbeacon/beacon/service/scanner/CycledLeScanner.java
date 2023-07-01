@@ -302,7 +302,7 @@ public abstract class CycledLeScanner {
                     mScanningPaused = false;
                     try {
                         if (getBluetoothAdapter() != null) {
-                            if (getBluetoothAdapter().isEnabled()) {
+                            if (getBluetoothAdapter().isEnabled() || Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                                 if (mBluetoothCrashResolver != null && mBluetoothCrashResolver.isRecoveryInProgress()) {
                                     LogManager.w(TAG, "Skipping scan because crash recovery is in progress.");
                                 } else {
@@ -392,7 +392,7 @@ public abstract class CycledLeScanner {
             mCycledLeScanCallback.onCycleEnd();
             if (mScanning) {
                 if (getBluetoothAdapter() != null) {
-                    if (getBluetoothAdapter().isEnabled()) {
+                    if (getBluetoothAdapter().isEnabled()  || Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         // Determine if we need to restart scanning.  Restarting scanning is only
                         // needed on devices incapable of detecting multiple distinct BLE advertising
                         // packets in a single cycle, typically older Android devices (e.g. Nexus 4)

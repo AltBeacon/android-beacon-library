@@ -168,7 +168,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     @Override
     protected void startScan() {
-        if (!isBluetoothOn()) {
+        if (!isBluetoothOn() && Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             LogManager.d(TAG, "Not starting scan because bluetooth is off");
             return;
         }
@@ -268,7 +268,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     }
 
     private void postStopLeScan() {
-        if (!isBluetoothOn()){
+        if (!isBluetoothOn() && Build.VERSION.SDK_INT < Build.VERSION_CODES.P){
             LogManager.d(TAG, "Not stopping scan because bluetooth is off");
             return;
         }

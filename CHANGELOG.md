@@ -1,3 +1,7 @@
+#### Development
+
+- Upgrade build tools to use Gradle 8, JDK 17 (#1150, David G. Young)
+
 #### 2.19.6-beta2 / 2023-01-06
 
 - Fix BluetoothMedic crashes on Android 12+ when permissions are missing

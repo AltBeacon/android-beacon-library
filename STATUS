@@ -1,0 +1,4 @@
+Tests are failing
+build with this
+export JAVA_HOME=/Applications/Android\ Studio\ 2.app/Contents/jbr/Contents/Home; 
+ ./gradlew release -x test

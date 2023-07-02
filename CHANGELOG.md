@@ -2,6 +2,7 @@
 
 - Fix scans being stuck on when Bluetooth turned off in quick settings on
   Android 9+.  (#1149, David G. Young)
+- Upgrade build tools to use Gradle 8, JDK 17 (#1150, David G. Young)
 
 #### 2.19.6-beta2 / 2023-01-06
 

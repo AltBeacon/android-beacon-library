@@ -1,3 +1,5 @@
+import java.util.regex.Matcher
+
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
@@ -45,68 +47,77 @@ ext["ossrhUsername"] = project.hasProperty('ossrhUsername') ? project.getPropert
 ext["ossrhPassword"] = project.hasProperty('ossrhPassword') ? project.getProperty('ossrhPassword') : System.getenv('OSSRH_PASSWORD')
 ext["sonatypeStagingProfileId"] = project.hasProperty('sonatypeStagingProfileId') ? project.getProperty('sonatypeStagingProfileId') : System.getenv('SONATYPE_STAGING_PROFILE_ID')
 
-publishing {
-    publications {
-        release(MavenPublication) {
-            groupId PUBLISH_GROUP_ID
-            artifactId PUBLISH_ARTIFACT_ID
-            version PUBLISH_VERSION
 
-            if (project.plugins.findPlugin("com.android.library")) {
-                artifact("$buildDir/outputs/aar/${project.name}-release.aar")
-               //artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-            } else {
-                artifact("$buildDir/libs/${project.getName()}-${version}.jar")
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId PUBLISH_GROUP_ID
+                artifactId PUBLISH_ARTIFACT_ID
+                version PUBLISH_VERSION
+
+                if (project.plugins.findPlugin("com.android.library")) {
+                    //artifact("$buildDir/outputs/aar/${project.name}-release.aar")
+                    //artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+                } else {
+                    artifact("$buildDir/libs/${project.getName()}-${version}.jar")
+                }
+
+                artifact androidSourcesJar
+
+                pom {
+                    name = PUBLISH_ARTIFACT_ID
+                    description = 'Android Beacon Library'
+                    url = 'https://altbeacon.github.io/android-beacon-library'
+                    licenses {
+                        license {
+                            name = 'Apache 2'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                        }
+                    }
+                    developers {
+                        developer {
+                            name = 'David G. Young'
+                            email = 'tech@davidgyoung.com'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:github.com/AltBeacon/android-beacon-library.git'
+                        developerConnection = 'scm:git:ssh://github.com/AltBeacon/android-beacon-library.git'
+                        url = 'https://github.com/AltBeacon/android-beacon-library'
+                    }
+                    withXml {
+                        def dependenciesNode = asNode().appendNode('dependencies')
+
+                        project.configurations.implementation.allDependencies.each {
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', it.group)
+                            dependencyNode.appendNode('artifactId', it.name)
+                            dependencyNode.appendNode('version', it.version)
+                        }
+                    }
+                }
             }
+        }
+        repositories {
+            maven {
+                name = "sonatype"
+                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
-            artifact androidSourcesJar
-
-            pom {
-                name = PUBLISH_ARTIFACT_ID
-                description = 'Android Beacon Library'
-                url = 'https://altbeacon.github.io/android-beacon-library'
-                licenses {
-                    license {
-                        name = 'Apache 2'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
-                    }
-                }
-                developers {
-                    developer {
-                        name = 'David G. Young'
-                        email = 'tech@davidgyoung.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:github.com/AltBeacon/android-beacon-library.git'
-                    developerConnection = 'scm:git:ssh://github.com/AltBeacon/android-beacon-library.git'
-                    url = 'https://github.com/AltBeacon/android-beacon-library'
-                }
-                withXml {
-                    def dependenciesNode = asNode().appendNode('dependencies')
-
-                    project.configurations.implementation.allDependencies.each {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
-                    }
+                credentials {
+                    username ossrhUsername
+                    password ossrhPassword
                 }
             }
         }
     }
-    repositories {
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-
-            credentials {
-                username ossrhUsername
-                password ossrhPassword
-            }
-        }
-    }
+    //Declare an explicit dependency on ':android-beacon-library:renameAarForRelease' from ':android-beacon-library:publishReleasePublicationToSonatypeRepository' using Task#mustRunAfter.
+    publishReleasePublicationToSonatypeRepository.mustRunAfter renameAarForRelease
+    //Declare an explicit dependency on ':android-beacon-library:renameAarForRelease' from ':android-beacon-library:signReleasePublication' using Task#mustRunAfter.
+    renameAarForRelease.mustRunAfter signReleasePublication
 }
+
 
 nexusStaging {
     packageGroup = PUBLISH_GROUP_ID
@@ -134,7 +145,23 @@ task mavenPublish(dependsOn: ['release','publishReleasePublicationToSonatypeRepo
 
 build.mustRunAfter clean
 renameAarForRelease.mustRunAfter build
-publishReleasePublicationToSonatypeRepository.mustRunAfter release
 androidSourcesJar.mustRunAfter clean
 
 
+// Hack for Gradle 8 error during release: POM file is invalid. Check any modifications you have made to the POM file.
+// apparently the valid format of a POM in Java 17 is more strict than what these publishing plugins produce
+// adapted from https://github.com/spring-gradle-plugins/dependency-management-plugin/issues/257#issuecomment-895790557
+tasks.withType(GenerateMavenPom).all {
+    doLast {
+        File file = new File("$buildDir/publications/release/pom-default.xml")
+        def text = file.text
+        def pattern = "(?s)(<dependencies>)(.+?)(</dependencies>)"
+        Matcher matcher = text =~ pattern
+        if (matcher.find()) {
+            text = text.replaceFirst(pattern, "")
+            def firstDeps = matcher.group(2)
+            text = text.replaceFirst(pattern, '$1$2' + firstDeps + '$3')
+        }
+        file.write(text)
+    }
+}

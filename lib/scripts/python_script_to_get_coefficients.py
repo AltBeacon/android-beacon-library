@@ -3,7 +3,7 @@
 """
 Created on Mon Dec 26 15:23:54 2022
 
-@author: shubham.gupta7
+@author: gptshubham595
 """
 
 # fit a line to the economic data

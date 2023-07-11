@@ -24,3 +24,13 @@ By utilizing this equation and the coefficients obtained, it becomes possible to
  - Finally, the code generates a scatter plot of the raw data points (`xData` and `yData`) and overlays the fitted curve based on the `fittedParameters`. The plot is displayed using `matplotlib.pyplot` and then closed.
 
  - Overall, this code performs a curve-fitting analysis on economic data, finds the best-fit curve using a genetic algorithm and curve_fit, and visualizes the results through a scatter plot. 
+
+## Excel Sheet
+
+- The provided Excel sheet serves as a reference tool for comparing and analyzing distance values based on measured RSSI (Received Signal Strength Indication) values. It is designed to work in conjunction with the script mentioned earlier to obtain the coefficients required for the distance comparison.
+
+ - The Excel sheet allows users to input the necessary data, including the measured RSSI values and corresponding distance values. These values are typically obtained from experimental measurements or data collection processes.
+
+ - Once the data is entered into the Excel sheet, the script mentioned earlier comes into play. It uses the curve fitting algorithm to find the best-fit curve that approximates the relationship between RSSI values and distances. By fitting the data to a mathematical equation, the script determines the coefficients that provide the closest match to the observed data.
+
+ - These coefficients are then obtained from the script and can be manually entered into the Excel sheet. By doing so, the Excel sheet can utilize the coefficients to calculate and display the estimated distances corresponding to new or additional RSSI values.

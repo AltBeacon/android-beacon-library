@@ -34,7 +34,7 @@ layout: android-beacon-library
 ### Background Detection
 
 <ul>
-<li><a href='detection_times.html'>Expected detection times</a></li>
+<li><a href='detection_times.html'>Expected detection times and alternate scan strategies</a></li>
 <li><a href='foreground-service.html'>Using a foreground service</a></li>
 <li><a href='background_launching.html'>Auto launching app on beacon detection</a></li>
 <li><a href='notifications.html'>Sending notifications on beacon detection</a></li>

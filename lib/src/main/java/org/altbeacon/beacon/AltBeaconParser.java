@@ -57,6 +57,22 @@ public class AltBeaconParser extends BeaconParser {
      * Construct an AltBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
      * including the raw Bluetooth device info
      *
+     * timestampMs excluded for backward compatibility with older api consumers.
+     *
+     * @param scanData The actual packet bytes
+     * @param rssi The measured signal strength of the packet
+     * @param device The Bluetooth device that was detected
+     * @return An instance of an <code>Beacon</code>
+     */
+    @Override
+    public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
+        return fromScanData(scanData, rssi, device, 0, new AltBeacon());
+    }
+
+    /**
+     * Construct an AltBeacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
+     * including the raw Bluetooth device info
+     *
      * @param scanData The actual packet bytes
      * @param rssi The measured signal strength of the packet
      * @param device The Bluetooth device that was detected

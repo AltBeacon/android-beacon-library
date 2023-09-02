@@ -1784,7 +1784,7 @@ public class BeaconManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             LogManager.d(TAG, "Checking fine location permission as required for foreground service");
             if (mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                throw new SecurityException("Foreground service may not be enabled on until after user grants Manifest.permission.ACCESS_FINE_LOCATION when target SdkVersion is set to TIRAMISU or above.");
+                throw new SecurityException("Foreground service may not be enabled until after user grants Manifest.permission.ACCESS_FINE_LOCATION when target SdkVersion is set to SDK 24 or above.  See: https://altbeacon.github.io/android-beacon-library/foreground-service.html");
             }
         }
 

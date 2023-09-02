@@ -37,6 +37,7 @@ scans than otherwise would be performed by the library, more battery will be use
 The [reference app](https://github.com/davidgyoung/android-beacon-library-reference-kotlin) has code you can uncomment to start a foreground service, which has code similar
 to shown below.  You need to put this code in your app before you start ranging or monitoring.
 
+If targeting Android 14+ (SDK 24+) you must ensure that you have obtained FINE_LOCATION permissin from the user otherwise you will get a SecurityException when trying to configure the foreground service.
 
 ```
 ...

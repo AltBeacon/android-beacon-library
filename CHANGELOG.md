@@ -1,3 +1,8 @@
+
+### 2.20-beta1 / 2023-09-02
+
+- Updates to support Android 14 foreground services. (#1155, David G. Young)
+
 ### 2.19.6 / 2023-07-02
 
 - Fix scans being stuck on when Bluetooth turned off in quick settings on

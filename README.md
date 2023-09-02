@@ -50,8 +50,7 @@ replacing `${altbeacon.version}` with the version you wish to use.
 
 ## How to build this Library
 
-This project uses an AndroidStudio/gradle build system and is known working with Android Studio
-4.1.3 and Gradle 6.5
+This project uses an AndroidStudio/gradle build system and is known working with Android Studio Flamingo | 2022.2.1 Patch 1 and Gradle 8.0
 
 Key Gradle build targets:
 

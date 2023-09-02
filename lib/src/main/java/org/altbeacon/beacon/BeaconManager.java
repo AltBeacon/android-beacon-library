@@ -23,6 +23,7 @@
  */
 package org.altbeacon.beacon;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -1779,6 +1780,14 @@ public class BeaconManager {
         if (notification == null) {
             throw new NullPointerException("Notification cannot be null");
         }
+        LogManager.d(TAG, "Running SDK 24? %b.  Targeting SDK 24? %b", Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE, mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            LogManager.d(TAG, "Checking fine location permission as required for foreground service");
+            if (mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                throw new SecurityException("Foreground service may not be enabled on until after user grants Manifest.permission.ACCESS_FINE_LOCATION when target SdkVersion is set to TIRAMISU or above.");
+            }
+        }
+
         setEnableScheduledScanJobs(false);
         mForegroundServiceNotification = notification;
         mForegroundServiceNotificationId = notificationId;

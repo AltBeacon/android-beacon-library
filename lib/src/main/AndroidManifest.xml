@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.BLUETOOTH" android:required="false"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:required="false"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
@@ -16,6 +17,7 @@
         <service android:enabled="true"
             android:exported="false"
             android:isolatedProcess="false"
+            android:foregroundServiceType="location"
             android:label="beacon"
             android:name=".service.BeaconService"
             />

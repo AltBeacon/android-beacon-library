@@ -7,8 +7,8 @@ apply plugin: 'kotlin-android'
 android.buildFeatures.buildConfig true
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 34
+    buildToolsVersion "34.0.0"
 
     kotlinOptions {
         jvmTarget = "17"
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 31
+        targetSdkVersion 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
         // The hack below is because VERSION_NAME has been removed from BuildConfig as of Gradle Plugin 4.1

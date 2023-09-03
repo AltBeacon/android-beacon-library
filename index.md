@@ -29,12 +29,12 @@ It allows Android devices to interact with Bluetooth beacons with APIs that are 
 The library can easily be configured to detect iBeacon, Eddystone and other beacon formats.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org) See the documentation for the
 [BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for how to work with other beacon formats.
 
-### Android 12, 13 snd 14 Support
+### Android 12, 13 and 14 Support
 
-Library versions 2.19.5+ fully supports Android 12 and 13 permission changes.  **Android 12 has a new location permission
+Library versions 2.19.5+ fully support Android 12 and 13 permission changes.  **Android 12 has a new location permission
 model that requires beacon apps to make changes** to target SDK version 31+.  See the [request permission](/android-beacon-library/requesting_permission.html) page for more info.
 
-Apps using the library's built-in foreground service will need to be updated in order to target Android 14.  Library version 2.20-beta1 supports Android 14, so [apps must upgrade to this version and ensure they obtain FINE_LOCATION permission before configuring](foreground-service.html] the foreground service.
+Apps using the library's built-in foreground service will need to be updated in order to target **Android 14.**  Library version 2.20-beta1 supports Android 14, so [apps must upgrade to this version and ensure they obtain FINE_LOCATION permission before configuring](foreground-service.html] the foreground service.
 
 ### Who uses this library?
 

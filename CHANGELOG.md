@@ -1,5 +1,5 @@
 
-### 2.20-beta1 / 2023-09-02
+### 2.20 / 2023-10-1
 
 - Updates to support Android 14 foreground services. (#1155, David G. Young)
 

@@ -472,6 +472,7 @@ public class BeaconManager {
                                     " service.  A consumer is already bound, so it should be started");
                         }
                         else {
+                            verifyLocationPermissionGrantedForForegroundService();
                             LogManager.i(TAG, "Attempting to starting foreground beacon scanning service.");
                             try {
                                 mContext.startForegroundService(intent);
@@ -1636,6 +1637,19 @@ public class BeaconManager {
                         PackageManager.MATCH_DEFAULT_ONLY);
         if (resolveInfo != null && resolveInfo.isEmpty()) {
             throw new ServiceNotDeclaredException();
+        }
+    }
+
+    /*
+     * Location permission must be granted in order to run foreground services on Android 14+
+     */
+    private void verifyLocationPermissionGrantedForForegroundService() {
+        LogManager.d(TAG, "Running SDK 34? %b.  Targeting SDK 34? %b", Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE, mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            LogManager.d(TAG, "Checking fine location permission as required for foreground service");
+            if (mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                throw new SecurityException("Foreground service may not be enabled until after user grants Manifest.permission.ACCESS_FINE_LOCATION when target SdkVersion is set to SDK 34 or above.  See: https://altbeacon.github.io/android-beacon-library/foreground-service.html");
+            }
         }
     }
 

@@ -279,10 +279,7 @@ public class BeaconService extends Service {
             }
             catch (SecurityException exception) {
                 // https://issuetracker.google.com/issues/294408576
-                LogManager.w(TAG, "Foreground service blocked by SecurityException.  Falling back to job scheduler");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    ScanJobScheduler.getInstance().applySettingsToScheduledJob(this, beaconManager);
-                }
+                LogManager.w(TAG, "Suppress startForeground() SecurityException");
             }
         }
     }

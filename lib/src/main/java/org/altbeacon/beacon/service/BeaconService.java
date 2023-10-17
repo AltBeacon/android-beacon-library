@@ -278,7 +278,7 @@ public class BeaconService extends Service {
             }
             catch (SecurityException exception) {
                 // https://issuetracker.google.com/issues/294408576
-                LogManager.w(TAG, "Suppress startForeground() SecurityException");
+                LogManager.w(TAG, "Call to service startForeground() threw a SecurityException.  The Foreground Service for beacon scanning may have started anyway, but this behavior might change in  different conditions or a future Android version.");
             }
         }
     }

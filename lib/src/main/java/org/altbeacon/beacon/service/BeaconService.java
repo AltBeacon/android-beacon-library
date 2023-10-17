@@ -24,6 +24,7 @@
 package org.altbeacon.beacon.service;
 
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -272,7 +273,13 @@ public class BeaconService extends Service {
                 .getForegroundServiceNotificationId();
         if (notification != null &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            this.startForeground(notificationId, notification);
+            try {
+                this.startForeground(notificationId, notification);
+            }
+            catch (SecurityException exception) {
+                // https://issuetracker.google.com/issues/294408576
+                LogManager.w(TAG, "Call to service startForeground() threw a SecurityException.  The Foreground Service for beacon scanning may have started anyway, but this behavior might change in  different conditions or a future Android version.");
+            }
         }
     }
 

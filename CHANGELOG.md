@@ -1,4 +1,4 @@
-### 2.20.1-beta1 / 2023-10-20
+### 2.20.1 / 2023-10-20
 
 - Additional Android 14 Improvements (#1162, Stephen Ruda)
 - Fix Android 14 foreground service start after BOOT_COMPLETED. (#1165, David G. Young)

@@ -30,6 +30,19 @@ public class StartupBroadcastReceiver extends BroadcastReceiver
             LogManager.w(TAG, "Not starting up beacon service because we do not have API version 18 (Android 4.3).  We have: %s", Build.VERSION.SDK_INT);
             return;
         }
+        if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+            LogManager.i(TAG, "Android Beacon Library restarted via ACTION_BOOT_COMPLETED");
+            BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());
+            // As of Android 14, the OS fails BOOT foregorund service start when initiated from
+            // Application.onCreate.  It is only allowed after the onReceive is called for the
+            // BOOT_COMPLETED event, which happens immediately after Application.onCreate  This
+            // retry will fix the failure that happened just milliseconds earlier.
+            if (beaconManager.foregroundServiceStartFailed()) {
+                LogManager.i(TAG, "Foreground service startup failure detected.  We will retry starting now that we have received a BOOT_COMPLETED action.");
+                beaconManager.retryForegroundServiceScanning();
+            }
+        }
+
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());
         if (beaconManager.isAnyConsumerBound() || beaconManager.getScheduledScanJobsEnabled() || beaconManager.getIntentScanStrategyCoordinator() != null) {
             int bleCallbackType = intent.getIntExtra(BluetoothLeScanner.EXTRA_CALLBACK_TYPE, -1); // e.g. ScanSettings.CALLBACK_TYPE_FIRST_MATCH

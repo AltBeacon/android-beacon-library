@@ -1,3 +1,7 @@
+### 2.20.2 / 2023-10-27
+
+- Fix crash in BroadcastReceiver (#1167, David G. Young)
+
 ### 2.20.1 / 2023-10-20
 
 - Additional Android 14 Improvements (#1162, Stephen Ruda)

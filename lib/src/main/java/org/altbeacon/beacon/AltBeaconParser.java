@@ -62,7 +62,6 @@ public class AltBeaconParser extends BeaconParser {
      * @Deprecated New implementations should not use this method. It is not intended as a public
      * API and is subject to change or removal in the future.
      *
-     *
      * @param scanData The actual packet bytes
      * @param rssi The measured signal strength of the packet
      * @param device The Bluetooth device that was detected

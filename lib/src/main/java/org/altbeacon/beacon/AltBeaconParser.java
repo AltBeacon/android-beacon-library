@@ -59,14 +59,19 @@ public class AltBeaconParser extends BeaconParser {
      *
      * timestampMs excluded for backward compatibility with older api consumers.
      *
+     * @Deprecated New implementations should not use this method. It is not intended as a public
+     * API and is subject to change or removal in the future.
+     *
+     *
      * @param scanData The actual packet bytes
      * @param rssi The measured signal strength of the packet
      * @param device The Bluetooth device that was detected
-     * @return An instance of an <code>Beacon</code>
+     * @return An instance of a <code>Beacon</code>
      */
+    @Deprecated
     @Override
     public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
-        return fromScanData(scanData, rssi, device, 0, new AltBeacon());
+        return fromScanData(scanData, rssi, device, System.currentTimeMillis(), new AltBeacon());
     }
 
     /**
@@ -77,7 +82,7 @@ public class AltBeaconParser extends BeaconParser {
      * @param rssi The measured signal strength of the packet
      * @param device The Bluetooth device that was detected
      * @param timestampMs The timestamp in milliseconds of the scan execution
-     * @return An instance of an <code>Beacon</code>
+     * @return An instance of a <code>Beacon</code>
      */
     @Override
     public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device, long timestampMs) {

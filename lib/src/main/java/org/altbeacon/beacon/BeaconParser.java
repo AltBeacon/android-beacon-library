@@ -441,6 +441,25 @@ public class BeaconParser implements Serializable {
 
     /**
      * Construct a Beacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
+     * including the raw Bluetooth device info.
+     *
+     * timestampMs excluded for backward compatibility with older api consumers.
+     *
+     * @Deprecated New implementations should not use this method. It is not intended as a public
+     * API and is subject to change or removal in the future.
+     *
+     * @param scanData The actual packet bytes
+     * @param rssi The measured signal strength of the packet
+     * @param device The Bluetooth device that was detected
+     * @return An instance of a <code>Beacon</code>
+     */
+    @Deprecated
+    public Beacon fromScanData(byte[] scanData, int rssi, BluetoothDevice device) {
+        return fromScanData(scanData, rssi, device, System.currentTimeMillis(), new Beacon());
+    }
+
+    /**
+     * Construct a Beacon from a Bluetooth LE packet collected by Android's Bluetooth APIs,
      * including the raw Bluetooth device info
      *
      * @param scanData The actual packet bytes

@@ -1,3 +1,7 @@
+### 2.20.3 / 2023-11-10
+
+- Backward compatibility - add 'fromScanData' to AltBeaconParser and BeaconParser, (#1153, Andrew Benson)
+
 ### 2.20.2 / 2023-10-27
 
 - Fix crash in BroadcastReceiver (#1167, David G. Young)

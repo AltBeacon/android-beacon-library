@@ -219,6 +219,27 @@ public class BeaconManager {
         return mRegionViewModels.get(region) != null;
     }
 
+    private Settings settings = new Settings.Builder().build();
+
+    /**
+     * Applies new library scanning settings as a single transaction.
+     * @param settings the settings to be applied
+     */
+    public void setSettings(Settings settings) {
+        this.settings = new Settings(settings);
+        Beacon.setHardwareEqualityEnforced(this.settings.getHardwareEqualityEnforced());
+        BeaconManager.setDistanceModelUpdateUrl(settings.getDistanceModelUpdateUrl());
+        // TODO: appply all other settings
+    }
+    /**
+     * Returns a copy of the active settings in use by the library.  The object returned is a copy
+     * and making changes on it will have no effect without a new call to set the settings.
+     * @return settings currently active
+     */
+    public Settings getActiveSettings() {
+        return new Settings(settings);
+    }
+
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.
      * This function is used to setup the period before calling {@link #bind} or when switching
@@ -1523,6 +1544,12 @@ public class BeaconManager {
         return distanceModelUpdateUrl;
     }
 
+
+    /**
+     * @deprecated Use the method on the Settings class and call `beaconManger.setSettings(settings)`
+     * @param url to use to get an updated database of Android phone models and curve fit parameters
+     *            for mapping distance to rssi. Set to "" to disable downloading an update.
+     */
     public static void setDistanceModelUpdateUrl(@NonNull String url) {
         warnIfScannerNotInSameProcess();
         distanceModelUpdateUrl = url;

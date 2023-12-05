@@ -192,7 +192,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             // to cause scan failures on some Samsung devices with Android 5.x
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
                 if ((Build.MANUFACTURER.equalsIgnoreCase("samsung") ||
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.U) &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) &&
                         !mPowerManager.isInteractive()) {
                     // On the Samsung 8.1 and Android 14.0, scans are blocked with screen off when the
                     // scan filter is empty (wildcard).  We do a more detailed filter on such devices

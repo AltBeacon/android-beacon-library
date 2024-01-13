@@ -226,7 +226,7 @@ public class BeaconManager {
      * @param settings the settings to be applied
      */
     public void setSettings(Settings settings) {
-        this.settings = new Settings(settings);
+        this.settings = Settings.Companion.fromSettings(settings);
         Beacon.setHardwareEqualityEnforced(this.settings.getHardwareEqualityEnforced());
         BeaconManager.setDistanceModelUpdateUrl(settings.getDistanceModelUpdateUrl());
         // TODO: appply all other settings
@@ -237,7 +237,7 @@ public class BeaconManager {
      * @return settings currently active
      */
     public Settings getActiveSettings() {
-        return new Settings(settings);
+        return  Settings.Companion.fromSettings(settings);
     }
 
     /**
@@ -1068,6 +1068,18 @@ public class BeaconManager {
     public void startRangingBeacons(@NonNull Region region) {
         LogManager.d(TAG, "API startRangingBeacons "+region);
         LogManager.d(TAG, "startRanging");
+        if (region.mBeaconParser != null && region.mBeaconParser.getIdentifier() != null) {
+            boolean parserAlreadyAdded = false;
+            for (BeaconParser parser: getBeaconParsers()) {
+                if (region.mBeaconParser.getIdentifier().equals(parser.getIdentifier())) {
+                    parserAlreadyAdded = true;
+                    break;
+                }
+            }
+            if (!parserAlreadyAdded) {
+                getBeaconParsers().add(region.mBeaconParser);
+            }
+        }
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
@@ -1255,6 +1267,18 @@ public class BeaconManager {
     @TargetApi(18)
     public void startMonitoring(@NonNull Region region) {
         LogManager.d(TAG, "API startMonitoring "+region);
+        if (region.mBeaconParser != null && region.mBeaconParser.getIdentifier() != null) {
+            boolean parserAlreadyAdded = false;
+            for (BeaconParser parser: getBeaconParsers()) {
+                if (region.mBeaconParser.getIdentifier().equals(parser.getIdentifier())) {
+                    parserAlreadyAdded = true;
+                    break;
+                }
+            }
+            if (!parserAlreadyAdded) {
+                getBeaconParsers().add(region.mBeaconParser);
+            }
+        }
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {

@@ -31,9 +31,15 @@ class SettingsTest {
         // This works but it is not designed for Kotlin
         beaconManager.setSettings(Settings.Builder().setDebug(true).setDistanceModelUpdateUrl("www.google.com").build())
         // This is the preferred usage for Kotlin
-        beaconManager.setSettings(Settings(debug = false, distanceModelUpdateUrl = "www.google.com"))
+        beaconManager.setSettings(Settings(
+            debug = false,
+            distanceModelUpdateUrl = "www.google.com",
+            scanPeriods = Settings.ScanPeriods(
+                foregroundScanPeriodMillis = 1100,
+                foregroundBetweenScanPeriodMillis = 0,
+                backgroundScanPeriodMillis = 30000,
+                backgroundBetweenScanPeriodMillis = 0)))
         beaconManager.activeSettings.debug // can read but not write
-        beaconManager.activeSettings.debug = true // PROBLEM!  We can write this
         Assert.assertEquals(BeaconManager.getDistanceModelUpdateUrl(), "www.google.com")
     }
 }

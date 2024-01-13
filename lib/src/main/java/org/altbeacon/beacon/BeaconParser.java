@@ -1071,4 +1071,27 @@ public class BeaconParser implements Serializable {
         return false;
     }
 
+    @Override
+    public String toString() {
+        if (mIdentifier == null) {
+            return mBeaconLayout;
+        }
+        return mIdentifier + "~" + mBeaconLayout;
+    }
+
+    /**
+     * Creates a BeaconParser instance from a string in the format <identifier>~<layout>
+     * @param string the string to parse
+     * @return BeaconParser
+     */
+    public static BeaconParser fromString(String string) {
+        String[] parts = string.split("~");
+        if (parts.length != 2) {
+            return new BeaconParser().setBeaconLayout(string);
+        }
+        String identifier = parts[0];
+        String layout = parts[1];
+        return new BeaconParser(identifier).setBeaconLayout(layout);
+    }
+
 }

@@ -73,6 +73,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -219,18 +220,70 @@ public class BeaconManager {
         return mRegionViewModels.get(region) != null;
     }
 
-    private Settings settings = new Settings.Builder().build();
+    private Settings settings = Settings.Companion.withDefaultValues();
 
     /**
-     * Applies new library scanning settings as a single transaction.
+     * Applies new library  settings as a single transaction and restart scanning if needed.
+     * Any settings field snot specified in the passed settings object will revert to defaults.
      * @param settings the settings to be applied
      */
-    public void setSettings(Settings settings) {
-        this.settings = Settings.Companion.fromSettings(settings);
-        Beacon.setHardwareEqualityEnforced(this.settings.getHardwareEqualityEnforced());
-        BeaconManager.setDistanceModelUpdateUrl(settings.getDistanceModelUpdateUrl());
-        // TODO: appply all other settings
+    public void replaceSettings(Settings settings) {
+        this.settings = Settings.Companion.fromDeltaSettings(this.settings, settings);
+        applySettingsChange();
+
     }
+    /**
+     * Applies a delta of library  settings as a single transaction and restart scanning if needed.
+     * Any settings field snot specified in the passed settings object are unchanged.
+     * @param settings the settings to be applied
+     */
+    public void adjustSettings(Settings settings) {
+        this.settings = Settings.Companion.fromDeltaSettings(this.settings, settings);
+        applySettingsChange();
+    }
+    /**
+     * Resets library settings to defaults as a single transaction and restarts scanning if needed.
+     */
+    public void revertSettings() {
+        settings = Settings.Companion.withDefaultValues();
+        applySettingsChange();
+    }
+    private void applySettingsChange() {
+        Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(this.settings.getHardwareEqualityEnforced()));
+        BeaconManager.setDistanceModelUpdateUrl(Objects.requireNonNull(settings.getDistanceModelUpdateUrl()));
+
+        if (settings.getBeaconSimulator() == null || settings.getBeaconSimulator().getClass() == Settings.DisabledBeaconSimulator.class) {
+            BeaconManager.setBeaconSimulator(null);
+        }
+        else {
+            BeaconManager.setBeaconSimulator(settings.getBeaconSimulator());
+        }
+        Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(settings.getHardwareEqualityEnforced()));
+        BeaconManager.setDebug(Boolean.TRUE.equals(settings.getDebug()));
+        Settings.ScanPeriods sp = settings.getScanPeriods();
+        if (sp != null) {
+            setBackgroundBetweenScanPeriod(sp.getBackgroundScanPeriodMillis());
+            setBackgroundScanPeriod(sp.getBackgroundScanPeriodMillis());
+            setForegroundBetweenScanPeriod(sp.getForegroundBetweenScanPeriodMillis());
+            setForegroundScanPeriod(sp.getForegroundScanPeriodMillis());
+        }
+        setManifestCheckingDisabled(Boolean.TRUE.equals(settings.getManifestCheckingDisabled()));
+        Integer regionExitPeriod = settings.getRegionExitPeriodMillis();
+        if (regionExitPeriod != null) {
+            setRegionExitPeriod(regionExitPeriod.longValue());
+        }
+        setRegionStatePersistenceEnabled(Boolean.TRUE.equals(settings.getRegionStatePersistenceEnabled()));
+
+        // TODO: appply all other settings
+        //settings.getLongScanForcingEnabled()
+        //settings.getRssiFilterImplClass()
+        //settings.getScanStrategy()
+
+        applySettings();
+
+    }
+
+
     /**
      * Returns a copy of the active settings in use by the library.  The object returned is a copy
      * and making changes on it will have no effect without a new call to set the settings.

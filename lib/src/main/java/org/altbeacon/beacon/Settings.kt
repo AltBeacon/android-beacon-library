@@ -19,7 +19,7 @@ data class Settings(
 
     // not carried forward
     // -------------------
-    // isAndroidLScanningDisabled
+    // isAndroidLScanningDisabled()
 
     /**
      * Sets the log level on the library to debug (true) or info (false)
@@ -132,6 +132,14 @@ data class Settings(
             this._beaconSimulator = beaconSimulator
             return this
         }
+        fun setScanStrategy(scanStrategy: ScanStrategy): Builder {
+            this._scanStrategy = scanStrategy
+            return this
+        }
+        fun setLongScanForcingEnabled(longScanForcingEnabled: Boolean): Builder {
+            this._longScanForcingEnabled = longScanForcingEnabled
+            return this
+        }
         fun build(): Settings {
             return fromBuilder(this)
         }
@@ -152,16 +160,16 @@ data class Settings(
             return ServiceScanStrategy()
         }
     }
-    class JobServiceScanStrategy: ScanStrategy {
-        var immediateJobId = 208352939
-        var periodicJobId = 208352940
-        var jobPersistenceEnabled = true
+    class JobServiceScanStrategy(val immediateJobId: Long = 208352939, val periodicJobId: Long = 208352940, val jobPersistenceEnabled: Boolean = true): ScanStrategy
+        {
         override fun clone(): JobServiceScanStrategy {
-            val strategy =  JobServiceScanStrategy()
-            strategy.immediateJobId = this.immediateJobId
-            strategy.periodicJobId = this.periodicJobId
-            strategy.jobPersistenceEnabled = this.jobPersistenceEnabled
-            return strategy
+            return JobServiceScanStrategy(this.immediateJobId, this.periodicJobId, this.jobPersistenceEnabled)
+        }
+    }
+    class BackgroundServiceScanStrategy(): ScanStrategy
+    {
+        override fun clone(): BackgroundServiceScanStrategy {
+            return BackgroundServiceScanStrategy()
         }
     }
     class ForegroundServiceScanStrategy(val notification: Notification, val notificationId: Int): ScanStrategy {

@@ -1,10 +1,16 @@
 package org.altbeacon.beacon;
 
+import android.app.Notification;
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runner.manipulation.Ordering;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -23,18 +29,21 @@ public class SettingsJavaTest {
 
     @Test
     public void setSettingsTest() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
         BeaconManager beaconManager = BeaconManager
-                .getInstanceForApplication(RuntimeEnvironment.getApplication());
+                .getInstanceForApplication(context);
 
 
-        Settings.Builder builder = new Settings.Builder();
-        builder.setDebug(true);
-        Settings settings = builder.build();
-        settings = new Settings.Builder().setDebug(true).setScanPeriods(new Settings.ScanPeriods(1100, 0, 10000, 0)).build();
-        settings = new Settings.Builder().setDebug(true).setScanPeriods(new Settings.ScanPeriods()).build();
-
-
-        beaconManager.setSettings(settings);
+        Settings settings = new Settings.Builder()
+                .setDebug(true)
+                .setDistanceModelUpdateUrl("https://s3.amazonaws.com/android-beacon-library/android-distance.json")
+                .setScanPeriods(new Settings.ScanPeriods(1100, 0, 10000, 0))
+                .setScanStrategy(new Settings.ForegroundServiceScanStrategy(
+                        new Notification.Builder(context, "BeaconReferenceApp").build(),1)
+                )
+                .setLongScanForcingEnabled(true)
+                .build();
+        beaconManager.adjustSettings(settings);
         //beaconManager.getActiveSettings().setDebug(false);
         beaconManager.getActiveSettings().getScanPeriods().getBackgroundScanPeriodMillis();
         Settings.Defaults.INSTANCE.getScanPeriods().getBackgroundScanPeriodMillis();

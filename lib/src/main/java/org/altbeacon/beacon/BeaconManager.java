@@ -1627,6 +1627,7 @@ public class BeaconManager {
      * @param url to use to get an updated database of Android phone models and curve fit parameters
      *            for mapping distance to rssi. Set to "" to disable downloading an update.
      */
+    @Deprecated
     public static void setDistanceModelUpdateUrl(@NonNull String url) {
         warnIfScannerNotInSameProcess();
         distanceModelUpdateUrl = url;
@@ -1826,6 +1827,7 @@ public class BeaconManager {
      * @param disabled
      * @deprecated This will be removed in the 3.0 release
      */
+    @Deprecated
     public static void setAndroidLScanningDisabled(boolean disabled) {
         LogManager.d(TAG, "API setAndroidLScanningDisabled "+disabled);
         sAndroidLScanningDisabled = disabled;

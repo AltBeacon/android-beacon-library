@@ -1,6 +1,7 @@
 package org.altbeacon.beacon
 
 import android.app.Notification
+import androidx.core.app.NotificationCompat
 import org.altbeacon.beacon.logging.LogManager
 import org.altbeacon.beacon.logging.Loggers
 import org.junit.Assert
@@ -9,13 +10,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLog
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
 class SettingsTest {
-
     @Before
     fun before() {
         ShadowLog.stream = System.err
@@ -38,7 +36,7 @@ class SettingsTest {
             debug = true,
             distanceModelUpdateUrl = "www.google.com",
             scanStrategy = Settings.ForegroundServiceScanStrategy(
-                Notification.Builder(
+                NotificationCompat.Builder(
                     context,
                     "BeaconReferenceApp"
                 ).build(), 1

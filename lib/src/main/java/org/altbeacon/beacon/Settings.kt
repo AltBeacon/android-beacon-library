@@ -70,12 +70,12 @@ data class Settings(
         fun fromDeltaSettings(settings: Settings, delta:Settings) : Settings {
             return Settings(scanPeriods = delta.scanPeriods ?: settings.scanPeriods, debug = delta.debug ?: settings.debug, regionStatePersistenceEnabled = delta.regionStatePersistenceEnabled ?: settings.regionStatePersistenceEnabled, useTrackingCache = delta.useTrackingCache ?: settings.useTrackingCache, hardwareEqualityEnforced = delta.hardwareEqualityEnforced ?: settings.hardwareEqualityEnforced,
                 regionExitPeriodMillis = delta.regionExitPeriodMillis ?: settings.regionExitPeriodMillis, maxTrackingAgeMillis = delta.maxTrackingAgeMillis ?: settings.maxTrackingAgeMillis, manifestCheckingDisabled = delta.manifestCheckingDisabled ?: settings.manifestCheckingDisabled,
-                beaconSimulator = delta.beaconSimulator ?: settings.beaconSimulator, rssiFilterImplClass = delta.rssiFilterImplClass ?: settings.rssiFilterImplClass, scanStrategy = delta.scanStrategy?.clone() ?: settings.scanStrategy, longScanForcingEnabled = delta.longScanForcingEnabled ?: settings.longScanForcingEnabled)
+                beaconSimulator = delta.beaconSimulator ?: settings.beaconSimulator, rssiFilterImplClass = delta.rssiFilterImplClass ?: settings.rssiFilterImplClass, scanStrategy = delta.scanStrategy?.clone() ?: settings.scanStrategy, longScanForcingEnabled = delta.longScanForcingEnabled ?: settings.longScanForcingEnabled, distanceModelUpdateUrl = delta.distanceModelUpdateUrl ?: settings.distanceModelUpdateUrl)
         }
         fun withDefaultValues(): Settings {
             return Settings(scanPeriods = Defaults.scanPeriods, debug = Defaults.debug, regionStatePersistenceEnabled = Defaults.regionStatePeristenceEnabled, useTrackingCache = Defaults.useTrackingCache, hardwareEqualityEnforced = Defaults.hardwareEqualityEnforced,
                 regionExitPeriodMillis = Defaults.regionExitPeriodMillis, maxTrackingAgeMillis = Defaults.maxTrackingAgeMillis, manifestCheckingDisabled = Defaults.manifestCheckingDisabled,
-                beaconSimulator = Defaults.beaconSimulator, rssiFilterImplClass = Defaults.rssiFilterImplClass, scanStrategy = Defaults.scanStrategy.clone(), longScanForcingEnabled = Defaults.longScanForcingEnabled)
+                beaconSimulator = Defaults.beaconSimulator, rssiFilterImplClass = Defaults.rssiFilterImplClass, scanStrategy = Defaults.scanStrategy.clone(), longScanForcingEnabled = Defaults.longScanForcingEnabled, distanceModelUpdateUrl = Defaults.distanceModelUpdateUrl)
         }
     }
     object Defaults {

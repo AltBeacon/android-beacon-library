@@ -237,10 +237,12 @@ public class Beacon implements Parcelable, Serializable {
      *
      * @param e
      */
+    @Deprecated
     public static void setHardwareEqualityEnforced(boolean e) {
         sHardwareEqualityEnforced = e;
     }
 
+    @Deprecated
     public static boolean getHardwareEqualityEnforced() {
         return sHardwareEqualityEnforced;
     }

@@ -1,3 +1,7 @@
+### 2.20.4 / 2024-02-01
+
+- Fix broken screen-off scans on Android 14, (#1176, David G. Young) 
+
 ### 2.20.3 / 2023-11-10
 
 - Backward compatibility - add 'fromScanData' to AltBeaconParser and BeaconParser, (#1153, Andrew Benson)

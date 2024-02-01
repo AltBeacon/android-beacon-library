@@ -42,6 +42,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -274,6 +276,25 @@ public class BeaconManager {
         }
         setRegionStatePersistenceEnabled(Boolean.TRUE.equals(settings.getRegionStatePersistenceEnabled()));
 
+        // Check if ScanStrategry has changed
+        boolean scanStrategyChanged = settings.getScanStrategy() != getActiveSettings().getScanStrategy();
+        synchronized(consumers) {
+            if (scanStrategyChanged && consumers.size() > 0) {
+                LogManager.i(TAG, "ScanStrategy has changed. Unbinding and rebinding consumers");
+                mScheduledScanJobsEnabledByFallback = false;
+                LogManager.i(TAG, "unbinding all consumers for strategy change");
+                List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
+                for (InternalBeaconConsumer consumer: oldConsumers) {
+                    this.unbindInternal(consumer);
+                }
+                configureScanStrategyWhenConsumersUnbound(oldConsumers);
+            }
+            else {
+                Objects.requireNonNull(settings.getScanStrategy()).configure(this);
+            }
+        }
+
+
         // TODO: appply all other settings
         //settings.getLongScanForcingEnabled()
         //settings.getRssiFilterImplClass()
@@ -281,6 +302,24 @@ public class BeaconManager {
 
         applySettings();
 
+    }
+    private void configureScanStrategyWhenConsumersUnbound(List<InternalBeaconConsumer> oldConsumers) {
+        if (isAnyConsumerBound()) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    configureScanStrategyWhenConsumersUnbound(oldConsumers);
+                }
+            }, 100);
+        }
+        else {
+            Objects.requireNonNull(settings.getScanStrategy()).configure(BeaconManager.this);
+            LogManager.i(TAG, "binding all consumers for strategy change");
+            for (InternalBeaconConsumer consumer: oldConsumers) {
+                BeaconManager.this.bindInternal(consumer);
+            }
+            LogManager.i(TAG, "Done with scan strategy change");
+        }
     }
 
 

@@ -97,7 +97,7 @@ data class Settings(
                 scanStrategy = JobServiceScanStrategy()
             }
             else {
-                scanStrategy = ServiceScanStrategy()
+                scanStrategy = BackgroundServiceScanStrategy()
             }
         }
     }
@@ -154,22 +154,51 @@ data class Settings(
     )
     interface ScanStrategy {
         fun clone(): ScanStrategy
-    }
-    class ServiceScanStrategy: ScanStrategy {
-        override fun clone(): ScanStrategy {
-            return ServiceScanStrategy()
-        }
+
+        /**
+         * Internal use only.
+         */
+        fun configure(beaconManager: BeaconManager)
     }
     class JobServiceScanStrategy(val immediateJobId: Long = 208352939, val periodicJobId: Long = 208352940, val jobPersistenceEnabled: Boolean = true): ScanStrategy
         {
         override fun clone(): JobServiceScanStrategy {
             return JobServiceScanStrategy(this.immediateJobId, this.periodicJobId, this.jobPersistenceEnabled)
         }
+            override fun equals(other: Any?): Boolean {
+                val otherJobServiceScanStrategy =  other as? JobServiceScanStrategy
+                if (otherJobServiceScanStrategy != null) {
+                    return (this.immediateJobId == otherJobServiceScanStrategy.immediateJobId &&
+                        this.periodicJobId == otherJobServiceScanStrategy.periodicJobId &&
+                        this.jobPersistenceEnabled == otherJobServiceScanStrategy.jobPersistenceEnabled)
+                }
+                return false
+            }
+
+            override fun hashCode(): Int {
+                return javaClass.hashCode()
+            }
+
+            override fun configure(beaconManager: BeaconManager) {
+                beaconManager.setEnableScheduledScanJobs(true)
+                beaconManager.setIntentScanningStrategyEnabled(false)
+            }
     }
     class BackgroundServiceScanStrategy(): ScanStrategy
     {
         override fun clone(): BackgroundServiceScanStrategy {
             return BackgroundServiceScanStrategy()
+        }
+        override fun equals(other: Any?): Boolean {
+            return other as? BackgroundServiceScanStrategy != null
+        }
+
+        override fun hashCode(): Int {
+            return javaClass.hashCode()
+        }
+        override fun configure(beaconManager: BeaconManager) {
+            beaconManager.setEnableScheduledScanJobs(false)
+            beaconManager.setIntentScanningStrategyEnabled(false)
         }
     }
     class ForegroundServiceScanStrategy(val notification: Notification, val notificationId: Int): ScanStrategy {
@@ -177,11 +206,41 @@ data class Settings(
         override fun clone(): ForegroundServiceScanStrategy {
            return ForegroundServiceScanStrategy(notification, notificationId)
         }
+        override fun equals(other: Any?): Boolean {
+            val otherForegroundServiceScanStrategy =  other as? ForegroundServiceScanStrategy
+            if (otherForegroundServiceScanStrategy != null) {
+                return (this.notificationId == otherForegroundServiceScanStrategy.notificationId &&
+                        this.androidLScanningDisabled == otherForegroundServiceScanStrategy.androidLScanningDisabled)
+            }
+            return false
+        }
+
+        override fun hashCode(): Int {
+            return javaClass.hashCode()
+        }
+        override fun configure(beaconManager: BeaconManager) {
+            beaconManager.setEnableScheduledScanJobs(false)
+            beaconManager.setIntentScanningStrategyEnabled(false)
+            beaconManager.enableForegroundServiceScanning(notification, notificationId)
+        }
     }
     class IntentScanStrategy: ScanStrategy {
         override fun clone(): IntentScanStrategy {
             return IntentScanStrategy()
         }
+        override fun equals(other: Any?): Boolean {
+            return other as? IntentScanStrategy != null
+        }
+
+        override fun hashCode(): Int {
+            return javaClass.hashCode()
+        }
+        override fun configure(beaconManager: BeaconManager) {
+            beaconManager.setEnableScheduledScanJobs(false)
+            beaconManager.setIntentScanningStrategyEnabled(true)
+        }
+
+
     }
 
     class DisabledBeaconSimulator: BeaconSimulator {

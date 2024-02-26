@@ -1531,7 +1531,7 @@ public class BeaconManager {
     /**
      * Default class for rssi filter/calculation implementation
      */
-    protected static Class rssiFilterImplClass = RunningAverageRssiFilter.class;
+    protected static Class rssiFilterImplClass = null;
 
     public static void setRssiFilterImplClass(@NonNull Class c) {
         warnIfScannerNotInSameProcess();

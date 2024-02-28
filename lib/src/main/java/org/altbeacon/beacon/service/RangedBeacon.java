@@ -107,8 +107,7 @@ public class RangedBeacon implements Serializable {
             // Use custom RSSI filter
             if (BeaconManager.getRssiFilterImplClass() != null) {
                 try {
-                    Constructor cons = BeaconManager.getRssiFilterImplClass().getConstructor();
-                    mFilter = (RssiFilter) cons.newInstance();
+                    mFilter = (RssiFilter) BeaconManager.getRssiFilterImplClass().newInstance();
                 } catch (Exception e) {
                     LogManager.e(TAG, "Failed with exception %s", e.toString());
                     LogManager.e(TAG, "Could not construct RssiFilterImplClass %s", BeaconManager.getRssiFilterImplClass().getName());

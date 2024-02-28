@@ -1529,7 +1529,7 @@ public class BeaconManager {
     }
 
     /**
-     * Default class for rssi filter/calculation implementation
+     * Set class for rssi filter/calculation implementation
      */
     protected static Class rssiFilterImplClass = null;
 

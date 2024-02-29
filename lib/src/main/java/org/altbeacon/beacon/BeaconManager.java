@@ -42,6 +42,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -73,6 +75,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -217,6 +220,116 @@ public class BeaconManager {
 
     public boolean isRegionViewModelInitialized(Region region) {
         return mRegionViewModels.get(region) != null;
+    }
+
+    private Settings settings = Settings.Companion.withDefaultValues();
+
+    /**
+     * Applies new library  settings as a single transaction and restart scanning if needed.
+     * Any settings field snot specified in the passed settings object will revert to defaults.
+     * @param settings the settings to be applied
+     */
+    public void replaceSettings(Settings settings) {
+        this.settings = Settings.Companion.fromDeltaSettings(this.settings, settings);
+        applySettingsChange();
+
+    }
+    /**
+     * Applies a delta of library  settings as a single transaction and restart scanning if needed.
+     * Any settings field snot specified in the passed settings object are unchanged.
+     * @param settings the settings to be applied
+     */
+    public void adjustSettings(Settings settings) {
+        this.settings = Settings.Companion.fromDeltaSettings(this.settings, settings);
+        applySettingsChange();
+    }
+    /**
+     * Resets library settings to defaults as a single transaction and restarts scanning if needed.
+     */
+    public void revertSettings() {
+        settings = Settings.Companion.withDefaultValues();
+        applySettingsChange();
+    }
+    private void applySettingsChange() {
+        Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(this.settings.getHardwareEqualityEnforced()));
+        BeaconManager.setDistanceModelUpdateUrl(Objects.requireNonNull(settings.getDistanceModelUpdateUrl()));
+
+        if (settings.getBeaconSimulator() == null || settings.getBeaconSimulator().getClass() == Settings.DisabledBeaconSimulator.class) {
+            BeaconManager.setBeaconSimulator(null);
+        }
+        else {
+            BeaconManager.setBeaconSimulator(settings.getBeaconSimulator());
+        }
+        Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(settings.getHardwareEqualityEnforced()));
+        BeaconManager.setDebug(Boolean.TRUE.equals(settings.getDebug()));
+        Settings.ScanPeriods sp = settings.getScanPeriods();
+        if (sp != null) {
+            setBackgroundBetweenScanPeriod(sp.getBackgroundScanPeriodMillis());
+            setBackgroundScanPeriod(sp.getBackgroundScanPeriodMillis());
+            setForegroundBetweenScanPeriod(sp.getForegroundBetweenScanPeriodMillis());
+            setForegroundScanPeriod(sp.getForegroundScanPeriodMillis());
+        }
+        setManifestCheckingDisabled(Boolean.TRUE.equals(settings.getManifestCheckingDisabled()));
+        Integer regionExitPeriod = settings.getRegionExitPeriodMillis();
+        if (regionExitPeriod != null) {
+            setRegionExitPeriod(regionExitPeriod.longValue());
+        }
+        setRegionStatePersistenceEnabled(Boolean.TRUE.equals(settings.getRegionStatePersistenceEnabled()));
+
+        // Check if ScanStrategry has changed
+        boolean scanStrategyChanged = settings.getScanStrategy() != getActiveSettings().getScanStrategy();
+        synchronized(consumers) {
+            if (scanStrategyChanged && consumers.size() > 0) {
+                LogManager.i(TAG, "ScanStrategy has changed. Unbinding and rebinding consumers");
+                mScheduledScanJobsEnabledByFallback = false;
+                LogManager.i(TAG, "unbinding all consumers for strategy change");
+                List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
+                for (InternalBeaconConsumer consumer: oldConsumers) {
+                    this.unbindInternal(consumer);
+                }
+                configureScanStrategyWhenConsumersUnbound(oldConsumers);
+            }
+            else {
+                Objects.requireNonNull(settings.getScanStrategy()).configure(this);
+            }
+        }
+
+
+        // TODO: appply all other settings
+        //settings.getLongScanForcingEnabled()
+        //settings.getRssiFilterImplClass()
+        //settings.getScanStrategy()
+
+        applySettings();
+
+    }
+    private void configureScanStrategyWhenConsumersUnbound(List<InternalBeaconConsumer> oldConsumers) {
+        if (isAnyConsumerBound()) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    configureScanStrategyWhenConsumersUnbound(oldConsumers);
+                }
+            }, 100);
+        }
+        else {
+            Objects.requireNonNull(settings.getScanStrategy()).configure(BeaconManager.this);
+            LogManager.i(TAG, "binding all consumers for strategy change");
+            for (InternalBeaconConsumer consumer: oldConsumers) {
+                BeaconManager.this.bindInternal(consumer);
+            }
+            LogManager.i(TAG, "Done with scan strategy change");
+        }
+    }
+
+
+    /**
+     * Returns a copy of the active settings in use by the library.  The object returned is a copy
+     * and making changes on it will have no effect without a new call to set the settings.
+     * @return settings currently active
+     */
+    public Settings getActiveSettings() {
+        return  Settings.Companion.fromSettings(settings);
     }
 
     /**
@@ -1047,6 +1160,18 @@ public class BeaconManager {
     public void startRangingBeacons(@NonNull Region region) {
         LogManager.d(TAG, "API startRangingBeacons "+region);
         LogManager.d(TAG, "startRanging");
+        if (region.mBeaconParser != null && region.mBeaconParser.getIdentifier() != null) {
+            boolean parserAlreadyAdded = false;
+            for (BeaconParser parser: getBeaconParsers()) {
+                if (region.mBeaconParser.getIdentifier().equals(parser.getIdentifier())) {
+                    parserAlreadyAdded = true;
+                    break;
+                }
+            }
+            if (!parserAlreadyAdded) {
+                getBeaconParsers().add(region.mBeaconParser);
+            }
+        }
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
@@ -1234,6 +1359,18 @@ public class BeaconManager {
     @TargetApi(18)
     public void startMonitoring(@NonNull Region region) {
         LogManager.d(TAG, "API startMonitoring "+region);
+        if (region.mBeaconParser != null && region.mBeaconParser.getIdentifier() != null) {
+            boolean parserAlreadyAdded = false;
+            for (BeaconParser parser: getBeaconParsers()) {
+                if (region.mBeaconParser.getIdentifier().equals(parser.getIdentifier())) {
+                    parserAlreadyAdded = true;
+                    break;
+                }
+            }
+            if (!parserAlreadyAdded) {
+                getBeaconParsers().add(region.mBeaconParser);
+            }
+        }
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
@@ -1523,6 +1660,13 @@ public class BeaconManager {
         return distanceModelUpdateUrl;
     }
 
+
+    /**
+     * @deprecated Use the method on the Settings class and call `beaconManger.setSettings(settings)`
+     * @param url to use to get an updated database of Android phone models and curve fit parameters
+     *            for mapping distance to rssi. Set to "" to disable downloading an update.
+     */
+    @Deprecated
     public static void setDistanceModelUpdateUrl(@NonNull String url) {
         warnIfScannerNotInSameProcess();
         distanceModelUpdateUrl = url;
@@ -1722,6 +1866,7 @@ public class BeaconManager {
      * @param disabled
      * @deprecated This will be removed in the 3.0 release
      */
+    @Deprecated
     public static void setAndroidLScanningDisabled(boolean disabled) {
         LogManager.d(TAG, "API setAndroidLScanningDisabled "+disabled);
         sAndroidLScanningDisabled = disabled;

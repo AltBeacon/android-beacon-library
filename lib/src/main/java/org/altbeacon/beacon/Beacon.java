@@ -230,16 +230,19 @@ public class Beacon implements Parcelable, Serializable {
     }
 
     /**
+     * @deprecated Use the method on the Settings class and call `beaconManger.adjustSettings(settings)`
      * Configures whether a the bluetoothAddress (mac address) must be the same for two Beacons
      * to be configured equal.  This setting applies to all beacon instances in the same process.
      * Defaults to false for backward compatibility.
      *
      * @param e
      */
+    @Deprecated
     public static void setHardwareEqualityEnforced(boolean e) {
         sHardwareEqualityEnforced = e;
     }
 
+    @Deprecated
     public static boolean getHardwareEqualityEnforced() {
         return sHardwareEqualityEnforced;
     }

@@ -1,3 +1,7 @@
+### 2.20.5 / 2024-04-05
+
+- Fix crashes creating default RSSI filter. (#1181, Alexandre Assouad)
+
 ### 2.20.4 / 2024-02-01
 
 - Fix broken screen-off scans on Android 14, (#1176, David G. Young) 

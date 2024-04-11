@@ -236,8 +236,10 @@ public class BeaconService extends Service {
 
         mScanHelper.reloadParsers();
 
-        DistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
-        Beacon.setDistanceCalculator(defaultDistanceCalculator);
+        if (Beacon.getDistanceCalculator() == null) {
+            DistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
+            Beacon.setDistanceCalculator(defaultDistanceCalculator);
+        }
 
         // Look for simulated scan data
         try {

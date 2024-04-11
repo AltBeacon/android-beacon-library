@@ -19,6 +19,7 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BuildConfig;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.distance.DistanceCalculator;
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.utils.ProcessUtils;
@@ -326,8 +327,10 @@ public class ScanJob extends JobService {
             ProcessUtils processUtils = new ProcessUtils(ScanJob.this);
             LogManager.i(TAG, "beaconScanJob PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
-        ModelSpecificDistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(ScanJob.this, BeaconManager.getDistanceModelUpdateUrl());
-        Beacon.setDistanceCalculator(defaultDistanceCalculator);
+        if (Beacon.getDistanceCalculator() == null) {
+            DistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
+            Beacon.setDistanceCalculator(defaultDistanceCalculator);
+        }
         return restartScanning();
     }
 

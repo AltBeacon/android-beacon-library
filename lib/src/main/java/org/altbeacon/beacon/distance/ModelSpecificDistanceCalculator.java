@@ -2,6 +2,7 @@ package org.altbeacon.beacon.distance;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -142,7 +143,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
     private void loadModelMap() {
         boolean mapLoaded = false;
         if (mRemoteUpdateUrlString != null) {
-            mapLoaded = loadModelMapFromFile();
+            mapLoaded = loadModelMapFromStorage();
             // We only want to try to download an update from the server the first time the app is
             // run.  If we successfully download an update it gets saved to a file, so if the file
             // is present that means should not download again.
@@ -156,68 +157,31 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
         mDistanceCalculator = findCalculatorForModelWithLock(mRequestedModel);
     }
 
-    private boolean loadModelMapFromFile() {
-        File file = new File(mContext.getFilesDir(), CONFIG_FILE);
-        FileInputStream inputStream = null;
-        BufferedReader reader = null;
-        StringBuilder sb = new StringBuilder();
-        try {
-            inputStream = new FileInputStream(file);
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-        }
-        catch (FileNotFoundException fnfe){
-            //This occurs on the first time the app is run, no error message necessary.
+    private SharedPreferences getSharedPreferences() {
+        return mContext.getSharedPreferences("org.altbeacon.beacon", Context.MODE_PRIVATE);
+    }
+
+    private boolean loadModelMapFromStorage() {
+        String jsonString = getSharedPreferences().getString(CONFIG_FILE, null);
+        if (jsonString == null) {
             return false;
         }
-        catch (IOException e) {
-            LogManager.e(e, TAG, "Cannot open distance model file %s", file);
-            return false;
-        }
-        finally {
-            if (reader != null) {
-                try { reader.close(); } catch (Exception e2) {}
-            }
-            if (inputStream != null) {
-                try { inputStream.close(); } catch (Exception e2) {}
-            }
-        }
         try {
-            buildModelMapWithLock(sb.toString());
+            buildModelMapWithLock(jsonString);
             return true;
         } catch (JSONException e) {
             LogManager.e(
                     e,
                     TAG,
                     "Cannot update distance models from online database at %s with JSON: %s",
-                    mRemoteUpdateUrlString, sb.toString()
+                    mRemoteUpdateUrlString, jsonString
             );
             return false;
         }
     }
 
     private boolean saveJson(String jsonString) {
-
-        FileOutputStream outputStream = null;
-
-        try {
-            outputStream = mContext.openFileOutput(CONFIG_FILE, Context.MODE_PRIVATE);
-            outputStream.write(jsonString.getBytes());
-            outputStream.close();
-        } catch (Exception e) {
-            LogManager.w(e, TAG, "Cannot write updated distance model to local storage");
-            return false;
-        }
-        finally {
-            try {
-                if (outputStream != null) outputStream.close();
-            }
-            catch (Exception e) {}
-        }
-        LogManager.i(TAG, "Successfully saved new distance model file");
+        getSharedPreferences().edit().putString(CONFIG_FILE, jsonString).commit();
         return true;
     }
 
@@ -247,7 +211,7 @@ public class ModelSpecificDistanceCalculator implements DistanceCalculator {
                     try {
                         buildModelMapWithLock(body);
                         if (saveJson(body)) {
-                            loadModelMapFromFile();
+                            loadModelMapFromStorage();
                             mDistanceCalculator = findCalculatorForModelWithLock(mRequestedModel);
                             LogManager.i(TAG, "Successfully updated distance model with latest from online database");
                         }

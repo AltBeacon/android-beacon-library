@@ -1654,7 +1654,7 @@ public class BeaconManager {
     @Nullable
     protected static BeaconSimulator beaconSimulator;
 
-    protected static String distanceModelUpdateUrl = "https://s3.amazonaws.com/android-beacon-library/android-distance.json";
+    protected static String distanceModelUpdateUrl = null;
 
     public static String getDistanceModelUpdateUrl() {
         return distanceModelUpdateUrl;
@@ -1673,9 +1673,9 @@ public class BeaconManager {
     }
 
     /**
-     * Default class for rssi filter/calculation implementation
+     * Set class for rssi filter/calculation implementation
      */
-    protected static Class rssiFilterImplClass = RunningAverageRssiFilter.class;
+    protected static Class rssiFilterImplClass = null;
 
     public static void setRssiFilterImplClass(@NonNull Class c) {
         warnIfScannerNotInSameProcess();

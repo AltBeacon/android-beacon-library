@@ -100,3 +100,7 @@ The following instructions are for project administrators.
         ./gradlew closeAndReleaseRepository
 
 4. Keep checking for a half hour or so at https://repo1.maven.org/maven2/org/altbeacon/android-beacon-library/ to see that the new release shows up.
+
+Note:  you must have Java 17 to build the projecdt.  If that is not the version on the path, and you have Android Studio installed, you may be able to add it to the path with:
+
+`export PATH=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home/bin:$PATH`

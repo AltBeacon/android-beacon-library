@@ -1,3 +1,16 @@
+### 2.20.6 / 2024 04-27
+
+- Fix distance calculator overwrite, (#1191, David G. Young)
+- Fix bad model distance config url, (#1190, David G. Young)
+
+### 2.20.5 / 2024-04-05
+
+- Fix crashes creating default RSSI filter. (#1181, Alexandre Assouad)
+
+### 2.20.4 / 2024-02-01
+
+- Fix broken screen-off scans on Android 14, (#1176, David G. Young) 
+
 ### 2.20.3 / 2023-11-10
 
 - Backward compatibility - add 'fromScanData' to AltBeaconParser and BeaconParser, (#1153, Andrew Benson)

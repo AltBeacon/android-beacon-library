@@ -1517,7 +1517,7 @@ public class BeaconManager {
     @Nullable
     protected static BeaconSimulator beaconSimulator;
 
-    protected static String distanceModelUpdateUrl = "https://s3.amazonaws.com/android-beacon-library/android-distance.json";
+    protected static String distanceModelUpdateUrl = null;
 
     public static String getDistanceModelUpdateUrl() {
         return distanceModelUpdateUrl;

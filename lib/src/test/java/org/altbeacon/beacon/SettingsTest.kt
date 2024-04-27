@@ -1,13 +1,15 @@
 package org.altbeacon.beacon
 
-import android.app.Notification
 import androidx.core.app.NotificationCompat
+import org.altbeacon.beacon.distance.DistanceCalculator
+import org.altbeacon.beacon.distance.DistanceCalculatorFactory
 import org.altbeacon.beacon.logging.LogManager
 import org.altbeacon.beacon.logging.Loggers
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import junit.framework.Assert.assertEquals
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.shadows.ShadowLog
@@ -52,7 +54,7 @@ class SettingsTest {
         beaconManager.activeSettings.debug // can read but not write
         Assert.assertEquals(BeaconManager.getDistanceModelUpdateUrl(), "www.google.com")
     }
-    fun configureScheduledJobStrategy() {
+    fun configureScheduledJobStrategyTest() {
         val context = RuntimeEnvironment.getApplication()
         val beaconManager = BeaconManager
             .getInstanceForApplication(context)
@@ -72,7 +74,7 @@ class SettingsTest {
         )
         beaconManager.adjustSettings(settings)
     }
-    fun configureJobServiceStrategy() {
+    fun configureJobServiceStrategyTest() {
         val context = RuntimeEnvironment.getApplication()
         val beaconManager = BeaconManager
             .getInstanceForApplication(context)
@@ -92,7 +94,7 @@ class SettingsTest {
         )
         beaconManager.adjustSettings(settings)
     }
-    fun configureBackgroundServiceStrategy() {
+    fun configureBackgroundServiceStrategyTest() {
         val context = RuntimeEnvironment.getApplication()
         val beaconManager = BeaconManager
             .getInstanceForApplication(context)
@@ -102,7 +104,7 @@ class SettingsTest {
         beaconManager.adjustSettings(settings)
     }
 
-    fun configureIntentScanStrategy() {
+    fun configureIntentScanStrategyTest() {
         val context = RuntimeEnvironment.getApplication()
         val beaconManager = BeaconManager
             .getInstanceForApplication(context)
@@ -116,5 +118,27 @@ class SettingsTest {
                 backgroundBetweenScanPeriodMillis = 0)
         )
         beaconManager.adjustSettings(settings)
+    }
+    @Test
+    fun configureCustomDistanceCalculatorTest() {
+        val context = RuntimeEnvironment.getApplication()
+        val beaconManager = BeaconManager
+            .getInstanceForApplication(context)
+        val settings = Settings(
+            distanceCalculatorFactory = MyDistanceCalculatorFactory()
+        )
+        beaconManager.adjustSettings(settings)
+        assertEquals(Beacon.sDistanceCalculator.javaClass.toString(), MyDistanceCalculatorFactory.MyDistanceCalculator::class.java.toString())
+    }
+}
+
+class MyDistanceCalculatorFactory: DistanceCalculatorFactory {
+    override fun getInstance(context: android.content.Context): DistanceCalculator {
+        return MyDistanceCalculator()
+    }
+    class MyDistanceCalculator: DistanceCalculator {
+        override fun calculateDistance(txPower: Int, rssi: Double): Double {
+            return 0.0
+        }
     }
 }

@@ -36,10 +36,6 @@ class IntentScanStrategyCoordinator(val context: Context) {
         if (!initialized) {
             initialized = true
             scanHelper = ScanHelper(context)
-            if (Beacon.getDistanceCalculator() == null) {
-                val defaultDistanceCalculator =  ModelSpecificDistanceCalculator(context, BeaconManager.getDistanceModelUpdateUrl());
-                Beacon.setDistanceCalculator(defaultDistanceCalculator);
-            }
             reinitialize()
         }
     }

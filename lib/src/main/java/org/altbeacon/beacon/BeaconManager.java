@@ -47,6 +47,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.altbeacon.beacon.distance.DistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaverInternal;
@@ -222,32 +223,31 @@ public class BeaconManager {
         return mRegionViewModels.get(region) != null;
     }
 
-    private Settings settings = Settings.Companion.withDefaultValues();
+    private AppliedSettings settings = AppliedSettings.Companion.withDefaultValues();
 
     /**
      * Applies new library  settings as a single transaction and restart scanning if needed.
      * Any settings field snot specified in the passed settings object will revert to defaults.
-     * @param settings the settings to be applied
+     * @param settingsDelta the settings to be applied
      */
-    public void replaceSettings(Settings settings) {
-        this.settings = Settings.Companion.fromDeltaSettings(this.settings, settings);
+    public void replaceSettings(Settings settingsDelta) {
+        this.settings = AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta);
         applySettingsChange();
-
     }
     /**
      * Applies a delta of library  settings as a single transaction and restart scanning if needed.
      * Any settings field snot specified in the passed settings object are unchanged.
-     * @param settings the settings to be applied
+     * @param settingsDelta the settings to be applied
      */
-    public void adjustSettings(Settings settings) {
-        this.settings = Settings.Companion.fromDeltaSettings(this.settings, settings);
+    public void adjustSettings(Settings settingsDelta) {
+        this.settings = AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta);
         applySettingsChange();
     }
     /**
      * Resets library settings to defaults as a single transaction and restarts scanning if needed.
      */
     public void revertSettings() {
-        settings = Settings.Companion.withDefaultValues();
+        settings = AppliedSettings.Companion.withDefaultValues();
         applySettingsChange();
     }
     private void applySettingsChange() {
@@ -293,7 +293,8 @@ public class BeaconManager {
                 Objects.requireNonNull(settings.getScanStrategy()).configure(this);
             }
         }
-
+        DistanceCalculator distanceCalculator = settings.getDistanceCalculatorFactory().getInstance(mContext);
+        Beacon.setDistanceCalculatorInternal(distanceCalculator);
 
         // TODO: appply all other settings
         //settings.getLongScanForcingEnabled()
@@ -328,8 +329,8 @@ public class BeaconManager {
      * and making changes on it will have no effect without a new call to set the settings.
      * @return settings currently active
      */
-    public Settings getActiveSettings() {
-        return  Settings.Companion.fromSettings(settings);
+    public AppliedSettings getActiveSettings() {
+        return  AppliedSettings.Companion.fromSettings(settings);
     }
 
     /**

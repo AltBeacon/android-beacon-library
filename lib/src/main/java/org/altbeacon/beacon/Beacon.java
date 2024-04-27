@@ -215,14 +215,21 @@ public class Beacon implements Parcelable, Serializable {
     };
 
     /**
+     * @deprecated Set the distanceCalculatorFactory method on the Settings class
+     * You must define your own factory to co with your DistanceCalculator implementation
+     * that returns a new instance of your DistanceCalculator implementation
      * Sets the DistanceCalculator to use with this beacon
      * @param dc
      */
     public static void setDistanceCalculator(DistanceCalculator dc) {
         sDistanceCalculator = dc;
     }
+    static void setDistanceCalculatorInternal(DistanceCalculator dc) {
+        sDistanceCalculator = dc;
+    }
 
     /**
+     * @deprecated get the distanceCalculatorFactory method on the Settings class
      * Gets the DistanceCalculator to use with this beacon
      */
     public static DistanceCalculator getDistanceCalculator() {

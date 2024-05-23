@@ -62,12 +62,12 @@ public class BeaconTest {
         Beacon beacon = new AltBeacon.Builder().setMfgReserved(7).setId1("1").setId2("2").setId3("3").setRssi(4)
                 .setBeaconTypeCode(5).setTxPower(6)
                 .setBluetoothAddress("1:2:3:4:5:6").build();
-        assertEquals("First beacon id should be 1", beacon.getIdentifier(0).toString(), "1");
-        assertEquals("Second beacon id should be 1", beacon.getIdentifier(1).toString(), "2");
-        assertEquals("Third beacon id should be 1", beacon.getIdentifier(2).toString(), "3");
-        assertEquals("First beacon id should be 1", beacon.getId1().toString(), "1");
-        assertEquals("Second beacon id should be 1", beacon.getId2().toString(), "2");
-        assertEquals("Third beacon id should be 1", beacon.getId3().toString(), "3");
+        assertEquals("First beacon id should be 1", "1", beacon.getIdentifier(0).toString());
+        assertEquals("Second beacon id should be 1", "2", beacon.getIdentifier(1).toString());
+        assertEquals("Third beacon id should be 1", "3", beacon.getIdentifier(2).toString());
+        assertEquals("First beacon id should be 1", "1", beacon.getId1().toString());
+        assertEquals("Second beacon id should be 1", "2", beacon.getId2().toString());
+        assertEquals("Third beacon id should be 1", "3", beacon.getId3().toString());
 
     }
 

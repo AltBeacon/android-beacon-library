@@ -188,7 +188,7 @@ data class Settings(
         val backgroundScanPeriodMillis: Long  = 30000,
         val backgroundBetweenScanPeriodMillis: Long  = 0
     )
-    interface ScanStrategy {
+    interface ScanStrategy: Comparable<ScanStrategy> {
         fun clone(): ScanStrategy
 
         /**
@@ -219,7 +219,21 @@ data class Settings(
                 beaconManager.setEnableScheduledScanJobs(true)
                 beaconManager.setIntentScanningStrategyEnabled(false)
             }
-    }
+
+            override fun compareTo(other: ScanStrategy): Int {
+                return if (other is JobServiceScanStrategy) {
+                    if (this.immediateJobId == other.immediateJobId &&
+                        this.periodicJobId == other.periodicJobId &&
+                        this.jobPersistenceEnabled == other.jobPersistenceEnabled) {
+                        0
+                    } else {
+                        -1
+                    }
+                } else {
+                    -1
+                }
+            }
+        }
     class BackgroundServiceScanStrategy(): ScanStrategy
     {
         override fun clone(): BackgroundServiceScanStrategy {
@@ -235,6 +249,13 @@ data class Settings(
         override fun configure(beaconManager: BeaconManager) {
             beaconManager.setEnableScheduledScanJobs(false)
             beaconManager.setIntentScanningStrategyEnabled(false)
+        }
+        override fun compareTo(other: ScanStrategy): Int {
+            return if (other is BackgroundServiceScanStrategy) {
+                0
+            } else {
+                -1
+            }
         }
     }
     class ForegroundServiceScanStrategy(val notification: Notification, val notificationId: Int): ScanStrategy {
@@ -259,6 +280,19 @@ data class Settings(
             beaconManager.setIntentScanningStrategyEnabled(false)
             beaconManager.enableForegroundServiceScanning(notification, notificationId)
         }
+
+        override fun compareTo(other: ScanStrategy): Int {
+            return if (other is ForegroundServiceScanStrategy) {
+                if (this.notificationId == other.notificationId &&
+                    this.androidLScanningDisabled == other.androidLScanningDisabled) {
+                    0
+                } else {
+                    -1
+                }
+            } else {
+                -1
+            }
+        }
     }
     class IntentScanStrategy: ScanStrategy {
         override fun clone(): IntentScanStrategy {
@@ -274,6 +308,14 @@ data class Settings(
         override fun configure(beaconManager: BeaconManager) {
             beaconManager.setEnableScheduledScanJobs(false)
             beaconManager.setIntentScanningStrategyEnabled(true)
+        }
+
+        override fun compareTo(other: ScanStrategy): Int {
+            return if (other is IntentScanStrategy) {
+                0
+            } else {
+                -1
+            }
         }
 
 

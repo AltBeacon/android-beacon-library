@@ -277,7 +277,7 @@ public class BeaconManager {
         setRegionStatePersistenceEnabled(Boolean.TRUE.equals(settings.getRegionStatePersistenceEnabled()));
 
         // Check if ScanStrategry has changed
-        boolean scanStrategyChanged = settings.getScanStrategy() != getActiveSettings().getScanStrategy();
+        boolean scanStrategyChanged = settings.getScanStrategy().compareTo(getActiveSettings().getScanStrategy()) != 0;
         synchronized(consumers) {
             if (scanStrategyChanged && consumers.size() > 0) {
                 LogManager.i(TAG, "ScanStrategy has changed. Unbinding and rebinding consumers");

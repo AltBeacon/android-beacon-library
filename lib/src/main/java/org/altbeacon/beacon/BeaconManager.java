@@ -169,7 +169,7 @@ public class BeaconManager {
             LogManager.setLogger(Loggers.verboseLogger());
             LogManager.setVerboseLoggingEnabled(true);
         } else {
-            LogManager.setLogger(Loggers.empty());
+            LogManager.setLogger(Loggers.infoLogger());
             LogManager.setVerboseLoggingEnabled(false);
         }
     }
@@ -231,8 +231,7 @@ public class BeaconManager {
      * @param settingsDelta the settings to be applied
      */
     public void replaceSettings(Settings settingsDelta) {
-        this.settings = AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta);
-        applySettingsChange();
+        applySettingsChange(AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta));
     }
     /**
      * Applies a delta of library  settings as a single transaction and restart scanning if needed.
@@ -240,17 +239,17 @@ public class BeaconManager {
      * @param settingsDelta the settings to be applied
      */
     public void adjustSettings(Settings settingsDelta) {
-        this.settings = AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta);
-        applySettingsChange();
+        applySettingsChange(AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta));
     }
     /**
      * Resets library settings to defaults as a single transaction and restarts scanning if needed.
      */
     public void revertSettings() {
-        settings = AppliedSettings.Companion.withDefaultValues();
-        applySettingsChange();
+        applySettingsChange(AppliedSettings.Companion.withDefaultValues());
     }
-    private void applySettingsChange() {
+    private void applySettingsChange(AppliedSettings newSettings) {
+        AppliedSettings oldSettings = settings;
+        this.settings = newSettings;
         Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(this.settings.getHardwareEqualityEnforced()));
         BeaconManager.setDistanceModelUpdateUrl(Objects.requireNonNull(settings.getDistanceModelUpdateUrl()));
 
@@ -277,7 +276,7 @@ public class BeaconManager {
         setRegionStatePersistenceEnabled(Boolean.TRUE.equals(settings.getRegionStatePersistenceEnabled()));
 
         // Check if ScanStrategry has changed
-        boolean scanStrategyChanged = settings.getScanStrategy().compareTo(getActiveSettings().getScanStrategy()) != 0;
+        boolean scanStrategyChanged = oldSettings.getScanStrategy().compareTo(settings.getScanStrategy()) != 0;
         synchronized(consumers) {
             if (scanStrategyChanged && consumers.size() > 0) {
                 LogManager.i(TAG, "ScanStrategy has changed. Unbinding and rebinding consumers");
@@ -289,14 +288,16 @@ public class BeaconManager {
                 }
                 configureScanStrategyWhenConsumersUnbound(oldConsumers);
             }
-            else {
+            else if (consumers.size() == 0) {
+                // if no consumers are bound, we bind and start things up
                 Objects.requireNonNull(settings.getScanStrategy()).configure(this);
             }
+            // if consumers are already bound but nothing changed, we have nothing to do
         }
         DistanceCalculator distanceCalculator = settings.getDistanceCalculatorFactory().getInstance(mContext);
         Beacon.setDistanceCalculatorInternal(distanceCalculator);
 
-        // TODO: appply all other settings
+        // TODO: apply all other settings
         //settings.getLongScanForcingEnabled()
         //settings.getRssiFilterImplClass()
         //settings.getScanStrategy()
@@ -558,26 +559,28 @@ public class BeaconManager {
                 LogManager.d(TAG, "This consumer is already bound");
             }
             else {
+                LogManager.i(TAG, "bindInternal active");
                 if (mScheduledScanJobsEnabledByFallback) {
                     LogManager.d(TAG, "Need to rebind for switch to foreground service", consumer);
-                    // we are going to disable the fallbac so we can try a foreground service again
+                    // we are going to disable the fallback so we can try a foreground service again
                     mScheduledScanJobsEnabledByFallback = false;
                 }
                 else {
                     LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
                 }
                 if (mIntentScanStrategyCoordinator != null) {
+                    LogManager.i(TAG, "Using intent san strategy");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         mIntentScanStrategyCoordinator.start();
                     }
                     consumer.onBeaconServiceConnect();
                 }
                 else if (mScheduledScanJobsEnabled) {
-                    LogManager.d(TAG, "Not starting beacon scanning service. Using scheduled jobs");
+                    LogManager.i(TAG, "Not starting beacon scanning service. Using scheduled jobs");
                     consumer.onBeaconServiceConnect();
                 }
                 else {
-                    LogManager.d(TAG, "Binding to service");
+                    LogManager.i(TAG, "Using BeaconService to scan. Binding to service");
                     Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                             this.getForegroundServiceNotification() != null) {

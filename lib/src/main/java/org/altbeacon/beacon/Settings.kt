@@ -1,8 +1,10 @@
 package org.altbeacon.beacon
 
 import android.app.Notification
+import android.os.Build
 import org.altbeacon.beacon.distance.DistanceCalculatorFactory
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculatorFactory
+import org.altbeacon.beacon.logging.LogManager
 import org.altbeacon.beacon.service.RunningAverageRssiFilter
 import org.altbeacon.beacon.simulator.BeaconSimulator
 
@@ -249,6 +251,13 @@ data class Settings(
         override fun configure(beaconManager: BeaconManager) {
             beaconManager.setEnableScheduledScanJobs(false)
             beaconManager.setIntentScanningStrategyEnabled(false)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LogManager.w(
+                    "BackgroundServiceScanStrategy",
+                    "Using the BackgroundService  scan strategy on Android 8+ may disable delivery of " +
+                            "beacon callbacks in the background."
+                )
+            }
         }
         override fun compareTo(other: ScanStrategy): Int {
             return if (other is BackgroundServiceScanStrategy) {

@@ -253,6 +253,14 @@ public class BeaconManager {
         Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(this.settings.getHardwareEqualityEnforced()));
         BeaconManager.setDistanceModelUpdateUrl(Objects.requireNonNull(settings.getDistanceModelUpdateUrl()));
 
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (settings.getScanPeriods().getBackgroundScanPeriodMillis() < 15*60*1000 /* 15 min */ &&
+                    settings.getScanStrategy() instanceof Settings.JobServiceScanStrategy) {
+                LogManager.w(TAG, "Setting a short backgroundBetweenScanPeriod has no effect on "+
+                        "Android 8+, which is limited to scanning every ~15 minutes");
+            }
+        }
+
         if (settings.getBeaconSimulator() == null || settings.getBeaconSimulator().getClass() == Settings.DisabledBeaconSimulator.class) {
             BeaconManager.setBeaconSimulator(null);
         }
@@ -279,13 +287,13 @@ public class BeaconManager {
         boolean scanStrategyChanged = oldSettings.getScanStrategy().compareTo(settings.getScanStrategy()) != 0;
         synchronized(consumers) {
             if (scanStrategyChanged && consumers.size() > 0) {
-                LogManager.i(TAG, "ScanStrategy has changed. Unbinding and rebinding consumers");
-                mScheduledScanJobsEnabledByFallback = false;
+                LogManager.i(TAG, "ScanStrategy has changed. Unbinding and rebinding consumers.  Old strategry: "+oldSettings.getScanStrategy()+", new strategy: "+settings.getScanStrategy());
                 LogManager.i(TAG, "unbinding all consumers for strategy change");
                 List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
                 for (InternalBeaconConsumer consumer: oldConsumers) {
                     this.unbindInternal(consumer);
                 }
+                mScheduledScanJobsEnabledByFallback = false;
                 configureScanStrategyWhenConsumersUnbound(oldConsumers);
             }
             else if (consumers.size() == 0) {
@@ -381,11 +389,6 @@ public class BeaconManager {
     public void setBackgroundBetweenScanPeriod(long p) {
         LogManager.d(TAG, "API setBackgroundBetweenScanPeriod "+p);
         backgroundBetweenScanPeriod = p;
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                backgroundBetweenScanPeriod < 15*60*1000 /* 15 min */) {
-            LogManager.w(TAG, "Setting a short backgroundBetweenScanPeriod has no effect on "+
-                    "Android 8+, which is limited to scanning every ~15 minutes");
-        }
     }
 
     /**
@@ -569,7 +572,7 @@ public class BeaconManager {
                     LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
                 }
                 if (mIntentScanStrategyCoordinator != null) {
-                    LogManager.i(TAG, "Using intent san strategy");
+                    LogManager.i(TAG, "Using intent scan strategy");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         mIntentScanStrategyCoordinator.start();
                     }
@@ -837,10 +840,6 @@ public class BeaconManager {
             LogManager.e(TAG, "ScanJob may not be configured because JobScheduler is not" +
                     " availble prior to Android 5.0");
             return;
-        }
-        if (!enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            LogManager.w(TAG, "Disabling ScanJobs on Android 8+ may disable delivery of "+
-                    "beacon callbacks in the background unless a foreground service is active.");
         }
         if (enabled) {
             mScheduledScanJobsEnabledByFallback = false;

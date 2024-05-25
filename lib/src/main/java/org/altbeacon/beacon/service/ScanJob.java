@@ -327,10 +327,6 @@ public class ScanJob extends JobService {
             ProcessUtils processUtils = new ProcessUtils(ScanJob.this);
             LogManager.i(TAG, "beaconScanJob PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
-        if (Beacon.getDistanceCalculator() == null) {
-            DistanceCalculator defaultDistanceCalculator =  new ModelSpecificDistanceCalculator(this, BeaconManager.getDistanceModelUpdateUrl());
-            Beacon.setDistanceCalculator(defaultDistanceCalculator);
-        }
         return restartScanning();
     }
 

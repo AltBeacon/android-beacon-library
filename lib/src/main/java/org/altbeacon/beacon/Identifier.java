@@ -65,7 +65,7 @@ public class Identifier implements Comparable<Identifier>, Serializable {
      */
     public static Identifier parse(String stringValue, int desiredByteLength) {
         if (stringValue == null) {
-            throw new NullPointerException("Identifiers cannot be constructed from null pointers but \"stringValue\" is null.");
+            return null;
         }
 
         if (HEX_PATTERN.matcher(stringValue).matches()) {

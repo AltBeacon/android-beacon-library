@@ -39,6 +39,72 @@
       "model":"XT1092",
       "manufacturer":"Motorola",
       "default": false
+    },
+    {
+      "coefficient1": 4.882103522,
+      "coefficient2": 6.98084248,
+      "coefficient3": -0.6644164184,
+      "version":"10",
+      "build_number":"QP1A.190711.020",
+      "model":"SM-G980F",
+      "manufacturer":"samsung",
+      "default": false,
+      "name":"Galaxy S20"
+    },
+    {
+      "coefficient1": 4.290357018,
+      "coefficient2": 7.179975601,
+      "coefficient3": -0.4184600771,
+      "version":"9",
+      "build_number":"HUAWEIVOG-L29",
+      "model":"VOG-L29",
+      "manufacturer":"HUAWEI",
+      "default": false,
+      "name":"P30 Pro"
+    },
+    {
+      "coefficient1": 5.166854488,
+      "coefficient2": 6.336069721,
+      "coefficient3": 0.3871575945,
+      "version":"9",
+      "build_number":"HUAWEIMAR-L21A",
+      "model":"MAR-LX1A",
+      "manufacturer":"HUAWEI",
+      "default": false,
+      "name":"P30 Lite"
+    },
+    {
+      "coefficient1": 3.372874428,
+      "coefficient2": 7.319485054,
+      "coefficient3": -0.3874483599,
+      "version":"10",
+      "build_number":"QP1A.190711.020",
+      "model":"SM-A715F",
+      "manufacturer":"samsung",
+      "default": false,
+      "name":"Galaxy A71"
+    },
+    {
+      "coefficient1": 8.58727106,
+      "coefficient2": 7.260375764,
+      "coefficient3": -1.192299808,
+      "version":"9",
+      "build_number":"PPR1.180610.011",
+      "model":"SM-A202F",
+      "manufacturer":"samsung",
+      "default": false,
+      "name":"A20E"
+    },
+    {
+      "coefficient1": 1.722850362,
+      "coefficient2": 8.480887013,
+      "coefficient3": -0.9430878697,
+      "version":"7",
+      "build_number":"NRD90M",
+      "model":"SM-A510F",
+      "manufacturer":"samsung",
+      "default": false,
+      "name":"A5"
     }
   ]
 }

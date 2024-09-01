@@ -1,3 +1,6 @@
+### 2.21.0-beta1 / 2024-09-01 
+- Add new Settings API 
+
 ### 2.20.6 / 2024 04-27
 
 - Fix distance calculator overwrite, (#1191, David G. Young)

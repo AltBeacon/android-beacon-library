@@ -100,12 +100,24 @@ data class Settings(
     ) {
     companion object {
         fun fromSettings(other: Settings) : Settings {
-             return Settings(scanPeriods = other.scanPeriods, debug = other.debug, regionStatePersistenceEnabled = other.regionStatePersistenceEnabled, useTrackingCache = other.useTrackingCache, hardwareEqualityEnforced = other.hardwareEqualityEnforced,
-             regionExitPeriodMillis = other.regionExitPeriodMillis, maxTrackingAgeMillis = other.maxTrackingAgeMillis, manifestCheckingDisabled = other.manifestCheckingDisabled,
-             beaconSimulator = other.beaconSimulator, rssiFilterImplClass = other.rssiFilterImplClass, scanStrategy = other.scanStrategy?.clone(), longScanForcingEnabled = other.longScanForcingEnabled, distanceModelUpdateUrl = other.distanceModelUpdateUrl, distanceCalculatorFactory = other.distanceCalculatorFactory)
+             return Settings(scanPeriods = other.scanPeriods,
+                 debug = other.debug,
+                 regionStatePersistenceEnabled = other.regionStatePersistenceEnabled,
+                 useTrackingCache = other.useTrackingCache,
+                 hardwareEqualityEnforced = other.hardwareEqualityEnforced,
+                 regionExitPeriodMillis = other.regionExitPeriodMillis,
+                 maxTrackingAgeMillis = other.maxTrackingAgeMillis,
+                 manifestCheckingDisabled = other.manifestCheckingDisabled,
+                 beaconSimulator = other.beaconSimulator,
+                 rssiFilterImplClass = other.rssiFilterImplClass,
+                 scanStrategy = other.scanStrategy?.clone(),
+                 longScanForcingEnabled = other.longScanForcingEnabled,
+                 distanceModelUpdateUrl = other.distanceModelUpdateUrl,
+                 distanceCalculatorFactory = other.distanceCalculatorFactory)
         }
         fun fromBuilder(builder: Builder) : Settings {
-            return Settings(scanPeriods = builder._scanPeriods, debug = builder._debug, regionStatePersistenceEnabled = builder._regionStatePeristenceEnabled, useTrackingCache = builder._useTrackingCache, hardwareEqualityEnforced = builder._hardwareEqualityEnforced, regionExitPeriodMillis = builder._regionExitPeriodMillis,
+            return Settings(scanPeriods = builder._scanPeriods,
+                debug = builder._debug, regionStatePersistenceEnabled = builder._regionStatePeristenceEnabled, useTrackingCache = builder._useTrackingCache, hardwareEqualityEnforced = builder._hardwareEqualityEnforced, regionExitPeriodMillis = builder._regionExitPeriodMillis,
                 maxTrackingAgeMillis = builder._maxTrackingAgeMillis, manifestCheckingDisabled = builder._manifestCheckingDisabled, beaconSimulator = builder._beaconSimulator, rssiFilterImplClass = builder._rssiFilterImplClass, scanStrategy = builder._scanStrategy?.clone(), longScanForcingEnabled = builder._longScanForcingEnabled, distanceModelUpdateUrl = builder._distanceModelUpdateUrl,
                 distanceCalculatorFactory = builder._distanceCalculatorFactory)
         }

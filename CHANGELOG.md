@@ -1,3 +1,7 @@
+### 2.21.0-beta1 / 2024-09-01 
+
+- Add new Settings API 
+
 ### 2.20.7 / 2024-10-09
 
 - Fix intermittent screen off detection failures on Andorid 14 (#1205, David G. Young)

@@ -1,5 +1,6 @@
 package org.altbeacon.beacon.service
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
@@ -36,10 +37,6 @@ class IntentScanStrategyCoordinator(val context: Context) {
         if (!initialized) {
             initialized = true
             scanHelper = ScanHelper(context)
-            if (Beacon.getDistanceCalculator() == null) {
-                val defaultDistanceCalculator =  ModelSpecificDistanceCalculator(context, BeaconManager.getDistanceModelUpdateUrl());
-                Beacon.setDistanceCalculator(defaultDistanceCalculator);
-            }
             reinitialize()
         }
     }
@@ -188,91 +185,118 @@ class IntentScanStrategyCoordinator(val context: Context) {
     }
 
     @RequiresApi(21)
+    @SuppressLint("MissingPermission")
     fun runBackupScan(context: Context) {
         if (!started) {
             LogManager.i(TAG, "Not doing backup scan because we are not started")
             return
         }
-        var anythingDetectedWithIntentScan = scanHelper.anyBeaconsDetectedThisCycle()
+        val anythingDetectedWithIntentScan = scanHelper.anyBeaconsDetectedThisCycle()
         if (anythingDetectedWithIntentScan) {
             LogManager.d(TAG, "We have detected beacons with the intent scan.  No need to do a backup scan.")
             strategyFailureDetectionCount = 0
             lastStrategyFailureDetectionCount = 0
             return
         }
-        LogManager.i(TAG, "Starting backup scan on background thread")
-        executor.execute({
-            LogManager.i(TAG, "Starting backup scan")
-            val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            val adapter = manager.adapter
-            var beaconDetected = false
-            val scanStartTime = System.currentTimeMillis()
+        LogManager.i(TAG, "Starting background thread to do backup scan")
+        executor.execute {
 
-            if (adapter != null) {
-                val scanner: BluetoothLeScanner? = adapter.getBluetoothLeScanner()
-                if (scanner != null) {
-                    val callback: ScanCallback = object : ScanCallback() {
-                        override fun onScanResult(callbackType: Int, result: ScanResult) {
-                            super.onScanResult(callbackType, result)
-                            scanHelper.processScanResult(result.device, result.rssi, result.scanRecord?.bytes, result.timestampNanos)
-                            try {
-                                scanner.stopScan(this)
-                            } catch (e: IllegalStateException) { /* do nothing */
-                            } // caught if bluetooth is off here
-                        }
+            // give the intent scan 5 seconds to detect beacons before starting the backup scan
+            try {
+                Thread.sleep(5000L)
+            } catch (e: InterruptedException) { /* do nothing */
+            }
 
-                        override fun onBatchScanResults(results: List<ScanResult>) {
-                            super.onBatchScanResults(results)
-                        }
+            val anythingDetectedWithIntentScan = scanHelper.anyBeaconsDetectedThisCycle()
+            if (anythingDetectedWithIntentScan) {
+                LogManager.i(TAG, "We have belatedly detected beacons with the intent scan.  No need to do a backup scan.")
+                strategyFailureDetectionCount = 0
+                lastStrategyFailureDetectionCount = 0
+            }
+            else {
+                LogManager.i(TAG, "Starting backup scan")
+                val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                val adapter = manager.adapter
+                var beaconDetected = false
+                val scanStartTime = System.currentTimeMillis()
 
-                        override fun onScanFailed(errorCode: Int) {
-                            super.onScanFailed(errorCode)
-                            LogManager.d(TAG, "Sending onScanFailed event")
-                        }
-                    }
-                
-                    try {
-                        scanner.startScan(callback)
-                        while (beaconDetected == false) {
-                            LogManager.d(TAG, "Waiting for beacon detection...")
-                            try {
-                                Thread.sleep(1000L)
-                            } catch (e: InterruptedException) { /* do nothing */
+                if (adapter != null) {
+                    val scanner: BluetoothLeScanner? = adapter.getBluetoothLeScanner()
+                    if (scanner != null) {
+                        val callback: ScanCallback = @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+                        object : ScanCallback() {
+                            override fun onScanResult(callbackType: Int, result: ScanResult) {
+                                super.onScanResult(callbackType, result)
+                                scanHelper.processScanResult(
+                                    result.device,
+                                    result.rssi,
+                                    result.scanRecord?.bytes,
+                                    result.timestampNanos
+                                )
+                                beaconDetected = true
+                                try {
+                                    scanner.stopScan(this)
+                                } catch (e: IllegalStateException) { /* do nothing */
+                                } // caught if bluetooth is off here
                             }
-                            if (System.currentTimeMillis() - scanStartTime > 30000L) {
-                                LogManager.d(TAG, "Timeout running backup scan to look for beacons")
-                                break
+
+                            override fun onBatchScanResults(results: List<ScanResult>) {
+                                super.onBatchScanResults(results)
                             }
-                            if (scanHelper.anyBeaconsDetectedThisCycle()) {
+
+                            override fun onScanFailed(errorCode: Int) {
+                                super.onScanFailed(errorCode)
+                                LogManager.d(TAG, "Sending onScanFailed event")
+                            }
+                        }
+
+                        try {
+                            scanner.startScan(callback)
+                            while (!beaconDetected) {
+                                LogManager.d(TAG, "Waiting for beacon detection...")
+                                try {
+                                    Thread.sleep(1000L)
+                                } catch (e: InterruptedException) { /* do nothing */
+                                }
+                                if (System.currentTimeMillis() - scanStartTime > 30000L) {
+                                    LogManager.d(TAG, "Timeout running backup scan to look for beacons")
+                                    break
+                                }
+                            }
+                            scanner.stopScan(callback)
+                            if (beaconDetected) {
                                 // We have detected beacons with the backup scan but we failed to do so with the regular scan
                                 // this indicates a failure in the intent scanning technique.
                                 if (strategyFailureDetectionCount == lastStrategyFailureDetectionCount) {
-                                    LogManager.e(TAG, "We have detected a beacon with the backup scan without a filter.  We never detected one with the intent scan with a filter.  This technique will not work.")
+                                    LogManager.e(
+                                        TAG,
+                                        "We have detected a beacon with the backup scan without a filter.  We never detected one with the intent scan with a filter.  This technique will not work."
+                                    )
                                 }
                                 lastStrategyFailureDetectionCount = strategyFailureDetectionCount
                                 strategyFailureDetectionCount++
                             }
+
+                        } catch (e: IllegalStateException) {
+                            LogManager.d(TAG, "Bluetooth is off.  Cannot run backup scan")
+                        } catch (e: NullPointerException) {
+                            // Needed to stop a crash caused by internal NPE thrown by Android.  See issue #636
+                            LogManager.e(TAG, "NullPointerException. Cannot run backup scan", e)
                         }
-                        scanner.stopScan(callback)
-                    } catch (e: IllegalStateException) {
-                        LogManager.d(TAG, "Bluetooth is off.  Cannot run backup scan")
-                    } catch (e: NullPointerException) {
-                        // Needed to stop a crash caused by internal NPE thrown by Android.  See issue #636
-                        LogManager.e(TAG, "NullPointerException. Cannot run backup scan", e)
+                    } else {
+                        LogManager.d(TAG, "Cannot get scanner")
                     }
-                } else {
-                    LogManager.d(TAG, "Cannot get scanner")
+                }
+                LogManager.d(TAG, "backup scan complete")
+                if (disableOnFailure && strategyFailureDetectionCount > 0) {
+                    BeaconManager.getInstanceForApplication(context).handleStategyFailover()
+                }
+                // Call this a  second time to clear out beacons detected in the log 5-25 minute region
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    this@IntentScanStrategyCoordinator.processScanResults(ArrayList<ScanResult?>())
                 }
             }
-            LogManager.d(TAG, "backup scan complete")
-            if (disableOnFailure && strategyFailureDetectionCount > 0) {
-                BeaconManager.getInstanceForApplication(context).handleStategyFailover()
-            }
-            // Call this a  second time to clear out beacons detected in the log 5-25 minute region
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                this@IntentScanStrategyCoordinator.processScanResults(ArrayList<ScanResult?>())
-            }
-        })
+        }
     }
 
     companion object {

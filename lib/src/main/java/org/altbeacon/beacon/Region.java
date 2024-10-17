@@ -67,7 +67,7 @@ public class Region implements Parcelable, Serializable {
     protected final List<Identifier> mIdentifiers;
     protected final String mBluetoothAddress;
     protected final String mUniqueId;
-
+    protected final BeaconParser mBeaconParser;
     /**
      * Constructs a new Region object to be used for Ranging or Monitoring
      * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
@@ -82,6 +82,7 @@ public class Region implements Parcelable, Serializable {
         this.mIdentifiers.add(id3);
         this.mUniqueId = uniqueId;
         this.mBluetoothAddress = null;
+        this.mBeaconParser = null;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
@@ -107,9 +108,40 @@ public class Region implements Parcelable, Serializable {
         this.mIdentifiers = new ArrayList<Identifier>(identifiers);
         this.mUniqueId = uniqueId;
         this.mBluetoothAddress = bluetoothAddress;
+        this.mBeaconParser = null;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
+    }
+
+    /**
+     * Constructs a new Region object to be used for Ranging or Monitoring
+     * @param uniqueId - A unique identifier used to later cancel Ranging and Monitoring, or change the region being Ranged/Monitored
+     * @param beaconParser - The parser used to decode the beacon identifiers
+     * @param identifiers - list of identifiers for this region
+     * @param bluetoothAddress - mac address
+     * @param apiVersion - future use
+     */
+    public Region(String uniqueId, BeaconParser beaconParser, List<Identifier> identifiers, String bluetoothAddress, int apiVersion) {
+        validateMac(bluetoothAddress);
+        if (identifiers == null) {
+            this.mIdentifiers = new ArrayList<>();
+        }
+        else {
+            this.mIdentifiers = new ArrayList<>(identifiers);
+        }
+        this.mUniqueId = uniqueId;
+        this.mBluetoothAddress = bluetoothAddress;
+        this.mBeaconParser = beaconParser;
+        if (uniqueId == null) {
+            throw new NullPointerException("uniqueId may not be null");
+        }
+    }
+    public Region(String uniqueId, BeaconParser beaconParser, Identifier id1, Identifier id2, Identifier id3) {
+        this(uniqueId, beaconParser, new ArrayList<Identifier>(3), null, 3);
+        this.mIdentifiers.add(id1);
+        this.mIdentifiers.add(id2);
+        this.mIdentifiers.add(id3);
     }
 
     /**
@@ -122,6 +154,7 @@ public class Region implements Parcelable, Serializable {
         this.mBluetoothAddress = bluetoothAddress;
         this.mUniqueId = uniqueId;
         this.mIdentifiers = new ArrayList<Identifier>();
+        this.mBeaconParser = null;
         if (uniqueId == null) {
             throw new NullPointerException("uniqueId may not be null");
         }
@@ -185,6 +218,12 @@ public class Region implements Parcelable, Serializable {
      * @return true if is covered
      */
     public boolean matchesBeacon(Beacon beacon) {
+        // If the region has a beacon parser type, it must match the beacon
+        if (mBeaconParser != null && mBeaconParser.mIdentifier != null) {
+            if (!mBeaconParser.mIdentifier.equals(beacon.getParserIdentifier())) {
+                return false;
+            }
+        }
         // All identifiers must match, or the corresponding region identifier must be null.
         for (int i = mIdentifiers.size(); --i >= 0; ) {
             final Identifier identifier = mIdentifiers.get(i);
@@ -274,8 +313,13 @@ public class Region implements Parcelable, Serializable {
                 out.writeString(null);
             }
         }
+        if (mBeaconParser != null) {
+            out.writeString(mBeaconParser.toString());
+        }
+        else {
+            out.writeString(null);
+        }
     }
-
 
     protected Region(Parcel in) {
         mUniqueId = in.readString();
@@ -290,6 +334,13 @@ public class Region implements Parcelable, Serializable {
                 Identifier identifier = Identifier.parse(identifierString);
                 mIdentifiers.add(identifier);
             }
+        }
+        String beaconParserString = in.readString();
+        if (beaconParserString != null) {
+            this.mBeaconParser = BeaconParser.fromString(beaconParserString);
+        }
+        else {
+            this.mBeaconParser = null;
         }
     }
 

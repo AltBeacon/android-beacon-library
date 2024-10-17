@@ -38,6 +38,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private boolean mMainScanCycleActive = false;
     private final BeaconManager mBeaconManager;
     private final PowerManager mPowerManager;
+    private boolean mScanningStarted = false;
 
     public CycledLeScannerForLollipop(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
@@ -252,7 +253,13 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             @Override
             public void run() {
                 try {
+                    if (mScanningStarted) {
+                        LogManager.d(TAG, "Scanning already started stopping to avoid start failure.");
+                        scanner.stopScan(scanCallback);
+                        mScanningStarted = false;
+                    }
                     scanner.startScan(filters, settings, scanCallback);
+                    mScanningStarted = true;
                 } catch (IllegalStateException e) {
                     LogManager.w(TAG, "Cannot start scan. Bluetooth may be turned off.");
                 } catch (NullPointerException npe) {
@@ -269,6 +276,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
 
     private void postStopLeScan() {
         if (!isBluetoothOn() && Build.VERSION.SDK_INT < Build.VERSION_CODES.P){
+            mScanningStarted = false;
             LogManager.d(TAG, "Not stopping scan because bluetooth is off");
             return;
         }
@@ -284,6 +292,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             public void run() {
                 try {
                     LogManager.d(TAG, "Stopping LE scan on scan handler");
+                    mScanningStarted = false;
                     scanner.stopScan(scanCallback);
                 } catch (IllegalStateException e) {
                     LogManager.w(TAG, "Cannot stop scan. Bluetooth may be turned off.");

@@ -45,6 +45,9 @@ ext["signing.password"] = project.hasProperty('signing.password') ? project.getP
 ext["signing.secretKeyRingFile"] = project.hasProperty('signing.secretKeyRingFile') ? project.getProperty('signing.secretKeyRingFile') : System.getenv('SIGNING_SECRET_KEY_RING_FILE')
 ext["ossrhUsername"] = project.hasProperty('ossrhUsername') ? project.getProperty('ossrhUsername') : System.getenv('OSSRH_USERNAME')
 ext["ossrhPassword"] = project.hasProperty('ossrhPassword') ? project.getProperty('ossrhPassword') : System.getenv('OSSRH_PASSWORD')
+ext["ossrhToken"] = project.hasProperty('ossrhToken') ? project.getProperty('ossrhToken') : System.getenv('OSSRH_TOKEN')
+ext["ossrhTokenPassword"] = project.hasProperty('ossrhTokenPassword') ? project.getProperty('ossrhTokenPassword') : System.getenv('OSSRH_TOKEN_PASSWORD')
+
 ext["sonatypeStagingProfileId"] = project.hasProperty('sonatypeStagingProfileId') ? project.getProperty('sonatypeStagingProfileId') : System.getenv('SONATYPE_STAGING_PROFILE_ID')
 
 
@@ -106,8 +109,8 @@ afterEvaluate {
                 url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
                 credentials {
-                    username ossrhUsername
-                    password ossrhPassword
+                    username ossrhToken
+                    password ossrhTokenPassword
                 }
             }
         }

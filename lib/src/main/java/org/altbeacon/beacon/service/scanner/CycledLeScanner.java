@@ -31,7 +31,7 @@ import java.util.Date;
 
 @TargetApi(18)
 public abstract class CycledLeScanner {
-    public static final long ANDROID_N_MAX_SCAN_DURATION_MILLIS = 30 * 60 * 1000l; // 30 minutes
+    public static final long ANDROID_N_MAX_SCAN_DURATION_MILLIS = 10 * 60 * 1000l; // 10 minutes
     private static final String TAG = "CycledLeScanner";
     private BluetoothAdapter mBluetoothAdapter;
 

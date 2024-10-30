@@ -215,14 +215,21 @@ public class Beacon implements Parcelable, Serializable {
     };
 
     /**
+     * @deprecated Set the distanceCalculatorFactory method on the Settings class
+     * You must define your own factory to co with your DistanceCalculator implementation
+     * that returns a new instance of your DistanceCalculator implementation
      * Sets the DistanceCalculator to use with this beacon
      * @param dc
      */
     public static void setDistanceCalculator(DistanceCalculator dc) {
         sDistanceCalculator = dc;
     }
+    static void setDistanceCalculatorInternal(DistanceCalculator dc) {
+        sDistanceCalculator = dc;
+    }
 
     /**
+     * @deprecated get the distanceCalculatorFactory method on the Settings class
      * Gets the DistanceCalculator to use with this beacon
      */
     public static DistanceCalculator getDistanceCalculator() {
@@ -230,16 +237,19 @@ public class Beacon implements Parcelable, Serializable {
     }
 
     /**
+     * @deprecated Use the method on the Settings class and call `beaconManger.adjustSettings(settings)`
      * Configures whether a the bluetoothAddress (mac address) must be the same for two Beacons
      * to be configured equal.  This setting applies to all beacon instances in the same process.
      * Defaults to false for backward compatibility.
      *
      * @param e
      */
+    @Deprecated
     public static void setHardwareEqualityEnforced(boolean e) {
         sHardwareEqualityEnforced = e;
     }
 
+    @Deprecated
     public static boolean getHardwareEqualityEnforced() {
         return sHardwareEqualityEnforced;
     }

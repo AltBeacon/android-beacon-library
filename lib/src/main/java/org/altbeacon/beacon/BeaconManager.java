@@ -42,9 +42,12 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.altbeacon.beacon.distance.DistanceCalculator;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.logging.Loggers;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaverInternal;
@@ -73,6 +76,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -165,7 +169,7 @@ public class BeaconManager {
             LogManager.setLogger(Loggers.verboseLogger());
             LogManager.setVerboseLoggingEnabled(true);
         } else {
-            LogManager.setLogger(Loggers.empty());
+            LogManager.setLogger(Loggers.infoLogger());
             LogManager.setVerboseLoggingEnabled(false);
         }
     }
@@ -219,6 +223,125 @@ public class BeaconManager {
         return mRegionViewModels.get(region) != null;
     }
 
+    private AppliedSettings settings = AppliedSettings.Companion.withDefaultValues();
+
+    /**
+     * Applies new library  settings as a single transaction and restart scanning if needed.
+     * Any settings field snot specified in the passed settings object will revert to defaults.
+     * @param settingsDelta the settings to be applied
+     */
+    public void replaceSettings(Settings settingsDelta) {
+        applySettingsChange(AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta));
+    }
+    /**
+     * Applies a delta of library  settings as a single transaction and restart scanning if needed.
+     * Any settings field snot specified in the passed settings object are unchanged.
+     * @param settingsDelta the settings to be applied
+     */
+    public void adjustSettings(Settings settingsDelta) {
+        applySettingsChange(AppliedSettings.Companion.fromDeltaSettings(this.settings, settingsDelta));
+    }
+    /**
+     * Resets library settings to defaults as a single transaction and restarts scanning if needed.
+     */
+    public void revertSettings() {
+        applySettingsChange(AppliedSettings.Companion.withDefaultValues());
+    }
+    private void applySettingsChange(AppliedSettings newSettings) {
+        AppliedSettings oldSettings = settings;
+        this.settings = newSettings;
+        Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(this.settings.getHardwareEqualityEnforced()));
+        BeaconManager.setDistanceModelUpdateUrl(Objects.requireNonNull(settings.getDistanceModelUpdateUrl()));
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (settings.getScanPeriods().getBackgroundScanPeriodMillis() < 15*60*1000 /* 15 min */ &&
+                    settings.getScanStrategy() instanceof Settings.JobServiceScanStrategy) {
+                LogManager.w(TAG, "Setting a short backgroundBetweenScanPeriod has no effect on "+
+                        "Android 8+, which is limited to scanning every ~15 minutes");
+            }
+        }
+
+        if (settings.getBeaconSimulator() == null || settings.getBeaconSimulator().getClass() == Settings.DisabledBeaconSimulator.class) {
+            BeaconManager.setBeaconSimulator(null);
+        }
+        else {
+            BeaconManager.setBeaconSimulator(settings.getBeaconSimulator());
+        }
+        Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(settings.getHardwareEqualityEnforced()));
+        BeaconManager.setDebug(Boolean.TRUE.equals(settings.getDebug()));
+        Settings.ScanPeriods sp = settings.getScanPeriods();
+        if (sp != null) {
+            setBackgroundBetweenScanPeriod(sp.getBackgroundScanPeriodMillis());
+            setBackgroundScanPeriod(sp.getBackgroundScanPeriodMillis());
+            setForegroundBetweenScanPeriod(sp.getForegroundBetweenScanPeriodMillis());
+            setForegroundScanPeriod(sp.getForegroundScanPeriodMillis());
+        }
+        setManifestCheckingDisabled(Boolean.TRUE.equals(settings.getManifestCheckingDisabled()));
+        Integer regionExitPeriod = settings.getRegionExitPeriodMillis();
+        if (regionExitPeriod != null) {
+            setRegionExitPeriod(regionExitPeriod.longValue());
+        }
+        setRegionStatePersistenceEnabled(Boolean.TRUE.equals(settings.getRegionStatePersistenceEnabled()));
+
+        // Check if ScanStrategry has changed
+        boolean scanStrategyChanged = oldSettings.getScanStrategy().compareTo(settings.getScanStrategy()) != 0;
+        synchronized(consumers) {
+            if (scanStrategyChanged && consumers.size() > 0) {
+                LogManager.i(TAG, "ScanStrategy has changed. Unbinding and rebinding consumers.  Old strategry: "+oldSettings.getScanStrategy()+", new strategy: "+settings.getScanStrategy());
+                LogManager.i(TAG, "unbinding all consumers for strategy change");
+                List<InternalBeaconConsumer> oldConsumers = new ArrayList<InternalBeaconConsumer>(consumers.keySet());
+                for (InternalBeaconConsumer consumer: oldConsumers) {
+                    this.unbindInternal(consumer);
+                }
+                mScheduledScanJobsEnabledByFallback = false;
+                configureScanStrategyWhenConsumersUnbound(oldConsumers);
+            }
+            else if (consumers.size() == 0) {
+                // if no consumers are bound, we bind and start things up
+                Objects.requireNonNull(settings.getScanStrategy()).configure(this);
+            }
+            // if consumers are already bound but nothing changed, we have nothing to do
+        }
+        DistanceCalculator distanceCalculator = settings.getDistanceCalculatorFactory().getInstance(mContext);
+        Beacon.setDistanceCalculatorInternal(distanceCalculator);
+
+        // TODO: apply all other settings
+        //settings.getLongScanForcingEnabled()
+        //settings.getRssiFilterImplClass()
+        //settings.getScanStrategy()
+
+        applySettings();
+
+    }
+    private void configureScanStrategyWhenConsumersUnbound(List<InternalBeaconConsumer> oldConsumers) {
+        if (isAnyConsumerBound()) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    configureScanStrategyWhenConsumersUnbound(oldConsumers);
+                }
+            }, 100);
+        }
+        else {
+            Objects.requireNonNull(settings.getScanStrategy()).configure(BeaconManager.this);
+            LogManager.i(TAG, "binding all consumers for strategy change");
+            for (InternalBeaconConsumer consumer: oldConsumers) {
+                BeaconManager.this.bindInternal(consumer);
+            }
+            LogManager.i(TAG, "Done with scan strategy change");
+        }
+    }
+
+
+    /**
+     * Returns a copy of the active settings in use by the library.  The object returned is a copy
+     * and making changes on it will have no effect without a new call to set the settings.
+     * @return settings currently active
+     */
+    public AppliedSettings getActiveSettings() {
+        return  AppliedSettings.Companion.fromSettings(settings);
+    }
+
     /**
      * Sets the duration in milliseconds of each Bluetooth LE scan cycle to look for beacons.
      * This function is used to setup the period before calling {@link #bind} or when switching
@@ -266,11 +389,6 @@ public class BeaconManager {
     public void setBackgroundBetweenScanPeriod(long p) {
         LogManager.d(TAG, "API setBackgroundBetweenScanPeriod "+p);
         backgroundBetweenScanPeriod = p;
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                backgroundBetweenScanPeriod < 15*60*1000 /* 15 min */) {
-            LogManager.w(TAG, "Setting a short backgroundBetweenScanPeriod has no effect on "+
-                    "Android 8+, which is limited to scanning every ~15 minutes");
-        }
     }
 
     /**
@@ -444,26 +562,28 @@ public class BeaconManager {
                 LogManager.d(TAG, "This consumer is already bound");
             }
             else {
+                LogManager.i(TAG, "bindInternal active");
                 if (mScheduledScanJobsEnabledByFallback) {
                     LogManager.d(TAG, "Need to rebind for switch to foreground service", consumer);
-                    // we are going to disable the fallbac so we can try a foreground service again
+                    // we are going to disable the fallback so we can try a foreground service again
                     mScheduledScanJobsEnabledByFallback = false;
                 }
                 else {
                     LogManager.d(TAG, "This consumer is not bound.  Binding now: %s", consumer);
                 }
                 if (mIntentScanStrategyCoordinator != null) {
+                    LogManager.i(TAG, "Using intent scan strategy");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         mIntentScanStrategyCoordinator.start();
                     }
                     consumer.onBeaconServiceConnect();
                 }
                 else if (mScheduledScanJobsEnabled) {
-                    LogManager.d(TAG, "Not starting beacon scanning service. Using scheduled jobs");
+                    LogManager.i(TAG, "Not starting beacon scanning service. Using scheduled jobs");
                     consumer.onBeaconServiceConnect();
                 }
                 else {
-                    LogManager.d(TAG, "Binding to service");
+                    LogManager.i(TAG, "Using BeaconService to scan. Binding to service");
                     Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                             this.getForegroundServiceNotification() != null) {
@@ -720,10 +840,6 @@ public class BeaconManager {
             LogManager.e(TAG, "ScanJob may not be configured because JobScheduler is not" +
                     " availble prior to Android 5.0");
             return;
-        }
-        if (!enabled && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            LogManager.w(TAG, "Disabling ScanJobs on Android 8+ may disable delivery of "+
-                    "beacon callbacks in the background unless a foreground service is active.");
         }
         if (enabled) {
             mScheduledScanJobsEnabledByFallback = false;
@@ -1047,6 +1163,18 @@ public class BeaconManager {
     public void startRangingBeacons(@NonNull Region region) {
         LogManager.d(TAG, "API startRangingBeacons "+region);
         LogManager.d(TAG, "startRanging");
+        if (region.mBeaconParser != null && region.mBeaconParser.getIdentifier() != null) {
+            boolean parserAlreadyAdded = false;
+            for (BeaconParser parser: getBeaconParsers()) {
+                if (region.mBeaconParser.getIdentifier().equals(parser.getIdentifier())) {
+                    parserAlreadyAdded = true;
+                    break;
+                }
+            }
+            if (!parserAlreadyAdded) {
+                getBeaconParsers().add(region.mBeaconParser);
+            }
+        }
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
@@ -1234,6 +1362,18 @@ public class BeaconManager {
     @TargetApi(18)
     public void startMonitoring(@NonNull Region region) {
         LogManager.d(TAG, "API startMonitoring "+region);
+        if (region.mBeaconParser != null && region.mBeaconParser.getIdentifier() != null) {
+            boolean parserAlreadyAdded = false;
+            for (BeaconParser parser: getBeaconParsers()) {
+                if (region.mBeaconParser.getIdentifier().equals(parser.getIdentifier())) {
+                    parserAlreadyAdded = true;
+                    break;
+                }
+            }
+            if (!parserAlreadyAdded) {
+                getBeaconParsers().add(region.mBeaconParser);
+            }
+        }
         ensureBackgroundPowerSaver();
         if (isAnyConsumerBound()) {
             try {
@@ -1523,6 +1663,13 @@ public class BeaconManager {
         return distanceModelUpdateUrl;
     }
 
+
+    /**
+     * @deprecated Use the method on the Settings class and call `beaconManger.setSettings(settings)`
+     * @param url to use to get an updated database of Android phone models and curve fit parameters
+     *            for mapping distance to rssi. Set to "" to disable downloading an update.
+     */
+    @Deprecated
     public static void setDistanceModelUpdateUrl(@NonNull String url) {
         warnIfScannerNotInSameProcess();
         distanceModelUpdateUrl = url;
@@ -1722,6 +1869,7 @@ public class BeaconManager {
      * @param disabled
      * @deprecated This will be removed in the 3.0 release
      */
+    @Deprecated
     public static void setAndroidLScanningDisabled(boolean disabled) {
         LogManager.d(TAG, "API setAndroidLScanningDisabled "+disabled);
         sAndroidLScanningDisabled = disabled;

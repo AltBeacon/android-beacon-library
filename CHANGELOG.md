@@ -1,4 +1,16 @@
-### 2.20.6 / 2024 04-27
+### 2.21.0-beta2 / 2024-10-21
+
+- Fix scan dropouts after 10 minutes (#1207, David G. Young)
+
+### 2.21.0-beta1 / 2024-09-01 
+
+- Add new Settings API (#1177, David G. Young) 
+
+### 2.20.7 / 2024-10-09
+
+- Fix intermittent screen off detection failures on Andorid 14 (#1205, David G. Young)
+
+### 2.20.6 / 2024-04-27
 
 - Fix distance calculator overwrite, (#1191, David G. Young)
 - Fix bad model distance config url, (#1190, David G. Young)

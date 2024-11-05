@@ -29,6 +29,7 @@ import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.ServiceStartNotAllowedException;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.ScanResult;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -1102,8 +1103,10 @@ public class BeaconManager {
             return;
         }
         if (mIntentScanStrategyCoordinator != null) {
-            LogManager.d(TAG, "Forcing IntentScanStrategyCoordinator to update state on requestStateForregion");
-            mIntentScanStrategyCoordinator.processScanResults(new ArrayList<ScanResult?>())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LogManager.d(TAG, "Forcing IntentScanStrategyCoordinator to update state on requestStateForRegion");
+                mIntentScanStrategyCoordinator.processScanResults(new ArrayList<ScanResult>());
+            }
         }
 
         MonitoringStatus status = MonitoringStatus.getInstanceForApplication(mContext);

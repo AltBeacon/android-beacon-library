@@ -204,7 +204,8 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                             mBeaconManager.getBeaconParsers());
                 }
                 else {
-                    if (Build.MANUFACTURER.equalsIgnoreCase("samsung")) {
+                    if (Build.MANUFACTURER.equalsIgnoreCase("samsung") ||
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                         LogManager.d(TAG, "Using a wildcard scan filter because the screen is on.  We will switch to a non-empty filter if the screen goes off");
                         // as soon as the screen goes off we will need to start a different scan
                         // that has scan filters

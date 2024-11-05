@@ -1,6 +1,7 @@
 ### 2.21.0-beta3 / 2024-11-05
 
 - Fix non-Samsung screen off scan failure (#1208, David G. Young)
+- Check for region exits on requestStateforRegion with IntentScanStrategy (#1209, David G. Young) 
 
 ### 2.21.0-beta2 / 2024-10-21
 

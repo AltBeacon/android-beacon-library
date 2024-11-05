@@ -1101,6 +1101,11 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
+        if (mIntentScanStrategyCoordinator != null) {
+            LogManager.d(TAG, "Forcing IntentScanStrategyCoordinator to update state on requestStateForregion");
+            mIntentScanStrategyCoordinator.processScanResults(new ArrayList<ScanResult?>())
+        }
+
         MonitoringStatus status = MonitoringStatus.getInstanceForApplication(mContext);
         RegionMonitoringState stateObj = status.stateOf(region);
         int state = MonitorNotifier.OUTSIDE;

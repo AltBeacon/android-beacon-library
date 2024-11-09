@@ -42,7 +42,7 @@ The above table is largely based on using the Android Job Scheduler (aka Work Ma
 | Scan Strategy      | Android Version | Typ/Max detection time | Notes                                      |
 | -------------------|:---------------:|:----------------------:|:------------------------------------------:|
 | Scan Job           | 8+              | 5/1500 secs            | Default strategy on Android 8+             |
-| Foreground Service | 8+              | 1-300 secs             | Fast detections but maybe battery intensive| 
+| <a href='foreground-service.html'>Foreground Service</a> | 8+              | 1-300 secs             | Fast detections but maybe battery intensive| 
 | Intent Scan        | 8+              | 5 secs                 | Good when beacons usually not visible      | 
 | Service            | 4.3-7.x         | 300/300 secs           | Legacy Strategy for 4.x-7.x. Fails on 8+   |
 

@@ -168,8 +168,12 @@ public class BeaconTransmitter {
         }
         int manufacturerCode = mBeacon.getManufacturer();
         int serviceUuid = -1;
+        byte[] serviceUuid128Bit = {};
         if (mBeaconParser.getServiceUuid() != null) {
             serviceUuid = mBeaconParser.getServiceUuid().intValue();
+        }
+        if (mBeaconParser.getServiceUuid128Bit() != null) {
+            serviceUuid128Bit = mBeaconParser.getServiceUuid128Bit();
         }
 
         if (mBeaconParser == null) {
@@ -196,11 +200,28 @@ public class BeaconTransmitter {
                         (byte) ((serviceUuid >> 8) & 0xff)};
                 ParcelUuid parcelUuid = parseUuidFrom(serviceUuidBytes);
                 dataBuilder.addServiceData(parcelUuid, advertisingBytes);
-                dataBuilder.addServiceUuid(parcelUuid);
+                if (serviceUuid128Bit == null) {
+                    dataBuilder.addServiceUuid(parcelUuid);
+                }
                 dataBuilder.setIncludeTxPowerLevel(false);
                 dataBuilder.setIncludeDeviceName(false);
 
-            } else {
+            }
+            else if (serviceUuid128Bit != null && serviceUuid128Bit.length == 16) {
+                ParcelUuid parcelUuid = parseUuidFrom(serviceUuid128Bit);
+                dataBuilder.addServiceData(parcelUuid, advertisingBytes);
+                //dataBuilder.addServiceUuid(parcelUuid); // no room for 128 bit service UUIDs and data
+                dataBuilder.setIncludeTxPowerLevel(false);
+                dataBuilder.setIncludeDeviceName(false);
+            }
+            else if (serviceUuid128Bit != null && serviceUuid128Bit.length == 4) {
+                ParcelUuid parcelUuid = parseUuidFrom(serviceUuid128Bit);
+                dataBuilder.addServiceData(parcelUuid, advertisingBytes);
+                dataBuilder.addServiceUuid(parcelUuid);
+                dataBuilder.setIncludeTxPowerLevel(false);
+                dataBuilder.setIncludeDeviceName(false);
+            }
+            else {
                 dataBuilder.addManufacturerData(manufacturerCode, advertisingBytes);
             }
 

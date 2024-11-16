@@ -1,3 +1,7 @@
+### 2.21.0-beta4 / 2024-11-16
+
+- Improved support for beacon layouts based on 128-bit Service UUIDs
+
 ### 2.21.0-beta3 / 2024-11-05
 
 - Fix non-Samsung screen off scan failure (#1208, David G. Young)

@@ -90,14 +90,19 @@ public class ScanFilterUtils {
             // Note: the -2 here is because we want the filter and mask to start after the
             // two-byte manufacturer code, and the beacon parser expression is based on offsets
             // from the start of the two byte code
-            int length = endOffset + 1 - 2;
+            int offset = 2;
+            if (beaconParser.getServiceUuid128Bit().length > 0) {
+                offset = beaconParser.getServiceUuid128Bit().length;
+            }
+
+            int length = endOffset + 1 - offset;
             byte[] filter = new byte[0];
             byte[] mask = new byte[0];
             if (length > 0) {
                 filter = new byte[length];
                 mask = new byte[length];
-                for (int layoutIndex = 2; layoutIndex <= endOffset; layoutIndex++) {
-                    int filterIndex = layoutIndex-2;
+                for (int layoutIndex = offset; layoutIndex <= endOffset; layoutIndex++) {
+                    int filterIndex = layoutIndex-offset;
                     if (layoutIndex < startOffset) {
                         filter[filterIndex] = 0;
                         mask[filterIndex] = 0;
@@ -145,9 +150,9 @@ public class ScanFilterUtils {
                             LogManager.d(TAG, "making scan filter for service: "+serviceUuidString+" "+parcelUuid);
                             LogManager.d(TAG, "making scan filter with service mask: "+serviceUuidMaskString+" "+parcelUuidMask);
                         }
-                        builder.setServiceUuid(parcelUuid, parcelUuidMask);
+                        builder.setServiceData(parcelUuid, sfd.filter, sfd.mask);
                     }
-                    else if (sfd.serviceUuid128Bit.length != 0) {
+                    else if (sfd.serviceUuid128Bit.length == 16) {
                         String serviceUuidString = Identifier.fromBytes(sfd.serviceUuid128Bit, 0, 16, true).toString();
                         String serviceUuidMaskString = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF";
                         ParcelUuid parcelUuid = ParcelUuid.fromString(serviceUuidString);
@@ -156,7 +161,14 @@ public class ScanFilterUtils {
                             LogManager.d(TAG, "making scan filter for service: "+serviceUuidString+" "+parcelUuid);
                             LogManager.d(TAG, "making scan filter with service mask: "+serviceUuidMaskString+" "+parcelUuidMask);
                         }
-                        builder.setServiceUuid(parcelUuid, parcelUuidMask);
+                        if (beaconParser.getIdentifierCount() > 0) {
+                            //builder.setServiceData(parcelUuid, new byte[]{(byte)0x00}, new byte[]{(byte)0xff});
+                            builder.setServiceData(parcelUuid, sfd.filter, sfd.mask);
+                        }
+                        else {
+                            builder.setServiceUuid(parcelUuid, parcelUuidMask);
+                        }
+
                     }
                     else {
                         builder.setServiceUuid(null);
@@ -171,6 +183,14 @@ public class ScanFilterUtils {
                     }
                     scanFilters.add(scanFilter);
                 }
+            }
+        }
+        if (scanFilters.size() == 0) {
+            LogManager.d(TAG, "Using no scan filters.");
+        }
+        else {
+            for (ScanFilter scanFilter: scanFilters) {
+                LogManager.d(TAG, "Using scan filter: "+scanFilter);
             }
         }
         return scanFilters;

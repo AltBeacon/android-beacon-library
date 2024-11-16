@@ -1,5 +1,6 @@
 ### 2.21.0-beta4 / 2024-11-16
 
+- Eliminate thrashing of foreground/background mode and ScanJobs during navigation (#1195, VolodaUa)
 - Improved support for beacon layouts based on 128-bit Service UUIDs, (#1212, David G. Young)
 
 ### 2.21.0-beta3 / 2024-11-05

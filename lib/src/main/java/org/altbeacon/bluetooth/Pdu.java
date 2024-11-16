@@ -9,10 +9,11 @@ import android.os.Build;
  */
 public class Pdu {
     private static final String  TAG = "Pdu";
-    public static final byte MANUFACTURER_DATA_PDU_TYPE = (byte) 0xff;
-    public static final byte GATT_SERVICE_UUID_PDU_TYPE = (byte) 0x16;
-    public static final byte GATT_SERVICE_UUID_128_BIT_PDU_TYPE = (byte) 0x21;
-    public static final byte GATT_SERVICE_FULL_UUID_128_BIT_PDU_TYPE = (byte) 0x07;
+    public static final byte MANUFACTURER_DATA_AD_TYPE = (byte) 0xff;
+    public static final byte GATT_SERVICE_DATA_UUID_16_BIT_AD_TYPE = (byte) 0x16;
+    public static final byte GATT_SERVICE_DATA_UUID_32_BIT_AD_TYPE = (byte) 0x20;
+    public static final byte GATT_SERVICE_DATA_UUID_128_BIT_AD_TYPE = (byte) 0x21;
+    public static final byte GATT_SERVICE_COMPLETE_UUID_128_BIT_AD_TYPE = (byte) 0x07;
 
     private byte mType;
     private int mDeclaredLength;

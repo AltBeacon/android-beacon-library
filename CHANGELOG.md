@@ -1,3 +1,7 @@
+### 2.21.0-veta5 / 2024-12-19
+
+- Fix longScanForcingEnabled in new Settings API (#1218, David G. Young)
+
 ### 2.21.0-beta4 / 2024-11-16
 
 - Eliminate thrashing of foreground/background mode and ScanJobs during navigation (#1195, VolodaUa)

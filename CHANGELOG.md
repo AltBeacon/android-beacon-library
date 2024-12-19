@@ -1,4 +1,4 @@
-### 2.21.0-veta5 / 2024-12-19
+### 2.21.0-beta5 / 2024-12-19
 
 - Fix longScanForcingEnabled in new Settings API (#1218, David G. Young)
 

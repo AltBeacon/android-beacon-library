@@ -307,9 +307,7 @@ public class BeaconManager {
         Beacon.setDistanceCalculatorInternal(distanceCalculator);
 
         // TODO: apply all other settings
-        //settings.getLongScanForcingEnabled()
         //settings.getRssiFilterImplClass()
-        //settings.getScanStrategy()
 
         applySettings();
 

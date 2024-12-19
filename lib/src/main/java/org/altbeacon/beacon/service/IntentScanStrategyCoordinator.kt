@@ -58,6 +58,25 @@ class IntentScanStrategyCoordinator(val context: Context) {
         scanHelper.setBeaconParsers(scanState.getBeaconParsers())
         scanHelper.setExtraDataBeaconTracker(scanState.getExtraBeaconDataTracker())
 
+        var longScanForcingEnabled = BeaconManager.getInstanceForApplication(context).getActiveSettings().longScanForcingEnabled
+
+        // Legacy code to pull value from manifest if not set in settings.  TODO: Remove this block in 3.0
+        val longScanForcingEnabledString =  getManifestMetadataValue("longScanForcingEnabled")
+        if (longScanForcingEnabledString != null && longScanForcingEnabledString == "true") {
+            org.altbeacon.beacon.logging.LogManager.w(
+                BeaconService.TAG,
+                "Setting longScanForcingEnabled in the AndroidManifest.xml is deprecated for AndoridBeaconLibrary.  Please set this value using the Settings API."
+            )
+            longScanForcingEnabled = true
+        }
+
+        if (longScanForcingEnabled) {
+            LogManager.i(
+                BeaconService.TAG,
+                "longScanForcingEnabled to keep scans going on Android N for > 30 minutes"
+            )
+        }
+        this.longScanForcingEnabled = longScanForcingEnabled
     }
 
     fun applySettings() {
@@ -76,14 +95,6 @@ class IntentScanStrategyCoordinator(val context: Context) {
             BeaconManager.getInstanceForApplication(context)
         scanHelper.setExtraDataBeaconTracker(ExtraDataBeaconTracker())
         beaconManager.setScannerInSameProcess(true)
-        val longScanForcingEnabledString =  getManifestMetadataValue("longScanForcingEnabled")
-        if (longScanForcingEnabledString != null && longScanForcingEnabledString == "true") {
-            LogManager.i(
-                BeaconService.TAG,
-                "longScanForcingEnabled to keep scans going on Android N for > 30 minutes"
-            )
-            longScanForcingEnabled = true
-        }
         scanHelper.reloadParsers()
         LogManager.d(TAG, "starting background scan")
         var regions = HashSet<Region>()

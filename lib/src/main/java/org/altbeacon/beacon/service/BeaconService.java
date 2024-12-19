@@ -226,12 +226,18 @@ public class BeaconService extends Service {
             LogManager.i(TAG, "beaconService PID is "+processUtils.getPid()+" with process name "+processUtils.getProcessName());
         }
 
-        String longScanForcingEnabled = getManifestMetadataValue("longScanForcingEnabled");
-        if (longScanForcingEnabled != null && longScanForcingEnabled.equals("true")) {
-            LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
-            if (mScanHelper.getCycledScanner() != null) {
-                mScanHelper.getCycledScanner().setLongScanForcingEnabled(true);
+
+        boolean longScanForcingEnabled = beaconManager.getActiveSettings().getLongScanForcingEnabled();
+        if (!longScanForcingEnabled) {
+            String longScanForcingEnabledString = getManifestMetadataValue("longScanForcingEnabled");
+            if (longScanForcingEnabledString != null && longScanForcingEnabledString.equals("true")) {
+                longScanForcingEnabled = true;
+                LogManager.w(TAG, "Setting longScanForcingEnabled in the AndroidManifest.xml is deprecated for AndoridBeaconLibrary.  Please set this value using the Settings API.");
             }
+        }
+        LogManager.i(TAG, "longScanForcingEnabled to keep scans going on Android N for > 30 minutes");
+        if (mScanHelper.getCycledScanner() != null) {
+            mScanHelper.getCycledScanner().setLongScanForcingEnabled(longScanForcingEnabled);
         }
 
         mScanHelper.reloadParsers();

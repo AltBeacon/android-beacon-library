@@ -1,3 +1,7 @@
+### 2.21.0 / 2025-1-25
+
+- Fix rssiFilterClass in new Settings API (#1218, David G. Young)
+
 ### 2.21.0-beta5 / 2024-12-19
 
 - Fix longScanForcingEnabled in new Settings API (#1218, David G. Young)

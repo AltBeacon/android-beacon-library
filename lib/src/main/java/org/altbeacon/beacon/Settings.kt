@@ -5,6 +5,7 @@ import android.os.Build
 import org.altbeacon.beacon.distance.DistanceCalculatorFactory
 import org.altbeacon.beacon.distance.ModelSpecificDistanceCalculatorFactory
 import org.altbeacon.beacon.logging.LogManager
+import org.altbeacon.beacon.service.RssiFilter
 import org.altbeacon.beacon.service.RunningAverageRssiFilter
 import org.altbeacon.beacon.simulator.BeaconSimulator
 
@@ -18,11 +19,12 @@ data class AppliedSettings (
     val maxTrackingAgeMillis: Int = Settings.Defaults.maxTrackingAgeMillis,
     val manifestCheckingDisabled: Boolean = Settings.Defaults.manifestCheckingDisabled,
     val beaconSimulator: BeaconSimulator = Settings.Defaults.beaconSimulator,
-    val rssiFilterImplClass: Class<RunningAverageRssiFilter>? = Settings.Defaults.rssiFilterImplClass,
+    val rssiFilterImplClass: Class<*>? = Settings.Defaults.rssiFilterImplClass,
     val distanceModelUpdateUrl: String = Settings.Defaults.distanceModelUpdateUrl,
     val distanceCalculatorFactory: DistanceCalculatorFactory = Settings.Defaults.distanceCalculatorFactory,
     val scanStrategy: Settings.ScanStrategy = Settings.Defaults.scanStrategy.clone(),
     val longScanForcingEnabled: Boolean = Settings.Defaults.longScanForcingEnabled
+
     ) {
     companion object {
         /**
@@ -31,7 +33,7 @@ data class AppliedSettings (
         fun fromDeltaSettings(settings: AppliedSettings, delta:Settings) : AppliedSettings {
             return AppliedSettings(scanPeriods = delta.scanPeriods ?: settings.scanPeriods, debug = delta.debug ?: settings.debug, regionStatePersistenceEnabled = delta.regionStatePersistenceEnabled ?: settings.regionStatePersistenceEnabled, useTrackingCache = delta.useTrackingCache ?: settings.useTrackingCache, hardwareEqualityEnforced = delta.hardwareEqualityEnforced ?: settings.hardwareEqualityEnforced,
                 regionExitPeriodMillis = delta.regionExitPeriodMillis ?: settings.regionExitPeriodMillis, maxTrackingAgeMillis = delta.maxTrackingAgeMillis ?: settings.maxTrackingAgeMillis, manifestCheckingDisabled = delta.manifestCheckingDisabled ?: settings.manifestCheckingDisabled,
-                beaconSimulator = delta.beaconSimulator ?: settings.beaconSimulator, rssiFilterImplClass = delta.rssiFilterImplClass ?: settings.rssiFilterImplClass, scanStrategy = delta.scanStrategy?.clone() ?: settings.scanStrategy, longScanForcingEnabled = delta.longScanForcingEnabled ?: settings.longScanForcingEnabled, distanceModelUpdateUrl = delta.distanceModelUpdateUrl ?: settings.distanceModelUpdateUrl,
+                beaconSimulator = delta.beaconSimulator ?: settings.beaconSimulator, rssiFilterImplClass = delta.rssiFilterClass ?: settings.rssiFilterImplClass, scanStrategy = delta.scanStrategy?.clone() ?: settings.scanStrategy, longScanForcingEnabled = delta.longScanForcingEnabled ?: settings.longScanForcingEnabled, distanceModelUpdateUrl = delta.distanceModelUpdateUrl ?: settings.distanceModelUpdateUrl,
                 distanceCalculatorFactory = delta.distanceCalculatorFactory ?: settings.distanceCalculatorFactory)
         }
         fun withDefaultValues(): AppliedSettings {
@@ -92,7 +94,7 @@ data class Settings(
     val maxTrackingAgeMillis: Int? = null,
     val manifestCheckingDisabled: Boolean? = null,
     val beaconSimulator: BeaconSimulator? = null,
-    val rssiFilterImplClass: Class<RunningAverageRssiFilter>? = null,
+    val rssiFilterClass: Class<*>? = null,
     val distanceModelUpdateUrl: String? = null,
     val distanceCalculatorFactory: DistanceCalculatorFactory? = null,
     val scanStrategy: ScanStrategy? = null,
@@ -109,7 +111,7 @@ data class Settings(
                  maxTrackingAgeMillis = other.maxTrackingAgeMillis,
                  manifestCheckingDisabled = other.manifestCheckingDisabled,
                  beaconSimulator = other.beaconSimulator,
-                 rssiFilterImplClass = other.rssiFilterImplClass,
+                 rssiFilterClass = other.rssiFilterClass,
                  scanStrategy = other.scanStrategy?.clone(),
                  longScanForcingEnabled = other.longScanForcingEnabled,
                  distanceModelUpdateUrl = other.distanceModelUpdateUrl,
@@ -118,7 +120,7 @@ data class Settings(
         fun fromBuilder(builder: Builder) : Settings {
             return Settings(scanPeriods = builder._scanPeriods,
                 debug = builder._debug, regionStatePersistenceEnabled = builder._regionStatePeristenceEnabled, useTrackingCache = builder._useTrackingCache, hardwareEqualityEnforced = builder._hardwareEqualityEnforced, regionExitPeriodMillis = builder._regionExitPeriodMillis,
-                maxTrackingAgeMillis = builder._maxTrackingAgeMillis, manifestCheckingDisabled = builder._manifestCheckingDisabled, beaconSimulator = builder._beaconSimulator, rssiFilterImplClass = builder._rssiFilterImplClass, scanStrategy = builder._scanStrategy?.clone(), longScanForcingEnabled = builder._longScanForcingEnabled, distanceModelUpdateUrl = builder._distanceModelUpdateUrl,
+                maxTrackingAgeMillis = builder._maxTrackingAgeMillis, manifestCheckingDisabled = builder._manifestCheckingDisabled, beaconSimulator = builder._beaconSimulator, rssiFilterClass = builder._rssiFilterClass, scanStrategy = builder._scanStrategy?.clone(), longScanForcingEnabled = builder._longScanForcingEnabled, distanceModelUpdateUrl = builder._distanceModelUpdateUrl,
                 distanceCalculatorFactory = builder._distanceCalculatorFactory)
         }
     }
@@ -132,11 +134,12 @@ data class Settings(
         const val maxTrackingAgeMillis = 10000
         const val manifestCheckingDisabled = false
         val beaconSimulator = DisabledBeaconSimulator()
-        val rssiFilterImplClass = RunningAverageRssiFilter::class.java
+        val rssiFilterImplClass: Class<*> = RunningAverageRssiFilter::class.java
         const val regionStatePeristenceEnabled = true
         const val hardwareEqualityEnforced = false
         const val distanceModelUpdateUrl = "" // disabled
         val distanceCalculatorFactory = ModelSpecificDistanceCalculatorFactory()
+
         init{
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 scanStrategy = JobServiceScanStrategy()
@@ -157,7 +160,7 @@ data class Settings(
         internal var _maxTrackingAgeMillis: Int? = null
         internal var _manifestCheckingDisabled: Boolean? = null
         internal var _beaconSimulator: BeaconSimulator? = null
-        internal var _rssiFilterImplClass: Class<RunningAverageRssiFilter>? = null
+        internal var _rssiFilterClass: Class<*>? = null
         internal var _distanceModelUpdateUrl: String? = null
         internal var _distanceCalculatorFactory: DistanceCalculatorFactory? = null
         internal var _scanStrategy: ScanStrategy? = null
@@ -188,6 +191,10 @@ data class Settings(
         }
         fun setLongScanForcingEnabled(longScanForcingEnabled: Boolean): Builder {
             this._longScanForcingEnabled = longScanForcingEnabled
+            return this
+        }
+        fun setRssiFilterClass(rssiFilterClass: Class<*>): Builder {
+            this._rssiFilterClass = rssiFilterClass
             return this
         }
         fun build(): Settings {

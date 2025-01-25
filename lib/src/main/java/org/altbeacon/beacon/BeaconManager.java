@@ -268,6 +268,9 @@ public class BeaconManager {
         else {
             BeaconManager.setBeaconSimulator(settings.getBeaconSimulator());
         }
+        if (settings.getRssiFilterImplClass() != null) {
+            BeaconManager.rssiFilterImplClass = settings.getRssiFilterImplClass();
+        }
         Beacon.setHardwareEqualityEnforced(Boolean.TRUE.equals(settings.getHardwareEqualityEnforced()));
         BeaconManager.setDebug(Boolean.TRUE.equals(settings.getDebug()));
         Settings.ScanPeriods sp = settings.getScanPeriods();

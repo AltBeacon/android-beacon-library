@@ -32,7 +32,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import java.util.List;
 import org.altbeacon.beacon.logging.LogManager;
-import org.altbeacon.bluetooth.BluetoothTestJob;
 
 /**
  *

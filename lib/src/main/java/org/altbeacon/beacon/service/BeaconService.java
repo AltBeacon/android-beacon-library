@@ -277,6 +277,7 @@ public class BeaconService extends Service {
         if (notification != null &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             try {
+                LogManager.d(TAG, "Upgrading service to foreground service with notificationId" + notificationId);
                 this.startForeground(notificationId, notification);
             }
             catch (SecurityException exception) {

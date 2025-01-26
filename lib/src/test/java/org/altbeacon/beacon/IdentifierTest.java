@@ -1,16 +1,12 @@
 package org.altbeacon.beacon;
 
-import android.os.Parcel;
-
-import static android.test.MoreAsserts.assertNotEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
@@ -64,7 +60,7 @@ public class IdentifierTest {
     public void testToByteArrayConvertsUuids() {
         Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
-        assertEquals("byte array is correct length", bytes.length, 16);
+        assertEquals("byte array is correct length", 16, bytes.length);
         assertEquals("first byte of uuid converted properly", 0x2f, bytes[0] & 0xFF);
         assertEquals("second byte of uuid converted properly", 0x23, bytes[1] & 0xFF);
         assertEquals("last byte of uuid converted properly", 0xa6, bytes[15] & 0xFF);
@@ -74,7 +70,7 @@ public class IdentifierTest {
     public void testToByteArrayConvertsUuidsAsLittleEndian() {
         Identifier identifier1 = Identifier.parse("2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(false);
-        assertEquals("byte array is correct length", bytes.length, 16);
+        assertEquals("byte array is correct length", 16, bytes.length);
         assertEquals("first byte of uuid converted properly", 0xa6, bytes[0] & 0xFF);
         assertEquals("last byte of uuid converted properly", 0x2f, bytes[15] & 0xFF);
     }
@@ -83,16 +79,17 @@ public class IdentifierTest {
     public void testToByteArrayConvertsHex() {
         Identifier identifier1 = Identifier.parse("0x010203040506");
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
-        assertEquals("byte array is correct length", bytes.length, 6);
+        assertEquals("byte array is correct length", 6, bytes.length);
         assertEquals("first byte of hex is converted properly", 0x01, bytes[0] & 0xFF);
         assertEquals("last byte of hex is converted properly", 0x06, bytes[5] & 0xFF);
     }
+
     @Test
     public void testToByteArrayConvertsDecimal() {
         Identifier identifier1 = Identifier.parse("65534");
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
-        assertEquals("byte array is correct length", bytes.length, 2);
-        assertEquals("reported byte array is correct length", identifier1.getByteCount(), 2);
+        assertEquals("byte array is correct length", 2, bytes.length);
+        assertEquals("reported byte array is correct length", 2, identifier1.getByteCount());
         assertEquals("first byte of decimal converted properly", 0xff, bytes[0] & 0xFF);
         assertEquals("last byte of decimal converted properly", 0xfe, bytes[1] & 0xFF);
     }
@@ -101,9 +98,9 @@ public class IdentifierTest {
     public void testToByteArrayConvertsInt() {
         Identifier identifier1 = Identifier.fromInt(65534);
         byte[] bytes = identifier1.toByteArrayOfSpecifiedEndianness(true);
-        assertEquals("byte array is correct length", bytes.length, 2);
-        assertEquals("reported byte array is correct length", identifier1.getByteCount(), 2);
-        assertEquals("conversion back equals original value", identifier1.toInt(), 65534);
+        assertEquals("byte array is correct length", 2, bytes.length);
+        assertEquals("reported byte array is correct length", 2, identifier1.getByteCount());
+        assertEquals("conversion back equals original value", 65534, identifier1.toInt());
         assertEquals("first byte of decimal converted properly", 0xff, bytes[0] & 0xFF);
         assertEquals("last byte of decimal converted properly", 0xfe, bytes[1] & 0xFF);
     }
@@ -127,8 +124,8 @@ public class IdentifierTest {
         byte[] value2 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
         Identifier identifier2 = Identifier.fromBytes(value2, 0, value2.length, false);
 
-        assertEquals("identifier1 is smaller than identifier2", identifier1.compareTo(identifier2), -1);
-        assertEquals("identifier2 is larger than identifier1", identifier2.compareTo(identifier1), 1);
+        assertEquals("identifier1 is smaller than identifier2", -1, identifier1.compareTo(identifier2));
+        assertEquals("identifier2 is larger than identifier1", 1, identifier2.compareTo(identifier1));
     }
 
     @Test
@@ -138,9 +135,9 @@ public class IdentifierTest {
         byte[] value2 = new byte[] {(byte) 0xFF, (byte) 0xAB, 0x12, 0x25, 0x11, 0x11};
         Identifier identifier2 = Identifier.fromBytes(value2, 0, value2.length, false);
 
-        assertEquals("identifier1 is equal to identifier2", identifier1.compareTo(identifier1), 0);
-        assertEquals("identifier1 is larger than identifier2", identifier1.compareTo(identifier2), 1);
-        assertEquals("identifier2 is smaller than identifier1", identifier2.compareTo(identifier1), -1);
+        assertEquals("identifier1 is equal to identifier2", 0, identifier1.compareTo(identifier1));
+        assertEquals("identifier1 is larger than identifier2", 1, identifier1.compareTo(identifier2));
+        assertEquals("identifier2 is smaller than identifier1", -1, identifier2.compareTo(identifier1));
     }
 
     @Test
@@ -176,7 +173,7 @@ public class IdentifierTest {
     public void testParseInvalidUuid() {
         UUID ref = UUID.fromString("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6");
         Identifier id = Identifier.parse("2f234454cf6d4a0fadf2f4911ba9ffa6");
-        assertEquals("Malformed UUID was parsed as expected.", id.toUuid(), ref);
+        assertEquals("Malformed UUID was parsed as expected.", ref, id.toUuid());
     }
 
     @Test
@@ -190,39 +187,44 @@ public class IdentifierTest {
         Identifier id = Identifier.parse("123456789abcdef");
         assertEquals("Should parse and get prefixed hex value for big numbers", "0x0123456789abcdef", id.toString());
     }
+
     @Test
     public void testParseZeroPrefixedDecimalNumberAsHex() {
         Identifier id = Identifier.parse("0010");
         assertEquals("Should be treated as hex in parse, but converted back to decimal because it is small", "16", id.toString());
     }
+
     @Test
     public void testParseNonZeroPrefixedDecimalNumberAsDecimal() {
         Identifier id = Identifier.parse("10");
         assertEquals("Should be treated as decimal", "10", id.toString());
     }
+
     @Test
     public void testParseDecimalNumberWithSpecifiedLength() {
         Identifier id = Identifier.parse("10", 8);
         assertEquals("Should be treated as hex because it is long", "0x000000000000000a", id.toString());
         assertEquals("Byte count should be as specified", 8, id.getByteCount());
     }
+
     @Test
     public void testParseDecimalNumberWithSpecifiedShortLength() {
         Identifier id = Identifier.parse("10", 2);
         assertEquals("Should be treated as decimal because it is short", "10", id.toString());
         assertEquals("Byte count should be as specified", 2, id.getByteCount());
     }
+
     @Test
     public void testParseHexNumberWithSpecifiedLength() {
         Identifier id = Identifier.parse("2fffffffffffffffffff", 10);
         assertEquals("Should be treated as hex because it is long", "0x2fffffffffffffffffff", id.toString());
         assertEquals("Byte count should be as specified", 10, id.getByteCount());
     }
+
     @Test
     public void testParseZeroAsInteger() {
         Identifier id = Identifier.parse("0");
         assertEquals("Should be treated as int because it is a common integer", "0", id.toString());
         assertEquals("Byte count should be 2 for integers", 2, id.getByteCount());
     }
-
 }

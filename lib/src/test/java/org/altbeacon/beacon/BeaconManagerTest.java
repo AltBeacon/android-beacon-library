@@ -43,18 +43,18 @@ public class BeaconManagerTest {
     Region region2 = new Region(id, "00:11:22:33:FF:EE");
 
     beaconManager.startRangingBeaconsInRegion(region1);
-    assertEquals(beaconManager.getRangedRegions().size(), 1);
-    assertSame(beaconManager.getRangedRegions().iterator().next(), region1);
-    assertNotSame(beaconManager.getRangedRegions().iterator().next(), region2);
+    assertEquals(1, beaconManager.getRangedRegions().size());
+    assertSame(region1, beaconManager.getRangedRegions().iterator().next());
+    assertNotSame(region2, beaconManager.getRangedRegions().iterator().next());
 
     beaconManager.startRangingBeaconsInRegion(region2);
-    assertEquals(beaconManager.getRangedRegions().size(), 1);
-    assertNotSame(beaconManager.getRangedRegions().iterator().next(), region1);
-    assertSame(beaconManager.getRangedRegions().iterator().next(), region2);
+    assertEquals(1, beaconManager.getRangedRegions().size(), 1);
+    assertNotSame(region1, beaconManager.getRangedRegions().iterator().next());
+    assertSame(region2, beaconManager.getRangedRegions().iterator().next());
 
     Region region3 = new Region(id + "-other", Collections.<Identifier>emptyList());
     beaconManager.startRangingBeaconsInRegion(region3);
-    assertEquals(beaconManager.getRangedRegions().size(), 2);
+    assertEquals(2, beaconManager.getRangedRegions().size());
   }
 
   @Test
@@ -70,13 +70,13 @@ public class BeaconManagerTest {
     beaconManager.startRangingBeaconsInRegion(region1);
     beaconManager.startRangingBeaconsInRegion(region2);
     beaconManager.startRangingBeaconsInRegion(region3);
-    assertEquals(beaconManager.getRangedRegions().size(), 2);
+    assertEquals(2, beaconManager.getRangedRegions().size());
 
     beaconManager.stopRangingBeaconsInRegion(region1);
-    assertEquals(beaconManager.getRangedRegions().size(), 1);
+    assertEquals(1, beaconManager.getRangedRegions().size());
 
     beaconManager.stopRangingBeaconsInRegion(region3);
-    assertEquals(beaconManager.getRangedRegions().size(), 0);
+    assertEquals(0, beaconManager.getRangedRegions().size());
   }
 
 }

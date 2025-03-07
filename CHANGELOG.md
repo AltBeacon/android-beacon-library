@@ -1,3 +1,7 @@
+### 2.21.1-beta1 / 2025-03-07
+
+- Fix crash starting ranging or monitoring on a background thread (#1223, David G. Young)
+
 ### 2.21.0 / 2025-1-25
 
 - Fix rssiFilterClass in new Settings API (#1218, David G. Young)

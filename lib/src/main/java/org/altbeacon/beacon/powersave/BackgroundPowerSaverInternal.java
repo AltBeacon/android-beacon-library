@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
@@ -28,6 +30,9 @@ public class BackgroundPowerSaverInternal implements DefaultLifecycleObserver {
     @NonNull
     private final Context applicationContext;
 
+    @NonNull
+    private final Handler handler;
+
     /**
      * Constructs a new BackgroundPowerSaver using the default background determination strategy
      *
@@ -41,7 +46,21 @@ public class BackgroundPowerSaverInternal implements DefaultLifecycleObserver {
 
         beaconManager = BeaconManager.getInstanceForApplication(applicationContext);
 
-        ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
+        handler = new Handler(applicationContext.getMainLooper());
+
+        // If we are not on the main thread, we need to post the observer registration to the main thread
+        // otherwise we get a crash
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    ProcessLifecycleOwner.get().getLifecycle().addObserver(BackgroundPowerSaverInternal.this);
+                }
+            });
+        }
+        else {
+            ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
-### 2.21.1-beta2 / 2025-03-08
+### 2.21.1-beta3 / 2025-03-10
 
+- Fix bugs in distinct packet detector by eliminating it (#1228, David G. Young)
 - Fix crash starting ranging or monitoring on a background thread (#1214, VolodaUa)
 - Fix missing distance calculator init (#1224, David G. Young)
 

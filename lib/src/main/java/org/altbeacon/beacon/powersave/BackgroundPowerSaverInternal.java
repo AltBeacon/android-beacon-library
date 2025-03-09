@@ -30,9 +30,6 @@ public class BackgroundPowerSaverInternal implements DefaultLifecycleObserver {
     @NonNull
     private final Context applicationContext;
 
-    @NonNull
-    private final Handler handler;
-
     /**
      * Constructs a new BackgroundPowerSaver using the default background determination strategy
      *

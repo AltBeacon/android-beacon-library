@@ -1510,6 +1510,10 @@ public class BeaconManager {
             LogManager.w(TAG, "The BeaconManager is not bound to the service.  Call beaconManager.bind(BeaconConsumer consumer) and wait for a callback to onBeaconServiceConnect()");
             return;
         }
+
+        DistanceCalculator distanceCalculator = settings.getDistanceCalculatorFactory().getInstance(mContext);
+        Beacon.setDistanceCalculatorInternal(distanceCalculator);
+
         if (mIntentScanStrategyCoordinator != null) {
             mIntentScanStrategyCoordinator.applySettings();
             return;

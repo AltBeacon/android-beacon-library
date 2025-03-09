@@ -1,6 +1,7 @@
-### 2.21.1-beta1 / 2025-03-07
+### 2.21.1-beta2 / 2025-03-08
 
 - Fix crash starting ranging or monitoring on a background thread (#1223, David G. Young)
+- Fix missing distance calculator init (#1224, David G. Young)
 
 ### 2.21.0 / 2025-1-25
 

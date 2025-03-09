@@ -46,21 +46,9 @@ public class BackgroundPowerSaverInternal implements DefaultLifecycleObserver {
 
         beaconManager = BeaconManager.getInstanceForApplication(applicationContext);
 
-        handler = new Handler(applicationContext.getMainLooper());
+        Handler mainHandler = new Handler(Looper.getMainLooper());
 
-        // If we are not on the main thread, we need to post the observer registration to the main thread
-        // otherwise we get a crash
-        if (Looper.myLooper() != Looper.getMainLooper()) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    ProcessLifecycleOwner.get().getLifecycle().addObserver(BackgroundPowerSaverInternal.this);
-                }
-            });
-        }
-        else {
-            ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
-        }
+        mainHandler.post(() -> ProcessLifecycleOwner.get().getLifecycle().addObserver(this));
     }
 
     @Override

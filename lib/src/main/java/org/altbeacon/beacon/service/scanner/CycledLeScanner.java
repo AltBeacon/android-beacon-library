@@ -91,22 +91,6 @@ public abstract class CycledLeScanner {
     protected boolean mBackgroundFlag = false;
     protected boolean mRestartNeeded = false;
 
-    /**
-     * Flag indicating device hardware supports detecting multiple identical packets per scan.
-     * <p>
-     * Restarting scanning (stopping and immediately restarting) is necessary on many older Android
-     * devices like the Nexus 4 and Moto G because once they detect a distinct BLE packet in a scan,
-     * subsequent detections do not get a scan callback. Stopping scanning and restarting clears
-     * this out, allowing subsequent detection of identical advertisements. On most newer device,
-     * this is not necessary, and multiple callbacks are given for identical packets detected in
-     * a single scan.
-     * <p>
-     * This is declared {@code volatile} because it may be set by a background scan thread while
-     * we are in a method on the main thread which will end up checking it. Using this modifier
-     * ensures that when we read the flag we'll always see the most recently written value. This is
-     * also true for background scan threads which may be running concurrently.
-     */
-    private volatile boolean mDistinctPacketsDetectedPerScan = false;
     private static final long ANDROID_N_MIN_SCAN_CYCLE_MILLIS = 6000l;
 
     protected CycledLeScanner(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
@@ -248,16 +232,6 @@ public abstract class CycledLeScanner {
         }
     }
 
-    @AnyThread
-    public boolean getDistinctPacketsDetectedPerScan() {
-        return mDistinctPacketsDetectedPerScan;
-    }
-
-    @AnyThread
-    public void setDistinctPacketsDetectedPerScan(boolean detected) {
-        mDistinctPacketsDetectedPerScan = detected;
-    }
-
     @MainThread
     public void destroy() {
         LogManager.d(TAG, "Destroying");
@@ -393,17 +367,7 @@ public abstract class CycledLeScanner {
             if (mScanning) {
                 if (getBluetoothAdapter() != null) {
                     if (getBluetoothAdapter().isEnabled()  || Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        // Determine if we need to restart scanning.  Restarting scanning is only
-                        // needed on devices incapable of detecting multiple distinct BLE advertising
-                        // packets in a single cycle, typically older Android devices (e.g. Nexus 4)
-                        // On such devices, it is necessary to stop scanning and restart to detect
-                        // multiple beacon packets in the same scan, allowing collection of multiple
-                        // rssi measurements.  Restarting however, causes brief detection dropouts
-                        // so it is best avoided.  If we know the device has detected to distinct
-                        // packets in the same cycle, we will not restart scanning and just keep it
-                        // going.
-                        if (!mDistinctPacketsDetectedPerScan ||
-                                mBetweenScanPeriod != 0 ||
+                        if (mBetweenScanPeriod != 0 ||
                                 mustStopScanToPreventAndroidNScanTimeout()) {
                             long now = SystemClock.elapsedRealtime();
                             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
@@ -429,7 +393,6 @@ public abstract class CycledLeScanner {
                             }
                         }
                         else {
-                            LogManager.d(TAG, "Not stopping scanning.  Device capable of multiple indistinct detections per scan.");
                             mScanningLeftOn = true;
                         }
 

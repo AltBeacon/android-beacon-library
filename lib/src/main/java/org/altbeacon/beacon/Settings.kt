@@ -207,7 +207,7 @@ data class Settings(
         val foregroundScanPeriodMillis: Long = 1100,
         val foregroundBetweenScanPeriodMillis: Long  = 0,
         val backgroundScanPeriodMillis: Long  = 30000,
-        val backgroundBetweenScanPeriodMillis: Long  = 0
+        val backgroundBetweenScanPeriodMillis: Long  = 300000
     )
     interface ScanStrategy: Comparable<ScanStrategy> {
         fun clone(): ScanStrategy

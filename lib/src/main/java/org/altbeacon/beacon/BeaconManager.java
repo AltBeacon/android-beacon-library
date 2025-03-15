@@ -256,7 +256,7 @@ public class BeaconManager {
         BeaconManager.setDistanceModelUpdateUrl(Objects.requireNonNull(settings.getDistanceModelUpdateUrl()));
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (settings.getScanPeriods().getBackgroundScanPeriodMillis() < 15*60*1000 /* 15 min */ &&
+            if (settings.getScanPeriods().getBackgroundBetweenScanPeriodMillis() < 15*60*1000 /* 15 min */ &&
                     settings.getScanStrategy() instanceof Settings.JobServiceScanStrategy) {
                 LogManager.w(TAG, "Setting a short backgroundBetweenScanPeriod has no effect on "+
                         "Android 8+, which is limited to scanning every ~15 minutes");
@@ -276,7 +276,7 @@ public class BeaconManager {
         BeaconManager.setDebug(Boolean.TRUE.equals(settings.getDebug()));
         Settings.ScanPeriods sp = settings.getScanPeriods();
         if (sp != null) {
-            setBackgroundBetweenScanPeriod(sp.getBackgroundScanPeriodMillis());
+            setBackgroundBetweenScanPeriod(sp.getBackgroundBetweenScanPeriodMillis());
             setBackgroundScanPeriod(sp.getBackgroundScanPeriodMillis());
             setForegroundBetweenScanPeriod(sp.getForegroundBetweenScanPeriodMillis());
             setForegroundScanPeriod(sp.getForegroundScanPeriodMillis());

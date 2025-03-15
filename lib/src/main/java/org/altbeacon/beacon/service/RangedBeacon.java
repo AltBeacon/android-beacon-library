@@ -112,9 +112,9 @@ public class RangedBeacon implements Serializable {
                     LogManager.e(TAG, "Failed with exception %s", e.toString());
                     LogManager.e(TAG, "Could not construct class %s", BeaconManager.getRssiFilterImplClass().getName());
                     LogManager.e(TAG, "Will default to RunningAverageRssiFilter");
-                    mFilter = new RunningAverageRssiFilter();
                 }
-            } else {
+            }
+            if (mFilter == null) {
                 // Use default rssi filter
                 mFilter = new RunningAverageRssiFilter();
             }

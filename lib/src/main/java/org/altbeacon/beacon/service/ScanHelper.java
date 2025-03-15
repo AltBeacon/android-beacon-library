@@ -28,7 +28,6 @@ import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
 import org.altbeacon.beacon.service.scanner.CycledLeScanner;
-import org.altbeacon.beacon.service.scanner.DistinctPacketDetector;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.service.scanner.ScanFilterUtils;
 import org.altbeacon.beacon.startup.StartupBroadcastReceiver;
@@ -67,7 +66,6 @@ class ScanHelper {
     private CycledLeScanner mCycledScanner;
     private MonitoringStatus mMonitoringStatus;
     private final Map<Region, RangeState> mRangedRegionState = new HashMap<>();
-    private DistinctPacketDetector mDistinctPacketDetector = new DistinctPacketDetector();
 
     @NonNull
     private ExtraDataBeaconTracker mExtraDataBeaconTracker = new ExtraDataBeaconTracker();
@@ -309,7 +307,6 @@ class ScanHelper {
                     LogManager.d(TAG, "Beacon simulator not enabled");
                 }
             }
-            mDistinctPacketDetector.clearDetections();
             mMonitoringStatus.updateNewlyOutside();
             processRangeData();
         }
@@ -445,13 +442,6 @@ class ScanHelper {
                     LogManager.d(TAG, "Beacon packet detected for: "+beacon+" with rssi "+beacon.getRssi());
                 }
                 detectionTracker.recordDetection();
-                if (mCycledScanner != null && !mCycledScanner.getDistinctPacketsDetectedPerScan()) {
-                    if (!mDistinctPacketDetector.isPacketDistinct(scanData.device.getAddress(),
-                            scanData.scanRecord)) {
-                        LogManager.i(TAG, "Non-distinct packets detected in a single scan.  Restarting scans unecessary.");
-                        mCycledScanner.setDistinctPacketsDetectedPerScan(true);
-                    }
-                }
                 processBeaconFromScan(beacon);
             } else {
                 if (nonBeaconLeScanCallback != null) {

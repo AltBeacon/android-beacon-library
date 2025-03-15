@@ -8,33 +8,33 @@ import org.altbeacon.beacon.logging.LogManager
 
 
 class PermissionsInspector(private val context: Context) {
-    fun hasBluetoothScanPermissions(): Boolean {
-        var ok = false
+    fun hasDeclaredBluetoothScanPermissions(): Boolean {
+        var ok = true
         if (!hasPermission(android.Manifest.permission.BLUETOOTH)) {
             LogManager.e(
                 TAG,
-                "BLUETOOTH permission not in manifest.  Will not be able to scan for bluetooth beacons"
+                "BLUETOOTH permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
             )
             ok = false
         }
         if (!hasPermission(android.Manifest.permission.BLUETOOTH_ADMIN)) {
             LogManager.e(
                 TAG,
-                "BLUETOOTH_ADMIN permission not granted.  Will not be able to scan for bluetooth beacons"
+                "BLUETOOTH_ADMIN permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
             )
             ok = false
         }
         if (!hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) && !hasPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)) {
             LogManager.e(
                 TAG,
-                "Neither ACCESS_FINE_LOCATION nor ACCESS_COARSE_LOCATION permission not in manifest.  Will not be able to scan for bluetooth beacons"
+                "Neither ACCESS_FINE_LOCATION nor ACCESS_COARSE_LOCATION permission declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
             )
             ok = false
         }
-        if (hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, PackageInfo.REQUESTED_PERMISSION_NEVER_FOR_LOCATION) || !hasPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION, PackageInfo.REQUESTED_PERMISSION_NEVER_FOR_LOCATION)) {
+        if (hasPermission(android.Manifest.permission.BLUETOOTH_SCAN, PackageInfo.REQUESTED_PERMISSION_NEVER_FOR_LOCATION)) {
             LogManager.e(
                 TAG,
-                "The neverForLocation permission flag is attached to ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION.  This will block detection of bluetooth beacons.  Please remove this from your AndroidManifest.xml, and if you don't see it, check the merged manifest in Android Studio, because it may have been added by another library you are using."
+                "The neverForLocation permission flag is attached to BLUETOOTH_SCAN permission AndroidManifest.xml.  This will block detection of bluetooth beacons.  Please remove this from your AndroidManifest.xml, and if you don't see it, check the merged manifest in Android Studio, because it may have been added by another library you are using."
             )
             ok = false
         }
@@ -42,7 +42,7 @@ class PermissionsInspector(private val context: Context) {
         if (!hasPermission(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
             LogManager.w(
                 TAG,
-                "ACCESS_BACKGROUND_LOCATION permission not in manifest.  Will not be able to scan for bluetooth beacons"
+                "ACCESS_BACKGROUND_LOCATION permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
             )
         }
 

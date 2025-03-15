@@ -1148,7 +1148,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (new PermissionsInspector(mContext).hasBluetoothScanPermissions()) {
+        if (! new PermissionsInspector(mContext).hasDeclaredBluetoothScanPermissions()) {
             // if we are in debug mode will will crash the app so the developer knows that the
             // manifest is not configured properly
             if (BuildConfig.DEBUG) {
@@ -1350,7 +1350,7 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
-        if (new PermissionsInspector(mContext).hasBluetoothScanPermissions()) {
+        if (! new PermissionsInspector(mContext).hasDeclaredBluetoothScanPermissions()) {
             // if we are in debug mode will will crash the app so the developer knows that the
             // manifest is not configured properly
             if (BuildConfig.DEBUG) {

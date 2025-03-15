@@ -67,6 +67,7 @@ import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 import org.altbeacon.beacon.simulator.BeaconSimulator;
 import org.altbeacon.beacon.utils.ChangeAwareCopyOnWriteArrayList;
 import org.altbeacon.beacon.utils.ChangeAwareCopyOnWriteArrayListNotifier;
+import org.altbeacon.beacon.utils.PermissionsInspector;
 import org.altbeacon.beacon.utils.ProcessUtils;
 
 import java.util.ArrayList;
@@ -1147,6 +1148,13 @@ public class BeaconManager {
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
         }
+        if (! new PermissionsInspector(mContext).hasDeclaredBluetoothScanPermissions()) {
+            // if we are in debug mode will will crash the app so the developer knows that the
+            // manifest is not configured properly
+            if (BuildConfig.DEBUG) {
+                throw new RuntimeException("AndroidManifest.xml is misconfigured for beacon scanning.  Check error logs above for detailed explanation.  This crash only happens in debug mode to aid development.");
+            }
+        }
         rangedRegions.remove(region);
         rangedRegions.add(region);
         applyChangesToServices(BeaconService.MSG_START_RANGING, region);
@@ -1341,6 +1349,13 @@ public class BeaconManager {
         }
         if (determineIfCalledFromSeparateScannerProcess()) {
             return;
+        }
+        if (! new PermissionsInspector(mContext).hasDeclaredBluetoothScanPermissions()) {
+            // if we are in debug mode will will crash the app so the developer knows that the
+            // manifest is not configured properly
+            if (BuildConfig.DEBUG) {
+                throw new RuntimeException("AndroidManifest.xml is misconfigured for beacon scanning.  Check error logs above for detailed explanation.  This crash only happens in debug mode to aid development.");
+            }
         }
         if (!isScannerInDifferentProcess()) {
             MonitoringStatus.getInstanceForApplication(mContext).addRegion(region, new Callback(callbackPackageName()));

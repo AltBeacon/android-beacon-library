@@ -1,3 +1,7 @@
+### Development
+
+- Fix crash getting distance (#1232, David G. Young)
+
 ### 2.21.1-beta3 / 2025-03-10
 
 - Fix bugs in distinct packet detector by eliminating it (#1228, David G. Young)

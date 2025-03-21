@@ -1,4 +1,4 @@
-### 2.21.1-beta4 / 2025-03-15
+### 2.21.1 / 2025-03-21
 
 - Fix default scan periods (#1230, Elican Doenyas)
 - Warn users about missing permissions declarations (#1229, David G. Young)

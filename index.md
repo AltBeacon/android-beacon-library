@@ -27,14 +27,11 @@ It allows Android devices to interact with Bluetooth beacons with APIs that are 
 ### What kinds of beacons does it detect?
 
 The library can easily be configured to detect iBeacon, Eddystone and other beacon formats.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org) See the documentation for the
-[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for how to work with other beacon formats.
+[BeaconParser](http://altbeacon.github.io/android-beacon-library/javadoc/org/altbeacon/beacon/BeaconParser.html) class for how to work with other beacon formats.  The official [reference app](reference.md) also shows you how to work with other beacon formats.
 
-### Android 14, 13 and 12 Support
+### Android Version Support and Permissions
 
-Apps using the library's built-in foreground service will need to be updated in order to target **Android 14.**  Library version 2.20+ supports Android 14, so [apps must upgrade to this version and ensure they obtain FINE_LOCATION permission before configuring](foreground-service.html] the foreground service.
-
-Library versions 2.19.5+ fully support Android 12 and 13 permission changes.  **Android 12 changed the location permission
-model** for apps that target SDK version 31+.  See the [request permission](/android-beacon-library/requesting_permission.html) page for more info.
+The library supports Android version 15 and is backward compatible all the way to Android 4.3.  It is important for apps targeting Android 12+ [request permission](/android-beacon-library/requesting_permission.html) from the user for both Bluetooth and Location.  Apps using the library's built-in foreground service must ensure they have FINE_LOCATION permission from the user before [configuring the foreground service.](foreground-service.html).
 
 ### Who uses this library?
 
@@ -74,7 +71,7 @@ model** for apps that target SDK version 31+.  See the [request permission](/and
 
 ### What devices can detect beacons?
 
-Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  As of 2023, this is over 99 percent of Android devices according to the [Google Play Store](https://developer.android.com/about/dashboards/index.html).  Transmitting beacon advertisements is also supported by nearly all Android devices.
+Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  This is over 99 percent of Android devices.  Transmitting beacon advertisements is also supported by nearly all Android devices.
 
 ### Eddystone Support
 

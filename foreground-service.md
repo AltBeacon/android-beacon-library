@@ -41,17 +41,31 @@ If targeting Android 14+ (SDK 24+) you must ensure that you have obtained FINE_L
 
 ```
 ...
-val builder = Notification.Builder(this)
-builder.setSmallIcon(R.mipmap.ic_launcher)
-builder.setContentTitle("Scanning for Beacons")
-val intent = new Intent(this, MonitoringActivity.class)
-val pendingIntent = PendingIntent.getActivity(
-    this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-)
-builder.setContentIntent(pendingIntent)
-beaconManager.enableForegroundServiceScanning(builder.build(), 456)
-beaconManager.setEnableScheduledScanJobs(false)
+        val builder = Notification.Builder(this, "BeaconReferenceApp")
+        builder.setSmallIcon(R.drawable.ic_launcher_background)
+        builder.setContentTitle("Scanning for Beacons")
+        val intent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
+        )
+        builder.setContentIntent(pendingIntent);
+        val channel =  NotificationChannel("beacon-ref-notification-id",
+            "My Notification Name", NotificationManager.IMPORTANCE_DEFAULT)
+        channel.description = "My Notification Channel Description"
+        val notificationManager =  getSystemService(
+            Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+        builder.setChannelId(channel.id)
+        val notification = builder.build()
 
+        val settings = Settings(
+            scanStrategy = Settings.ForegroundServiceScanStrategy(
+                notification, 456
+            ),
+            scanPeriods = Settings.ScanPeriods(1100, 0, 1100, 0),
+            longScanForcingEnabled = true
+        )
+        beaconManager.replaceSettings(settings)
 ```
 
 Note the above requires you to specify an icon for the scanning notification.  This may be your app icon or a custom icon.
@@ -64,8 +78,10 @@ between scans, the longer it will take to detect a beacon.  And the more reduce 
 Below is an example of constantly scanning in the background on a 1.1 second cycle:
 
 ```
-beaconManager.setBackgroundBetweenScanPeriod(0)
-beaconManager.setBackgroundScanPeriod(1100)
+// set the duration of the scan to be 1.1 seconds and
+// the time between each scan to be 0 seconds
+val delta = Settings(scanPeriods = Settings.ScanPeriods(1100, 0, 1100, 0))
+beaconManager.adjustSettings(delta)
 ```
 
 #### Android permissions
@@ -93,7 +109,6 @@ There is no guarantee the above retry will succeed, and if it does not, `beaconM
 Read [here](https://developer.android.com/guide/components/foreground-services#background-start-restrictions) for more info on the background restrictions on Android 12.
 
 Because of the above restrictions, understand that if you configure the library to use a foreground service on Android 12, it may or may not be started depending on operating system restictions.  One possible scenario is if your app with a foreground service crashes while running in the background.  The library will generally restart your app automatically, but when it does so, it will likely not be able to re-start the foreground service leaving it using the Job Scheduler for scanning.
- 
 
 #### Forked OEM Limitations
 

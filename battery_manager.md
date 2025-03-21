@@ -16,11 +16,11 @@ The battery manager automatically slows down the Bluetooth LE scan rate when you
 
 #### How much does it save?
 
-Our tests show that a Nexus 4 drains the battery at a rate of 90mA when looking for beacons in the foreground.  The default settings for the battery manager reduce this drain to 37mA -- about a 60% savings.  But again, you can customize these settings to save even more.
+Our initial tests showed that a Android phone drains the battery at a rate of 90mA when looking for beacons in the foreground.  The default settings for the battery manager reduce this drain to 37mA -- about a 60% savings.  But again, you can customize these settings to save even more.  (These numbers come from the first Nexus 4 device that suppored Bluetooth LE.  Specifics have certainly changed since then.)
 
 #### How do I set this up?
 
-Starting with library version 2.19 this is automatically enabled with calls to `startRangingBeacons(...)` and `startMonitoring(...)`.  If you want your app to start looking for beacons immediately and continue in the background, we recommand putting the code that starts it in the `onCreate()` method of a custom Application class like this:
+Starting with library version 2.19+ this is automatically enabled with calls to `startRangingBeacons(...)` and `startMonitoring(...)`.  If you want your app to start looking for beacons immediately and continue in the background, we recommand putting the code that starts it in the `onCreate()` method of a custom Application class like this:
 
 ```
 ...
@@ -46,13 +46,11 @@ between scans, the longer it will take to detect a beacon.  And the more reduce 
 Below is an example of a rather extreme battery savings configuration:
 
 ```
-// set the duration of the scan to be 1.1 seconds
-beaconManager.setBackgroundScanPeriod(1100l)
-// set the time between each scan to be 1 hour (3600 seconds)
-beaconManager.setBackgroundBetweenScanPeriod(3600000l)
+// set the duration of the scan to be 1.1 seconds and
+// the time between each scan to be 1 hour (3600 seconds)
+val delta = Settings(scanPeriods = Settings.ScanPeriods(1100, 3600000, 1100, 3600000))
+beaconManager.adjustSettings(delta)
 ```
-
-
 
 #### Background detections between scan cycles
 

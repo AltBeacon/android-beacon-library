@@ -13,6 +13,13 @@ A minimalist [reference application](https://github.com/davidgyoung/android-beac
 **IMPORTANT:**  Your app must [request permission](/android-beacon-library/requesting_permission.html) from the user to get location access or no beacons will be detected.  Follow
 the link to see the code you need to add to your activity to get this permission.
 
+## Importig Dependencies
+
+Add this to your app's build.gradle file:
+
+    implementation('com.davidgyoungtech:beacon-parsers:1.0')
+    implementation 'org.altbeacon:android-beacon-library:2.21.0'
+
 ## Monitoring Example Code
 
 ```kotlin
@@ -26,8 +33,13 @@ class MonitoringActivity : Activity() {
         // TODO: Add code here to obtain location permission from user
         // TODO: Add beaconParsers for any properietry beacon formats you wish to detect
         
-        val beaconManager =  BeaconManager.getInstanceForApplication(this)        
-        val region = Region("all-beacons-region", null, null, null)
+        val beaconManager =  BeaconManager.getInstanceForApplication(this) 
+        // If you wish to detect a different type of beacon than AltBeacon, use a different beacon parser for that beacon type in the line below       
+        val region = BeaconRegion("wildcard altbeacon", AltBeaconParser(), null, null, null)
+
+        beaconManager.startMonitoring(region)
+        beaconManager.startRangingBeacons(region)
+        
         // Set up a Live Data observer so this Activity can get monitoring callbacks 
         // observer will be called each time the monitored regionState changes (inside vs. outside region)
         beaconManager.getRegionViewModel(region).regionState.observe(this, monitoringObserver)
@@ -62,7 +74,8 @@ class RangingActivity : Activity() {
         // TODO: Add beaconParsers for any properietry beacon formats you wish to detect
                 
         val beaconManager =  BeaconManager.getInstanceForApplication(this)        
-        val region = Region("all-beacons-region", null, null, null)
+        // If you wish to detect a different type of beacon than AltBeacon, use a different beacon parser for that beacon type in the line below       
+        val region = BeaconRegion("wildcard altbeacon", AltBeaconParser(), null, null, null)
         // Set up a Live Data observer so this Activity can get ranging callbacks 
         // observer will be called each time the monitored regionState changes (inside vs. outside region)
         beaconManager.getRegionViewModel(region).rangedBeacons.observe(this, rangingObserver)
@@ -117,7 +130,8 @@ public class MyApplication extends Application {
         // TODO: Add beaconParsers for any properietry beacon formats you wish to detect
         
         val beaconManager =  BeaconManager.getInstanceForApplication(this)        
-        val region = Region("all-beacons-region", null, null, null)
+        // If you wish to detect a different type of beacon than AltBeacon, use a different beacon parser for that beacon type in the line below       
+        val region = BeaconRegion("wildcard altbeacon", AltBeaconParser(), null, null, null)
         // Set up a Live Data observer so this Activity can get monitoring callbacks 
         // observer will be called each time the monitored regionState changes (inside vs. outside region)
         beaconManager.getRegionViewModel(region).regionState.observeForever(monitoringObserver)
@@ -152,8 +166,8 @@ val beacon = Beacon.Builder()
         .setTxPower(-59)
         .setDataFields(Arrays.asList(new Long[] {0l}))
         .build()
-val beaconParser = BeaconParser()
-        .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")
+// If you wish to transmit a different type of beacon than AltBeacon, use a different beacon parser 
+val beaconParser = AltBeaconParser()
 val beaconTransmitter = BeaconTransmitter(getApplicationContext(), beaconParser)
 beaconTransmitter.startAdvertising(beacon)
 ```

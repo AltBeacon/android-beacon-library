@@ -26,7 +26,7 @@ It allows Android devices to interact with Bluetooth beacons with APIs that are 
 
 ### What kinds of beacons does it detect?
 
-The library can easily be configured to detect iBeacon, Eddystone and other beacon formats.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org) but  [BeaconParsers](https://github.com/davidgyoung/beacon-parsers/) allow it to work with other beacon formats as shown in the official [reference app](reference.md).
+The library can easily be configured to detect iBeacon, Eddystone and other beacon formats.  By default, it detects beacons meeting the open [AltBeacon standard](http://altbeacon.org) but  [BeaconParsers](https://github.com/davidgyoung/beacon-parsers/) allow it to work with other beacon formats as shown in the official [reference app](https://github.com/davidgyoung/android-beacon-library-reference-kotlin).
 
 ### Android Version Support and Permissions
 

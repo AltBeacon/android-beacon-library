@@ -13,12 +13,12 @@ A minimalist [reference application](https://github.com/davidgyoung/android-beac
 **IMPORTANT:**  Your app must [request permission](/android-beacon-library/requesting_permission.html) from the user to get location access or no beacons will be detected.  Follow
 the link to see the code you need to add to your activity to get this permission.
 
-## Importig Dependencies
+## Importing Dependencies
 
 Add this to your app's build.gradle file:
 
     implementation('com.davidgyoungtech:beacon-parsers:1.0')
-    implementation 'org.altbeacon:android-beacon-library:2.21.0'
+    implementation 'org.altbeacon:android-beacon-library:2+'
 
 ## Monitoring Example Code
 
@@ -31,7 +31,6 @@ class MonitoringActivity : Activity() {
         setContentView(R.layout.activity_monitoring)
         
         // TODO: Add code here to obtain location permission from user
-        // TODO: Add beaconParsers for any properietry beacon formats you wish to detect
         
         val beaconManager =  BeaconManager.getInstanceForApplication(this) 
         // If you wish to detect a different type of beacon than AltBeacon, use a different beacon parser for that beacon type in the line below       
@@ -71,7 +70,6 @@ class RangingActivity : Activity() {
         setContentView(R.layout.activity_monitoring)
 
         // TODO: Add code here to obtain location permission from user
-        // TODO: Add beaconParsers for any properietry beacon formats you wish to detect
                 
         val beaconManager =  BeaconManager.getInstanceForApplication(this)        
         // If you wish to detect a different type of beacon than AltBeacon, use a different beacon parser for that beacon type in the line below       
@@ -100,7 +98,7 @@ by the user at least once, and obtained the necessary location permissions from 
 
 You must create a class that extends `Application` (shown in the example) and then declare this in your AndroidManifest.xml.
 
-Here is the AndroidManifest.xml entry.  Note that it declares a custom Application class, and a background launch activity marked as "singleInstance".
+Here is the AndroidManifest.xml entry.  Note that it declares a custom Application class where you put your code to start beacon monitoring.
 
 ```xml
 
@@ -126,8 +124,7 @@ public class MyApplication extends Application {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_monitoring)
         
-        // TODO: Add code to obtain background location permission from user        
-        // TODO: Add beaconParsers for any properietry beacon formats you wish to detect
+        // TODO: Add code to obtain permissions from user        
         
         val beaconManager =  BeaconManager.getInstanceForApplication(this)        
         // If you wish to detect a different type of beacon than AltBeacon, use a different beacon parser for that beacon type in the line below       

@@ -23,20 +23,17 @@ layout: android-beacon-library
 <li><a href='configure.html'>Download and project setup guide</a></li>
 <li><a href='samples.html'>Code samples</a></li>
 <li><a href='https://github.com/AltBeacon/android-beacon-library-reference'>Reference application (Android Studio)</a></li>
-<li><a href='https://github.com/AltBeacon/android-beacon-library-reference/tree/eclipse'>Reference application (Eclipse)</a></li>
-<li><a href='javadoc/index.html'>API JavaDoc</a></li>
-<li><a href='block-diagram.html'>Library Block Diagram</a></li>
-<li><a href='alternate-configuration.html'>Alternate Configuration (JAR only)</a></li>
-<li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
 <li><a href='autobind.html'>Using autobind APIs</a></li>
+<li><a href='block-diagram.html'>Library Block Diagram</a></li>
+<li><a href='backward-compatibility.html'>Using the library with apps targeting older Android versions</a></li>
 </ul>
 
 ### Background Detection
 
 <ul>
 <li><a href='detection_times.html'>Expected detection times and alternate scan strategies</a></li>
-<li><a href='foreground-service.html'>Using a foreground service</a></li>
 <li><a href='background_launching.html'>Auto launching app on beacon detection</a></li>
+<li><a href='foreground-service.html'>Using a foreground service</a></li>
 <li><a href='notifications.html'>Sending notifications on beacon detection</a></li>
 <li><a href='battery_manager.html'>Saving battery when your app is in the background</a></li>
 <li><a href='resume-after-terminate.html'>Detecting beacons after the app is killed</a></li>
@@ -48,7 +45,16 @@ layout: android-beacon-library
 <ul>
 <li><a href='eddystone-support.html'>Eddystone Support</a></li>
 <li><a href='eddystone-how-to.html'>Eddystone Code Samples</a></li>
-<li><a href='eddystone-eid.html'>Eddystone Ephemeral Identifier (Encryption)</a></li>
+</ul>
+
+### Archived Documentation
+
+These documents are for outdated features of the library that are no longer actively maintained.
+
+<ul>
+<li><a href='eddystone-eid.html'>Eddystone Ephemeral Identifier</a></li>
+<li><a href='javadoc/index.html'>API JavaDoc</a></li>
+<li><a href='alternate-configuration.html'>Alternate Configuration (JAR only)</a></li>
 </ul>
 
 

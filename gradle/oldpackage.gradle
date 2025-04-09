@@ -1,0 +1,113 @@
+apply plugin: 'idea'
+
+idea {
+    module {
+        testOutputDir = file('build/test-classes/debug')
+    }
+}
+
+task renameAarForRelease(type: Copy, dependsOn: build) {
+    description = "Rename the aar for easy release publishing"
+
+    from "$buildDir/outputs/aar/" //${project.name}-release.aar
+    into "$buildDir/outputs/aar/" //${project.name}-${project.version}.aar"
+    include "${project.name}-release.aar"
+    rename { String fileName ->
+        fileName = "${project.name}-${project.version}.aar"
+    }
+}
+
+task distribution(dependsOn: [build, clean, renameAarForRelease]) {
+    doLast {
+        println "Building with version=$version"
+    }
+}
+
+task release(dependsOn: 'distribution') {
+    doLast {
+        println('Doing release build')
+    }
+}
+
+android.libraryVariants.all { variant ->
+
+    task("generate${variant.name}Javadoc", type: Javadoc) {
+        title = "Android Beacon Library $version API"
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar =
+                "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        //Refer to https://stackoverflow.com/a/50833438/4068957
+        doFirst { classpath = files(variant.javaCompile.classpath.files, ext.androidJar)}
+        options.linksOffline "http://d.android.com/reference/", "${android.sdkDirectory}/docs/reference"
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
+build.mustRunAfter clean
+
+apply from: '../gradle/credentials.gradle'
+// custom tasks for creating source/javadoc jars
+task androidJavadocsJar(type: Jar) {
+    from "$buildDir/libs/$project.name-$project.version-javadoc.jar"
+}
+
+task androidSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+}
+// configuration of the Maven artifacts
+apply plugin: 'maven-publish'
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+    archives androidSourcesJar, androidJavadocsJar
+}
+
+publishing {
+    publications {
+        dist(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+            artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
+            artifact androidJavadocsJar {
+                classifier 'javadoc'
+            }
+            artifact androidSourcesJar {
+                classifier 'source'
+            }
+
+            pom.withXml {
+                def Node root = asNode()
+                root.appendNode('name', project.name)
+                root.appendNode('description', project.project_description)
+                root.appendNode('url', project.project_url)
+
+                def issues = root.appendNode('issueManagement')
+                issues.appendNode('system', 'github')
+                issues.appendNode('url', project.project_issues_url)
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', project.project_scm)
+                scm.appendNode('connection', project.project_connection)
+                scm.appendNode('developerConnection', project.project_dev_connection)
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+
+                def dev = root.appendNode('developers').appendNode('developer')
+                dev.appendNode('id', project.project_vendor)
+                dev.appendNode('name', project.project_vendor_name)
+                dev.appendNode('organization', 'AltBeacon')
+                dev.appendNode('organizationUrl', 'altbeacon.org')
+            }
+        }
+    }
+}
+
+
+
+

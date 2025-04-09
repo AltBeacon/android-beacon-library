@@ -1,7 +1,7 @@
 Android Beacon Library
 =======================
 
-[![Build Status](https://snap-ci.com/AltBeacon/android-beacon-library/branch/master/build_image)](https://snap-ci.com/AltBeacon/android-beacon-library/branch/master)
+[![Build Status](https://circleci.com/gh/AltBeacon/android-beacon-library.png?circle-token=4e11fb0dccaa8b98bc67fdbe38b179e4a7d07c27)](https://circleci.com/gh/AltBeacon/android-beacon-library)
 
 An Android library providing APIs to interact with beacons.  Please visit the
 [project website](http://altbeacon.github.io/android-beacon-library/) for how to use this library.
@@ -18,14 +18,7 @@ at a frequency of approximately 1Hz.
 
 ## Documentation
 
-The [project website](http://altbeacon.github.io/android-beacon-library/) has [full documentation](http://altbeacon.github.io/android-beacon-library/documentation.html) including [Javadocs.](http://altbeacon.github.io/android-beacon-library/javadoc/)
-
-## Changes from the 0.x library version
-
-This library has changed significantly from the 0.x library version and is now designed to work with
-open AltBeacons which fully support Android without any intellectual property restrictions.  For
-more information on how to migrate projects using the 0.x APIs to the 2.x APIs, see
-[API migration.](api-migrate.md)
+The [project website](http://altbeacon.github.io/android-beacon-library/) has [full documentation](http://altbeacon.github.io/android-beacon-library/documentation.html) 
 
 ## Downloads
 
@@ -33,22 +26,22 @@ more information on how to migrate projects using the 0.x APIs to the 2.x APIs, 
 
 You may [download binary releases here.](http://altbeacon.github.io/android-beacon-library/download.html)
 
-### JCenter
+### Maven
 
-Add JCenter to your build file's list of repositories.
+Add Maven Central to your build file's list of repositories.
 
 ```groovy
 repositories {
-    jcenter()
+   mavenCentral()
 }
 ```
 
-to use the JCenter Repository
+to use the Maven Central Repository
 
 ```groovy
 dependencies {
     ...
-    compile 'org.altbeacon:android-beacon-library:${altbeacon.version}'
+    implementation 'org.altbeacon:android-beacon-library:${altbeacon.version}'
     ...
 }
 ```
@@ -57,14 +50,13 @@ replacing `${altbeacon.version}` with the version you wish to use.
 
 ## How to build this Library
 
-This project uses an AndroidStudio/gradle build system and is known working with Android Studio
-1.0.1 and Gradle 2.2.1
+This project uses an AndroidStudio/gradle build system and is known working with Android Studio Flamingo | 2022.2.1 Patch 1 and Gradle 8.0
 
 Key Gradle build targets:
 
-    ./gradlew test # run unit tests
+    ./gradlew test # run unit tests. To see results: `open lib/build/reports/tests/testDebugUnitTest/index.html`
     ./gradlew build # development build
-    ./gradlew release  # release build  
+    ./gradlew release # release build
 
 ## License
 
@@ -88,23 +80,27 @@ If you want to help with the open source project, contact david@radiusnetworks.c
 
 The following instructions are for project administrators.
 
-1. Upload you Sonotype signing keypair to Bintray
+1. Prerequisites: https://getstream.io/blog/publishing-libraries-to-mavencentral-2021/ 
 
 2. Configure your  ~/.gradle/gradle.properties with:
 
-    signing.keyId=<my key id>
-    signing.password=<my passphrase>
-    signing.secretKeyRingFile=~/.gnupg/secring.gpg
-    signingPassword=<my passphrase>
-
-    bintrayUserName=<bintray username>
-    bintrayKey=<bintray api key>
+        signing.keyId=<my key id>
+        signing.password=<my passphrase>
+        signing.secretKeyRingFile=<path to exported gpg file>
+        signing.password=<my passphrase>
+        ossrhUsername=<sonotype server username>
+        ossrhPassword=<sonotype server password>
 
 3. Run the build and upload
 
-   git tag <version>
-   git push --tags 
-   ./gradlew release -Prelease
-   ./gradlew bintrayUpload -Prelease
+        git tag <version>
+        git push --tags 
+        ./gradlew release
+        ./gradlew mavenPublish # Wait 10 mins before using the next command
+        ./gradlew closeAndReleaseRepository
 
-4. Log in to JCenter, hit the button to publish the release, then select the Maven tab and enter your credentials to Sync to Maven
+4. Keep checking for a half hour or so at https://repo1.maven.org/maven2/org/altbeacon/android-beacon-library/ to see that the new release shows up.
+
+Note:  you must have Java 17 to build the projecdt.  If that is not the version on the path, and you have Android Studio installed, you may be able to add it to the path with:
+
+`export PATH=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home/bin:$PATH`

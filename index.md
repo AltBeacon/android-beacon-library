@@ -70,4 +70,4 @@ The library supports Android version 15 and is backward compatible all the way t
 
 ### What devices can detect beacons?
 
-Any device with Android 4.3+ and a Bluetooth Low Energy chipset can detect beacons with this library.  This is over 99 percent of Android devices.  Transmitting beacon advertisements is also supported by nearly all Android devices.
+Over 99 percent of Android devices can detect beacons with this library.  All that is required is Andoird 4.3+ and Bluetooth LE.  Transmitting beacon advertisements is also supported by nearly all Android devices.

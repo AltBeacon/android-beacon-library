@@ -53,7 +53,7 @@ See the blog post [here](http://www.davidgyoungtech.com/2017/08/07/beacon-detect
 
 If you need faster detectons than the default Job Scheduler Scan Strategy allows, then consider using an altrnate scan strategy as described below. 
 
-##Job Service Scan Strategy
+## Job Service Scan Strategy
 
 **Pros:** Simple setup, battery friendly, works well for many use cases.  Works similarly to iOS beacon apps in the background.
 
@@ -89,7 +89,7 @@ The Intent Scan Strategy is generally designed to be used with a backgroundBetwe
 The IntentScanStrategy becomes problematic for battery only when a matching beacon is detcted in the vicinity for long periods of time (or many matching beacons are detected for shorter periods of time) while the app is in the background.  If this happens, the OS will deliver many Intents to your app to notify it of these detections and it will drain the battery.  This would be a poor choice for an app that continually detects beacons that are always present around the home or office, but a good choice for apps that detect a beacon that will only be encountered periodically for a few minutes (perhaps up to an hour) at a time.
 
 
-##Foreground Service Scan Strategy
+## Foreground Service Scan Strategy
 
 **Pros:** Gives maximum background detection speed and performance.
 
@@ -104,7 +104,7 @@ beaconManager.updateSettings(
 This strategy is good for apps that must have both rapid ranging updates in the background and need to know quickly if beacons disappear.  Uses a built-in library foreground service to keep the app alive, so helpful if your app does not have a foreground service of its own.  Be especially careful about using foreground services  on Andorid 13+ because apps typically cannot start a foreground service from the background except on specific events like phone reboot.  If the library cannot start a foreground service when theis strategy is configured due to operating system restrictions, it will fall back to using the default Job Service Scan Strategy.
 
 
-##Background Service Scan Strategy
+## Background Service Scan Strategy
 
 **Pros:** Let's you customize the foreground service while getting the same pros/cons as the foreground service strategy above.
 

@@ -31,7 +31,12 @@ import java.util.Date;
 
 @TargetApi(18)
 public abstract class CycledLeScanner {
-    public static final long ANDROID_N_MAX_SCAN_DURATION_MILLIS = 10 * 60 * 1000l; // 10 minutes
+    /**
+     * Android moves an unfiltered scan to opportunistic mode once it has run for the Bluetooth
+     * stack's scan_timeout_millis. That used to be 30 minutes, but recent devices (Pixel, Samsung)
+     * ship 5 minutes, so restart the scan before that.
+     */
+    public static final long ANDROID_N_MAX_SCAN_DURATION_MILLIS = 4 * 60 * 1000l; // 4 minutes
     private static final String TAG = "CycledLeScanner";
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -539,12 +544,13 @@ public abstract class CycledLeScanner {
     }
 
     /**
-     * On Android N and later, a scan that runs for more than 30 minutes will be automatically
-     * stopped by the OS and converted to an "opportunistic" scan, meaning that they will only yield
-     * detections if another app is scanning.  This is inteneded to save battery.  This can be
-     * prevented by stopping scanning and restarting.  This method returns true if:
+     * On Android N and later, a scan that runs for longer than the OS scan timeout (30 minutes
+     * originally, 5 minutes on many recent devices) will be automatically stopped by the OS and
+     * converted to an "opportunistic" scan, meaning that they will only yield detections if
+     * another app is scanning.  This is inteneded to save battery.  This can be prevented by
+     * stopping scanning and restarting.  This method returns true if:
      *   * this is Android N or later
-     *   * we are close to the 30 minute boundary since the last scan started
+     *   * we are close to the ANDROID_N_MAX_SCAN_DURATION_MILLIS boundary since the last scan started
      *   * The app developer has explicitly enabled long-running scans
      * @return true if we must stop scanning to prevent
      */

@@ -27,6 +27,8 @@ package org.altbeacon.beacon.service;
 import android.app.AlarmManager;
 import android.app.InvalidForegroundServiceTypeException;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
@@ -42,7 +44,9 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
+import android.service.notification.StatusBarNotification;
 import androidx.annotation.MainThread;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.RestrictTo.Scope;
 
@@ -51,6 +55,7 @@ import org.altbeacon.beacon.BeaconLocalBroadcastProcessor;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.BuildConfig;
+import org.altbeacon.beacon.R;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.scanner.CycledLeScanCallback;
@@ -73,6 +78,7 @@ import static android.app.PendingIntent.getBroadcast;
 
 public class BeaconService extends Service {
     public static final String TAG = "BeaconService";
+    private static final String FOREGROUND_SERVICE_CHANNEL_ID = "org.altbeacon.beacon.service.BeaconService";
     private final Handler handler = new Handler();
     private BluetoothCrashResolver bluetoothCrashResolver;
     private ScanHelper mScanHelper;
@@ -273,8 +279,11 @@ public class BeaconService extends Service {
                 .getForegroundServiceNotification();
         int notificationId = beaconManager
                 .getForegroundServiceNotificationId();
-        if (notification != null &&
+        if (beaconManager.isForegroundServiceScanningEnabled() &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (notification == null) {
+                notification = getForegroundServiceNotificationWithoutOwn(notificationId);
+            }
             try {
                 LogManager.d(TAG, "Upgrading service to foreground service with notificationId" + notificationId);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -290,6 +299,43 @@ public class BeaconService extends Service {
                 LogManager.w(TAG, "Call to service startForeground() threw a SecurityException.  The Foreground Service for beacon scanning may have started anyway, but this behavior might change in  different conditions or a future Android version.");
             }
         }
+    }
+
+    /*
+     * The notification of the foreground service when the app gave it none: the one the app already
+     * shows with the same id, so that both share it, or else a plain one with the app's name and icon.
+     */
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
+    @SuppressWarnings("deprecation")
+    private Notification getForegroundServiceNotificationWithoutOwn(int notificationId) {
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            for (StatusBarNotification shown : notificationManager.getActiveNotifications()) {
+                if (shown.getId() == notificationId) {
+                    return shown.getNotification();
+                }
+            }
+        }
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (notificationManager.getNotificationChannel(FOREGROUND_SERVICE_CHANNEL_ID) == null) {
+                notificationManager.createNotificationChannel(new NotificationChannel(
+                        FOREGROUND_SERVICE_CHANNEL_ID,
+                        getString(R.string.altbeacon_foreground_service_channel_name),
+                        NotificationManager.IMPORTANCE_LOW));
+            }
+            builder = new Notification.Builder(this, FOREGROUND_SERVICE_CHANNEL_ID);
+        }
+        else {
+            builder = new Notification.Builder(this);
+        }
+        int icon = getApplicationInfo().icon;
+        return builder
+                .setSmallIcon(icon != 0 ? icon : android.R.drawable.stat_sys_data_bluetooth)
+                .setContentTitle(getPackageManager().getApplicationLabel(getApplicationInfo()))
+                .setOngoing(true)
+                .build();
     }
 
     private String getManifestMetadataValue(String key) {

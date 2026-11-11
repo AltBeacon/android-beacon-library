@@ -286,7 +286,12 @@ data class Settings(
             }
         }
     }
-    class ForegroundServiceScanStrategy(val notification: Notification, val notificationId: Int): ScanStrategy {
+    /**
+     * Scans in a foreground service.  Without a notification, see
+     * [BeaconManager.enableForegroundServiceScanning].
+     */
+    class ForegroundServiceScanStrategy(val notification: Notification?, val notificationId: Int): ScanStrategy {
+        constructor(notificationId: Int) : this(null, notificationId)
         var androidLScanningDisabled = true
         override fun clone(): ForegroundServiceScanStrategy {
            return ForegroundServiceScanStrategy(notification, notificationId)

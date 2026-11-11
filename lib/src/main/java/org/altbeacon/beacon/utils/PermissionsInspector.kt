@@ -10,19 +10,33 @@ import org.altbeacon.beacon.logging.LogManager
 class PermissionsInspector(private val context: Context) {
     fun hasDeclaredBluetoothScanPermissions(): Boolean {
         var ok = true
-        if (!hasPermission(android.Manifest.permission.BLUETOOTH)) {
-            LogManager.e(
-                TAG,
-                "BLUETOOTH permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
-            )
-            ok = false
-        }
-        if (!hasPermission(android.Manifest.permission.BLUETOOTH_ADMIN)) {
-            LogManager.e(
-                TAG,
-                "BLUETOOTH_ADMIN permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
-            )
-            ok = false
+        // An app that targets Android 12 or later scans with BLUETOOTH_SCAN on Android 12 and later. It may declare
+        // BLUETOOTH and BLUETOOTH_ADMIN with android:maxSdkVersion="30", and Android then leaves them out of its
+        // requested permissions.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            context.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.S) {
+            if (!hasPermission(android.Manifest.permission.BLUETOOTH_SCAN)) {
+                LogManager.e(
+                    TAG,
+                    "BLUETOOTH_SCAN permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
+                )
+                ok = false
+            }
+        } else {
+            if (!hasPermission(android.Manifest.permission.BLUETOOTH)) {
+                LogManager.e(
+                    TAG,
+                    "BLUETOOTH permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
+                )
+                ok = false
+            }
+            if (!hasPermission(android.Manifest.permission.BLUETOOTH_ADMIN)) {
+                LogManager.e(
+                    TAG,
+                    "BLUETOOTH_ADMIN permission not declared in AndroidManifest.xml.  Will not be able to scan for bluetooth beacons"
+                )
+                ok = false
+            }
         }
         if (!hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) && !hasPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)) {
             LogManager.e(

@@ -555,6 +555,9 @@ public abstract class CycledLeScanner {
      * @return true if we must stop scanning to prevent
      */
     private boolean mustStopScanToPreventAndroidNScanTimeout() {
+        if (isScanTimeoutExempt()) {
+            return false;
+        }
         long timeOfNextScanCycleEnd = SystemClock.elapsedRealtime() +  mBetweenScanPeriod +
                 mScanPeriod;
         boolean timeoutAtRisk = android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
@@ -572,6 +575,14 @@ public abstract class CycledLeScanner {
                         "prevent this, set longScanForcingEnabled in the AndroidBeaconLibrary.");
             }
         }
+        return false;
+    }
+
+    /**
+     * @return true if the OS applies no scan timeout to the running scan, so it never needs to be
+     * stopped and restarted for it
+     */
+    protected boolean isScanTimeoutExempt() {
         return false;
     }
 }

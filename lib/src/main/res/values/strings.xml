@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The notification channel of the beacon scanning service, when the app gives it no notification -->
+    <string name="altbeacon_foreground_service_channel_name">Beacon scanning</string>
+</resources>

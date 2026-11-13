@@ -146,6 +146,7 @@ public class BeaconManager {
     @Nullable
     private Notification mForegroundServiceNotification = null;
     private int mForegroundServiceNotificationId = -1;
+    private boolean mForegroundServiceScanningEnabled = false;
 
     private Handler mServiceSyncHandler = new Handler(Looper.getMainLooper());
     private boolean mServiceSyncScheduled = false;
@@ -597,7 +598,7 @@ public class BeaconManager {
                     LogManager.i(TAG, "Using BeaconService to scan. Binding to service");
                     Intent intent = new Intent(consumer.getApplicationContext(), BeaconService.class);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                            this.getForegroundServiceNotification() != null) {
+                            this.isForegroundServiceScanningEnabled()) {
                         if (isAnyConsumerBound() && !mScheduledScanJobsEnabledByFallback) {
                             LogManager.i(TAG, "Not starting foreground beacon scanning" +
                                     " service.  A consumer is already bound, so it should be started");
@@ -1961,30 +1962,32 @@ public class BeaconManager {
      * @see #setForegroundScanPeriod(long)
      * @see #setForegroundBetweenScanPeriod(long)
      *
-     * This method requires a notification to display a message to the user about why the app is
-     * scanning in the background.  The notification must include an icon that will be displayed
-     * in the top bar whenever the scanning service is running.
+     * The notification displays a message to the user about why the app is scanning in the
+     * background.  It must include an icon that will be displayed in the top bar whenever the
+     * scanning service is running.  Without a notification, the scanning service shares the
+     * notification the app already shows with notificationId, for example the one of its own
+     * foreground service, or else shows a plain notification with the app's name and icon.
+     * Android shows a foreground service's notification shortly after the service starts, so to
+     * share the notification of a service that starts at the same time, pass that notification.
      *
      * If the BeaconService is configured to run in a different process, this call will have no
      * effect.
      *
      * @param notification - the notification that will be displayed when beacon scanning is active,
-     *                       along with the icon that shows up in the status bar.
+     *                       along with the icon that shows up in the status bar, or null
      *
      * @throws IllegalStateException if called after consumers are already bound to the scanning
      * service
      */
-    public void enableForegroundServiceScanning(Notification notification, int notificationId)
+    public void enableForegroundServiceScanning(@Nullable Notification notification, int notificationId)
             throws IllegalStateException {
         LogManager.d(TAG, "API enableForegroundServiceScanning "+notification);
 
         if (isAnyConsumerBound()) {
             throw new IllegalStateException("May not be called after consumers are already bound.");
         }
-        if (notification == null) {
-            throw new NullPointerException("Notification cannot be null");
-        }
         setEnableScheduledScanJobs(false);
+        mForegroundServiceScanningEnabled = true;
         mForegroundServiceNotification = notification;
         mForegroundServiceNotificationId = notificationId;
     }
@@ -2040,8 +2043,18 @@ public class BeaconManager {
         if (isAnyConsumerBound()) {
             throw new IllegalStateException("May not be called after consumers are already bound");
         }
+        mForegroundServiceScanningEnabled = false;
         mForegroundServiceNotification = null;
         setScheduledScanJobsEnabledDefault();
+    }
+
+    /**
+     * @see #enableForegroundServiceScanning
+     * @return Whether beacon scanning runs in a foreground service, with or without a notification
+     * of its own
+     */
+    public boolean isForegroundServiceScanningEnabled() {
+        return mForegroundServiceScanningEnabled;
     }
 
     /**

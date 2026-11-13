@@ -58,7 +58,8 @@ class PermissionsInspector(private val context: Context) {
                 for (p in info.requestedPermissions) {
                     if (p == permission) {
                         if (permissionFlag != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                            for (flag in info.requestedPermissionsFlags) {
+                            // requestedPermissionsFlags is @Nullable from API 35
+                            for (flag in info.requestedPermissionsFlags ?: IntArray(0)) {
                                 if ((flag and permissionFlag) != 0) {
                                     return true // permission flag found
                                 }

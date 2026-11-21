@@ -31,6 +31,7 @@ import java.util.List;
 public class CycledLeScannerForLollipop extends CycledLeScanner {
     private static final String TAG = "CycledLeScannerForLollipop";
     private static final long BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS = 10000l;
+    private static final int ANDROID_17 = 37;
     private BluetoothLeScanner mScanner;
     private ScanCallback leScanCallback;
     private long mBackgroundLScanStartTime = 0l;
@@ -180,7 +181,14 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             LogManager.d(TAG, "starting filtered scan in SCAN_MODE_LOW_POWER");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
-                          mBeaconManager.getBeaconParsers());
+                    mBeaconManager.getBeaconParsers());
+        } else if (isThrottledScanAvoidanceNeeded()) {
+            LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_POWER for Android 17's scan allowance");
+            settings = (new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+            // Off screen, so with filters
+            filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                    mBeaconManager.getBeaconParsers());
         } else {
             LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
@@ -434,4 +442,19 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             }
         }
     };
+
+    /*
+     * Whether to scan with a low power scan for Android 17's scan allowance: on Android 17
+     * and later on Pixel devices, in a foreground service that scans all the time, while the app is
+     * not on screen.  On screen, scanning costs no allowance, so the scan stays in low latency.
+     */
+    private boolean isThrottledScanAvoidanceNeeded() {
+        if (Build.VERSION.SDK_INT < ANDROID_17 || !mBackgroundFlag ||
+                mBeaconManager.getForegroundServiceNotification() == null) {
+            return false;
+        }
+
+        return BeaconManager.getInstanceForApplication(mContext)
+                .getActiveSettings().getThrottledScanAvoidanceEnabled();
+    }
 }

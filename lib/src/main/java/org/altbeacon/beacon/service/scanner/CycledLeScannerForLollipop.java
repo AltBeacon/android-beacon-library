@@ -11,11 +11,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import androidx.annotation.MainThread;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
@@ -41,8 +43,12 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
      * power batch scan keeps 140 ms of every 1.4 s off screen, and the allowance pays for it all
      * hour.  The stack raises a report delay under 5 s to 5 s, so the results are fetched every
      * second instead (flushPendingScanResults).
+     * The allowance is in Google's Bluetooth module, which Pixels have.  Samsung phones with
+     * Android 17 have no allowance, so by default only phones with Google's module get the batch
+     * scan (BeaconManager.setAndroid17BatchScanEnabled).
      */
     private static final int ANDROID_17 = 37;
+    private static final String GOOGLE_BLUETOOTH_PACKAGE = "com.google.android.bluetooth";
     private static final long BATCH_REPORT_DELAY_MILLIS = 5000l;
     private static final long BATCH_FLUSH_INTERVAL_MILLIS = 1000l;
     // Low power leaves at most about 1.5 s between results.  The screen-off mode, 512 ms of every
@@ -65,6 +71,8 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     // (elapsedRealtime), on the main thread
     private long mLastBatchResultTime = 0l;
     private long mLastBatchGapRestartTime = 0l;
+    // Whether the phone has Google's Bluetooth module, null until checked
+    private Boolean mHasGoogleBluetoothStack = null;
 
     public CycledLeScannerForLollipop(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
@@ -272,6 +280,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 mBeaconManager.getForegroundServiceNotification() == null) {
             return false;
         }
+        Boolean enabled = mBeaconManager.getAndroid17BatchScanEnabled();
+        if (enabled == null ? !hasGoogleBluetoothStack() : !enabled) {
+            return false;
+        }
         try {
             BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
             if (bluetoothAdapter != null && bluetoothAdapter.isOffloadedScanBatchingSupported()) {
@@ -283,6 +295,23 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             LogManager.w(TAG, "SecurityException checking for batch scan support", e);
         }
         return false;
+    }
+
+    // Whether the phone has Google's Bluetooth module, which has the scan allowance.  The library's
+    // manifest makes the package visible (<queries>).
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private boolean hasGoogleBluetoothStack() {
+        if (mHasGoogleBluetoothStack == null) {
+            try {
+                mContext.getPackageManager().getPackageInfo(GOOGLE_BLUETOOTH_PACKAGE,
+                        PackageManager.PackageInfoFlags.of(0));
+                mHasGoogleBluetoothStack = true;
+            } catch (PackageManager.NameNotFoundException e) {
+                mHasGoogleBluetoothStack = false;
+            }
+            LogManager.d(TAG, "Google's Bluetooth module: %s", mHasGoogleBluetoothStack ? "yes" : "no");
+        }
+        return mHasGoogleBluetoothStack;
     }
 
     /*

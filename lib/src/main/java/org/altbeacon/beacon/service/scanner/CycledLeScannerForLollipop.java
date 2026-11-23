@@ -21,6 +21,7 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.Settings;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
@@ -45,7 +46,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
      * second instead (flushPendingScanResults).
      * The allowance is in Google's Bluetooth module, which Pixels have.  Samsung phones with
      * Android 17 have no allowance, so by default only phones with Google's module get the batch
-     * scan (BeaconManager.setAndroid17BatchScanEnabled).
+     * scan (Settings.android17BatchScanMode).
      */
     private static final int ANDROID_17 = 37;
     private static final String GOOGLE_BLUETOOTH_PACKAGE = "com.google.android.bluetooth";
@@ -280,8 +281,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 mBeaconManager.getForegroundServiceNotification() == null) {
             return false;
         }
-        Boolean enabled = mBeaconManager.getAndroid17BatchScanEnabled();
-        if (enabled == null ? !hasGoogleBluetoothStack() : !enabled) {
+        Settings.Android17BatchScanMode mode = mBeaconManager.getActiveSettings().getAndroid17BatchScanMode();
+        if (mode == Settings.Android17BatchScanMode.OFF ||
+                (mode == Settings.Android17BatchScanMode.AUTO && !hasGoogleBluetoothStack())) {
             return false;
         }
         try {

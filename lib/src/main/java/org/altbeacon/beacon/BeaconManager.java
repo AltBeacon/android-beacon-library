@@ -146,8 +146,6 @@ public class BeaconManager {
     @Nullable
     private Notification mForegroundServiceNotification = null;
     private int mForegroundServiceNotificationId = -1;
-    @Nullable
-    private Boolean mAndroid17BatchScanEnabled = null;
 
     private Handler mServiceSyncHandler = new Handler(Looper.getMainLooper());
     private boolean mServiceSyncScheduled = false;
@@ -2061,32 +2059,6 @@ public class BeaconManager {
      */
     public int getForegroundServiceNotificationId() {
         return mForegroundServiceNotificationId;
-    }
-
-    /**
-     * Sets whether the foreground service scans with a low power batch scan while the app is not
-     * on screen on Android 17 and later.  Some Android 17 phones give each app 6 minutes of scanning
-     * an hour while it is not on screen, and the batch scan makes that last the hour.  It takes
-     * effect the next time the scan starts.
-     *
-     * @param enabled null (the default) to use it only on phones with Google's Bluetooth module
-     *                (com.google.android.bluetooth), such as Pixels, which have that limit;
-     *                Samsung phones with Android 17 don't.  true or false to always or never use it
-     *                on Android 17 and later.
-     */
-    public void setAndroid17BatchScanEnabled(@Nullable Boolean enabled) {
-        LogManager.d(TAG, "API setAndroid17BatchScanEnabled "+enabled);
-        mAndroid17BatchScanEnabled = enabled;
-    }
-
-    /**
-     * @see #setAndroid17BatchScanEnabled
-     * @return Whether the batch scan is always (true) or never (false) used on Android 17 and
-     * later, or null to use it only on phones with Google's Bluetooth module
-     */
-    @Nullable
-    public Boolean getAndroid17BatchScanEnabled() {
-        return mAndroid17BatchScanEnabled;
     }
 
 

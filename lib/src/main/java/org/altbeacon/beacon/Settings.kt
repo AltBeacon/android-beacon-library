@@ -23,7 +23,8 @@ data class AppliedSettings (
     val distanceModelUpdateUrl: String = Settings.Defaults.distanceModelUpdateUrl,
     val distanceCalculatorFactory: DistanceCalculatorFactory = Settings.Defaults.distanceCalculatorFactory,
     val scanStrategy: Settings.ScanStrategy = Settings.Defaults.scanStrategy.clone(),
-    val longScanForcingEnabled: Boolean = Settings.Defaults.longScanForcingEnabled
+    val longScanForcingEnabled: Boolean = Settings.Defaults.longScanForcingEnabled,
+    val android17BatchScanMode: Settings.Android17BatchScanMode = Settings.Defaults.android17BatchScanMode
 
     ) {
     companion object {
@@ -34,18 +35,21 @@ data class AppliedSettings (
             return AppliedSettings(scanPeriods = delta.scanPeriods ?: settings.scanPeriods, debug = delta.debug ?: settings.debug, regionStatePersistenceEnabled = delta.regionStatePersistenceEnabled ?: settings.regionStatePersistenceEnabled, useTrackingCache = delta.useTrackingCache ?: settings.useTrackingCache, hardwareEqualityEnforced = delta.hardwareEqualityEnforced ?: settings.hardwareEqualityEnforced,
                 regionExitPeriodMillis = delta.regionExitPeriodMillis ?: settings.regionExitPeriodMillis, maxTrackingAgeMillis = delta.maxTrackingAgeMillis ?: settings.maxTrackingAgeMillis, manifestCheckingDisabled = delta.manifestCheckingDisabled ?: settings.manifestCheckingDisabled,
                 beaconSimulator = delta.beaconSimulator ?: settings.beaconSimulator, rssiFilterImplClass = delta.rssiFilterClass ?: settings.rssiFilterImplClass, scanStrategy = delta.scanStrategy?.clone() ?: settings.scanStrategy, longScanForcingEnabled = delta.longScanForcingEnabled ?: settings.longScanForcingEnabled, distanceModelUpdateUrl = delta.distanceModelUpdateUrl ?: settings.distanceModelUpdateUrl,
-                distanceCalculatorFactory = delta.distanceCalculatorFactory ?: settings.distanceCalculatorFactory)
+                distanceCalculatorFactory = delta.distanceCalculatorFactory ?: settings.distanceCalculatorFactory,
+                android17BatchScanMode = delta.android17BatchScanMode ?: settings.android17BatchScanMode)
         }
         fun withDefaultValues(): AppliedSettings {
             return AppliedSettings(scanPeriods = Settings.Defaults.scanPeriods, debug = Settings.Defaults.debug, regionStatePersistenceEnabled = Settings.Defaults.regionStatePeristenceEnabled, useTrackingCache = Settings.Defaults.useTrackingCache, hardwareEqualityEnforced = Settings.Defaults.hardwareEqualityEnforced,
                 regionExitPeriodMillis = Settings.Defaults.regionExitPeriodMillis, maxTrackingAgeMillis = Settings.Defaults.maxTrackingAgeMillis, manifestCheckingDisabled = Settings.Defaults.manifestCheckingDisabled,
                 beaconSimulator = Settings.Defaults.beaconSimulator, rssiFilterImplClass = Settings.Defaults.rssiFilterImplClass, scanStrategy = Settings.Defaults.scanStrategy.clone(), longScanForcingEnabled = Settings.Defaults.longScanForcingEnabled, distanceModelUpdateUrl = Settings.Defaults.distanceModelUpdateUrl,
-                distanceCalculatorFactory = Settings.Defaults.distanceCalculatorFactory)
+                distanceCalculatorFactory = Settings.Defaults.distanceCalculatorFactory,
+                android17BatchScanMode = Settings.Defaults.android17BatchScanMode)
         }
         fun fromSettings(other: AppliedSettings) : AppliedSettings {
             return AppliedSettings(scanPeriods = other.scanPeriods, debug = other.debug, regionStatePersistenceEnabled = other.regionStatePersistenceEnabled, useTrackingCache = other.useTrackingCache, hardwareEqualityEnforced = other.hardwareEqualityEnforced,
                 regionExitPeriodMillis = other.regionExitPeriodMillis, maxTrackingAgeMillis = other.maxTrackingAgeMillis, manifestCheckingDisabled = other.manifestCheckingDisabled,
-                beaconSimulator = other.beaconSimulator, rssiFilterImplClass = other.rssiFilterImplClass, scanStrategy = other.scanStrategy.clone(), longScanForcingEnabled = other.longScanForcingEnabled, distanceModelUpdateUrl = other.distanceModelUpdateUrl, distanceCalculatorFactory = other.distanceCalculatorFactory)
+                beaconSimulator = other.beaconSimulator, rssiFilterImplClass = other.rssiFilterImplClass, scanStrategy = other.scanStrategy.clone(), longScanForcingEnabled = other.longScanForcingEnabled, distanceModelUpdateUrl = other.distanceModelUpdateUrl, distanceCalculatorFactory = other.distanceCalculatorFactory,
+                android17BatchScanMode = other.android17BatchScanMode)
         }
     }
 }
@@ -98,7 +102,13 @@ data class Settings(
     val distanceModelUpdateUrl: String? = null,
     val distanceCalculatorFactory: DistanceCalculatorFactory? = null,
     val scanStrategy: ScanStrategy? = null,
-    val longScanForcingEnabled: Boolean? = null
+    val longScanForcingEnabled: Boolean? = null,
+    /**
+     * Whether the foreground service scans with a low power batch scan while the app is not on
+     * screen on Android 17 and later, see [Android17BatchScanMode].
+     * Default is AUTO
+     */
+    val android17BatchScanMode: Android17BatchScanMode? = null
     ) {
     companion object {
         fun fromSettings(other: Settings) : Settings {
@@ -115,19 +125,21 @@ data class Settings(
                  scanStrategy = other.scanStrategy?.clone(),
                  longScanForcingEnabled = other.longScanForcingEnabled,
                  distanceModelUpdateUrl = other.distanceModelUpdateUrl,
-                 distanceCalculatorFactory = other.distanceCalculatorFactory)
+                 distanceCalculatorFactory = other.distanceCalculatorFactory,
+                 android17BatchScanMode = other.android17BatchScanMode)
         }
         fun fromBuilder(builder: Builder) : Settings {
             return Settings(scanPeriods = builder._scanPeriods,
                 debug = builder._debug, regionStatePersistenceEnabled = builder._regionStatePeristenceEnabled, useTrackingCache = builder._useTrackingCache, hardwareEqualityEnforced = builder._hardwareEqualityEnforced, regionExitPeriodMillis = builder._regionExitPeriodMillis,
                 maxTrackingAgeMillis = builder._maxTrackingAgeMillis, manifestCheckingDisabled = builder._manifestCheckingDisabled, beaconSimulator = builder._beaconSimulator, rssiFilterClass = builder._rssiFilterClass, scanStrategy = builder._scanStrategy?.clone(), longScanForcingEnabled = builder._longScanForcingEnabled, distanceModelUpdateUrl = builder._distanceModelUpdateUrl,
-                distanceCalculatorFactory = builder._distanceCalculatorFactory)
+                distanceCalculatorFactory = builder._distanceCalculatorFactory, android17BatchScanMode = builder._android17BatchScanMode)
         }
     }
     object Defaults {
         const val debug = false
         val scanStrategy: ScanStrategy
         const val longScanForcingEnabled = false
+        val android17BatchScanMode = Android17BatchScanMode.AUTO
         val scanPeriods = ScanPeriods()
         const val regionExitPeriodMillis = 30000
         const val useTrackingCache = true
@@ -165,6 +177,7 @@ data class Settings(
         internal var _distanceCalculatorFactory: DistanceCalculatorFactory? = null
         internal var _scanStrategy: ScanStrategy? = null
         internal var _longScanForcingEnabled: Boolean? = null
+        internal var _android17BatchScanMode: Android17BatchScanMode? = null
         fun setDebug(debug: Boolean): Builder {
             this._debug = debug
             return this
@@ -197,6 +210,10 @@ data class Settings(
             this._rssiFilterClass = rssiFilterClass
             return this
         }
+        fun setAndroid17BatchScanMode(android17BatchScanMode: Android17BatchScanMode): Builder {
+            this._android17BatchScanMode = android17BatchScanMode
+            return this
+        }
         fun build(): Settings {
             return fromBuilder(this)
         }
@@ -209,6 +226,23 @@ data class Settings(
         val backgroundScanPeriodMillis: Long  = 30000,
         val backgroundBetweenScanPeriodMillis: Long  = 300000
     )
+
+    /**
+     * Some Android 17 phones give each app 6 minutes of scanning an hour while it is not on
+     * screen.  A low power batch scan makes that last the hour.  It takes effect the next time the
+     * scan starts.
+     */
+    enum class Android17BatchScanMode {
+        /**
+         * Only on phones with Google's Bluetooth module (com.google.android.bluetooth), such as
+         * Pixels, which have that limit.  Samsung phones with Android 17 don't.
+         */
+        AUTO,
+        /** On every phone with Android 17 or later */
+        ON,
+        /** Never */
+        OFF
+    }
     interface ScanStrategy: Comparable<ScanStrategy> {
         fun clone(): ScanStrategy
 

@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <queries>
+        <!-- Google's Bluetooth module, to know if the phone has Android 17's scan allowance -->
+        <package android:name="com.google.android.bluetooth" />
+    </queries>
+
     <application>
         <receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver" android:exported="false">
             <intent-filter>

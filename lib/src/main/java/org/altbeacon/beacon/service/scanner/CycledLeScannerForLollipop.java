@@ -11,26 +11,63 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import androidx.annotation.MainThread;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.WorkerThread;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.Settings;
 import org.altbeacon.beacon.logging.LogManager;
 import org.altbeacon.beacon.service.DetectionTracker;
 import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.bluetooth.BluetoothMedic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @TargetApi(21)
 public class CycledLeScannerForLollipop extends CycledLeScanner {
     private static final String TAG = "CycledLeScannerForLollipop";
     private static final long BACKGROUND_L_SCAN_DETECTION_PERIOD_MILLIS = 10000l;
+
+    /*
+     * Android 17's Bluetooth stack (the Pixel 9's ScanThrottler) gives each app 6 minutes of scan
+     * allowance an hour, and charges none while the app is on screen.  Off screen, low latency uses
+     * it at 100% of real time and low power at 10%.  Once it is used up, every scan of the app gets
+     * 512 ms of every 10.24 s until the allowance refills, an hour after the last refill.  A batch
+     * scan (report delay > 0) gets neither the screen-off downgrade nor the scan timeout, so a low
+     * power batch scan keeps 140 ms of every 1.4 s off screen, and the allowance pays for it all
+     * hour.  The stack raises a report delay under 5 s to 5 s, so the results are fetched every
+     * second instead (flushPendingScanResults).
+     * The allowance is in Google's Bluetooth module, which Pixels have.  Samsung phones with
+     * Android 17 have no allowance, so by default only phones with Google's module get the batch
+     * scan (Settings.android17BatchScanMode).
+     */
+    private static final int ANDROID_17 = 37;
+    private static final String GOOGLE_BLUETOOTH_PACKAGE = "com.google.android.bluetooth";
+    private static final long BATCH_REPORT_DELAY_MILLIS = 5000l;
+    private static final long BATCH_FLUSH_INTERVAL_MILLIS = 1000l;
+    // Low power leaves at most about 1.5 s between results.  The screen-off mode, 512 ms of every
+    // 10.24 s, leaves about 10 s, and about 20 s when a beacon misses one of those listens (up to
+    // 19.2 s on a Pixel 9), so a longer gap means that two listens in a row got nothing
+    private static final long BATCH_GAP_MILLIS = 25000l;
+    private static final long MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS = 60000l;
+    // Results less than this apart come from the same listen (the screen-off mode listens 512 ms)
+    private static final long BATCH_LISTEN_MILLIS = 600l;
+    // Low power listens every 1.4 s and the screen-off mode every 10.24 s, so results from two
+    // listens less than this apart show that the chip is not at the screen-off rate
+    private static final long SCREEN_OFF_LISTEN_GAP_MILLIS = 9000l;
+    // How many gaps of 9 to 25 s in a row, with no shorter one between them, show the screen-off rate
+    private static final int SCREEN_OFF_GAPS_BEFORE_RESTART = 4;
+    // While the screen-off rate stays after a restart, the wait for the next one doubles up to this
+    private static final long MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS = 16 * 60000l;
+
     private BluetoothLeScanner mScanner;
     private ScanCallback leScanCallback;
     private long mBackgroundLScanStartTime = 0l;
@@ -39,6 +76,18 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     private final BeaconManager mBeaconManager;
     private final PowerManager mPowerManager;
     private boolean mScanningStarted = false;
+    // Whether the running scan is a batch scan, set on the scan thread
+    private volatile boolean mBatchScanStarted = false;
+    // When the latest batch scan result was heard, and when a gap last restarted the scan
+    // (elapsedRealtime), on the main thread
+    private long mLastBatchResultTime = 0l;
+    private long mLastBatchGapRestartTime = 0l;
+    // Gaps in a row at the screen-off rate, and the wait before the next restart for them, on the
+    // main thread
+    private int mScreenOffGapCount = 0;
+    private long mScreenOffRestartIntervalMillis = MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS;
+    // Whether the phone has Google's Bluetooth module, null until checked
+    private Boolean mHasGoogleBluetoothStack = null;
 
     public CycledLeScannerForLollipop(Context context, long scanPeriod, long betweenScanPeriod, boolean backgroundFlag, CycledLeScanCallback cycledLeScanCallback, BluetoothCrashResolver crashResolver) {
         super(context, scanPeriod, betweenScanPeriod, backgroundFlag, cycledLeScanCallback, crashResolver);
@@ -181,6 +230,16 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                           mBeaconManager.getBeaconParsers());
+        } else if (isAndroid17BatchScanNeeded()) {
+            LogManager.d(TAG, "starting a batch scan in SCAN_MODE_LOW_POWER for Android 17's scan allowance");
+            settings = (new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+                    .setReportDelay(BATCH_REPORT_DELAY_MILLIS)).build();
+            // Off screen, so with filters
+            filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
+                    mBeaconManager.getBeaconParsers());
+            mLastBatchResultTime = 0l;
+            mScreenOffGapCount = 0;
         } else {
             LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
@@ -227,6 +286,143 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         }
     }
 
+    /*
+     * Whether to scan with a low power batch scan for Android 17's scan allowance: on Android 17
+     * and later, in a foreground service that scans all the time, while the app is not on screen.
+     * On screen, scanning costs no allowance, so the scan stays in low latency.
+     */
+    private boolean isAndroid17BatchScanNeeded() {
+        if (Build.VERSION.SDK_INT < ANDROID_17 || !mBackgroundFlag ||
+                mBeaconManager.getForegroundServiceNotification() == null) {
+            return false;
+        }
+        Settings.Android17BatchScanMode mode = mBeaconManager.getActiveSettings().getAndroid17BatchScanMode();
+        if (mode == Settings.Android17BatchScanMode.OFF ||
+                (mode == Settings.Android17BatchScanMode.AUTO && !hasGoogleBluetoothStack())) {
+            return false;
+        }
+        try {
+            BluetoothAdapter bluetoothAdapter = getBluetoothAdapter();
+            if (bluetoothAdapter != null && bluetoothAdapter.isOffloadedScanBatchingSupported()) {
+                return true;
+            }
+            LogManager.w(TAG, "This Bluetooth chip has no batch scan, so the scan stays in low latency");
+        }
+        catch (SecurityException e) {
+            LogManager.w(TAG, "SecurityException checking for batch scan support", e);
+        }
+        return false;
+    }
+
+    // Whether the phone has Google's Bluetooth module, which has the scan allowance.  The library's
+    // manifest makes the package visible (<queries>).
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private boolean hasGoogleBluetoothStack() {
+        if (mHasGoogleBluetoothStack == null) {
+            try {
+                mContext.getPackageManager().getPackageInfo(GOOGLE_BLUETOOTH_PACKAGE,
+                        PackageManager.PackageInfoFlags.of(0));
+                mHasGoogleBluetoothStack = true;
+            } catch (PackageManager.NameNotFoundException e) {
+                mHasGoogleBluetoothStack = false;
+            }
+            LogManager.d(TAG, "Google's Bluetooth module: %s", mHasGoogleBluetoothStack ? "yes" : "no");
+        }
+        return mHasGoogleBluetoothStack;
+    }
+
+    /*
+     * Android's Bluetooth stack applies no scan timeout to a batch scan, so it runs on without the
+     * restart every few minutes.  Restarting it would also risk the stack bug described at
+     * restartBatchScanAfterGap: on a Pixel 9 the chip refused the new parameters after 2 of 26
+     * such restarts, and delivered nothing for 10 to 20 s.
+     */
+    @Override
+    protected boolean isScanTimeoutExempt() {
+        return mBatchScanStarted;
+    }
+
+    /*
+     * When a batch scan is stopped and started again within a few ms, the Bluetooth stack can
+     * restart the chip's batch scan twice, and the chip refuses the second set of parameters
+     * (COMMAND_DISALLOWED, seen on a Pixel 9).  The stack does so itself when Android 17's scan
+     * allowance runs out and refills at once.  The stack then charges low power while the chip
+     * goes on with 512 ms of every 10.24 s, or delivers nothing, until the scan starts again.
+     * Gaps of 10 and 20 s are also normal while the stack holds the scan in its screen-off mode
+     * after the allowance runs out, and starting the scan again then can make the chip refuse the
+     * parameters itself (a Pixel 9 delivered nothing after such a restart).
+     * So the scan starts again, at most once a minute:
+     * - after a gap longer than two of those listens: the chip delivers nothing;
+     * - after SCREEN_OFF_GAPS_BEFORE_RESTART gaps of about 10 or 20 s in a row: the chip runs at
+     *   the screen-off rate.  The app can't tell the chip bug from the stack's own screen-off mode,
+     *   so while that rate stays after a restart, the wait before the next one doubles, up to
+     *   MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS.  Results from listens less than 9 s apart show the
+     *   chip is back at the low power rate, and reset the wait.
+     */
+    @MainThread
+    private void restartBatchScanAfterGap(List<ScanResult> results) {
+        long[] heardTimes = new long[results.size()];
+        for (int i = 0; i < heardTimes.length; i++) {
+            heardTimes[i] = results.get(i).getTimestampNanos() / 1000000;
+        }
+        Arrays.sort(heardTimes);
+        long longestGap = 0l;
+        for (long heardTime : heardTimes) {
+            long gap = mLastBatchResultTime > 0 ? heardTime - mLastBatchResultTime : 0l;
+            if (gap > BATCH_LISTEN_MILLIS) {
+                // A result from a later listen
+                if (gap < SCREEN_OFF_LISTEN_GAP_MILLIS) {
+                    mScreenOffGapCount = 0;
+                    mScreenOffRestartIntervalMillis = MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS;
+                } else if (gap <= BATCH_GAP_MILLIS) {
+                    mScreenOffGapCount++;
+                }
+                longestGap = Math.max(longestGap, gap);
+            }
+            mLastBatchResultTime = Math.max(mLastBatchResultTime, heardTime);
+        }
+        if (!mBatchScanStarted || !mMainScanCycleActive) {
+            return;
+        }
+        long now = SystemClock.elapsedRealtime();
+        long sinceLastRestart = now - mLastBatchGapRestartTime;
+        if (longestGap > BATCH_GAP_MILLIS && sinceLastRestart >= MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS) {
+            LogManager.d(TAG, "Restarting the batch scan after a gap of %s ms", longestGap);
+        } else if (mScreenOffGapCount >= SCREEN_OFF_GAPS_BEFORE_RESTART &&
+                sinceLastRestart >= mScreenOffRestartIntervalMillis) {
+            LogManager.d(TAG, "Restarting the batch scan after %s gaps in a row at the screen-off rate, " +
+                    "next time no sooner than %s ms after this", mScreenOffGapCount,
+                    Math.min(mScreenOffRestartIntervalMillis * 2, MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS));
+            mScreenOffRestartIntervalMillis = Math.min(mScreenOffRestartIntervalMillis * 2,
+                    MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS);
+        } else {
+            return;
+        }
+        mLastBatchGapRestartTime = now;
+        stopScan();
+        startScan();
+    }
+
+    // Fetches the results the Bluetooth chip has stored for the batch scan, every second
+    private final Runnable mFlushBatchScan = new Runnable() {
+        @WorkerThread
+        @Override
+        public void run() {
+            final BluetoothLeScanner scanner = getScanner();
+            if (!mBatchScanStarted || scanner == null) {
+                return;
+            }
+            try {
+                scanner.flushPendingScanResults(getNewLeScanCallback());
+            } catch (IllegalStateException e) {
+                LogManager.w(TAG, "Cannot flush batch scan results. Bluetooth may be turned off.");
+            } catch (SecurityException e) {
+                LogManager.w(TAG, "Cannot flush batch scan results.  Security Exception: " + e.getMessage());
+            }
+            mScanHandler.postDelayed(this, BATCH_FLUSH_INTERVAL_MILLIS);
+        }
+    };
+
     @MainThread
     public void stop() {
         super.stop();
@@ -258,9 +454,14 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                         LogManager.d(TAG, "Scanning already started stopping to avoid start failure.");
                         scanner.stopScan(scanCallback);
                         mScanningStarted = false;
+                        mBatchScanStarted = false;
                     }
                     scanner.startScan(filters, settings, scanCallback);
                     mScanningStarted = true;
+                    if (settings.getReportDelayMillis() > 0) {
+                        mBatchScanStarted = true;
+                        mScanHandler.postDelayed(mFlushBatchScan, BATCH_FLUSH_INTERVAL_MILLIS);
+                    }
                 } catch (IllegalStateException e) {
                     LogManager.w(TAG, "Cannot start scan. Bluetooth may be turned off.");
                 } catch (NullPointerException npe) {
@@ -294,6 +495,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                 try {
                     LogManager.d(TAG, "Stopping LE scan on scan handler");
                     mScanningStarted = false;
+                    mBatchScanStarted = false;
                     scanner.stopScan(scanCallback);
                 } catch (IllegalStateException e) {
                     LogManager.w(TAG, "Cannot stop scan. Bluetooth may be turned off.");
@@ -377,6 +579,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
                     if (mBackgroundLScanStartTime > 0) {
                         LogManager.d(TAG, "got a filtered batch scan result in the background.");
                     }
+                    restartBatchScanAfterGap(results);
                 }
 
                 @MainThread
@@ -426,6 +629,9 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
         public void onReceive(Context context, Intent intent) {
             if (!mMainScanCycleActive) {
                 LogManager.d(TAG, "Screen has gone off while outside the main scan cycle.  We will do nothing.");
+            }
+            else if (mBatchScanStarted) {
+                LogManager.d(TAG, "Screen has gone off during a batch scan, which already has non-empty filters.  We will do nothing.");
             }
             else {
                 LogManager.d(TAG, "Screen has gone off while using a wildcard scan filter.  Restarting scanner with non-empty filters.");

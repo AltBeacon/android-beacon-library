@@ -28,6 +28,7 @@ import org.altbeacon.bluetooth.BluetoothCrashResolver;
 import org.altbeacon.bluetooth.BluetoothMedic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @TargetApi(21)
@@ -57,6 +58,15 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     // 19.2 s on a Pixel 9), so a longer gap means that two listens in a row got nothing
     private static final long BATCH_GAP_MILLIS = 25000l;
     private static final long MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS = 60000l;
+    // Results less than this apart come from the same listen (the screen-off mode listens 512 ms)
+    private static final long BATCH_LISTEN_MILLIS = 600l;
+    // Low power listens every 1.4 s and the screen-off mode every 10.24 s, so results from two
+    // listens less than this apart show that the chip is not at the screen-off rate
+    private static final long SCREEN_OFF_LISTEN_GAP_MILLIS = 9000l;
+    // How many gaps of 9 to 25 s in a row, with no shorter one between them, show the screen-off rate
+    private static final int SCREEN_OFF_GAPS_BEFORE_RESTART = 4;
+    // While the screen-off rate stays after a restart, the wait for the next one doubles up to this
+    private static final long MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS = 16 * 60000l;
 
     private BluetoothLeScanner mScanner;
     private ScanCallback leScanCallback;
@@ -72,6 +82,10 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
     // (elapsedRealtime), on the main thread
     private long mLastBatchResultTime = 0l;
     private long mLastBatchGapRestartTime = 0l;
+    // Gaps in a row at the screen-off rate, and the wait before the next restart for them, on the
+    // main thread
+    private int mScreenOffGapCount = 0;
+    private long mScreenOffRestartIntervalMillis = MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS;
     // Whether the phone has Google's Bluetooth module, null until checked
     private Boolean mHasGoogleBluetoothStack = null;
 
@@ -225,6 +239,7 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
             filters = new ScanFilterUtils().createScanFiltersForBeaconParsers(
                     mBeaconManager.getBeaconParsers());
             mLastBatchResultTime = 0l;
+            mScreenOffGapCount = 0;
         } else {
             LogManager.d(TAG, "starting a scan in SCAN_MODE_LOW_LATENCY");
             settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)).build();
@@ -335,27 +350,57 @@ public class CycledLeScannerForLollipop extends CycledLeScanner {
      * goes on with 512 ms of every 10.24 s, or delivers nothing, until the scan starts again.
      * Gaps of 10 and 20 s are also normal while the stack holds the scan in its screen-off mode
      * after the allowance runs out, and starting the scan again then can make the chip refuse the
-     * parameters itself (a Pixel 9 delivered nothing after such a restart).  So only a result after
-     * a longer gap than two of those listens starts the scan again, at most once a minute.
+     * parameters itself (a Pixel 9 delivered nothing after such a restart).
+     * So the scan starts again, at most once a minute:
+     * - after a gap longer than two of those listens: the chip delivers nothing;
+     * - after SCREEN_OFF_GAPS_BEFORE_RESTART gaps of about 10 or 20 s in a row: the chip runs at
+     *   the screen-off rate.  The app can't tell the chip bug from the stack's own screen-off mode,
+     *   so while that rate stays after a restart, the wait before the next one doubles, up to
+     *   MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS.  Results from listens less than 9 s apart show the
+     *   chip is back at the low power rate, and reset the wait.
      */
     @MainThread
     private void restartBatchScanAfterGap(List<ScanResult> results) {
+        long[] heardTimes = new long[results.size()];
+        for (int i = 0; i < heardTimes.length; i++) {
+            heardTimes[i] = results.get(i).getTimestampNanos() / 1000000;
+        }
+        Arrays.sort(heardTimes);
         long longestGap = 0l;
-        for (ScanResult scanResult : results) {
-            long heardTime = scanResult.getTimestampNanos() / 1000000;
-            if (mLastBatchResultTime > 0 && heardTime - mLastBatchResultTime > longestGap) {
-                longestGap = heardTime - mLastBatchResultTime;
+        for (long heardTime : heardTimes) {
+            long gap = mLastBatchResultTime > 0 ? heardTime - mLastBatchResultTime : 0l;
+            if (gap > BATCH_LISTEN_MILLIS) {
+                // A result from a later listen
+                if (gap < SCREEN_OFF_LISTEN_GAP_MILLIS) {
+                    mScreenOffGapCount = 0;
+                    mScreenOffRestartIntervalMillis = MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS;
+                } else if (gap <= BATCH_GAP_MILLIS) {
+                    mScreenOffGapCount++;
+                }
+                longestGap = Math.max(longestGap, gap);
             }
             mLastBatchResultTime = Math.max(mLastBatchResultTime, heardTime);
         }
-        long now = SystemClock.elapsedRealtime();
-        if (mBatchScanStarted && mMainScanCycleActive && longestGap > BATCH_GAP_MILLIS &&
-                now - mLastBatchGapRestartTime >= MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS) {
-            mLastBatchGapRestartTime = now;
-            LogManager.d(TAG, "Restarting the batch scan after a gap of %s ms", longestGap);
-            stopScan();
-            startScan();
+        if (!mBatchScanStarted || !mMainScanCycleActive) {
+            return;
         }
+        long now = SystemClock.elapsedRealtime();
+        long sinceLastRestart = now - mLastBatchGapRestartTime;
+        if (longestGap > BATCH_GAP_MILLIS && sinceLastRestart >= MIN_BATCH_GAP_RESTART_INTERVAL_MILLIS) {
+            LogManager.d(TAG, "Restarting the batch scan after a gap of %s ms", longestGap);
+        } else if (mScreenOffGapCount >= SCREEN_OFF_GAPS_BEFORE_RESTART &&
+                sinceLastRestart >= mScreenOffRestartIntervalMillis) {
+            LogManager.d(TAG, "Restarting the batch scan after %s gaps in a row at the screen-off rate, " +
+                    "next time no sooner than %s ms after this", mScreenOffGapCount,
+                    Math.min(mScreenOffRestartIntervalMillis * 2, MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS));
+            mScreenOffRestartIntervalMillis = Math.min(mScreenOffRestartIntervalMillis * 2,
+                    MAX_SCREEN_OFF_RESTART_INTERVAL_MILLIS);
+        } else {
+            return;
+        }
+        mLastBatchGapRestartTime = now;
+        stopScan();
+        startScan();
     }
 
     // Fetches the results the Bluetooth chip has stored for the batch scan, every second
